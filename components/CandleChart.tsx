@@ -16,12 +16,13 @@ interface Props {
   tp: number
   sl: number
   direction: string
+  analyzedAt?: number | null
   entryTriggeredAt?: number | null
   resultAt?: number | null
   simResult?: string | null
 }
 
-export default function CandleChart({ candles, entry, tp, sl, direction, entryTriggeredAt, resultAt, simResult }: Props) {
+export default function CandleChart({ candles, entry, tp, sl, direction, analyzedAt, entryTriggeredAt, resultAt, simResult }: Props) {
   const chartRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -38,7 +39,7 @@ export default function CandleChart({ candles, entry, tp, sl, direction, entryTr
         height: 380,
         layout: {
           background: { color: '#111111' },
-          textColor: '#666666',
+          textColor: '#555555',
         },
         grid: {
           vertLines: { color: '#1a1a1a' },
@@ -46,23 +47,23 @@ export default function CandleChart({ candles, entry, tp, sl, direction, entryTr
         },
         crosshair: { mode: CrosshairMode.Normal },
         rightPriceScale: {
-          borderColor: '#222222',
-          textColor: '#666666',
+          borderColor: '#242424',
+          textColor: '#555555',
         },
         timeScale: {
-          borderColor: '#222222',
+          borderColor: '#242424',
           timeVisible: true,
           secondsVisible: false,
         },
       })
 
       const candleSeries = chart.addCandlestickSeries({
-        upColor: '#22c55e',
-        downColor: '#ef4444',
-        borderUpColor: '#22c55e',
-        borderDownColor: '#ef4444',
-        wickUpColor: '#16a34a',
-        wickDownColor: '#dc2626',
+        upColor: '#4ade80',
+        downColor: '#f87171',
+        borderUpColor: '#4ade80',
+        borderDownColor: '#f87171',
+        wickUpColor: '#22c55e',
+        wickDownColor: '#ef4444',
       })
 
       const formatted = candles.map(c => ({
@@ -74,60 +75,70 @@ export default function CandleChart({ candles, entry, tp, sl, direction, entryTr
       }))
       candleSeries.setData(formatted)
 
-      // Entry line
       const entryLine = chart.addLineSeries({
-        color: '#f59e0b',
+        color: '#fbbf24',
         lineWidth: 1,
         lineStyle: LineStyle.Dashed,
         priceLineVisible: false,
         lastValueVisible: true,
         title: `Entry ${entry.toLocaleString()}`,
       })
-      entryLine.setData(formatted.map(d => ({ time: d.time, value: entry })))
+      entryLine.setData(formatted.map((d: any) => ({ time: d.time, value: entry })))
 
-      // TP line
       const tpLine = chart.addLineSeries({
-        color: '#22c55e',
+        color: '#4ade80',
         lineWidth: 1,
         lineStyle: LineStyle.Dashed,
         priceLineVisible: false,
         lastValueVisible: true,
         title: `TP ${tp.toLocaleString()}`,
       })
-      tpLine.setData(formatted.map(d => ({ time: d.time, value: tp })))
+      tpLine.setData(formatted.map((d: any) => ({ time: d.time, value: tp })))
 
-      // SL line
       const slLine = chart.addLineSeries({
-        color: '#ef4444',
+        color: '#f87171',
         lineWidth: 1,
         lineStyle: LineStyle.Dashed,
         priceLineVisible: false,
         lastValueVisible: true,
         title: `SL ${sl.toLocaleString()}`,
       })
-      slLine.setData(formatted.map(d => ({ time: d.time, value: sl })))
+      slLine.setData(formatted.map((d: any) => ({ time: d.time, value: sl })))
 
-      // Entry triggered marker
+      const markers: any[] = []
+
+      if (analyzedAt) {
+        markers.push({
+          time: Math.floor(analyzedAt / 1000) as any,
+          position: 'aboveBar',
+          color: '#6366f1',
+          shape: 'arrowDown',
+          text: 'Analiz',
+        })
+      }
+
       if (entryTriggeredAt) {
-        const entryTs = Math.floor(entryTriggeredAt / 1000)
-        candleSeries.setMarkers([
-          {
-            time: entryTs as any,
-            position: direction === 'SHORT' ? 'aboveBar' : 'belowBar',
-            color: '#f59e0b',
-            shape: direction === 'SHORT' ? 'arrowDown' : 'arrowUp',
-            text: 'Entry',
-          },
-          ...(resultAt ? [{
-            time: Math.floor(resultAt / 1000) as any,
-            position: simResult === 'TP_HIT'
-              ? (direction === 'SHORT' ? 'belowBar' : 'aboveBar')
-              : 'aboveBar',
-            color: simResult === 'TP_HIT' ? '#22c55e' : '#ef4444',
-            shape: 'circle' as any,
-            text: simResult === 'TP_HIT' ? 'TP' : 'SL',
-          }] : []),
-        ])
+        markers.push({
+          time: Math.floor(entryTriggeredAt / 1000) as any,
+          position: direction === 'SHORT' ? 'aboveBar' : 'belowBar',
+          color: '#fbbf24',
+          shape: direction === 'SHORT' ? 'arrowDown' : 'arrowUp',
+          text: 'Entry',
+        })
+      }
+
+      if (resultAt) {
+        markers.push({
+          time: Math.floor(resultAt / 1000) as any,
+          position: simResult === 'TP_HIT' ? (direction === 'SHORT' ? 'belowBar' : 'aboveBar') : 'aboveBar',
+          color: simResult === 'TP_HIT' ? '#4ade80' : '#f87171',
+          shape: 'circle' as any,
+          text: simResult === 'TP_HIT' ? 'TP' : 'SL',
+        })
+      }
+
+      if (markers.length > 0) {
+        candleSeries.setMarkers(markers)
       }
 
       chart.timeScale().fitContent()
@@ -144,7 +155,12 @@ export default function CandleChart({ candles, entry, tp, sl, direction, entryTr
       cleanup = true
       if (chart) chart.remove()
     }
-  }, [candles, entry, tp, sl, direction, entryTriggeredAt, resultAt, simResult])
+  }, [candles, entry, tp, sl, direction, analyzedAt, entryTriggeredAt, resultAt, simResult])
 
-  return <div ref={chartRef} style={{ width: '100%', borderRadius: '6px', overflow: 'hidden', border: '1px solid #222' }} />
+  return (
+    <div
+      ref={chartRef}
+      style={{ width: '100%', borderRadius: '6px', overflow: 'hidden', border: '1px solid #242424' }}
+    />
+  )
 }
