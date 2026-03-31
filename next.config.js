@@ -1,3 +1,4 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {}
-module.exports = nextConfig
+.env
+.env.local
+node_modules/
+.next/

@@ -1,1 +1,29 @@
-module.exports = { plugins: { tailwindcss: {}, autoprefixer: {} } }
+{
+  "name": "hakari-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "14.2.3",
+    "react": "^18",
+    "react-dom": "^18",
+    "pg": "^8.11.5",
+    "chart.js": "^4.4.1",
+    "react-chartjs-2": "^5.2.0",
+    "lightweight-charts": "^4.1.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/pg": "^8.11.5",
+    "typescript": "^5",
+    "tailwindcss": "^3.4.1",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38"
+  }
+}
