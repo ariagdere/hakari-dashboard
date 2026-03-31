@@ -111,14 +111,14 @@ export default function Dashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 8, marginBottom: 20 }}>
             {[
               { label: 'Toplam', value: stats.total, color: 'var(--text)' },
-              { label: 'Win Rate', value: stats.win_rate ? `%${stats.win_rate}` : '—', color: (stats.win_rate ?? 0) >= 50 ? 'var(--green)' : 'var(--red)' },
+              { label: 'Win Rate', value: stats.win_rate ? `%${stats.win_rate}` : '—', color: Number(stats.win_rate ?? 0) >= 50 ? 'var(--green)' : 'var(--red)' },
               { label: 'TP Hit', value: stats.tp_count, color: 'var(--green)' },
               { label: 'SL Hit', value: stats.sl_count, color: 'var(--red)' },
               { label: 'Expired', value: stats.expired_count, color: 'var(--amber)' },
               { label: 'No Entry', value: stats.no_entry_count, color: 'var(--text-2)' },
               { label: 'Bekleyen', value: stats.pending_count, color: 'var(--text-3)' },
               { label: 'Toplam PnL', value: stats.total_pnl != null ? `${stats.total_pnl > 0 ? '+' : ''}$${Math.abs(stats.total_pnl).toFixed(2)}` : '—', color: stats.total_pnl > 0 ? 'var(--green)' : stats.total_pnl < 0 ? 'var(--red)' : 'var(--text)' },
-              { label: 'Ort. PnL', value: stats.avg_pnl != null ? `${stats.avg_pnl > 0 ? '+' : ''}$${Math.abs(stats.avg_pnl).toFixed(2)}` : '—', color: (stats.avg_pnl ?? 0) > 0 ? 'var(--green)' : 'var(--red)' },
+              { label: 'Ort. PnL', value: stats.avg_pnl != null ? `${stats.avg_pnl > 0 ? '+' : ''}$${Math.abs(stats.avg_pnl).toFixed(2)}` : '—', color: Number(stats.avg_pnl ?? 0) > 0 ? 'var(--green)' : 'var(--red)' },
               { label: 'Ort. Güven', value: stats.avg_confidence ? `%${stats.avg_confidence}` : '—', color: 'var(--text)' },
               { label: 'Ort. Skor', value: stats.avg_score ? `${stats.avg_score}/10` : '—', color: 'var(--text)' },
             ].map((s, i) => (
