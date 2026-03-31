@@ -12,7 +12,9 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const row = result.rows[0]
   if (row.candles_json && typeof row.candles_json === 'string') {
     try {
-      row.candles_json = JSON.parse(row.candles_json)
+      // Make başına [ sonuna ] koymadığı için biz ekliyoruz
+      const fixed = '[' + row.candles_json + ']'
+      row.candles_json = JSON.parse(fixed)
     } catch {
       row.candles_json = []
     }
