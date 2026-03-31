@@ -8,5 +8,14 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     [id]
   )
   if (!result.rows[0]) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  return NextResponse.json(result.rows[0])
+  
+  const row = result.rows[0]
+  if (row.candles_json && typeof row.candles_json === 'string') {
+    try {
+      row.candles_json = JSON.parse(row.candles_json)
+    } catch {
+      row.candles_json = []
+    }
+  }
+  return NextResponse.json(row)
 }
