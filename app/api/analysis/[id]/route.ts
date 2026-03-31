@@ -21,3 +21,14 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   }
   return NextResponse.json(row)
 }
+
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+  const { id } = params
+  const body = await req.json()
+  const { notes } = body
+  await pool.query(
+    `UPDATE btc_analysis SET notes = $1 WHERE id = $2`,
+    [notes, id]
+  )
+  return NextResponse.json({ ok: true })
+}
