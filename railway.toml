@@ -7,9 +7,3 @@ healthcheckPath = "/"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
-```
-
-**Railway Variables'a da şunu ekle (yoksa):**
-```
-PORT = 3000
-HOSTNAME = 0.0.0.0
