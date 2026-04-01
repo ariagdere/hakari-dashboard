@@ -61,10 +61,10 @@ export default function MktPage() {
 
       {/* Header — Hakari stilinde */}
       <div style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-2)', flexShrink: 0 }}>
-        <div style={{ height: 48, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px' }}>
+        <div style={{ height: 48, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', overflow: 'hidden' }}>
 
           {/* Sol: Logo + Nav */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 0, flexShrink: 0 }}>
             <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--text)', marginRight: 14 }}>HAKARI</span>
             <Link
               href="/dashboard"
@@ -79,20 +79,20 @@ export default function MktPage() {
             </span>
           </div>
 
-          {/* Orta: NYSE + TF butonları */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {/* NYSE status */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {/* Sağ: kontroller */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, overflow: 'hidden', minWidth: 0 }}>
+            {/* NYSE status — mobilde gizli */}
+            <div className="mkt-nyse" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: nyseOpen ? 'var(--green)' : 'var(--text-3)', display: 'inline-block', flexShrink: 0, animation: nyseOpen ? 'pulse-dot 2s ease-in-out infinite' : 'none' }} />
-              <span className="mono" style={{ fontSize: 10, color: nyseOpen ? 'var(--green)' : 'var(--text-3)' }}>
+              <span className="mono" style={{ fontSize: 10, color: nyseOpen ? 'var(--green)' : 'var(--text-3)', whiteSpace: 'nowrap' }}>
                 NYSE {nyseOpen ? 'AÇIK' : 'KAPALI'}
               </span>
             </div>
 
-            <div style={{ width: 1, height: 16, background: 'var(--border)' }} />
+            <div className="mkt-nyse" style={{ width: 1, height: 16, background: 'var(--border)', flexShrink: 0 }} />
 
             {/* TF butonları */}
-            <div style={{ display: 'flex', gap: 2 }}>
+            <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
               {TF_OPTIONS.map(t => (
                 <button
                   key={t.value}
@@ -105,21 +105,19 @@ export default function MktPage() {
               ))}
             </div>
 
-            <div style={{ width: 1, height: 16, background: 'var(--border)' }} />
-
-            {/* Toolbar toggle */}
+            {/* Toolbar toggle — mobilde gizli */}
+            <div className="mkt-nyse" style={{ width: 1, height: 16, background: 'var(--border)', flexShrink: 0 }} />
             <button
+              className={`filter-btn mkt-nyse${toolbar ? ' active' : ''}`}
               onClick={() => setToolbar(t => !t)}
-              className={`filter-btn${toolbar ? ' active' : ''}`}
-              style={{ padding: '3px 8px', fontSize: 10 }}
+              style={{ padding: '3px 8px', fontSize: 10, flexShrink: 0 }}
             >
               TOOLBAR
             </button>
 
-            <div style={{ width: 1, height: 16, background: 'var(--border)' }} />
-
-            {/* Saat */}
-            <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{clock}</span>
+            {/* Saat — mobilde gizli */}
+            <div className="mkt-nyse" style={{ width: 1, height: 16, background: 'var(--border)', flexShrink: 0 }} />
+            <span className="mono mkt-nyse" style={{ fontSize: 10, color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{clock}</span>
           </div>
         </div>
       </div>
@@ -168,6 +166,7 @@ export default function MktPage() {
           50% { opacity: 0.3; }
         }
         @media (max-width: 768px) {
+          .mkt-nyse { display: none !important; }
           .mkt-root {
             height: auto !important;
             overflow: visible !important;
