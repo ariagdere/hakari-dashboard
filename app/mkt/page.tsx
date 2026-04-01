@@ -57,7 +57,7 @@ export default function MktPage() {
   const renderKey = `${tf}-${toolbar}`
 
   return (
-    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', overflow: 'hidden' }}>
+    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', overflow: 'hidden' }} className="mkt-root">
 
       {/* Header — Hakari stilinde */}
       <div style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-2)', flexShrink: 0 }}>
@@ -133,7 +133,7 @@ export default function MktPage() {
         gap: 1,
         background: 'var(--border)',
         overflow: 'hidden',
-      }}>
+      }} className="mkt-grid">
         {ASSETS.map(asset => {
           const src = `https://s.tradingview.com/widgetembed/?frameElementId=tv_${asset.symbol}&symbol=${encodeURIComponent(asset.tv)}&interval=${tf}&hidesidetoolbar=1&hidetoptoolbar=${toolbar ? 0 : 1}&symboledit=0&saveimage=0&toolbarbg=0a0a0b&studies=[]&theme=dark&style=1&timezone=Europe%2FIstanbul&withdateranges=0&showpopupbutton=0&hide_legend=1&hide_volume=1&locale=tr`
           return (
@@ -168,9 +168,19 @@ export default function MktPage() {
           50% { opacity: 0.3; }
         }
         @media (max-width: 768px) {
+          .mkt-root {
+            height: auto !important;
+            overflow: visible !important;
+          }
           .mkt-grid {
             grid-template-columns: 1fr !important;
             grid-template-rows: none !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+          }
+          .mkt-grid > div {
+            height: 280px;
+            min-height: 280px;
           }
         }
       `}</style>
