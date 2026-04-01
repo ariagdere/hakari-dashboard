@@ -1,7 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { use } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 
 const CandleChart = dynamic(() => import('@/components/CandleChart'), { ssr: false })
@@ -87,8 +86,9 @@ function ScoreCard({ label, value, color, sub }: { label: string; value: any; co
   )
 }
 
-export default function AnalysisPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+export default function AnalysisPage() {
+  const params = useParams()
+  const id = params.id as string
   const router = useRouter()
   const [data, setData] = useState<Analysis | null>(null)
   const [loading, setLoading] = useState(true)
