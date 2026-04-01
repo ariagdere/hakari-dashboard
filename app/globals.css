@@ -85,10 +85,10 @@ body {
 .filter-btn:hover { border-color: var(--border-3); color: var(--text-2); }
 .filter-btn.active { border-color: var(--border-3); color: var(--text); background: var(--bg-3); }
 
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 50; display: flex; align-items: flex-start; justify-content: center; padding: 16px; overflow-y: auto; backdrop-filter: blur(6px); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 50; display: flex; align-items: flex-start; justify-content: center; padding: 16px; overflow-y: auto; overflow-x: hidden; backdrop-filter: blur(6px); }
 .modal { background: var(--bg-2); border: 1px solid var(--border-2); border-radius: 12px; width: 100%; max-width: 1020px; padding: 28px; position: relative; margin: auto; }
 
-.scorecard-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 1px; background: var(--border); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+.scorecard-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 1px; background: var(--border); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); min-width: 0; }
 .scorecard-cell { background: var(--bg-3); padding: 12px 14px; }
 
 .tab-btn { padding: 8px 16px; font-size: 12px; font-family: 'DM Mono', monospace; background: transparent; border: none; color: var(--text-3); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; letter-spacing: 0.05em; }
@@ -111,13 +111,54 @@ body {
 .mobile-card { display: none; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; cursor: pointer; transition: background 0.1s; margin-bottom: 6px; }
 .mobile-card:hover { background: var(--bg-3); }
 
+.synthesis-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.reasons-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.charts-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
 @media (max-width: 768px) {
-  .container { padding: 0 16px; }
-  .scorecard-grid { grid-template-columns: repeat(3, 1fr); }
-  .row-item { display: none; }
+  .container { padding: 0 12px; }
+
+  .row-item { display: none !important; }
   .mobile-card { display: block; }
-  .screenshot-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .scorecard-grid { grid-template-columns: repeat(3, 1fr); }
+  .scorecard-cell { padding: 10px; min-width: 0; word-break: break-word; }
+  .scorecard-cell .mono { font-size: 13px !important; }
+
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+    overflow-y: hidden;
+  }
+  .modal {
+    padding: 20px 16px;
+    border-radius: 20px 20px 0 0;
+    max-width: 100%;
+    width: 100%;
+    height: 94vh;
+    max-height: 94vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .data-grid { grid-template-columns: 1fr; }
-  .modal { padding: 16px; }
-  .modal-overlay { padding: 8px; }
+  .synthesis-2col { grid-template-columns: 1fr; }
+  .reasons-3col { grid-template-columns: 1fr; }
+  .charts-2col { grid-template-columns: 1fr; }
+  .screenshot-grid { grid-template-columns: repeat(2, 1fr); }
+  .filter-btn { font-size: 10px; padding: 4px 8px; }
+
+  .card { overflow-x: hidden; }
+  .synthesis-block { font-size: 12px; word-break: break-word; }
+
+  /* stat card grid 2-col on mobile */
+  .stat-card { padding: 12px 12px; }
+}
+
+/* Charts two-col grid */
+.charts-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 640px) {
+  .charts-2col { grid-template-columns: 1fr; }
 }
