@@ -131,7 +131,7 @@ export default function Dashboard() {
         )}
 
         {stats && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+          <div className="charts-2col" style={{ marginBottom: 20 }}>
             <div className="card" style={{ padding: 20 }}>
               <div className="section-title" style={{ marginBottom: 12 }}>Yön Dağılımı</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
@@ -174,7 +174,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: 6, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap', overflowX: 'auto', paddingBottom: 2 }}>
           <span className="col-label" style={{ marginRight: 2 }}>Yön:</span>
           {['ALL', 'SHORT', 'LONG'].map(d => (
             <button key={d} className={`filter-btn${dirFilter === d ? ' active' : ''}`} onClick={() => { setDirFilter(d); setPage(1) }}>{d}</button>
@@ -221,6 +221,56 @@ export default function Dashboard() {
               <span className={`mono ${a.sim_r_multiple != null ? pnlClass(a.sim_r_multiple) : 'pnl-zero'}`} style={{ fontSize: 12 }}>
                 {fmtR(a.sim_r_multiple)}
               </span>
+            </div>
+          ))}
+
+          {!loading && analyses.map(a => (
+            <div key={`m-${a.id}`} className="mobile-card" onClick={() => setSelectedId(a.id)}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {dirBadge(a.direction)}
+                  {resultBadge(a.sim_result)}
+                </div>
+                <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{fmtDate(a.analyzed_at)}</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
+                <div>
+                  <div className="col-label" style={{ marginBottom: 3 }}>Giriş</div>
+                  <div className="price" style={{ fontSize: 13 }}>${fmt(a.entry)}</div>
+                </div>
+                <div>
+                  <div className="col-label" style={{ marginBottom: 3 }}>TP</div>
+                  <div className="mono" style={{ fontSize: 13, color: 'var(--green)' }}>${fmt(a.tp)}</div>
+                </div>
+                <div>
+                  <div className="col-label" style={{ marginBottom: 3 }}>SL</div>
+                  <div className="mono" style={{ fontSize: 13, color: 'var(--red)' }}>${fmt(a.sl)}</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div>
+                  <span className="col-label">R/R </span>
+                  <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rr}</span>
+                </div>
+                <div>
+                  <span className="col-label">Skor </span>
+                  <span className="mono" style={{ fontSize: 12 }}>{a.market_score_value}/10</span>
+                </div>
+                <div>
+                  <span className="col-label">Güven </span>
+                  <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>%{a.confidence_value}</span>
+                </div>
+                {a.sim_pnl_usd != null && (
+                  <div style={{ marginLeft: 'auto' }}>
+                    <span className={`mono ${pnlClass(a.sim_pnl_usd)}`} style={{ fontSize: 13, fontWeight: 500 }}>
+                      {a.sim_pnl_usd > 0 ? '+' : ''}${Math.abs(a.sim_pnl_usd).toFixed(2)}
+                    </span>
+                    <span className={`mono ${a.sim_r_multiple != null ? pnlClass(a.sim_r_multiple) : 'pnl-zero'}`} style={{ fontSize: 11, marginLeft: 6 }}>
+                      {fmtR(a.sim_r_multiple)}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>
