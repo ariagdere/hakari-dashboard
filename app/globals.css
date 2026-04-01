@@ -156,9 +156,3 @@ body {
   /* stat card grid 2-col on mobile */
   .stat-card { padding: 12px 12px; }
 }
-
-/* Charts two-col grid */
-.charts-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-@media (max-width: 640px) {
-  .charts-2col { grid-template-columns: 1fr; }
-}
