@@ -1,12 +1,10 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
-import dynamic from 'next/dynamic'
+import { useRouter } from 'next/navigation'
 import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js'
 import { Doughnut } from 'react-chartjs-2'
 
 ChartJS.register(ArcElement, Tooltip)
-
-const AnalysisModal = dynamic(() => import('@/components/AnalysisModal'), { ssr: false })
 
 interface AnalysisSummary {
   id: number
@@ -59,10 +57,10 @@ const fmtDate = (s: string) => new Date(s).toLocaleString('tr-TR', { day: '2-dig
 const fmtR = (v: number | null) => v == null ? '—' : (v > 0 ? '+' : '') + v.toFixed(2) + 'R'
 
 export default function Dashboard() {
+  const router = useRouter()
   const [analyses, setAnalyses] = useState<AnalysisSummary[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
-  const [selectedId, setSelectedId] = useState<number | null>(null)
   const [dirFilter, setDirFilter] = useState('ALL')
   const [resultFilter, setResultFilter] = useState('ALL')
   const [page, setPage] = useState(1)
@@ -205,7 +203,7 @@ export default function Dashboard() {
           {!loading && analyses.length === 0 && <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }} className="mono">kayıt bulunamadı</div>}
 
           {!loading && analyses.map(a => (
-            <div key={`d-${a.id}`} className="row-item" onClick={() => setSelectedId(a.id)}>
+            <div key={`d-${a.id}`} className="row-item" onClick={() => router.push(`/dashboard/${a.id}`)}>
               <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{fmtDate(a.analyzed_at)}</span>
               <span>{dirBadge(a.direction)}</span>
               <span className="price">${fmt(a.entry)}</span>
@@ -225,7 +223,7 @@ export default function Dashboard() {
           ))}
 
           {!loading && analyses.map(a => (
-            <div key={`m-${a.id}`} className="mobile-card" onClick={() => setSelectedId(a.id)}>
+            <div key={`m-${a.id}`} className="mobile-card" onClick={() => router.push(`/dashboard/${a.id}`)}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {dirBadge(a.direction)}
@@ -283,8 +281,6 @@ export default function Dashboard() {
           </div>
         )}
       </div>
-
-      {selectedId && <AnalysisModal id={selectedId} onClose={() => setSelectedId(null)} />}
     </div>
   )
 }
