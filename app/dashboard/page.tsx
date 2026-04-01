@@ -1,47 +1,40 @@
 'use client'
-import { useEffect, useState } from 'react'
-import { useRouter, useParams } from 'next/navigation'
-import dynamic from 'next/dynamic'
+import { useEffect, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js'
+import { Doughnut } from 'react-chartjs-2'
 
-const CandleChart = dynamic(() => import('@/components/CandleChart'), { ssr: false })
+ChartJS.register(ArcElement, Tooltip)
 
-interface Analysis {
-  id: number; analyzed_at: string; direction: string; order_type: string
-  entry: number; tp: number; sl: number; rr: string
-  risk_usd: number; position_size_btc: number
-  market_score_value: number; confidence_value: number; rsi_4h: number
-  sim_result: string; sim_pnl_usd: number; sim_r_multiple: number
-  sim_entry_to_result_minutes: number
-  sim_entry_triggered_at: string; sim_result_at: string
-  sim_max_favorable_move: number; sim_max_adverse_move: number
-  synthesis_h1: string; synthesis_m5: string; synthesis_mtf: string
-  h1_global_ls_ratio_comment: string; h1_global_ls_ratio_is_critical: boolean
-  h1_top_trader_accounts_comment: string; h1_top_trader_accounts_is_critical: boolean
-  h1_top_trader_positions_comment: string; h1_top_trader_positions_is_critical: boolean
-  h1_open_interest_comment: string; h1_open_interest_is_critical: boolean
-  h1_oi_marketcap_ratio_comment: string; h1_oi_marketcap_ratio_is_critical: boolean
-  m5_global_ls_ratio_comment: string; m5_global_ls_ratio_is_critical: boolean
-  m5_top_trader_accounts_comment: string; m5_top_trader_accounts_is_critical: boolean
-  m5_top_trader_positions_comment: string; m5_top_trader_positions_is_critical: boolean
-  m5_open_interest_comment: string; m5_open_interest_is_critical: boolean
-  m5_oi_marketcap_ratio_comment: string; m5_oi_marketcap_ratio_is_critical: boolean
-  market_score_reason_1: string; market_score_reason_2: string
-  market_score_reason_3: string; market_score_reason_4: string
-  confidence_reason_1: string; confidence_reason_2: string
-  confidence_reason_3: string; confidence_reason_4: string
-  upside_zone_1: string; upside_comment_1: string
-  upside_zone_2: string; upside_comment_2: string
-  downside_zone_1: string; downside_comment_1: string
-  downside_zone_2: string; downside_comment_2: string
-  liquidity_summary_note: string
-  entry_reason: string; tp_reason: string; sl_reason: string
-  spot_pct: number; leverage_pct: number; market_power_comment: string
-  candles_json: any[]
-  notes: string
-  screenshot_01_url: string; screenshot_02_url: string; screenshot_03_url: string
-  screenshot_04_url: string; screenshot_05_url: string; screenshot_06_url: string
-  screenshot_07_url: string; screenshot_08_url: string; screenshot_09_url: string
-  screenshot_10_url: string; screenshot_11_url: string; screenshot_12_url: string
+interface AnalysisSummary {
+  id: number
+  analyzed_at: string
+  direction: string
+  entry: number
+  tp: number
+  sl: number
+  rr: string
+  market_score_value: number
+  confidence_value: number
+  sim_result: string
+  sim_pnl_usd: number
+  sim_r_multiple: number
+}
+
+interface Stats {
+  total: number
+  tp_count: number
+  sl_count: number
+  expired_count: number
+  no_entry_count: number
+  pending_count: number
+  avg_pnl: number
+  total_pnl: number
+  win_rate: number
+  short_count: number
+  long_count: number
+  avg_confidence: number
+  avg_score: number
 }
 
 const dirBadge = (d: string) => {
@@ -51,329 +44,243 @@ const dirBadge = (d: string) => {
 }
 
 const resultBadge = (r: string) => {
-  if (!r) return <span className="badge badge-pend">—</span>
-  if (r === 'TP_HIT') return <span className="badge badge-tp">TP HIT</span>
-  if (r === 'SL_HIT') return <span className="badge badge-sl">SL HIT</span>
-  if (r === 'EXPIRED') return <span className="badge badge-exp">EXPIRED</span>
-  return <span className="badge badge-ne">NO ENTRY</span>
+  if (!r) return <span className="badge badge-pend">BEKL.</span>
+  if (r === 'TP_HIT') return <span className="badge badge-tp">TP</span>
+  if (r === 'SL_HIT') return <span className="badge badge-sl">SL</span>
+  if (r === 'EXPIRED') return <span className="badge badge-exp">EXP</span>
+  return <span className="badge badge-ne">N/E</span>
 }
 
 const pnlClass = (v: number) => v > 0 ? 'pnl-pos' : v < 0 ? 'pnl-neg' : 'pnl-zero'
 const fmt = (n: number) => n?.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) ?? '—'
-const fmtDate = (s: string) => new Date(s).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-const fmtMins = (m: number) => { if (!m) return '—'; const h = Math.floor(m / 60); const min = m % 60; return h > 0 ? `${h}s ${min}dk` : `${min}dk` }
+const fmtDate = (s: string) => new Date(s).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 const fmtR = (v: number | null) => v == null ? '—' : (v > 0 ? '+' : '') + v.toFixed(2) + 'R'
 
-function DataRow({ label, comment, critical }: { label: string; comment: string; critical: boolean }) {
-  return (
-    <div className={`data-item${critical ? ' critical' : ''}`}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
-        <span className="col-label">{label}</span>
-        {critical && <span style={{ fontSize: 9, color: 'var(--amber)', fontFamily: 'DM Mono, monospace' }}>● KRİTİK</span>}
-      </div>
-      <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.65 }}>{comment || '—'}</p>
-    </div>
-  )
-}
-
-function ScoreCard({ label, value, color, sub }: { label: string; value: any; color?: string; sub?: string }) {
-  return (
-    <div className="scorecard-cell">
-      <div className="col-label" style={{ marginBottom: 5 }}>{label}</div>
-      <div className="mono" style={{ fontSize: 16, fontWeight: 500, color: color || 'var(--text)', lineHeight: 1.2 }}>{value}</div>
-      {sub && <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 3 }}>{sub}</div>}
-    </div>
-  )
-}
-
-export default function AnalysisPage() {
-  const params = useParams()
-  const id = params.id as string
+export default function Dashboard() {
   const router = useRouter()
-  const [data, setData] = useState<Analysis | null>(null)
+  const [analyses, setAnalyses] = useState<AnalysisSummary[]>([])
+  const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'analysis' | 'simulation'>('analysis')
-  const [notes, setNotes] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [lightbox, setLightbox] = useState<string | null>(null)
+  const [dirFilter, setDirFilter] = useState('ALL')
+  const [resultFilter, setResultFilter] = useState('ALL')
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [total, setTotal] = useState(0)
 
-  useEffect(() => {
-    fetch(`/api/analysis/${id}`)
+  const fetchAnalyses = useCallback(() => {
+    setLoading(true)
+    const params = new URLSearchParams({ direction: dirFilter, result: resultFilter, page: String(page) })
+    fetch(`/api/analyses?${params}`)
       .then(r => r.json())
-      .then(d => { setData(d); setNotes(d.notes || ''); setLoading(false) })
-  }, [id])
+      .then(d => { setAnalyses(d.analyses); setTotalPages(d.totalPages); setTotal(d.total); setLoading(false) })
+  }, [dirFilter, resultFilter, page])
 
-  useEffect(() => {
-    const fn = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { if (lightbox) setLightbox(null) }
-    }
-    window.addEventListener('keydown', fn)
-    return () => window.removeEventListener('keydown', fn)
-  }, [lightbox])
+  useEffect(() => { fetchAnalyses() }, [fetchAnalyses])
+  useEffect(() => { fetch('/api/dashboard').then(r => r.json()).then(setStats) }, [])
 
-  const saveNote = async () => {
-    setSaving(true)
-    await fetch(`/api/analysis/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ notes }) })
-    setSaving(false); setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
-  }
+  const chartOpts: any = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '68%' }
 
-  const screenshots = data ? [
-    data.screenshot_01_url, data.screenshot_02_url, data.screenshot_03_url,
-    data.screenshot_04_url, data.screenshot_05_url, data.screenshot_06_url,
-    data.screenshot_07_url, data.screenshot_08_url, data.screenshot_09_url,
-    data.screenshot_10_url, data.screenshot_11_url, data.screenshot_12_url,
-  ].filter(Boolean) : []
+  const dirChart = stats ? {
+    labels: ['SHORT', 'LONG'],
+    datasets: [{ data: [stats.short_count, stats.long_count], backgroundColor: ['#f8717133', '#4ade8033'], borderColor: ['#f87171', '#4ade80'], borderWidth: 1.5 }]
+  } : null
+
+  const resultChart = stats ? {
+    labels: ['TP', 'SL', 'Expired', 'No Entry'],
+    datasets: [{ data: [stats.tp_count, stats.sl_count, stats.expired_count, stats.no_entry_count], backgroundColor: ['#4ade8033', '#f8717133', '#fbbf2433', '#ffffff11'], borderColor: ['#4ade80', '#f87171', '#fbbf24', '#555'], borderWidth: 1.5 }]
+  } : null
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 48 }}>
-      {/* Header */}
-      <div style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-2)', position: 'sticky', top: 0, zIndex: 10 }}>
-        <div className="container" style={{ height: 48, display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button
-            onClick={() => router.back()}
-            style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-2)', cursor: 'pointer', padding: '4px 10px', fontSize: 12, fontFamily: 'DM Mono, monospace', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.1s' }}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border-3)')}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
-          >
-            ← Geri
-          </button>
-          <div style={{ width: 1, height: 20, background: 'var(--border)' }} />
-          <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--text)' }}>HAKARI</span>
-          {data && (
-            <>
-              <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>#{id}</span>
-              {dirBadge(data.direction)}
-              {resultBadge(data.sim_result)}
-              <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginLeft: 'auto' }}>{fmtDate(data.analyzed_at)}</span>
-            </>
-          )}
+      <div style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-2)' }}>
+        <div className="container" style={{ height: 48, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--text)' }}>HAKARI</span>
+            <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)', paddingLeft: 14, borderLeft: '1px solid var(--border)' }}>BTC/USDT · MTF</span>
+          </div>
+          <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>
+            {new Date().toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+          </span>
         </div>
       </div>
 
       <div className="container" style={{ paddingTop: 24 }}>
-        {loading && (
-          <div style={{ textAlign: 'center', padding: 80, color: 'var(--text-3)' }} className="mono">yükleniyor...</div>
+        {stats && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 8, marginBottom: 20 }}>
+            {[
+              { label: 'Toplam', value: stats.total, color: 'var(--text)' },
+              { label: 'Win Rate', value: stats.win_rate ? `%${stats.win_rate}` : '—', color: Number(stats.win_rate ?? 0) >= 50 ? 'var(--green)' : 'var(--red)' },
+              { label: 'TP Hit', value: stats.tp_count, color: 'var(--green)' },
+              { label: 'SL Hit', value: stats.sl_count, color: 'var(--red)' },
+              { label: 'Expired', value: stats.expired_count, color: 'var(--amber)' },
+              { label: 'No Entry', value: stats.no_entry_count, color: 'var(--text-2)' },
+              { label: 'Bekleyen', value: stats.pending_count, color: 'var(--text-3)' },
+              { label: 'Toplam PnL', value: stats.total_pnl != null ? `${stats.total_pnl > 0 ? '+' : ''}$${Math.abs(stats.total_pnl).toFixed(2)}` : '—', color: stats.total_pnl > 0 ? 'var(--green)' : stats.total_pnl < 0 ? 'var(--red)' : 'var(--text)' },
+              { label: 'Ort. PnL', value: stats.avg_pnl != null ? `${stats.avg_pnl > 0 ? '+' : ''}$${Math.abs(stats.avg_pnl).toFixed(2)}` : '—', color: Number(stats.avg_pnl ?? 0) > 0 ? 'var(--green)' : 'var(--red)' },
+              { label: 'Ort. Güven', value: stats.avg_confidence ? `%${stats.avg_confidence}` : '—', color: 'var(--text)' },
+              { label: 'Ort. Skor', value: stats.avg_score ? `${stats.avg_score}/10` : '—', color: 'var(--text)' },
+            ].map((s, i) => (
+              <div key={i} className="stat-card">
+                <div className="col-label" style={{ marginBottom: 6 }}>{s.label}</div>
+                <div className="mono" style={{ fontSize: 17, fontWeight: 500, color: s.color }}>{s.value}</div>
+              </div>
+            ))}
+          </div>
         )}
 
-        {data && !loading && (
-          <div style={{ display: 'grid', gap: 20 }}>
-            {/* Scorecard */}
-            <div className="scorecard-grid">
-              <ScoreCard label="Yön" value={data.direction} color={data.direction === 'SHORT' ? 'var(--red)' : 'var(--green)'} />
-              <ScoreCard label="Güven" value={`%${data.confidence_value}`} />
-              <ScoreCard label="Skor" value={`${data.market_score_value}/10`} />
-              <ScoreCard label="4H RSI" value={data.rsi_4h ?? '—'} />
-              <ScoreCard label="R/R" value={data.rr} />
-              <ScoreCard label="Entry" value={`$${fmt(data.entry)}`} color="var(--amber)" sub={data.order_type?.replace('ORDER_TYPE_', '')} />
-              <ScoreCard label="SL" value={`$${fmt(data.sl)}`} color="var(--red)" />
-              <ScoreCard label="TP" value={`$${fmt(data.tp)}`} color="var(--green)" />
-              <ScoreCard label="Size" value={`${data.position_size_btc} BTC`} sub={`$${data.risk_usd} risk`} />
+        {stats && (
+          <div className="charts-2col" style={{ marginBottom: 20 }}>
+            <div className="card" style={{ padding: 20 }}>
+              <div className="section-title" style={{ marginBottom: 12 }}>Yön Dağılımı</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                <div style={{ position: 'relative', width: 90, height: 90, flexShrink: 0 }}>
+                  {dirChart && <Doughnut data={dirChart} options={chartOpts} />}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {[{ label: 'SHORT', val: stats.short_count, color: 'var(--red)' }, { label: 'LONG', val: stats.long_count, color: 'var(--green)' }].map((x, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: x.color, flexShrink: 0 }}></span>
+                      <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{x.label}</span>
+                      <span className="mono" style={{ fontSize: 14, color: x.color, marginLeft: 'auto' }}>{x.val}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-
-            {/* Tabs */}
-            <div style={{ display: 'flex', borderBottom: '1px solid var(--border)' }}>
-              <button className={`tab-btn${tab === 'analysis' ? ' active' : ''}`} onClick={() => setTab('analysis')}>Analiz</button>
-              <button className={`tab-btn${tab === 'simulation' ? ' active' : ''}`} onClick={() => setTab('simulation')}>Simülasyon</button>
-            </div>
-
-            {tab === 'analysis' && (
-              <>
-                <div>
-                  <div className="section-title">MTF Sentez</div>
-                  <div className="synthesis-block">{data.synthesis_mtf}</div>
+            <div className="card" style={{ padding: 20 }}>
+              <div className="section-title" style={{ marginBottom: 12 }}>Sonuç Dağılımı</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                <div style={{ position: 'relative', width: 90, height: 90, flexShrink: 0 }}>
+                  {resultChart && <Doughnut data={resultChart} options={chartOpts} />}
                 </div>
-
-                <div className="synthesis-2col">
-                  <div>
-                    <div className="section-title">1H Sentez</div>
-                    <div className="synthesis-block">{data.synthesis_h1}</div>
-                  </div>
-                  <div>
-                    <div className="section-title">5M Sentez</div>
-                    <div className="synthesis-block">{data.synthesis_m5}</div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="section-title">1H — Ham Veri</div>
-                  <div className="data-grid">
-                    <DataRow label="Global L/S" comment={data.h1_global_ls_ratio_comment} critical={data.h1_global_ls_ratio_is_critical} />
-                    <DataRow label="TT Accounts" comment={data.h1_top_trader_accounts_comment} critical={data.h1_top_trader_accounts_is_critical} />
-                    <DataRow label="TT Positions" comment={data.h1_top_trader_positions_comment} critical={data.h1_top_trader_positions_is_critical} />
-                    <DataRow label="Open Interest" comment={data.h1_open_interest_comment} critical={data.h1_open_interest_is_critical} />
-                    <DataRow label="OI/MCap" comment={data.h1_oi_marketcap_ratio_comment} critical={data.h1_oi_marketcap_ratio_is_critical} />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="section-title">5M — Ham Veri</div>
-                  <div className="data-grid">
-                    <DataRow label="Global L/S" comment={data.m5_global_ls_ratio_comment} critical={data.m5_global_ls_ratio_is_critical} />
-                    <DataRow label="TT Accounts" comment={data.m5_top_trader_accounts_comment} critical={data.m5_top_trader_accounts_is_critical} />
-                    <DataRow label="TT Positions" comment={data.m5_top_trader_positions_comment} critical={data.m5_top_trader_positions_is_critical} />
-                    <DataRow label="Open Interest" comment={data.m5_open_interest_comment} critical={data.m5_open_interest_is_critical} />
-                    <DataRow label="OI/MCap" comment={data.m5_oi_marketcap_ratio_comment} critical={data.m5_oi_marketcap_ratio_is_critical} />
-                  </div>
-                </div>
-
-                <div className="synthesis-2col">
-                  <div>
-                    <div className="section-title">Skor Gerekçeleri</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {[data.market_score_reason_1, data.market_score_reason_2, data.market_score_reason_3, data.market_score_reason_4].map((r, i) => (
-                        <div key={i} className="data-item"><p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6 }}>{r}</p></div>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="section-title">Güven Gerekçeleri</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {[data.confidence_reason_1, data.confidence_reason_2, data.confidence_reason_3, data.confidence_reason_4].map((r, i) => (
-                        <div key={i} className="data-item"><p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6 }}>{r}</p></div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="section-title">Likidite Haritası</div>
-                  <div className="synthesis-2col" style={{ marginBottom: 8 }}>
-                    {[
-                      { zone: data.upside_zone_1, comment: data.upside_comment_1, dir: 'up' },
-                      { zone: data.upside_zone_2, comment: data.upside_comment_2, dir: 'up' },
-                      { zone: data.downside_zone_1, comment: data.downside_comment_1, dir: 'down' },
-                      { zone: data.downside_zone_2, comment: data.downside_comment_2, dir: 'down' },
-                    ].map((l, i) => (
-                      <div key={i} className="data-item">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                          <span style={{ fontSize: 10, color: l.dir === 'up' ? 'var(--green)' : 'var(--red)' }}>{l.dir === 'up' ? '▲' : '▼'}</span>
-                          <span className="mono" style={{ fontSize: 12, color: 'var(--text)' }}>{l.zone}</span>
-                        </div>
-                        <p style={{ fontSize: 11, color: 'var(--text-2)', lineHeight: 1.5 }}>{l.comment}</p>
-                      </div>
-                    ))}
-                  </div>
-                  {data.liquidity_summary_note && <div className="synthesis-block" style={{ fontSize: 12 }}>{data.liquidity_summary_note}</div>}
-                </div>
-
-                {screenshots.length > 0 && (
-                  <div>
-                    <div className="section-title">Ekran Görüntüleri</div>
-                    <div className="screenshot-grid">
-                      {screenshots.map((url, i) => (
-                        <div key={i} className="screenshot-thumb" onClick={() => setLightbox(url)}>
-                          <img src={url} alt={`ss-${i + 1}`} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <div className="section-title">Not</div>
-                  <textarea className="note-textarea" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Analize not ekle..." />
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-                    <button className="save-btn" onClick={saveNote} disabled={saving}>
-                      {saving ? 'kaydediliyor...' : saved ? '✓ kaydedildi' : 'kaydet'}
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {tab === 'simulation' && (
-              <>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {[
-                    { label: 'Sonuç', value: resultBadge(data.sim_result) },
-                    { label: 'PnL', value: data.sim_pnl_usd != null ? `${data.sim_pnl_usd > 0 ? '+' : ''}$${Math.abs(data.sim_pnl_usd).toFixed(2)}` : '—', color: data.sim_pnl_usd > 0 ? 'var(--green)' : data.sim_pnl_usd < 0 ? 'var(--red)' : 'var(--text-3)' },
-                    { label: 'R Multiple', value: fmtR(data.sim_r_multiple), color: (data.sim_r_multiple ?? 0) > 0 ? 'var(--green)' : (data.sim_r_multiple ?? 0) < 0 ? 'var(--red)' : 'var(--text-3)' },
-                    { label: 'Süre', value: fmtMins(data.sim_entry_to_result_minutes) },
-                    { label: 'Max Kazanç', value: data.sim_max_favorable_move ? `$${fmt(data.sim_max_favorable_move)}` : '—', color: 'var(--green)' },
-                    { label: 'Max Kayıp', value: data.sim_max_adverse_move ? `$${fmt(data.sim_max_adverse_move)}` : '—', color: 'var(--red)' },
-                    { label: 'Spot / Lev', value: `%${data.spot_pct} / %${data.leverage_pct}` },
-                  ].map((s, i) => (
-                    <div key={i} className="stat-card">
-                      <div className="col-label" style={{ marginBottom: 6 }}>{s.label}</div>
-                      <div className="mono" style={{ fontSize: 14, fontWeight: 500, color: (s as any).color || 'var(--text)' }}>{s.value}</div>
+                    { label: 'TP Hit', val: stats.tp_count, color: 'var(--green)' },
+                    { label: 'SL Hit', val: stats.sl_count, color: 'var(--red)' },
+                    { label: 'Expired', val: stats.expired_count, color: 'var(--amber)' },
+                    { label: 'No Entry', val: stats.no_entry_count, color: 'var(--text-3)' },
+                  ].map((x, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: x.color, flexShrink: 0 }}></span>
+                      <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{x.label}</span>
+                      <span className="mono" style={{ fontSize: 13, color: x.color, marginLeft: 'auto' }}>{x.val}</span>
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
 
-                {data.sim_entry_triggered_at && (
-                  <div className="data-item">
-                    <div className="section-title" style={{ marginBottom: 10 }}>Zaman Çizelgesi</div>
-                    <div style={{ display: 'grid', gap: 8 }}>
-                      {[
-                        { label: 'Analiz', val: fmtDate(data.analyzed_at), color: 'var(--text-2)' },
-                        { label: 'Entry tetiklendi', val: fmtDate(data.sim_entry_triggered_at), color: 'var(--amber)' },
-                        ...(data.sim_result_at ? [{ label: data.sim_result === 'TP_HIT' ? 'TP vuruldu' : 'SL vuruldu', val: fmtDate(data.sim_result_at), color: data.sim_result === 'TP_HIT' ? 'var(--green)' : 'var(--red)' }] : []),
-                      ].map((x, i) => (
-                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                          <span style={{ color: x.color }}>{x.label}</span>
-                          <span className="mono" style={{ color: 'var(--text-2)' }}>{x.val}</span>
-                        </div>
-                      ))}
-                    </div>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap', overflowX: 'auto', paddingBottom: 2 }}>
+          <span className="col-label" style={{ marginRight: 2 }}>Yön:</span>
+          {['ALL', 'SHORT', 'LONG'].map(d => (
+            <button key={d} className={`filter-btn${dirFilter === d ? ' active' : ''}`} onClick={() => { setDirFilter(d); setPage(1) }}>{d}</button>
+          ))}
+          <span className="col-label" style={{ marginLeft: 10, marginRight: 2 }}>Sonuç:</span>
+          {['ALL', 'TP_HIT', 'SL_HIT', 'EXPIRED', 'NO_ENTRY'].map(r => (
+            <button key={r} className={`filter-btn${resultFilter === r ? ' active' : ''}`} onClick={() => { setResultFilter(r); setPage(1) }}>{r}</button>
+          ))}
+          <span className="mono" style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--text-3)' }}>{total} kayıt</span>
+        </div>
+
+        <div className="card">
+          <div className="row-item" style={{ cursor: 'default' }}>
+            <span className="col-label">Tarih</span>
+            <span className="col-label">Yön</span>
+            <span className="col-label">Giriş</span>
+            <span className="col-label">TP</span>
+            <span className="col-label">SL</span>
+            <span className="col-label">R/R</span>
+            <span className="col-label">Skor</span>
+            <span className="col-label">Güven</span>
+            <span className="col-label">Sonuç</span>
+            <span className="col-label">PnL</span>
+            <span className="col-label">R</span>
+          </div>
+
+          {loading && <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }} className="mono">yükleniyor...</div>}
+          {!loading && analyses.length === 0 && <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }} className="mono">kayıt bulunamadı</div>}
+
+          {!loading && analyses.map(a => (
+            <div key={`d-${a.id}`} className="row-item" onClick={() => router.push(`/dashboard/${a.id}`)}>
+              <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{fmtDate(a.analyzed_at)}</span>
+              <span>{dirBadge(a.direction)}</span>
+              <span className="price">${fmt(a.entry)}</span>
+              <span className="price" style={{ color: 'var(--green)' }}>${fmt(a.tp)}</span>
+              <span className="price" style={{ color: 'var(--red)' }}>${fmt(a.sl)}</span>
+              <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rr}</span>
+              <span className="mono" style={{ fontSize: 12 }}>{a.market_score_value}/10</span>
+              <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>%{a.confidence_value}</span>
+              <span>{resultBadge(a.sim_result)}</span>
+              <span className={`mono ${a.sim_pnl_usd != null ? pnlClass(a.sim_pnl_usd) : 'pnl-zero'}`} style={{ fontSize: 12 }}>
+                {a.sim_pnl_usd != null ? `${a.sim_pnl_usd > 0 ? '+' : ''}$${Math.abs(a.sim_pnl_usd).toFixed(2)}` : '—'}
+              </span>
+              <span className={`mono ${a.sim_r_multiple != null ? pnlClass(a.sim_r_multiple) : 'pnl-zero'}`} style={{ fontSize: 12 }}>
+                {fmtR(a.sim_r_multiple)}
+              </span>
+            </div>
+          ))}
+
+          {!loading && analyses.map(a => (
+            <div key={`m-${a.id}`} className="mobile-card" onClick={() => router.push(`/dashboard/${a.id}`)}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {dirBadge(a.direction)}
+                  {resultBadge(a.sim_result)}
+                </div>
+                <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{fmtDate(a.analyzed_at)}</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
+                <div>
+                  <div className="col-label" style={{ marginBottom: 3 }}>Giriş</div>
+                  <div className="price" style={{ fontSize: 13 }}>${fmt(a.entry)}</div>
+                </div>
+                <div>
+                  <div className="col-label" style={{ marginBottom: 3 }}>TP</div>
+                  <div className="mono" style={{ fontSize: 13, color: 'var(--green)' }}>${fmt(a.tp)}</div>
+                </div>
+                <div>
+                  <div className="col-label" style={{ marginBottom: 3 }}>SL</div>
+                  <div className="mono" style={{ fontSize: 13, color: 'var(--red)' }}>${fmt(a.sl)}</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div>
+                  <span className="col-label">R/R </span>
+                  <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rr}</span>
+                </div>
+                <div>
+                  <span className="col-label">Skor </span>
+                  <span className="mono" style={{ fontSize: 12 }}>{a.market_score_value}/10</span>
+                </div>
+                <div>
+                  <span className="col-label">Güven </span>
+                  <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>%{a.confidence_value}</span>
+                </div>
+                {a.sim_pnl_usd != null && (
+                  <div style={{ marginLeft: 'auto' }}>
+                    <span className={`mono ${pnlClass(a.sim_pnl_usd)}`} style={{ fontSize: 13, fontWeight: 500 }}>
+                      {a.sim_pnl_usd > 0 ? '+' : ''}${Math.abs(a.sim_pnl_usd).toFixed(2)}
+                    </span>
+                    <span className={`mono ${a.sim_r_multiple != null ? pnlClass(a.sim_r_multiple) : 'pnl-zero'}`} style={{ fontSize: 11, marginLeft: 6 }}>
+                      {fmtR(a.sim_r_multiple)}
+                    </span>
                   </div>
                 )}
+              </div>
+            </div>
+          ))}
+        </div>
 
-                <div>
-                  <div className="section-title">Grafik</div>
-                  {data.candles_json?.length ? (
-                    <CandleChart
-                      candles={data.candles_json}
-                      entry={data.entry} tp={data.tp} sl={data.sl}
-                      direction={data.direction}
-                      analyzedAt={new Date(data.analyzed_at).getTime()}
-                      entryTriggeredAt={data.sim_entry_triggered_at ? new Date(data.sim_entry_triggered_at).getTime() : null}
-                      resultAt={data.sim_result_at ? new Date(data.sim_result_at).getTime() : null}
-                      simResult={data.sim_result}
-                    />
-                  ) : (
-                    <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)', background: 'var(--bg-3)', borderRadius: 6 }} className="mono">candle verisi yok</div>
-                  )}
-                </div>
-
-                {data.market_power_comment && (
-                  <div>
-                    <div className="section-title">Market Power</div>
-                    <div className="synthesis-block">{data.market_power_comment}</div>
-                  </div>
-                )}
-
-                <div className="reasons-3col">
-                  {[{ label: 'Entry', val: data.entry_reason }, { label: 'TP', val: data.tp_reason }, { label: 'SL', val: data.sl_reason }].map((x, i) => (
-                    <div key={i} className="data-item">
-                      <div className="col-label" style={{ marginBottom: 5 }}>{x.label}</div>
-                      <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6 }}>{x.val}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div>
-                  <div className="section-title">Not</div>
-                  <textarea className="note-textarea" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Analize not ekle..." />
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-                    <button className="save-btn" onClick={saveNote} disabled={saving}>
-                      {saving ? 'kaydediliyor...' : saved ? '✓ kaydedildi' : 'kaydet'}
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
+        {totalPages > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
+            <button className="filter-btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>← Önceki</button>
+            <span className="mono" style={{ fontSize: 11, color: 'var(--text-3)', padding: '4px 12px' }}>{page} / {totalPages}</span>
+            <button className="filter-btn" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>Sonraki →</button>
           </div>
         )}
       </div>
-
-      {/* Lightbox */}
-      {lightbox && (
-        <div onClick={() => setLightbox(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.95)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, cursor: 'zoom-out' }}>
-          <img src={lightbox} alt="screenshot" style={{ maxWidth: '100%', maxHeight: '90vh', borderRadius: 8, objectFit: 'contain' }} />
-        </div>
-      )}
     </div>
   )
 }
