@@ -64,6 +64,8 @@ export default function CandleChart({ candles, entry, tp, sl, direction, analyze
         borderDownColor: '#f87171',
         wickUpColor: '#22c55e',
         wickDownColor: '#ef4444',
+        priceLineVisible: false,
+        lastValueVisible: false,
       })
 
       const formatted = candles.map(c => ({
@@ -75,35 +77,9 @@ export default function CandleChart({ candles, entry, tp, sl, direction, analyze
       }))
       candleSeries.setData(formatted)
 
-      const entryLine = chart.addLineSeries({
-        color: '#fbbf24',
-        lineWidth: 1,
-        lineStyle: LineStyle.Dashed,
-        priceLineVisible: false,
-        lastValueVisible: true,
-        title: `Entry ${entry.toLocaleString()}`,
-      })
-      entryLine.setData(formatted.map((d: any) => ({ time: d.time, value: entry })))
-
-      const tpLine = chart.addLineSeries({
-        color: '#4ade80',
-        lineWidth: 1,
-        lineStyle: LineStyle.Dashed,
-        priceLineVisible: false,
-        lastValueVisible: true,
-        title: `TP ${tp.toLocaleString()}`,
-      })
-      tpLine.setData(formatted.map((d: any) => ({ time: d.time, value: tp })))
-
-      const slLine = chart.addLineSeries({
-        color: '#f87171',
-        lineWidth: 1,
-        lineStyle: LineStyle.Dashed,
-        priceLineVisible: false,
-        lastValueVisible: true,
-        title: `SL ${sl.toLocaleString()}`,
-      })
-      slLine.setData(formatted.map((d: any) => ({ time: d.time, value: sl })))
+      candleSeries.createPriceLine({ price: entry, color: '#fbbf24', lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: `Entry ${entry.toLocaleString()}` })
+      candleSeries.createPriceLine({ price: tp,    color: '#4ade80', lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: `TP ${tp.toLocaleString()}` })
+      candleSeries.createPriceLine({ price: sl,    color: '#f87171', lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: `SL ${sl.toLocaleString()}` })
 
       const markers: any[] = []
 
