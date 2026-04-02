@@ -55,7 +55,11 @@ const resultBadge = (r: string) => {
 const pnlClass = (v: number) => v > 0 ? 'pnl-pos' : v < 0 ? 'pnl-neg' : 'pnl-zero'
 const fmt = (n: number) => n?.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) ?? '—'
 const fmtDate = (s: string) => new Date(s).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
-const fmtR = (v: number | null) => v == null ? '—' : (v > 0 ? '+' : '') + v.toFixed(2) + 'R'
+const fmtR = (v: number | null, result?: string) => {
+  if (v == null) return '—'
+  const signed = result === 'SL_HIT' ? -Math.abs(v) : result === 'TP_HIT' ? Math.abs(v) : v
+  return (signed > 0 ? '+' : '') + signed.toFixed(2) + 'R'
+}
 
 export default function Dashboard() {
   const router = useRouter()
@@ -225,8 +229,8 @@ export default function Dashboard() {
               <span className={`mono ${a.sim_pnl_usd != null ? pnlClass(a.sim_pnl_usd) : 'pnl-zero'}`} style={{ fontSize: 12 }}>
                 {a.sim_pnl_usd != null ? `${a.sim_pnl_usd > 0 ? '+' : ''}$${Math.abs(a.sim_pnl_usd).toFixed(2)}` : '—'}
               </span>
-              <span className={`mono ${a.sim_r_multiple != null ? pnlClass(a.sim_r_multiple) : 'pnl-zero'}`} style={{ fontSize: 12 }}>
-                {fmtR(a.sim_r_multiple)}
+              <span className={`mono ${a.sim_r_multiple != null ? pnlClass(a.sim_result === 'SL_HIT' ? -1 : a.sim_r_multiple) : 'pnl-zero'}`} style={{ fontSize: 12 }}>
+                {fmtR(a.sim_r_multiple, a.sim_result)}
               </span>
             </div>
           ))}
@@ -272,8 +276,8 @@ export default function Dashboard() {
                     <span className={`mono ${pnlClass(a.sim_pnl_usd)}`} style={{ fontSize: 13, fontWeight: 500 }}>
                       {a.sim_pnl_usd > 0 ? '+' : ''}${Math.abs(a.sim_pnl_usd).toFixed(2)}
                     </span>
-                    <span className={`mono ${a.sim_r_multiple != null ? pnlClass(a.sim_r_multiple) : 'pnl-zero'}`} style={{ fontSize: 11, marginLeft: 6 }}>
-                      {fmtR(a.sim_r_multiple)}
+                    <span className={`mono ${a.sim_r_multiple != null ? pnlClass(a.sim_result === 'SL_HIT' ? -1 : a.sim_r_multiple) : 'pnl-zero'}`} style={{ fontSize: 11, marginLeft: 6 }}>
+                      {fmtR(a.sim_r_multiple, a.sim_result)}
                     </span>
                   </div>
                 )}
