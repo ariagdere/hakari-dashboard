@@ -62,7 +62,11 @@ const pnlClass = (v: number) => v > 0 ? 'pnl-pos' : v < 0 ? 'pnl-neg' : 'pnl-zer
 const fmt = (n: number) => n?.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) ?? '—'
 const fmtDate = (s: string) => new Date(s).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 const fmtMins = (m: number) => { if (!m) return '—'; const h = Math.floor(m / 60); const min = m % 60; return h > 0 ? `${h}s ${min}dk` : `${min}dk` }
-const fmtR = (v: number | null) => v == null ? '—' : (v > 0 ? '+' : '') + v.toFixed(2) + 'R'
+const fmtR = (v: number | null, result?: string) => {
+  if (v == null) return '—'
+  const signed = result === 'SL_HIT' ? -Math.abs(v) : result === 'TP_HIT' ? Math.abs(v) : v
+  return (signed > 0 ? '+' : '') + signed.toFixed(2) + 'R'
+}
 
 function DataRow({ label, comment, critical }: { label: string; comment: string; critical: boolean }) {
   return (
@@ -290,7 +294,7 @@ export default function AnalysisPage() {
                   {[
                     { label: 'Sonuç', value: resultBadge(data.sim_result) },
                     { label: 'PnL', value: data.sim_pnl_usd != null ? `${data.sim_pnl_usd > 0 ? '+' : ''}$${Math.abs(data.sim_pnl_usd).toFixed(2)}` : '—', color: data.sim_pnl_usd > 0 ? 'var(--green)' : data.sim_pnl_usd < 0 ? 'var(--red)' : 'var(--text-3)' },
-                    { label: 'R Multiple', value: fmtR(data.sim_r_multiple), color: (data.sim_r_multiple ?? 0) > 0 ? 'var(--green)' : (data.sim_r_multiple ?? 0) < 0 ? 'var(--red)' : 'var(--text-3)' },
+                    { label: 'R Multiple', value: fmtR(data.sim_r_multiple, data.sim_result), color: (data.sim_r_multiple ?? 0) > 0 && data.sim_result === 'TP_HIT' ? 'var(--green)' : data.sim_result === 'SL_HIT' ? 'var(--red)' : 'var(--text-3)' },
                     { label: 'Süre', value: fmtMins(data.sim_entry_to_result_minutes) },
                     { label: 'Max Kazanç', value: data.sim_max_favorable_move ? `$${fmt(data.sim_max_favorable_move * data.position_size_btc)}` : '—', color: 'var(--green)' },
                     { label: 'Max Kayıp', value: data.sim_max_adverse_move ? `$${fmt(data.sim_max_adverse_move * data.position_size_btc)}` : '—', color: 'var(--red)' },
