@@ -99,6 +99,7 @@ export default function AnalysisPage() {
   const [lightbox, setLightbox] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!id) return
     fetch(`/api/analysis/${id}`)
       .then(r => r.json())
       .then(d => { setData(d); setNotes(d.notes || ''); setLoading(false) })
@@ -291,8 +292,8 @@ export default function AnalysisPage() {
                     { label: 'PnL', value: data.sim_pnl_usd != null ? `${data.sim_pnl_usd > 0 ? '+' : ''}$${Math.abs(data.sim_pnl_usd).toFixed(2)}` : '—', color: data.sim_pnl_usd > 0 ? 'var(--green)' : data.sim_pnl_usd < 0 ? 'var(--red)' : 'var(--text-3)' },
                     { label: 'R Multiple', value: fmtR(data.sim_r_multiple), color: (data.sim_r_multiple ?? 0) > 0 ? 'var(--green)' : (data.sim_r_multiple ?? 0) < 0 ? 'var(--red)' : 'var(--text-3)' },
                     { label: 'Süre', value: fmtMins(data.sim_entry_to_result_minutes) },
-                    { label: 'Max Kazanç', value: data.sim_max_favorable_move ? `$${fmt(data.sim_max_favorable_move)}` : '—', color: 'var(--green)' },
-                    { label: 'Max Kayıp', value: data.sim_max_adverse_move ? `$${fmt(data.sim_max_adverse_move)}` : '—', color: 'var(--red)' },
+                    { label: 'Max Kazanç', value: data.sim_max_favorable_move ? `$${fmt(data.sim_max_favorable_move * data.position_size_btc)}` : '—', color: 'var(--green)' },
+                    { label: 'Max Kayıp', value: data.sim_max_adverse_move ? `$${fmt(data.sim_max_adverse_move * data.position_size_btc)}` : '—', color: 'var(--red)' },
                     { label: 'Spot / Lev', value: `%${data.spot_pct} / %${data.leverage_pct}` },
                   ].map((s, i) => (
                     <div key={i} className="stat-card">
