@@ -64,9 +64,12 @@ const fmtDate = (s: string) => new Date(s).toLocaleString('tr-TR', { day: '2-dig
 const fmtMins = (m: number) => { if (!m) return '—'; const h = Math.floor(m / 60); const min = m % 60; return h > 0 ? `${h}s ${min}dk` : `${min}dk` }
 const fmtR = (v: number | null, result?: string) => {
   if (v == null) return '—'
-  const signed = result === 'SL_HIT' ? -Math.abs(v) : result === 'TP_HIT' ? Math.abs(v) : v
+  const n = parseFloat(String(v))
+  if (isNaN(n)) return '—'
+  const signed = result === 'SL_HIT' ? -Math.abs(n) : result === 'TP_HIT' ? Math.abs(n) : n
   return (signed > 0 ? '+' : '') + signed.toFixed(2) + 'R'
 }
+const safeNum = (v: any): number | null => { const n = parseFloat(String(v)); return isNaN(n) ? null : n }
 
 function DataRow({ label, comment, critical }: { label: string; comment: string; critical: boolean }) {
   return (
@@ -293,11 +296,11 @@ export default function AnalysisPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
                   {[
                     { label: 'Sonuç', value: resultBadge(data.sim_result) },
-                    { label: 'PnL', value: data.sim_pnl_usd != null ? `${data.sim_pnl_usd > 0 ? '+' : ''}$${Math.abs(data.sim_pnl_usd).toFixed(2)}` : '—', color: data.sim_pnl_usd > 0 ? 'var(--green)' : data.sim_pnl_usd < 0 ? 'var(--red)' : 'var(--text-3)' },
-                    { label: 'R Multiple', value: fmtR(data.sim_r_multiple, data.sim_result), color: (data.sim_r_multiple ?? 0) > 0 && data.sim_result === 'TP_HIT' ? 'var(--green)' : data.sim_result === 'SL_HIT' ? 'var(--red)' : 'var(--text-3)' },
+                    { label: 'PnL', value: safeNum(data.sim_pnl_usd) != null ? `${safeNum(data.sim_pnl_usd)! > 0 ? '+' : ''}$${Math.abs(safeNum(data.sim_pnl_usd)!).toFixed(2)}` : '—', color: safeNum(data.sim_pnl_usd)! > 0 ? 'var(--green)' : safeNum(data.sim_pnl_usd)! < 0 ? 'var(--red)' : 'var(--text-3)' },
+                    { label: 'R Multiple', value: fmtR(safeNum(data.sim_r_multiple), data.sim_result), color: safeNum(data.sim_r_multiple) != null && data.sim_result === 'TP_HIT' ? 'var(--green)' : data.sim_result === 'SL_HIT' ? 'var(--red)' : 'var(--text-3)' },
                     { label: 'Süre', value: fmtMins(data.sim_entry_to_result_minutes) },
-                    { label: 'Max Kazanç', value: data.sim_max_favorable_move ? `$${fmt(data.sim_max_favorable_move)}` : '—', color: 'var(--green)' },
-                    { label: 'Max Kayıp', value: data.sim_max_adverse_move ? `$${fmt(data.sim_max_adverse_move)}` : '—', color: 'var(--red)' },
+                    { label: 'Max Kazanç', value: safeNum(data.sim_max_favorable_move) != null ? `$${fmt(safeNum(data.sim_max_favorable_move)!)}` : '—', color: 'var(--green)' },
+                    { label: 'Max Kayıp', value: safeNum(data.sim_max_adverse_move) != null ? `$${fmt(safeNum(data.sim_max_adverse_move)!)}` : '—', color: 'var(--red)' },
                     { label: 'Spot / Lev', value: `%${data.spot_pct} / %${data.leverage_pct}` },
                   ].map((s, i) => (
                     <div key={i} className="stat-card">
