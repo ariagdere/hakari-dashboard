@@ -75,13 +75,19 @@ export default function Dashboard() {
   const fetchAnalyses = useCallback(() => {
     setLoading(true)
     const params = new URLSearchParams({ direction: dirFilter, result: resultFilter, page: String(page) })
-    fetch(`/api/analyses?${params}`)
-      .then(r => r.json())
-      .then(d => { setAnalyses(d.analyses); setTotalPages(d.totalPages); setTotal(d.total); setLoading(false) })
+    Promise.all([
+      fetch(`/api/analyses?${params}`).then(r => r.json()),
+      fetch('/api/dashboard').then(r => r.json()),
+    ]).then(([d, s]) => {
+      setAnalyses(d.analyses)
+      setTotalPages(d.totalPages)
+      setTotal(d.total)
+      setStats(s)
+      setLoading(false)
+    })
   }, [dirFilter, resultFilter, page])
 
   useEffect(() => { fetchAnalyses() }, [fetchAnalyses])
-  useEffect(() => { fetch('/api/dashboard').then(r => r.json()).then(setStats) }, [])
 
   const chartOpts: any = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '68%' }
 
