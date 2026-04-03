@@ -110,6 +110,14 @@ export default function Dashboard() {
             >
               MKT
             </Link>
+            <Link
+              href="/ops"
+              style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'DM Mono, monospace', padding: '4px 12px', borderLeft: '1px solid var(--border)', textDecoration: 'none', letterSpacing: '0.06em', transition: 'color 0.1s' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-2)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}
+            >
+              OPS
+            </Link>
           </div>
           <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>
             {new Date().toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
