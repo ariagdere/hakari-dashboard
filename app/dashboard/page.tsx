@@ -217,10 +217,10 @@ export default function Dashboard() {
         {stats && stats.r_series?.length > 0 && (() => {
           let cumulative = 0
           const cumulativeData = [
-            { x: '', y: 0 },
-            ...stats.r_series.map(p => {
+            { x: '0', y: 0 },
+            ...stats.r_series.map((p, i) => {
               cumulative += p.r
-              return { x: new Date(p.date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' }), y: parseFloat(cumulative.toFixed(2)) }
+              return { x: String(i + 1), y: parseFloat(cumulative.toFixed(2)) }
             })
           ]
           const totalR = cumulativeData[cumulativeData.length - 1]?.y ?? 0
