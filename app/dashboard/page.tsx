@@ -90,12 +90,18 @@ export default function Dashboard() {
 
   useEffect(() => { fetchAnalyses() }, [fetchAnalyses])
 
-  // Sekmeye geri dönüldüğünde yenile
+  // Sekmeye geri dönüldüğünde ve 30sn'de bir yenile
   useEffect(() => {
+    const onVisible = () => { if (!document.hidden) fetchAnalyses() }
     const onFocus = () => fetchAnalyses()
+    document.addEventListener('visibilitychange', onVisible)
     window.addEventListener('focus', onFocus)
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) fetchAnalyses() })
-    return () => window.removeEventListener('focus', onFocus)
+    const interval = setInterval(fetchAnalyses, 30000)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', onFocus)
+      clearInterval(interval)
+    }
   }, [fetchAnalyses])
 
   const chartOpts: any = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '68%' }
@@ -210,10 +216,13 @@ export default function Dashboard() {
 
         {stats && stats.r_series?.length > 0 && (() => {
           let cumulative = 0
-          const cumulativeData = stats.r_series.map(p => {
-            cumulative += p.r
-            return { x: new Date(p.date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' }), y: parseFloat(cumulative.toFixed(2)) }
-          })
+          const cumulativeData = [
+            { x: '', y: 0 },
+            ...stats.r_series.map(p => {
+              cumulative += p.r
+              return { x: new Date(p.date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' }), y: parseFloat(cumulative.toFixed(2)) }
+            })
+          ]
           const totalR = cumulativeData[cumulativeData.length - 1]?.y ?? 0
           const lineColor = totalR >= 0 ? '#4ade80' : '#f87171'
           const lineData = {
