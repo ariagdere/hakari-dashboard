@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import ScoringTab from '@/components/ScoringTab'
 
 const CandleChart = dynamic(() => import('@/components/CandleChart'), { ssr: false })
 
@@ -99,7 +100,7 @@ export default function AnalysisPage() {
   const router = useRouter()
   const [data, setData] = useState<Analysis | null>(null)
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'analysis' | 'simulation'>('analysis')
+  const [tab, setTab] = useState<'analysis' | 'simulation' | 'scoring'>('analysis')
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -184,6 +185,7 @@ export default function AnalysisPage() {
             <div style={{ display: 'flex', borderBottom: '1px solid var(--border)' }}>
               <button className={`tab-btn${tab === 'analysis' ? ' active' : ''}`} onClick={() => setTab('analysis')}>Analiz</button>
               <button className={`tab-btn${tab === 'simulation' ? ' active' : ''}`} onClick={() => setTab('simulation')}>Simülasyon</button>
+              <button className={`tab-btn${tab === 'scoring' ? ' active' : ''}`} onClick={() => setTab('scoring')}>Skorlama</button>
             </div>
 
             {tab === 'analysis' && (
@@ -371,6 +373,10 @@ export default function AnalysisPage() {
                   </div>
                 </div>
               </>
+            )}
+
+            {tab === 'scoring' && (
+              <ScoringTab data={data} />
             )}
           </div>
         )}
