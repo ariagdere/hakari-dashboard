@@ -2,10 +2,10 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js'
-import { Doughnut } from 'react-chartjs-2'
+import { Chart as ChartJS, ArcElement, Tooltip, LineElement, PointElement, LinearScale, CategoryScale, Filler } from 'chart.js'
+import { Doughnut, Line } from 'react-chartjs-2'
 
-ChartJS.register(ArcElement, Tooltip)
+ChartJS.register(ArcElement, Tooltip, LineElement, PointElement, LinearScale, CategoryScale, Filler)
 
 interface AnalysisSummary {
   id: number
@@ -36,6 +36,7 @@ interface Stats {
   long_count: number
   avg_confidence: number
   avg_score: number
+  r_series: { date: string; r: number }[]
 }
 
 const dirBadge = (d: string) => {
@@ -207,7 +208,49 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: 6, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap', overflowX: 'auto', paddingBottom: 2 }}>
+        {stats && stats.r_series?.length > 0 && (() => {
+          let cumulative = 0
+          const cumulativeData = stats.r_series.map(p => {
+            cumulative += p.r
+            return { x: new Date(p.date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' }), y: parseFloat(cumulative.toFixed(2)) }
+          })
+          const totalR = cumulativeData[cumulativeData.length - 1]?.y ?? 0
+          const lineColor = totalR >= 0 ? '#4ade80' : '#f87171'
+          const lineData = {
+            labels: cumulativeData.map(d => d.x),
+            datasets: [{
+              data: cumulativeData.map(d => d.y),
+              borderColor: lineColor,
+              backgroundColor: totalR >= 0 ? 'rgba(74,222,128,0.06)' : 'rgba(248,113,113,0.06)',
+              borderWidth: 1.5,
+              pointRadius: cumulativeData.length <= 20 ? 3 : 0,
+              pointBackgroundColor: lineColor,
+              tension: 0.3,
+              fill: true,
+            }]
+          }
+          const lineOpts: any = {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx: any) => `${ctx.parsed.y > 0 ? '+' : ''}${ctx.parsed.y.toFixed(2)}R` } } },
+            scales: {
+              x: { grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 10 }, maxTicksLimit: 8 }, border: { color: '#242424' } },
+              y: { grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 10 }, callback: (v: any) => `${v > 0 ? '+' : ''}${v}R` }, border: { color: '#242424' } },
+            },
+          }
+          return (
+            <div className="card" style={{ padding: 20, marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div className="section-title">Kümülatif R</div>
+                <span className="mono" style={{ fontSize: 13, fontWeight: 600, color: lineColor }}>{totalR > 0 ? '+' : ''}{totalR.toFixed(2)}R</span>
+              </div>
+              <div style={{ height: 160 }}>
+                <Line data={lineData} options={lineOpts} />
+              </div>
+            </div>
+          )
+        })()}
+
+        <div style={{ display: 'flex', gap: 6, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap', overflowX: 'auto' }}>
           <span className="col-label" style={{ marginRight: 2 }}>Yön:</span>
           {['ALL', 'SHORT', 'LONG'].map(d => (
             <button key={d} className={`filter-btn${dirFilter === d ? ' active' : ''}`} onClick={() => { setDirFilter(d); setPage(1) }}>{d}</button>
