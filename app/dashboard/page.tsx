@@ -89,6 +89,14 @@ export default function Dashboard() {
 
   useEffect(() => { fetchAnalyses() }, [fetchAnalyses])
 
+  // Sekmeye geri dönüldüğünde yenile
+  useEffect(() => {
+    const onFocus = () => fetchAnalyses()
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) fetchAnalyses() })
+    return () => window.removeEventListener('focus', onFocus)
+  }, [fetchAnalyses])
+
   const chartOpts: any = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '68%' }
 
   const dirChart = stats ? {
