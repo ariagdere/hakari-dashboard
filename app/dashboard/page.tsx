@@ -77,8 +77,8 @@ export default function Dashboard() {
     setLoading(true)
     const params = new URLSearchParams({ direction: dirFilter, result: resultFilter, page: String(page) })
     Promise.all([
-      fetch(`/api/analyses?${params}`).then(r => r.json()),
-      fetch('/api/dashboard').then(r => r.json()),
+      fetch(`/api/analyses?${params}`, { cache: 'no-store' }).then(r => r.json()),
+      fetch('/api/dashboard', { cache: 'no-store' }).then(r => r.json()),
     ]).then(([d, s]) => {
       setAnalyses(d.analyses)
       setTotalPages(d.totalPages)
@@ -90,17 +90,15 @@ export default function Dashboard() {
 
   useEffect(() => { fetchAnalyses() }, [fetchAnalyses])
 
-  // Sekmeye geri dönüldüğünde ve 30sn'de bir yenile
+  // Sekmeye geri dönüldüğünde yenile
   useEffect(() => {
     const onVisible = () => { if (!document.hidden) fetchAnalyses() }
     const onFocus = () => fetchAnalyses()
     document.addEventListener('visibilitychange', onVisible)
     window.addEventListener('focus', onFocus)
-    const interval = setInterval(fetchAnalyses, 30000)
     return () => {
       document.removeEventListener('visibilitychange', onVisible)
       window.removeEventListener('focus', onFocus)
-      clearInterval(interval)
     }
   }, [fetchAnalyses])
 
