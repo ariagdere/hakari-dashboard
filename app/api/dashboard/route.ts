@@ -23,12 +23,19 @@ export async function GET() {
         COUNT(*) FILTER (WHERE direction = 'LONG') AS long_count,
         ROUND(AVG(confidence_value), 1) AS avg_confidence,
         ROUND(AVG(market_score_value), 1) AS avg_score,
+        ROUND(AVG(rsi_4h), 1) AS avg_rsi_4h,
         ROUND(AVG(sim_r_multiple) FILTER (WHERE sim_result = 'TP_HIT'), 2) AS avg_r_tp,
         ROUND(MAX(sim_r_multiple) FILTER (WHERE sim_result = 'TP_HIT'), 2) AS max_r_tp,
         ROUND(MIN(sim_r_multiple) FILTER (WHERE sim_result = 'TP_HIT'), 2) AS min_r_tp,
+        ROUND(AVG(rsi_4h) FILTER (WHERE sim_result = 'TP_HIT'), 1) AS avg_rsi_tp,
+        ROUND(AVG(confidence_value) FILTER (WHERE sim_result = 'TP_HIT'), 1) AS avg_conf_tp,
+        ROUND(AVG(market_score_value) FILTER (WHERE sim_result = 'TP_HIT'), 1) AS avg_score_tp,
         ROUND(AVG(CAST(SPLIT_PART(rr, ':', 2) AS NUMERIC)) FILTER (WHERE sim_result = 'SL_HIT'), 2) AS avg_r_sl,
         ROUND(MAX(CAST(SPLIT_PART(rr, ':', 2) AS NUMERIC)) FILTER (WHERE sim_result = 'SL_HIT'), 2) AS max_r_sl,
-        ROUND(MIN(CAST(SPLIT_PART(rr, ':', 2) AS NUMERIC)) FILTER (WHERE sim_result = 'SL_HIT'), 2) AS min_r_sl
+        ROUND(MIN(CAST(SPLIT_PART(rr, ':', 2) AS NUMERIC)) FILTER (WHERE sim_result = 'SL_HIT'), 2) AS min_r_sl,
+        ROUND(AVG(rsi_4h) FILTER (WHERE sim_result = 'SL_HIT'), 1) AS avg_rsi_sl,
+        ROUND(AVG(confidence_value) FILTER (WHERE sim_result = 'SL_HIT'), 1) AS avg_conf_sl,
+        ROUND(AVG(market_score_value) FILTER (WHERE sim_result = 'SL_HIT'), 1) AS avg_score_sl
       FROM btc_analysis
     `),
     pool.query(`
