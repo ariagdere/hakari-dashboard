@@ -113,7 +113,7 @@ body {
 
 .synthesis-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .reasons-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-.charts-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.charts-2col { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 
 @media (max-width: 768px) {
   .container { padding: 0 12px; }
@@ -146,7 +146,7 @@ body {
   .data-grid { grid-template-columns: 1fr; }
   .synthesis-2col { grid-template-columns: 1fr; }
   .reasons-3col { grid-template-columns: 1fr; }
-  .charts-2col { grid-template-columns: 1fr; }
+  .charts-2col { grid-template-columns: repeat(2, 1fr); }
   .screenshot-grid { grid-template-columns: repeat(2, 1fr); }
   .filter-btn { font-size: 10px; padding: 4px 8px; }
 
