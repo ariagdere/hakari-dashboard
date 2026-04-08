@@ -42,12 +42,14 @@ interface Stats {
   avg_rsi_tp: number | null
   avg_conf_tp: number | null
   avg_score_tp: number | null
+  avg_mins_tp: number | null
   avg_r_sl: number | null
   max_r_sl: number | null
   min_r_sl: number | null
   avg_rsi_sl: number | null
   avg_conf_sl: number | null
   avg_score_sl: number | null
+  avg_mins_sl: number | null
   r_series: { date: string; r: number }[]
   active_trade_series: { date: string; count: number }[]
 }
@@ -68,6 +70,7 @@ const resultBadge = (r: string) => {
 
 const pnlClass = (v: number) => v > 0 ? 'pnl-pos' : v < 0 ? 'pnl-neg' : 'pnl-zero'
 const fmt = (n: number) => n?.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) ?? '—'
+const fmtMins = (m: number | null) => { if (!m) return '—'; const h = Math.floor(m / 60); const min = Math.round(m % 60); return h > 0 ? `${h}s ${min}dk` : `${min}dk` }
 const fmtDate = (s: string) => new Date(s).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 const fmtR = (v: number | null, result?: string) => {
   if (v == null) return '—'
@@ -241,6 +244,7 @@ export default function Dashboard() {
                     { label: 'Ort. RSI 4H', val: stats.avg_rsi_tp != null ? String(stats.avg_rsi_tp) : '—' },
                     { label: 'Ort. Güven', val: stats.avg_conf_tp != null ? `%${stats.avg_conf_tp}` : '—' },
                     { label: 'Ort. Skor', val: stats.avg_score_tp != null ? `${stats.avg_score_tp}/10` : '—' },
+                    { label: 'Ort. Süre', val: fmtMins(stats.avg_mins_tp) },
                   ].map((x, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span className="col-label">{x.label}</span>
@@ -270,6 +274,7 @@ export default function Dashboard() {
                     { label: 'Ort. RSI 4H', val: stats.avg_rsi_sl != null ? String(stats.avg_rsi_sl) : '—' },
                     { label: 'Ort. Güven', val: stats.avg_conf_sl != null ? `%${stats.avg_conf_sl}` : '—' },
                     { label: 'Ort. Skor', val: stats.avg_score_sl != null ? `${stats.avg_score_sl}/10` : '—' },
+                    { label: 'Ort. Süre', val: fmtMins(stats.avg_mins_sl) },
                   ].map((x, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span className="col-label">{x.label}</span>
