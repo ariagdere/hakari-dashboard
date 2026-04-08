@@ -39,9 +39,15 @@ interface Stats {
   avg_r_tp: number | null
   max_r_tp: number | null
   min_r_tp: number | null
+  avg_rsi_tp: number | null
+  avg_conf_tp: number | null
+  avg_score_tp: number | null
   avg_r_sl: number | null
   max_r_sl: number | null
   min_r_sl: number | null
+  avg_rsi_sl: number | null
+  avg_conf_sl: number | null
+  avg_score_sl: number | null
   r_series: { date: string; r: number }[]
   active_trade_series: { date: string; count: number }[]
 }
@@ -218,7 +224,7 @@ export default function Dashboard() {
             </div>
             <div className="card" style={{ padding: 20 }}>
               <div className="section-title" style={{ marginBottom: 12 }}>Ort. TP R</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, justifyContent: 'center', height: 90 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div className="mono" style={{ fontSize: 28, fontWeight: 600, color: 'var(--green)' }}>
                   {stats.avg_r_tp != null ? `+${parseFloat(String(stats.avg_r_tp)).toFixed(2)}R` : '—'}
                 </div>
@@ -230,12 +236,24 @@ export default function Dashboard() {
                     min <span style={{ color: 'var(--text-2)' }}>{stats.min_r_tp != null ? `+${parseFloat(String(stats.min_r_tp)).toFixed(2)}R` : '—'}</span>
                   </span>
                 </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 4, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
+                  {[
+                    { label: 'Ort. RSI 4H', val: stats.avg_rsi_tp != null ? String(stats.avg_rsi_tp) : '—' },
+                    { label: 'Ort. Güven', val: stats.avg_conf_tp != null ? `%${stats.avg_conf_tp}` : '—' },
+                    { label: 'Ort. Skor', val: stats.avg_score_tp != null ? `${stats.avg_score_tp}/10` : '—' },
+                  ].map((x, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span className="col-label">{x.label}</span>
+                      <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{x.val}</span>
+                    </div>
+                  ))}
+                </div>
                 <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{stats.tp_count} TP hit üzerinden</div>
               </div>
             </div>
             <div className="card" style={{ padding: 20 }}>
               <div className="section-title" style={{ marginBottom: 12 }}>Ort. SL Hedef R</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, justifyContent: 'center', height: 90 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div className="mono" style={{ fontSize: 28, fontWeight: 600, color: 'var(--red)' }}>
                   {stats.avg_r_sl != null ? `${parseFloat(String(stats.avg_r_sl)).toFixed(2)}R` : '—'}
                 </div>
@@ -246,6 +264,18 @@ export default function Dashboard() {
                   <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>
                     min <span style={{ color: 'var(--text-2)' }}>{stats.min_r_sl != null ? `${parseFloat(String(stats.min_r_sl)).toFixed(2)}R` : '—'}</span>
                   </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 4, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
+                  {[
+                    { label: 'Ort. RSI 4H', val: stats.avg_rsi_sl != null ? String(stats.avg_rsi_sl) : '—' },
+                    { label: 'Ort. Güven', val: stats.avg_conf_sl != null ? `%${stats.avg_conf_sl}` : '—' },
+                    { label: 'Ort. Skor', val: stats.avg_score_sl != null ? `${stats.avg_score_sl}/10` : '—' },
+                  ].map((x, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span className="col-label">{x.label}</span>
+                      <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{x.val}</span>
+                    </div>
+                  ))}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{stats.sl_count} SL hit üzerinden</div>
               </div>
