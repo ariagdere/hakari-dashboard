@@ -4,7 +4,7 @@ import pool from '@/lib/db'
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
-  const [statsResult, rSeriesResult] = await Promise.all([
+  const [statsResult, rSeriesResult, activeTradesResult] = await Promise.all([
     pool.query(`
       SELECT
         COUNT(*) AS total,
@@ -32,13 +32,42 @@ export async function GET() {
         AND sim_r_multiple IS NOT NULL
       ORDER BY analyzed_at ASC
     `),
+    pool.query(`
+      SELECT sim_entry_triggered_at, sim_result_at
+      FROM btc_analysis
+      WHERE sim_entry_triggered_at IS NOT NULL
+        AND sim_result IN ('TP_HIT', 'SL_HIT')
+        AND sim_result_at IS NOT NULL
+      ORDER BY sim_entry_triggered_at ASC
+    `),
   ])
 
   const stats = statsResult.rows[0]
-  const rSeries = rSeriesResult.rows.map(r => ({
+
+  const rSeries = rSeriesResult.rows.map((r: any) => ({
     date: r.analyzed_at,
     r: r.sim_result === 'SL_HIT' ? -Math.abs(parseFloat(r.sim_r_multiple)) : Math.abs(parseFloat(r.sim_r_multiple)),
   }))
 
-  return NextResponse.json({ ...stats, r_series: rSeries })
+  // Günlük aktif trade: her trade entry→result aralığındaki tüm günlere +1
+  const dayCountMap: Record<string, number> = {}
+
+  for (const row of activeTradesResult.rows) {
+    const cur = new Date(row.sim_entry_triggered_at)
+    cur.setHours(0, 0, 0, 0)
+    const endDay = new Date(row.sim_result_at)
+    endDay.setHours(0, 0, 0, 0)
+
+    while (cur <= endDay) {
+      const key = cur.toISOString().slice(0, 10)
+      dayCountMap[key] = (dayCountMap[key] || 0) + 1
+      cur.setDate(cur.getDate() + 1)
+    }
+  }
+
+  const activeTradeSeries = Object.entries(dayCountMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, count]) => ({ date, count }))
+
+  return NextResponse.json({ ...stats, r_series: rSeries, active_trade_series: activeTradeSeries })
 }
