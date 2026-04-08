@@ -36,6 +36,8 @@ interface Stats {
   long_count: number
   avg_confidence: number
   avg_score: number
+  avg_r_tp: number | null
+  avg_r_sl: number | null
   r_series: { date: string; r: number }[]
   active_trade_series: { date: string; count: number }[]
 }
@@ -208,6 +210,24 @@ export default function Dashboard() {
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+            <div className="card" style={{ padding: 20 }}>
+              <div className="section-title" style={{ marginBottom: 12 }}>Ort. TP R</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, justifyContent: 'center', height: 90 }}>
+                <div className="mono" style={{ fontSize: 28, fontWeight: 600, color: 'var(--green)' }}>
+                  {stats.avg_r_tp != null ? `+${parseFloat(String(stats.avg_r_tp)).toFixed(2)}R` : '—'}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{stats.tp_count} TP hit üzerinden</div>
+              </div>
+            </div>
+            <div className="card" style={{ padding: 20 }}>
+              <div className="section-title" style={{ marginBottom: 12 }}>Ort. SL R</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, justifyContent: 'center', height: 90 }}>
+                <div className="mono" style={{ fontSize: 28, fontWeight: 600, color: 'var(--red)' }}>
+                  {stats.avg_r_sl != null ? `-${parseFloat(String(stats.avg_r_sl)).toFixed(2)}R` : '—'}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{stats.sl_count} SL hit üzerinden</div>
               </div>
             </div>
           </div>
