@@ -37,6 +37,7 @@ interface Stats {
   avg_confidence: number
   avg_score: number
   r_series: { date: string; r: number }[]
+  active_trade_series: { date: string; count: number }[]
 }
 
 const dirBadge = (d: string) => {
@@ -252,6 +253,45 @@ export default function Dashboard() {
               </div>
               <div style={{ height: 160 }}>
                 <Line data={lineData} options={lineOpts} />
+              </div>
+            </div>
+          )
+        })()}
+
+        {stats && stats.active_trade_series?.length > 0 && (() => {
+          const activeData = {
+            labels: stats.active_trade_series.map(p => {
+              const d = new Date(p.date)
+              return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })
+            }),
+            datasets: [{
+              data: stats.active_trade_series.map(p => p.count),
+              borderColor: '#60a5fa',
+              backgroundColor: 'rgba(96,165,250,0.12)',
+              borderWidth: 1.5,
+              pointRadius: stats.active_trade_series.length <= 20 ? 3 : 0,
+              pointBackgroundColor: '#60a5fa',
+              tension: 0.3,
+              fill: true,
+            }]
+          }
+          const activeOpts: any = {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx: any) => `${ctx.parsed.y} aktif trade` } } },
+            scales: {
+              x: { grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 10 }, maxTicksLimit: 8 }, border: { color: '#242424' } },
+              y: { grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 10 }, stepSize: 1 }, border: { color: '#242424' }, min: 0 },
+            },
+          }
+          const maxActive = Math.max(...stats.active_trade_series.map(p => p.count))
+          return (
+            <div className="card" style={{ padding: 20, marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div className="section-title">Günlük Aktif Trade</div>
+                <span className="mono" style={{ fontSize: 13, fontWeight: 600, color: '#60a5fa' }}>Maks: {maxActive}</span>
+              </div>
+              <div style={{ height: 160 }}>
+                <Line data={activeData} options={activeOpts} />
               </div>
             </div>
           )
