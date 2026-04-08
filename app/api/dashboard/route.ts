@@ -22,7 +22,9 @@ export async function GET() {
         COUNT(*) FILTER (WHERE direction = 'SHORT') AS short_count,
         COUNT(*) FILTER (WHERE direction = 'LONG') AS long_count,
         ROUND(AVG(confidence_value), 1) AS avg_confidence,
-        ROUND(AVG(market_score_value), 1) AS avg_score
+        ROUND(AVG(market_score_value), 1) AS avg_score,
+        ROUND(AVG(sim_r_multiple) FILTER (WHERE sim_result = 'TP_HIT'), 2) AS avg_r_tp,
+        ROUND(AVG(ABS(sim_r_multiple)) FILTER (WHERE sim_result = 'SL_HIT'), 2) AS avg_r_sl
       FROM btc_analysis
     `),
     pool.query(`
