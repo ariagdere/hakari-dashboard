@@ -11,7 +11,7 @@ const ASSETS = [
   { symbol: 'BTC',    name: 'Bitcoin / USD',    tv: 'BINANCE:BTCUSDT' },
   { symbol: 'XAUUSD', name: 'Gold / USD',       tv: 'OANDA:XAUUSD'    },
   { symbol: 'US02Y',  name: '2Y Treasury ETF',  tv: 'NASDAQ:SHY'      },
-  { symbol: 'US10Y',  name: '10Y Treasury ETF', tv: 'NASDAQ:IEF'      },
+  { symbol: 'UKOIL',  name: 'Brent Crude Oil',  tv: 'OANDA:BCOUSD'   },
 ]
 
 const TF_OPTIONS = [
