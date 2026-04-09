@@ -64,23 +64,34 @@ export async function GET() {
     r: r.sim_result === 'SL_HIT' ? -Math.abs(parseFloat(r.sim_r_multiple)) : Math.abs(parseFloat(r.sim_r_multiple)),
   }))
 
-  // Günlük aktif trade: her trade entry→result aralığındaki tüm günlere +1
-  const dayCountMap: Record<string, number> = {}
+  // Günlük max eş zamanlı aktif trade sayısı
+  const rows = activeTradesResult.rows
+  const dayMaxMap: Record<string, number> = {}
 
-  for (const row of activeTradesResult.rows) {
-    const cur = new Date(row.sim_entry_triggered_at)
-    cur.setHours(0, 0, 0, 0)
-    const endDay = new Date(row.sim_result_at)
-    endDay.setHours(0, 0, 0, 0)
+  const hourMs = 60 * 60 * 1000
 
-    while (cur <= endDay) {
-      const key = cur.toISOString().slice(0, 10)
-      dayCountMap[key] = (dayCountMap[key] || 0) + 1
-      cur.setDate(cur.getDate() + 1)
+  for (const row of rows) {
+    const start = new Date(row.sim_entry_triggered_at).getTime()
+    const end = new Date(row.sim_result_at).getTime()
+
+    const startHour = start - (start % hourMs)
+    const endHour = end - (end % hourMs)
+
+    for (let t = startHour; t <= endHour; t += hourMs) {
+      const concurrent = rows.filter((r: any) => {
+        const s = new Date(r.sim_entry_triggered_at).getTime()
+        const e = new Date(r.sim_result_at).getTime()
+        return s <= t && t <= e
+      }).length
+
+      const dayKey = new Date(t).toISOString().slice(0, 10)
+      if (!dayMaxMap[dayKey] || concurrent > dayMaxMap[dayKey]) {
+        dayMaxMap[dayKey] = concurrent
+      }
     }
   }
 
-  const activeTradeSeries = Object.entries(dayCountMap)
+  const activeTradeSeries = Object.entries(dayMaxMap)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, count]) => ({ date, count }))
 
