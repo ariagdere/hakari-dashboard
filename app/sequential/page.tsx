@@ -43,6 +43,8 @@ interface Stats {
   avg_conf_tp: number | null
   avg_score_tp: number | null
   avg_mins_tp: number | null
+  avg_max_fav_tp: number | null
+  avg_max_fav_tp_usd: number | null
   avg_r_sl: number | null
   max_r_sl: number | null
   min_r_sl: number | null
@@ -50,6 +52,8 @@ interface Stats {
   avg_conf_sl: number | null
   avg_score_sl: number | null
   avg_mins_sl: number | null
+  avg_max_fav_sl: number | null
+  avg_max_fav_sl_usd: number | null
   r_series: { date: string; r: number }[]
   active_trade_series: { date: string; count: number }[]
 }
@@ -253,6 +257,7 @@ export default function Dashboard() {
                     { label: 'Ort. Güven', val: stats.avg_conf_tp != null ? `%${stats.avg_conf_tp}` : '—' },
                     { label: 'Ort. Skor', val: stats.avg_score_tp != null ? `${stats.avg_score_tp}/10` : '—' },
                     { label: 'Ort. Süre', val: fmtMins(stats.avg_mins_tp) },
+                    { label: 'Ort. Max Kazanç', val: stats.avg_max_fav_tp != null ? `$${parseFloat(String(stats.avg_max_fav_tp_usd)).toFixed(2)} / +${parseFloat(String(stats.avg_max_fav_tp)).toFixed(2)}R` : '—' },
                   ].map((x, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span className="col-label">{x.label}</span>
@@ -283,6 +288,7 @@ export default function Dashboard() {
                     { label: 'Ort. Güven', val: stats.avg_conf_sl != null ? `%${stats.avg_conf_sl}` : '—' },
                     { label: 'Ort. Skor', val: stats.avg_score_sl != null ? `${stats.avg_score_sl}/10` : '—' },
                     { label: 'Ort. Süre', val: fmtMins(stats.avg_mins_sl) },
+                    { label: 'Ort. Max Kazanç', val: stats.avg_max_fav_sl != null ? `$${parseFloat(String(stats.avg_max_fav_sl_usd)).toFixed(2)} / +${parseFloat(String(stats.avg_max_fav_sl)).toFixed(2)}R` : '—' },
                   ].map((x, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span className="col-label">{x.label}</span>
