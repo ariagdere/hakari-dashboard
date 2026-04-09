@@ -31,7 +31,8 @@ export async function GET() {
         ROUND(AVG(confidence_value) FILTER (WHERE sim_result = 'TP_HIT'), 1) AS avg_conf_tp,
         ROUND(AVG(market_score_value) FILTER (WHERE sim_result = 'TP_HIT'), 1) AS avg_score_tp,
         ROUND(AVG(sim_entry_to_result_minutes) FILTER (WHERE sim_result = 'TP_HIT'), 0) AS avg_mins_tp,
-        ROUND(AVG(sim_max_favorable_move) FILTER (WHERE sim_result = 'TP_HIT'), 2) AS avg_max_fav_tp,
+        ROUND(AVG(sim_max_favorable_move) FILTER (WHERE sim_result = 'TP_HIT'), 2) AS avg_max_fav_tp_usd,
+        ROUND(AVG(sim_max_favorable_move / NULLIF(risk_usd, 0)) FILTER (WHERE sim_result = 'TP_HIT'), 2) AS avg_max_fav_tp,
         ROUND(AVG(CAST(SPLIT_PART(rr, ':', 2) AS NUMERIC)) FILTER (WHERE sim_result = 'SL_HIT'), 2) AS avg_r_sl,
         ROUND(MAX(CAST(SPLIT_PART(rr, ':', 2) AS NUMERIC)) FILTER (WHERE sim_result = 'SL_HIT'), 2) AS max_r_sl,
         ROUND(MIN(CAST(SPLIT_PART(rr, ':', 2) AS NUMERIC)) FILTER (WHERE sim_result = 'SL_HIT'), 2) AS min_r_sl,
@@ -39,7 +40,8 @@ export async function GET() {
         ROUND(AVG(confidence_value) FILTER (WHERE sim_result = 'SL_HIT'), 1) AS avg_conf_sl,
         ROUND(AVG(market_score_value) FILTER (WHERE sim_result = 'SL_HIT'), 1) AS avg_score_sl,
         ROUND(AVG(sim_entry_to_result_minutes) FILTER (WHERE sim_result = 'SL_HIT'), 0) AS avg_mins_sl,
-        ROUND(AVG(sim_max_favorable_move) FILTER (WHERE sim_result = 'SL_HIT'), 2) AS avg_max_fav_sl
+        ROUND(AVG(sim_max_favorable_move) FILTER (WHERE sim_result = 'SL_HIT'), 2) AS avg_max_fav_sl_usd,
+        ROUND(AVG(sim_max_favorable_move / NULLIF(risk_usd, 0)) FILTER (WHERE sim_result = 'SL_HIT'), 2) AS avg_max_fav_sl
       FROM btc_analysis
     `),
     pool.query(`
