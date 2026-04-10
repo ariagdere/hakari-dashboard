@@ -1,6 +1,5 @@
 'use client'
 import { useState, useMemo } from 'react'
-import Link from 'next/link'
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -346,24 +345,6 @@ export default function OpsPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 60 }}>
-      {/* Header */}
-      <div style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-2)', position: 'sticky', top: 0, zIndex: 10 }}>
-        <div style={{ height: 48, display: 'flex', alignItems: 'center', padding: '0 24px', gap: 0 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--text)', marginRight: 14 }}>HAKARI</span>
-          <Link href="/dashboard" style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'DM Mono, monospace', padding: '4px 12px', borderLeft: '1px solid var(--border)', textDecoration: 'none', letterSpacing: '0.06em' }}>ANALİZ</Link>
-          <Link href="/mkt" style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'DM Mono, monospace', padding: '4px 12px', borderLeft: '1px solid var(--border)', textDecoration: 'none', letterSpacing: '0.06em' }}>MKT</Link>
-          <span style={{ fontSize: 11, color: 'var(--text)', fontFamily: 'DM Mono, monospace', padding: '4px 12px', borderLeft: '1px solid var(--border)', letterSpacing: '0.06em', borderBottom: '2px solid var(--text)' }}>OPS</span>
-          <Link
-            href="/sequential"
-            style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'DM Mono, monospace', padding: '4px 12px', borderLeft: '1px solid var(--border)', textDecoration: 'none', letterSpacing: '0.06em', transition: 'color 0.1s' }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-2)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}
-          >
-            SEQ
-          </Link>
-        </div>
-      </div>
-
       <div className="container" style={{ paddingTop: 28, maxWidth: 800 }}>
         {/* Title */}
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
