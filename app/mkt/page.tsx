@@ -1,7 +1,5 @@
 'use client'
 import { useEffect, useState, useRef } from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 
 const ASSETS = [
   { symbol: 'DXY',    name: 'US Dollar Index',  tv: 'CAPITALCOM:DXY'  },
@@ -59,55 +57,19 @@ export default function MktPage() {
   return (
     <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', overflow: 'hidden' }} className="mkt-root">
 
-      {/* Header — Hakari stilinde */}
+      {/* MKT Kontroller */}
       <div style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-2)', flexShrink: 0 }}>
-        <div style={{ height: 48, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', overflow: 'hidden' }}>
-
-          {/* Sol: Logo + Nav */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 0, flexShrink: 0 }}>
-            <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--text)', marginRight: 14 }}>HAKARI</span>
-            <Link
-              href="/dashboard"
-              style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'DM Mono, monospace', padding: '4px 12px', borderLeft: '1px solid var(--border)', textDecoration: 'none', letterSpacing: '0.06em', transition: 'color 0.1s' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-2)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}
-            >
-              ANALİZ
-            </Link>
-            <span style={{ fontSize: 11, color: 'var(--text)', fontFamily: 'DM Mono, monospace', padding: '4px 12px', borderLeft: '1px solid var(--border)', letterSpacing: '0.06em', borderBottom: '2px solid var(--text)' }}>
-              MKT
+        <div style={{ height: 40, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', overflow: 'hidden' }}>
+          {/* Sol: NYSE */}
+          <div className="mkt-nyse" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: nyseOpen ? 'var(--green)' : 'var(--text-3)', display: 'inline-block', flexShrink: 0, animation: nyseOpen ? 'pulse-dot 2s ease-in-out infinite' : 'none' }} />
+            <span className="mono" style={{ fontSize: 10, color: nyseOpen ? 'var(--green)' : 'var(--text-3)', whiteSpace: 'nowrap' }}>
+              NYSE {nyseOpen ? 'AÇIK' : 'KAPALI'}
             </span>
-            <Link
-              href="/sequential"
-              style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'DM Mono, monospace', padding: '4px 12px', borderLeft: '1px solid var(--border)', textDecoration: 'none', letterSpacing: '0.06em', transition: 'color 0.1s' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-2)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}
-            >
-              SEQ
-            </Link>
-            <Link
-              href="/ops"
-              style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'DM Mono, monospace', padding: '4px 12px', borderLeft: '1px solid var(--border)', textDecoration: 'none', letterSpacing: '0.06em', transition: 'color 0.1s' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-2)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}
-            >
-              OPS
-            </Link>
           </div>
 
-          {/* Sağ: kontroller */}
+          {/* Sağ: TF + Toolbar + Saat */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, overflow: 'hidden', minWidth: 0 }}>
-            {/* NYSE status — mobilde gizli */}
-            <div className="mkt-nyse" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: nyseOpen ? 'var(--green)' : 'var(--text-3)', display: 'inline-block', flexShrink: 0, animation: nyseOpen ? 'pulse-dot 2s ease-in-out infinite' : 'none' }} />
-              <span className="mono" style={{ fontSize: 10, color: nyseOpen ? 'var(--green)' : 'var(--text-3)', whiteSpace: 'nowrap' }}>
-                NYSE {nyseOpen ? 'AÇIK' : 'KAPALI'}
-              </span>
-            </div>
-
-            <div className="mkt-nyse" style={{ width: 1, height: 16, background: 'var(--border)', flexShrink: 0 }} />
-
-            {/* TF butonları */}
             <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
               {TF_OPTIONS.map(t => (
                 <button
@@ -120,8 +82,6 @@ export default function MktPage() {
                 </button>
               ))}
             </div>
-
-            {/* Toolbar toggle — mobilde gizli */}
             <div className="mkt-nyse" style={{ width: 1, height: 16, background: 'var(--border)', flexShrink: 0 }} />
             <button
               className={`filter-btn mkt-nyse${toolbar ? ' active' : ''}`}
@@ -130,8 +90,6 @@ export default function MktPage() {
             >
               TOOLBAR
             </button>
-
-            {/* Saat — mobilde gizli */}
             <div className="mkt-nyse" style={{ width: 1, height: 16, background: 'var(--border)', flexShrink: 0 }} />
             <span className="mono mkt-nyse" style={{ fontSize: 10, color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{clock}</span>
           </div>
