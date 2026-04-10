@@ -1,7 +1,6 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { Chart as ChartJS, ArcElement, Tooltip, LineElement, PointElement, LinearScale, CategoryScale, Filler } from 'chart.js'
 import { Doughnut, Line } from 'react-chartjs-2'
 
@@ -136,42 +135,6 @@ export default function Dashboard() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 48 }}>
-      <div style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-2)' }}>
-        <div className="container" style={{ height: 48, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-            <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--text)', marginRight: 14 }}>HAKARI</span>
-            <Link
-              href="/dashboard"
-              style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'DM Mono, monospace', padding: '4px 12px', borderLeft: '1px solid var(--border)', textDecoration: 'none', letterSpacing: '0.06em', transition: 'color 0.1s' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-2)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}
-            >
-              ANALİZ
-            </Link>
-            <span className="mono" style={{ fontSize: 11, color: 'var(--text)', padding: '4px 12px', borderLeft: '1px solid var(--border)', letterSpacing: '0.06em', borderBottom: '2px solid var(--text)' }}>SEQ</span>
-            <Link
-              href="/mkt"
-              style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'DM Mono, monospace', padding: '4px 12px', borderLeft: '1px solid var(--border)', textDecoration: 'none', letterSpacing: '0.06em', transition: 'color 0.1s' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-2)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}
-            >
-              MKT
-            </Link>
-            <Link
-              href="/ops"
-              style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'DM Mono, monospace', padding: '4px 12px', borderLeft: '1px solid var(--border)', textDecoration: 'none', letterSpacing: '0.06em', transition: 'color 0.1s' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-2)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-3)')}
-            >
-              OPS
-            </Link>
-          </div>
-          <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>
-            {new Date().toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-          </span>
-        </div>
-      </div>
-
       <div className="container" style={{ paddingTop: 24 }}>
         {stats && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 8, marginBottom: 20 }}>
