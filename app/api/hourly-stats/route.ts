@@ -14,7 +14,8 @@ export async function GET() {
         ROUND(
           100.0 * COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') /
           NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT', 'SL_HIT')), 0)
-        , 1) AS win_rate
+        , 1) AS win_rate,
+        ROUND(AVG(sim_r_multiple) FILTER (WHERE sim_result = 'TP_HIT'), 2) AS avg_r_tp
       FROM btc_analysis
       WHERE sim_entry_triggered_at IS NOT NULL
         AND sim_result IN ('TP_HIT', 'SL_HIT')
@@ -30,7 +31,8 @@ export async function GET() {
         ROUND(
           100.0 * COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') /
           NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT', 'SL_HIT')), 0)
-        , 1) AS win_rate
+        , 1) AS win_rate,
+        ROUND(AVG(sim_r_multiple) FILTER (WHERE sim_result = 'TP_HIT'), 2) AS avg_r_tp
       FROM btc_analysis
       WHERE analyzed_at IS NOT NULL
         AND sim_result IN ('TP_HIT', 'SL_HIT')
@@ -48,6 +50,7 @@ export async function GET() {
       tp_count: parseInt(map[h]?.tp_count ?? 0),
       sl_count: parseInt(map[h]?.sl_count ?? 0),
       win_rate: parseFloat(map[h]?.win_rate ?? 0),
+      avg_r_tp: map[h]?.avg_r_tp != null ? parseFloat(map[h].avg_r_tp) : null,
     }))
   }
 
