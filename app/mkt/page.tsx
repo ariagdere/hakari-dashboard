@@ -107,7 +107,7 @@ export default function MktPage() {
         overflow: 'hidden',
       }} className="mkt-grid">
         {ASSETS.map(asset => {
-          const src = `https://s.tradingview.com/widgetembed/?frameElementId=tv_${asset.symbol}&symbol=${encodeURIComponent(asset.tv)}&interval=${tf}&hidesidetoolbar=1&hidetoptoolbar=${toolbar ? 0 : 1}&symboledit=0&saveimage=0&toolbarbg=0a0a0b&studies=[]&theme=dark&style=1&timezone=Europe%2FIstanbul&withdateranges=0&showpopupbutton=0&hide_legend=1&hide_volume=1&locale=tr`
+          const src = `https://s.tradingview.com/widgetembed/?frameElementId=tv_${asset.symbol}&symbol=${encodeURIComponent(asset.tv)}&interval=${tf}&hidesidetoolbar=1&hidetoptoolbar=${toolbar ? 0 : 1}&symboledit=0&saveimage=0&toolbarbg=0a0a0b&studies=[]&theme=dark&style=1&timezone=UTC%2B3&withdateranges=0&showpopupbutton=0&hide_legend=1&hide_volume=1&locale=tr`
           return (
             <div key={`${asset.symbol}-${renderKey}`} style={{ background: 'var(--bg)', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
               {/* Cell header */}
