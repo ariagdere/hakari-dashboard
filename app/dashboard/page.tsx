@@ -92,7 +92,10 @@ export default function Dashboard() {
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
 
-  const [hourlyStats, setHourlyStats] = useState<{ hour: number; total: number; tp_count: number; sl_count: number; win_rate: number }[]>([])
+  const [hourlyStats, setHourlyStats] = useState<{
+    by_entry: { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number }[]
+    by_analysis: { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number }[]
+  } | null>(null)
 
   const fetchAnalyses = useCallback(() => {
     setLoading(true)
@@ -353,14 +356,13 @@ export default function Dashboard() {
           )
         })()}
 
-        {hourlyStats.length > 0 && (() => {
-          const labels = hourlyStats.map(h => `${String(h.hour).padStart(2, '0')}:00`)
-          const hourlyData = {
-            labels,
+        {hourlyStats && (() => {
+          const makeBarData = (series: typeof hourlyStats.by_entry) => ({
+            labels: series.map(h => `${String(h.hour).padStart(2, '0')}:00`),
             datasets: [
               {
                 label: 'TP',
-                data: hourlyStats.map(h => h.tp_count),
+                data: series.map(h => h.tp_count),
                 backgroundColor: 'rgba(74,222,128,0.7)',
                 borderColor: 'rgba(74,222,128,0.9)',
                 borderWidth: 1,
@@ -368,15 +370,16 @@ export default function Dashboard() {
               },
               {
                 label: 'SL',
-                data: hourlyStats.map(h => h.sl_count),
+                data: series.map(h => h.sl_count),
                 backgroundColor: 'rgba(248,113,113,0.7)',
                 borderColor: 'rgba(248,113,113,0.9)',
                 borderWidth: 1,
                 borderRadius: 3,
               },
             ]
-          }
-          const hourlyOpts: any = {
+          })
+
+          const makeOpts = (series: typeof hourlyStats.by_entry): any => ({
             responsive: true, maintainAspectRatio: false,
             plugins: {
               legend: { display: false },
@@ -384,7 +387,7 @@ export default function Dashboard() {
                 callbacks: {
                   title: (items: any) => `Saat ${items[0].label}`,
                   afterBody: (items: any) => {
-                    const h = hourlyStats[items[0].dataIndex]
+                    const h = series[items[0].dataIndex]
                     return h.total > 0 ? [`Win Rate: %${h.win_rate}`, `Toplam: ${h.total}`] : ['Veri yok']
                   }
                 }
@@ -394,30 +397,47 @@ export default function Dashboard() {
               x: { stacked: true, grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 9 } }, border: { color: '#242424' } },
               y: { stacked: true, grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 10 }, stepSize: 1 }, border: { color: '#242424' }, min: 0 },
             },
-          }
-          const bestHour = hourlyStats.filter(h => h.total >= 2).sort((a, b) => b.win_rate - a.win_rate)[0]
-          return (
-            <div className="card" style={{ padding: 20, marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                  <div className="section-title">Saatlik TP / SL Dağılımı</div>
-                  <div style={{ display: 'flex', gap: 10 }}>
-                    {[{ label: 'TP', color: 'var(--green)' }, { label: 'SL', color: 'var(--red)' }].map((x, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span style={{ width: 8, height: 8, borderRadius: 2, background: x.color, flexShrink: 0 }} />
-                        <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{x.label}</span>
-                      </div>
-                    ))}
-                  </div>
+          })
+
+          const legend = (
+            <div style={{ display: 'flex', gap: 10 }}>
+              {[{ label: 'TP', color: 'var(--green)' }, { label: 'SL', color: 'var(--red)' }].map((x, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 2, background: x.color, flexShrink: 0 }} />
+                  <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{x.label}</span>
                 </div>
-                {bestHour && (
-                  <span className="mono" style={{ fontSize: 11, color: 'var(--green)' }}>
-                    En iyi: {String(bestHour.hour).padStart(2, '0')}:00 (%{bestHour.win_rate})
-                  </span>
-                )}
+              ))}
+            </div>
+          )
+
+          const bestEntry = hourlyStats.by_entry.filter(h => h.total >= 2).sort((a, b) => b.win_rate - a.win_rate)[0]
+          const bestAnalysis = hourlyStats.by_analysis.filter(h => h.total >= 2).sort((a, b) => b.win_rate - a.win_rate)[0]
+
+          return (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }} className="synthesis-2col">
+              <div className="card" style={{ padding: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div className="section-title">Entry Saati</div>
+                    {legend}
+                  </div>
+                  {bestEntry && <span className="mono" style={{ fontSize: 11, color: 'var(--green)' }}>En iyi: {String(bestEntry.hour).padStart(2, '0')}:00 (%{bestEntry.win_rate})</span>}
+                </div>
+                <div style={{ height: 180 }}>
+                  <Bar data={makeBarData(hourlyStats.by_entry)} options={makeOpts(hourlyStats.by_entry)} />
+                </div>
               </div>
-              <div style={{ height: 180 }}>
-                <Bar data={hourlyData} options={hourlyOpts} />
+              <div className="card" style={{ padding: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div className="section-title">Analiz Saati</div>
+                    {legend}
+                  </div>
+                  {bestAnalysis && <span className="mono" style={{ fontSize: 11, color: 'var(--green)' }}>En iyi: {String(bestAnalysis.hour).padStart(2, '0')}:00 (%{bestAnalysis.win_rate})</span>}
+                </div>
+                <div style={{ height: 180 }}>
+                  <Bar data={makeBarData(hourlyStats.by_analysis)} options={makeOpts(hourlyStats.by_analysis)} />
+                </div>
               </div>
             </div>
           )
