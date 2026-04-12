@@ -55,7 +55,7 @@ export default function MktPage() {
   const renderKey = `${tf}-${toolbar}`
 
   return (
-    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', overflow: 'hidden' }} className="mkt-root">
+    <div style={{ height: 'calc(100dvh - 48px)', display: 'flex', flexDirection: 'column', background: 'var(--bg)', overflow: 'hidden' }} className="mkt-root">
 
       {/* MKT Kontroller */}
       <div style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-2)', flexShrink: 0 }}>
@@ -107,23 +107,7 @@ export default function MktPage() {
         overflow: 'hidden',
       }} className="mkt-grid">
         {ASSETS.map(asset => {
-          const params = new URLSearchParams({
-            symbol: asset.tv,
-            interval: tf,
-            timezone: 'Europe/Istanbul',
-            theme: 'dark',
-            style: '1',
-            locale: 'tr',
-            toolbar_bg: '#0a0a0b',
-            hide_top_toolbar: toolbar ? '0' : '1',
-            hide_side_toolbar: '1',
-            hide_legend: '1',
-            no_referral_id: '1',
-            save_image: '0',
-            allow_symbol_change: '0',
-            withdateranges: '0',
-          })
-          const src = `https://s.tradingview.com/widgetembed/?${params.toString()}`
+          const src = `https://s.tradingview.com/widgetembed/?frameElementId=tv_${asset.symbol}&symbol=${encodeURIComponent(asset.tv)}&interval=${tf}&hidesidetoolbar=1&hidetoptoolbar=${toolbar ? 0 : 1}&symboledit=0&saveimage=0&toolbarbg=0a0a0b&studies=[]&theme=dark&style=1&timezone=Europe%2FIstanbul&withdateranges=0&showpopupbutton=0&hide_legend=1&hide_volume=1&locale=tr`
           return (
             <div key={`${asset.symbol}-${renderKey}`} style={{ background: 'var(--bg)', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
               {/* Cell header */}
