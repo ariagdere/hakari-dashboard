@@ -1,10 +1,10 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Chart as ChartJS, ArcElement, Tooltip, LineElement, PointElement, LinearScale, CategoryScale, Filler } from 'chart.js'
-import { Doughnut, Line } from 'react-chartjs-2'
+import { Chart as ChartJS, ArcElement, Tooltip, LineElement, PointElement, LinearScale, CategoryScale, Filler, BarElement } from 'chart.js'
+import { Doughnut, Line, Bar } from 'react-chartjs-2'
 
-ChartJS.register(ArcElement, Tooltip, LineElement, PointElement, LinearScale, CategoryScale, Filler)
+ChartJS.register(ArcElement, Tooltip, LineElement, PointElement, LinearScale, CategoryScale, Filler, BarElement)
 
 interface AnalysisSummary {
   id: number
@@ -92,17 +92,21 @@ export default function Dashboard() {
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
 
+  const [hourlyStats, setHourlyStats] = useState<{ hour: number; total: number; tp_count: number; sl_count: number; win_rate: number }[]>([])
+
   const fetchAnalyses = useCallback(() => {
     setLoading(true)
     const params = new URLSearchParams({ direction: dirFilter, result: resultFilter, page: String(page) })
     Promise.all([
       fetch(`/api/analyses?${params}`, { cache: 'no-store' }).then(r => r.json()),
       fetch('/api/dashboard', { cache: 'no-store' }).then(r => r.json()),
-    ]).then(([d, s]) => {
+      fetch('/api/hourly-stats', { cache: 'no-store' }).then(r => r.json()),
+    ]).then(([d, s, h]) => {
       setAnalyses(d.analyses)
       setTotalPages(d.totalPages)
       setTotal(d.total)
       setStats(s)
+      setHourlyStats(h)
       setLoading(false)
     })
   }, [dirFilter, resultFilter, page])
@@ -344,6 +348,76 @@ export default function Dashboard() {
               </div>
               <div style={{ height: 160 }}>
                 <Line data={activeData} options={activeOpts} />
+              </div>
+            </div>
+          )
+        })()}
+
+        {hourlyStats.length > 0 && (() => {
+          const labels = hourlyStats.map(h => `${String(h.hour).padStart(2, '0')}:00`)
+          const hourlyData = {
+            labels,
+            datasets: [
+              {
+                label: 'TP',
+                data: hourlyStats.map(h => h.tp_count),
+                backgroundColor: 'rgba(74,222,128,0.7)',
+                borderColor: 'rgba(74,222,128,0.9)',
+                borderWidth: 1,
+                borderRadius: 3,
+              },
+              {
+                label: 'SL',
+                data: hourlyStats.map(h => h.sl_count),
+                backgroundColor: 'rgba(248,113,113,0.7)',
+                borderColor: 'rgba(248,113,113,0.9)',
+                borderWidth: 1,
+                borderRadius: 3,
+              },
+            ]
+          }
+          const hourlyOpts: any = {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  title: (items: any) => `Saat ${items[0].label}`,
+                  afterBody: (items: any) => {
+                    const h = hourlyStats[items[0].dataIndex]
+                    return h.total > 0 ? [`Win Rate: %${h.win_rate}`, `Toplam: ${h.total}`] : ['Veri yok']
+                  }
+                }
+              }
+            },
+            scales: {
+              x: { stacked: true, grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 9 } }, border: { color: '#242424' } },
+              y: { stacked: true, grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 10 }, stepSize: 1 }, border: { color: '#242424' }, min: 0 },
+            },
+          }
+          const bestHour = hourlyStats.filter(h => h.total >= 2).sort((a, b) => b.win_rate - a.win_rate)[0]
+          return (
+            <div className="card" style={{ padding: 20, marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div className="section-title">Saatlik TP / SL Dağılımı</div>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    {[{ label: 'TP', color: 'var(--green)' }, { label: 'SL', color: 'var(--red)' }].map((x, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ width: 8, height: 8, borderRadius: 2, background: x.color, flexShrink: 0 }} />
+                        <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{x.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {bestHour && (
+                  <span className="mono" style={{ fontSize: 11, color: 'var(--green)' }}>
+                    En iyi: {String(bestHour.hour).padStart(2, '0')}:00 (%{bestHour.win_rate})
+                  </span>
+                )}
+              </div>
+              <div style={{ height: 180 }}>
+                <Bar data={hourlyData} options={hourlyOpts} />
               </div>
             </div>
           )
