@@ -93,8 +93,8 @@ export default function Dashboard() {
   const [total, setTotal] = useState(0)
 
   const [hourlyStats, setHourlyStats] = useState<{
-    by_entry: { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number }[]
-    by_analysis: { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number }[]
+    by_entry: { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number; avg_r_tp: number | null }[]
+    by_analysis: { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number; avg_r_tp: number | null }[]
   } | null>(null)
 
   const fetchAnalyses = useCallback(() => {
@@ -388,7 +388,13 @@ export default function Dashboard() {
                   title: (items: any) => `Saat ${items[0].label}`,
                   afterBody: (items: any) => {
                     const h = series[items[0].dataIndex]
-                    return h.total > 0 ? [`Win Rate: %${h.win_rate}`, `Toplam: ${h.total}`] : ['Veri yok']
+                    if (!h.total) return ['Veri yok']
+                    const lines = [
+                      `Win Rate: %${h.win_rate}`,
+                      `Toplam: ${h.total} (TP: ${h.tp_count} / SL: ${h.sl_count})`,
+                    ]
+                    if (h.avg_r_tp != null) lines.push(`Ort. Win R: +${h.avg_r_tp.toFixed(2)}R`)
+                    return lines
                   }
                 }
               }
