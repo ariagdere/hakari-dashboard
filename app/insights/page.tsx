@@ -39,8 +39,8 @@ interface HourlyData { by_analysis: HourlyRow[] }
 const N = (v: any, d = 1) => v == null ? '—' : Number(v).toFixed(d)
 const winColor = (v: number | null) => {
   if (v == null) return 'var(--text-3)'
-  if (v >= 60) return 'var(--green)'
-  if (v >= 45) return 'var(--amber)'
+  if (v >= 50) return 'var(--green)'
+  if (v >= 40) return 'var(--amber)'
   return 'var(--red)'
 }
 const sentLabel = (s: string) => {
@@ -181,7 +181,7 @@ export default function InsightsPage() {
             {/* ── 1. OVERVIEW ──────────────────────────────────────────────── */}
             <Section title="Genel Bakış">
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 8, marginBottom: 16 }}>
-                <StatCard label="Win Rate"   value={`%${Number(overview.win_rate).toFixed(1)}`} color={Number(overview.win_rate) >= 50 ? 'var(--green)' : 'var(--red)'} />
+                <StatCard label="Win Rate"   value={`%${Number(overview.win_rate).toFixed(1)}`} color={Number(overview.win_rate) >= 40 ? 'var(--green)' : 'var(--red)'} />
                 <StatCard label="Toplam PnL" value={overview.total_pnl != null ? `${Number(overview.total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.total_pnl)).toFixed(0)}` : '—'} color={Number(overview.total_pnl) > 0 ? 'var(--green)' : 'var(--red)'} />
                 <StatCard label="Ort. Win R"  value={overview.avg_r_win  != null ? `+${N(overview.avg_r_win)}R`  : '—'} color="var(--green)" />
                 <StatCard label="Ort. Loss R" value={overview.avg_r_loss != null ? `${N(overview.avg_r_loss)}R` : '—'} color="var(--red)" />
@@ -228,7 +228,7 @@ export default function InsightsPage() {
                       <Bar
                         data={{
                           labels: scoring.by_score.map(r => `${r.score}`),
-                          datasets: [{ data: scoring.by_score.map(r => Number(r.win_rate)), backgroundColor: scoring.by_score.map(r => Number(r.win_rate) >= 60 ? 'rgba(74,222,128,0.4)' : Number(r.win_rate) >= 45 ? 'rgba(251,191,36,0.4)' : 'rgba(248,113,113,0.4)'), borderColor: scoring.by_score.map(r => Number(r.win_rate) >= 60 ? '#4ade80' : Number(r.win_rate) >= 45 ? '#fbbf24' : '#f87171'), borderWidth: 1 }],
+                          datasets: [{ data: scoring.by_score.map(r => Number(r.win_rate)), backgroundColor: scoring.by_score.map(r => Number(r.win_rate) >= 50 ? 'rgba(74,222,128,0.4)' : Number(r.win_rate) >= 40 ? 'rgba(251,191,36,0.4)' : 'rgba(248,113,113,0.4)'), borderColor: scoring.by_score.map(r => Number(r.win_rate) >= 50 ? '#4ade80' : Number(r.win_rate) >= 40 ? '#fbbf24' : '#f87171'), borderWidth: 1 }],
                         }}
                         options={{ ...CHART_DEFAULTS, scales: { x: axisStyle, y: { ...axisStyle, max: 100, ticks: { ...axisStyle.ticks, callback: (v: any) => `${v}%` } } } }}
                       />
@@ -240,7 +240,7 @@ export default function InsightsPage() {
                       <Bar
                         data={{
                           labels: scoring.by_confidence.map(r => `${r.score}`),
-                          datasets: [{ data: scoring.by_confidence.map(r => Number(r.win_rate)), backgroundColor: scoring.by_confidence.map(r => Number(r.win_rate) >= 60 ? 'rgba(74,222,128,0.4)' : Number(r.win_rate) >= 45 ? 'rgba(251,191,36,0.4)' : 'rgba(248,113,113,0.4)'), borderColor: scoring.by_confidence.map(r => Number(r.win_rate) >= 60 ? '#4ade80' : Number(r.win_rate) >= 45 ? '#fbbf24' : '#f87171'), borderWidth: 1 }],
+                          datasets: [{ data: scoring.by_confidence.map(r => Number(r.win_rate)), backgroundColor: scoring.by_confidence.map(r => Number(r.win_rate) >= 50 ? 'rgba(74,222,128,0.4)' : Number(r.win_rate) >= 40 ? 'rgba(251,191,36,0.4)' : 'rgba(248,113,113,0.4)'), borderColor: scoring.by_confidence.map(r => Number(r.win_rate) >= 50 ? '#4ade80' : Number(r.win_rate) >= 40 ? '#fbbf24' : '#f87171'), borderWidth: 1 }],
                         }}
                         options={{ ...CHART_DEFAULTS, scales: { x: axisStyle, y: { ...axisStyle, max: 100, ticks: { ...axisStyle.ticks, callback: (v: any) => `${v}%` } } } }}
                       />
