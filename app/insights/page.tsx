@@ -437,7 +437,7 @@ export default function InsightsPage() {
                     <div className="col-label" style={{ marginBottom: 8 }}>R multiple dağılımı</div>
                     <div style={{ height: 160 }}>
                       {(() => {
-                        const buckets = [...new Set(rmae.r_histogram.map(r => r.r_bucket))].sort((a, b) => a - b)
+                        const buckets = Array.from(new Set(rmae.r_histogram.map(r => r.r_bucket))).sort((a, b) => a - b)
                         const tpData  = buckets.map(b => rmae.r_histogram.find(r => r.r_bucket === b && r.sim_result === 'TP_HIT')?.count ?? 0)
                         const slData  = buckets.map(b => rmae.r_histogram.find(r => r.r_bucket === b && r.sim_result === 'SL_HIT')?.count ?? 0)
                         return (
