@@ -27,8 +27,8 @@ interface LiqRow       { liquidity: string; market_power: string; total: number;
 interface SentimentData { indicators: IndicatorRow[]; mtf_confluence: MtfRow[]; liquidity_cross: LiqRow[] }
 interface DirSentRow   { direction: string; mtf_strength: string; total: number; wins: number; win_rate: number }
 interface ScoreSentRow { score_bucket: string; mtf_strength: string; total: number; wins: number; win_rate: number }
-interface TopPairRow   { pair_name: string; combination: string; total: number; wins: number; win_rate: number }
-interface PairsData    { direction_x_sentiment: DirSentRow[]; score_x_sentiment: ScoreSentRow[]; top_pairs: TopPairRow[] }
+interface CombRow      { pair_name?: string; trio_name?: string; combination: string; total: number; wins: number; win_rate: number }
+interface PairsData    { direction_x_sentiment: DirSentRow[]; score_x_sentiment: ScoreSentRow[]; long_pairs: CombRow[]; short_pairs: CombRow[]; long_trios: CombRow[]; short_trios: CombRow[] }
 interface RHistRow   { sim_result: string; r_bucket: number; count: number }
 interface ScatterRow { id: number; sim_result: string; mfe: number; mae: number; r_multiple: number; score: number }
 interface MfeRow     { mfe_bucket: string; total: number; tp_count: number; avg_mins: number }
@@ -95,6 +95,32 @@ function WinBar({ rate, total }: { rate: number | null; total: number }) {
 
 function CardTitle({ children }: { children: React.ReactNode }) {
   return <div className="col-label" style={{ marginBottom: 12, fontSize: 11 }}>{children}</div>
+}
+
+function CombTable({ rows, nameKey }: { rows: any[]; nameKey: string }) {
+  if (!rows?.length) return <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>veri yok</span>
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
+        <thead>
+          <tr>{['#', 'Tip', 'Kombinasyon', 'n', 'Win%'].map((h, i) => (
+            <th key={h} style={{ textAlign: i >= 3 ? 'right' : 'left', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400 }}>{h}</th>
+          ))}</tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+              <td style={{ padding: '6px 0', color: 'var(--text-3)', width: 20 }}>{i + 1}</td>
+              <td style={{ padding: '6px 0', color: 'var(--text-3)', fontSize: 10, minWidth: 80 }}>{row[nameKey]}</td>
+              <td style={{ padding: '6px 0', color: 'var(--text-2)' }}>{row.combination}</td>
+              <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-3)', width: 32 }}>{row.total}</td>
+              <td style={{ padding: '6px 0', textAlign: 'right', color: winColor(Number(row.win_rate)), fontWeight: 500, width: 48 }}>{Number(row.win_rate).toFixed(1)}%</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
 }
 
 const grid2 = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 } as const
@@ -308,6 +334,7 @@ export default function InsightsPage() {
             {/* ── 4. PAIRS ─────────────────────────────────────────────────── */}
             {pairs && (
               <Section title="Değişken Çiftleri">
+                {/* Direction × MTF + Score × MTF overview */}
                 <div style={{ ...grid2, marginBottom: 12 }}>
                   <div className="card" style={{ padding: 16 }}>
                     <CardTitle>Direction × MTF synthesis</CardTitle>
@@ -346,29 +373,49 @@ export default function InsightsPage() {
                     ))}
                   </div>
                 </div>
-                <div className="card" style={{ padding: 16 }}>
-                  <CardTitle>En güçlü 10 kombinasyon (min 5 trade)</CardTitle>
-                  <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
-                    <thead>
-                      <tr>{['#', 'Pair', 'Kombinasyon', 'n', 'Win%'].map((h, i) => <th key={h} style={{ textAlign: i >= 3 ? 'right' : 'left', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400 }}>{h}</th>)}</tr>
-                    </thead>
-                    <tbody>
-                      {pairs.top_pairs.map((row, i) => (
-                        <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
-                          <td style={{ padding: '6px 0', color: 'var(--text-3)', width: 24 }}>{i + 1}</td>
-                          <td style={{ padding: '6px 0', color: 'var(--text-3)', fontSize: 10 }}>{row.pair_name}</td>
-                          <td style={{ padding: '6px 0', color: 'var(--text-2)' }}>{row.combination}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-3)', width: 36 }}>{row.total}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right', color: winColor(Number(row.win_rate)), fontWeight: 500, width: 52 }}>{Number(row.win_rate).toFixed(1)}%</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+
+                {/* LONG pairs + trios */}
+                <div style={{ ...grid2, marginBottom: 12 }}>
+                  <div className="card" style={{ padding: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                      <span className="mono" style={{ fontSize: 11, color: 'var(--green)' }}>LONG</span>
+                      <CardTitle>— en iyi ikili kombinasyonlar</CardTitle>
+                    </div>
+                    <CombTable rows={pairs.long_pairs} nameKey="pair_name" />
+                  </div>
+                  <div className="card" style={{ padding: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                      <span className="mono" style={{ fontSize: 11, color: 'var(--green)' }}>LONG</span>
+                      <CardTitle>— en iyi üçlü kombinasyonlar</CardTitle>
+                    </div>
+                    {pairs.long_trios.length === 0
+                      ? <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>min 5 trade eşiğini geçen üçlü yok</span>
+                      : <CombTable rows={pairs.long_trios} nameKey="trio_name" />}
+                  </div>
+                </div>
+
+                {/* SHORT pairs + trios */}
+                <div style={grid2}>
+                  <div className="card" style={{ padding: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                      <span className="mono" style={{ fontSize: 11, color: 'var(--red)' }}>SHORT</span>
+                      <CardTitle>— en iyi ikili kombinasyonlar</CardTitle>
+                    </div>
+                    <CombTable rows={pairs.short_pairs} nameKey="pair_name" />
+                  </div>
+                  <div className="card" style={{ padding: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                      <span className="mono" style={{ fontSize: 11, color: 'var(--red)' }}>SHORT</span>
+                      <CardTitle>— en iyi üçlü kombinasyonlar</CardTitle>
+                    </div>
+                    {pairs.short_trios.length === 0
+                      ? <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>min 5 trade eşiğini geçen üçlü yok</span>
+                      : <CombTable rows={pairs.short_trios} nameKey="trio_name" />}
                   </div>
                 </div>
               </Section>
             )}
+
 
             {/* ── 5. R MULTIPLE & MFE/MAE ──────────────────────────────────── */}
             {rmae && (
