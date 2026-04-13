@@ -93,8 +93,8 @@ export default function Dashboard() {
   const [total, setTotal] = useState(0)
 
   const [hourlyStats, setHourlyStats] = useState<{
-    by_entry: { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number; avg_r_tp: number | null; total_mins_tp: string | null; entry_mins_tp: string | null; close_mins_tp: string | null; total_mins_sl: string | null; entry_mins_sl: string | null; close_mins_sl: string | null }[]
-    by_analysis: { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number; avg_r_tp: number | null; total_mins_tp: string | null; entry_mins_tp: string | null; close_mins_tp: string | null; total_mins_sl: string | null; entry_mins_sl: string | null; close_mins_sl: string | null }[]
+    by_entry: { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number; avg_r_tp: number | null }[]
+    by_analysis: { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number; avg_r_tp: number | null }[]
   } | null>(null)
 
   const fetchAnalyses = useCallback(() => {
@@ -396,14 +396,6 @@ export default function Dashboard() {
                       `Toplam: ${h.total} (TP: ${h.tp_count} / SL: ${h.sl_count})`,
                     ]
                     if (h.avg_r_tp != null) lines.push(`Ort. Win R: +${h.avg_r_tp.toFixed(2)}R`)
-                    lines.push('─────────')
-                    if (h.total_mins_tp) lines.push(`TP kapanış: ${h.total_mins_tp}`)
-                    if (h.entry_mins_tp) lines.push(`TP entry: ${h.entry_mins_tp}`)
-                    if (h.close_mins_tp) lines.push(`TP süre: ${h.close_mins_tp}`)
-                    if (h.total_mins_sl || h.entry_mins_sl || h.close_mins_sl) lines.push('')
-                    if (h.total_mins_sl) lines.push(`SL kapanış: ${h.total_mins_sl}`)
-                    if (h.entry_mins_sl) lines.push(`SL entry: ${h.entry_mins_sl}`)
-                    if (h.close_mins_sl) lines.push(`SL süre: ${h.close_mins_sl}`)
                     return lines
                   }
                 }
