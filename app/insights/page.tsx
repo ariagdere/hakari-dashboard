@@ -377,16 +377,18 @@ export default function InsightsPage() {
                 {/* LONG pairs + trios */}
                 <div style={{ ...grid2, marginBottom: 12 }}>
                   <div className="card" style={{ padding: 16 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                      <span className="mono" style={{ fontSize: 11, color: 'var(--green)' }}>LONG</span>
-                      <CardTitle>— en iyi ikili kombinasyonlar</CardTitle>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 12 }}>
+                      <span className="mono" style={{ fontSize: 11, color: 'var(--green)', flexShrink: 0 }}>LONG</span>
+                      <span className="col-label" style={{ fontSize: 11 }}>en iyi ikili kombinasyonlar</span>
+                      {overview && <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginLeft: 'auto' }}>n={overview.long_total}</span>}
                     </div>
                     <CombTable rows={pairs.long_pairs} nameKey="pair_name" />
                   </div>
                   <div className="card" style={{ padding: 16 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                      <span className="mono" style={{ fontSize: 11, color: 'var(--green)' }}>LONG</span>
-                      <CardTitle>— en iyi üçlü kombinasyonlar</CardTitle>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 12 }}>
+                      <span className="mono" style={{ fontSize: 11, color: 'var(--green)', flexShrink: 0 }}>LONG</span>
+                      <span className="col-label" style={{ fontSize: 11 }}>en iyi üçlü kombinasyonlar</span>
+                      {overview && <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginLeft: 'auto' }}>n={overview.long_total}</span>}
                     </div>
                     {pairs.long_trios.length === 0
                       ? <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>min 5 trade eşiğini geçen üçlü yok</span>
@@ -397,16 +399,18 @@ export default function InsightsPage() {
                 {/* SHORT pairs + trios */}
                 <div style={grid2}>
                   <div className="card" style={{ padding: 16 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                      <span className="mono" style={{ fontSize: 11, color: 'var(--red)' }}>SHORT</span>
-                      <CardTitle>— en iyi ikili kombinasyonlar</CardTitle>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 12 }}>
+                      <span className="mono" style={{ fontSize: 11, color: 'var(--red)', flexShrink: 0 }}>SHORT</span>
+                      <span className="col-label" style={{ fontSize: 11 }}>en iyi ikili kombinasyonlar</span>
+                      {overview && <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginLeft: 'auto' }}>n={overview.short_total}</span>}
                     </div>
                     <CombTable rows={pairs.short_pairs} nameKey="pair_name" />
                   </div>
                   <div className="card" style={{ padding: 16 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                      <span className="mono" style={{ fontSize: 11, color: 'var(--red)' }}>SHORT</span>
-                      <CardTitle>— en iyi üçlü kombinasyonlar</CardTitle>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 12 }}>
+                      <span className="mono" style={{ fontSize: 11, color: 'var(--red)', flexShrink: 0 }}>SHORT</span>
+                      <span className="col-label" style={{ fontSize: 11 }}>en iyi üçlü kombinasyonlar</span>
+                      {overview && <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginLeft: 'auto' }}>n={overview.short_total}</span>}
                     </div>
                     {pairs.short_trios.length === 0
                       ? <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>min 5 trade eşiğini geçen üçlü yok</span>
