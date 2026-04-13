@@ -97,7 +97,7 @@ function CardTitle({ children }: { children: React.ReactNode }) {
   return <div className="col-label" style={{ marginBottom: 12, fontSize: 11 }}>{children}</div>
 }
 
-const grid2 = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 } as const
+const grid2 = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 } as const
 
 export default function InsightsPage() {
   const [overview,  setOverview]  = useState<Overview | null>(null)
@@ -143,8 +143,8 @@ export default function InsightsPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 64 }}>
-      <div className="container" style={{ paddingTop: 28 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 64, overflowX: 'hidden' }}>
+      <div className="container" style={{ paddingTop: 28, maxWidth: '100%', overflowX: 'hidden' }}>
 
         {loading && (
           <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-3)' }} className="mono">yükleniyor...</div>
@@ -279,6 +279,7 @@ export default function InsightsPage() {
                   </div>
                   <div className="card" style={{ padding: 16 }}>
                     <CardTitle>Liquidity × market power</CardTitle>
+                    <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
                       <thead>
                         <tr>{['Liquidity', 'Mkt Power', 'n', 'Win%'].map((h, i) => <th key={h} style={{ textAlign: i >= 2 ? 'right' : 'left', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400 }}>{h}</th>)}</tr>
@@ -298,6 +299,7 @@ export default function InsightsPage() {
                         })}
                       </tbody>
                     </table>
+                    </div>
                   </div>
                 </div>
               </Section>
@@ -346,6 +348,7 @@ export default function InsightsPage() {
                 </div>
                 <div className="card" style={{ padding: 16 }}>
                   <CardTitle>En güçlü 10 kombinasyon (min 5 trade)</CardTitle>
+                  <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
                     <thead>
                       <tr>{['#', 'Pair', 'Kombinasyon', 'n', 'Win%'].map((h, i) => <th key={h} style={{ textAlign: i >= 3 ? 'right' : 'left', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400 }}>{h}</th>)}</tr>
@@ -362,6 +365,7 @@ export default function InsightsPage() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               </Section>
             )}
@@ -409,6 +413,7 @@ export default function InsightsPage() {
                 </div>
                 <div className="card" style={{ padding: 16 }}>
                   <CardTitle>MFE dağılımı — ne kadar hareket görüldü?</CardTitle>
+                  <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
                     <thead>
                       <tr>{['MFE Zonu', 'Toplam', 'TP Hit', 'TP%', 'Ort. Süre'].map((h, i) => <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400 }}>{h}</th>)}</tr>
@@ -430,6 +435,7 @@ export default function InsightsPage() {
                       })}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               </Section>
             )}
