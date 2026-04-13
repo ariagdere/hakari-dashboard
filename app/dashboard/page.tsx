@@ -93,8 +93,8 @@ export default function Dashboard() {
   const [total, setTotal] = useState(0)
 
   const [hourlyStats, setHourlyStats] = useState<{
-    by_entry: { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number; avg_r_tp: number | null }[]
-    by_analysis: { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number; avg_r_tp: number | null }[]
+    by_entry: { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number; avg_r_tp: number | null; avg_total_mins_tp: string | null; avg_total_mins_sl: string | null }[]
+    by_analysis: { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number; avg_r_tp: number | null; avg_total_mins_tp: string | null; avg_total_mins_sl: string | null }[]
   } | null>(null)
 
   const fetchAnalyses = useCallback(() => {
@@ -394,6 +394,8 @@ export default function Dashboard() {
                       `Toplam: ${h.total} (TP: ${h.tp_count} / SL: ${h.sl_count})`,
                     ]
                     if (h.avg_r_tp != null) lines.push(`Ort. Win R: +${h.avg_r_tp.toFixed(2)}R`)
+                    if (h.avg_total_mins_tp) lines.push(`TP — Analizden kapanışa: ${h.avg_total_mins_tp}`)
+                    if (h.avg_total_mins_sl) lines.push(`SL — Analizden kapanışa: ${h.avg_total_mins_sl}`)
                     return lines
                   }
                 }
