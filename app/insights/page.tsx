@@ -33,6 +33,8 @@ interface RHistRow   { sim_result: string; r_bucket: number; count: number }
 interface ScatterRow { id: number; sim_result: string; mfe: number; mae: number; r_multiple: number; score: number }
 interface MfeRow     { mfe_bucket: string; total: number; tp_count: number; avg_mins: number }
 interface RmaeData   { r_histogram: RHistRow[]; scatter: ScatterRow[]; mfe_distribution: MfeRow[] }
+interface HourlyRow  { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number; avg_r_tp: number | null }
+interface HourlyData { by_analysis: HourlyRow[] }
 
 const N = (v: any, d = 1) => v == null ? '—' : Number(v).toFixed(d)
 const winColor = (v: number | null) => {
@@ -103,6 +105,7 @@ export default function InsightsPage() {
   const [sentiment, setSentiment] = useState<SentimentData | null>(null)
   const [pairs,     setPairs]     = useState<PairsData | null>(null)
   const [rmae,      setRmae]      = useState<RmaeData | null>(null)
+  const [hourly,    setHourly]    = useState<HourlyData | null>(null)
   const [loading,   setLoading]   = useState(true)
 
   const fetchAll = useCallback(() => {
@@ -113,8 +116,9 @@ export default function InsightsPage() {
       fetch('/api/insights-sentiment', { cache: 'no-store' }).then(r => r.json()),
       fetch('/api/insights-pairs',     { cache: 'no-store' }).then(r => r.json()),
       fetch('/api/insights-rmae',      { cache: 'no-store' }).then(r => r.json()),
-    ]).then(([ov, sc, se, pa, rm]) => {
-      setOverview(ov); setScoring(sc); setSentiment(se); setPairs(pa); setRmae(rm)
+      fetch('/api/hourly-stats',       { cache: 'no-store' }).then(r => r.json()),
+    ]).then(([ov, sc, se, pa, rm, hr]) => {
+      setOverview(ov); setScoring(sc); setSentiment(se); setPairs(pa); setRmae(rm); setHourly(hr)
       setLoading(false)
     })
   }, [])
@@ -429,6 +433,68 @@ export default function InsightsPage() {
                 </div>
               </Section>
             )}
+            {/* ── 6. ZAMANLAMA ─────────────────────────────────────────────── */}
+            {hourly && hourly.by_analysis?.length > 0 && (() => {
+              const series = hourly.by_analysis
+              const best = series.filter(h => h.total >= 2).sort((a, b) => Number(b.win_rate) - Number(a.win_rate))[0]
+              const barData = {
+                labels: series.map(h => `${String(h.hour).padStart(2, '0')}:00`),
+                datasets: [
+                  { label: 'TP', data: series.map(h => h.tp_count), backgroundColor: 'rgba(74,222,128,0.7)', borderColor: 'rgba(74,222,128,0.9)', borderWidth: 1, borderRadius: 3 },
+                  { label: 'SL', data: series.map(h => h.sl_count), backgroundColor: 'rgba(248,113,113,0.7)', borderColor: 'rgba(248,113,113,0.9)', borderWidth: 1, borderRadius: 3 },
+                ],
+              }
+              const barOpts: any = {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    displayColors: false, padding: 10,
+                    callbacks: {
+                      title: (items: any) => `Saat ${items[0].label}`,
+                      afterBody: (items: any) => {
+                        const h = series[items[0].dataIndex]
+                        if (!h.total) return ['Veri yok']
+                        const lines = [`Win Rate: %${h.win_rate}`, `Toplam: ${h.total} (TP: ${h.tp_count} / SL: ${h.sl_count})`]
+                        if (h.avg_r_tp != null) lines.push(`Ort. Win R: +${Number(h.avg_r_tp).toFixed(2)}R`)
+                        return lines
+                      },
+                    },
+                  },
+                },
+                scales: {
+                  x: { stacked: true, grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 9 } }, border: { color: '#242424' } },
+                  y: { stacked: true, grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 10 }, stepSize: 1 }, border: { color: '#242424' }, min: 0 },
+                },
+              }
+              return (
+                <Section title="Zamanlama">
+                  <div className="card" style={{ padding: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <CardTitle>Analiz saati → TP/SL dağılımı</CardTitle>
+                        <div style={{ display: 'flex', gap: 10, marginTop: -12 }}>
+                          {[{ label: 'TP', color: 'var(--green)' }, { label: 'SL', color: 'var(--red)' }].map(x => (
+                            <div key={x.label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <span style={{ width: 8, height: 8, borderRadius: 2, background: x.color }} />
+                              <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{x.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      {best && (
+                        <span className="mono" style={{ fontSize: 11, color: 'var(--green)' }}>
+                          En iyi: {String(best.hour).padStart(2, '0')}:00 (%{best.win_rate})
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ height: 180 }}>
+                      <Bar data={barData} options={barOpts} />
+                    </div>
+                  </div>
+                </Section>
+              )
+            })()}
           </>
         )}
       </div>
