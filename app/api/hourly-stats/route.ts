@@ -14,10 +14,12 @@ export async function GET() {
         ROUND(100.0 * COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') /
           NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT', 'SL_HIT')), 0), 1) AS win_rate,
         ROUND(AVG(sim_r_multiple) FILTER (WHERE sim_result = 'TP_HIT'), 2) AS avg_r_tp,
-        ROUND(AVG(EXTRACT(EPOCH FROM (sim_result_at - analyzed_at)) / 60)
-          FILTER (WHERE sim_result = 'TP_HIT'), 0) AS avg_total_mins_tp,
-        ROUND(AVG(EXTRACT(EPOCH FROM (sim_result_at - analyzed_at)) / 60)
-          FILTER (WHERE sim_result = 'SL_HIT'), 0) AS avg_total_mins_sl
+        ROUND(AVG(EXTRACT(EPOCH FROM (sim_result_at - analyzed_at)) / 60) FILTER (WHERE sim_result = 'TP_HIT'), 0) AS total_mins_tp,
+        ROUND(AVG(EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60) FILTER (WHERE sim_result = 'TP_HIT'), 0) AS entry_mins_tp,
+        ROUND(AVG(sim_entry_to_result_minutes) FILTER (WHERE sim_result = 'TP_HIT'), 0) AS close_mins_tp,
+        ROUND(AVG(EXTRACT(EPOCH FROM (sim_result_at - analyzed_at)) / 60) FILTER (WHERE sim_result = 'SL_HIT'), 0) AS total_mins_sl,
+        ROUND(AVG(EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60) FILTER (WHERE sim_result = 'SL_HIT'), 0) AS entry_mins_sl,
+        ROUND(AVG(sim_entry_to_result_minutes) FILTER (WHERE sim_result = 'SL_HIT'), 0) AS close_mins_sl
       FROM btc_analysis
       WHERE sim_entry_triggered_at IS NOT NULL
         AND sim_result IN ('TP_HIT', 'SL_HIT')
@@ -32,10 +34,12 @@ export async function GET() {
         ROUND(100.0 * COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') /
           NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT', 'SL_HIT')), 0), 1) AS win_rate,
         ROUND(AVG(sim_r_multiple) FILTER (WHERE sim_result = 'TP_HIT'), 2) AS avg_r_tp,
-        ROUND(AVG(EXTRACT(EPOCH FROM (sim_result_at - analyzed_at)) / 60)
-          FILTER (WHERE sim_result = 'TP_HIT'), 0) AS avg_total_mins_tp,
-        ROUND(AVG(EXTRACT(EPOCH FROM (sim_result_at - analyzed_at)) / 60)
-          FILTER (WHERE sim_result = 'SL_HIT'), 0) AS avg_total_mins_sl
+        ROUND(AVG(EXTRACT(EPOCH FROM (sim_result_at - analyzed_at)) / 60) FILTER (WHERE sim_result = 'TP_HIT'), 0) AS total_mins_tp,
+        ROUND(AVG(EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60) FILTER (WHERE sim_result = 'TP_HIT'), 0) AS entry_mins_tp,
+        ROUND(AVG(sim_entry_to_result_minutes) FILTER (WHERE sim_result = 'TP_HIT'), 0) AS close_mins_tp,
+        ROUND(AVG(EXTRACT(EPOCH FROM (sim_result_at - analyzed_at)) / 60) FILTER (WHERE sim_result = 'SL_HIT'), 0) AS total_mins_sl,
+        ROUND(AVG(EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60) FILTER (WHERE sim_result = 'SL_HIT'), 0) AS entry_mins_sl,
+        ROUND(AVG(sim_entry_to_result_minutes) FILTER (WHERE sim_result = 'SL_HIT'), 0) AS close_mins_sl
       FROM btc_analysis
       WHERE analyzed_at IS NOT NULL
         AND sim_result IN ('TP_HIT', 'SL_HIT')
@@ -43,9 +47,11 @@ export async function GET() {
     `),
   ])
 
-  const fmtMins = (m: number | null) => {
-    if (!m) return null
-    const h = Math.floor(m / 60), min = Math.round(m % 60)
+  const fmtMins = (m: any): string | null => {
+    if (m == null) return null
+    const n = Math.round(parseFloat(m))
+    if (!n) return null
+    const h = Math.floor(n / 60), min = n % 60
     return h > 0 ? `${h}s ${min}dk` : `${min}dk`
   }
 
@@ -59,8 +65,12 @@ export async function GET() {
       sl_count: parseInt(map[h]?.sl_count ?? 0),
       win_rate: parseFloat(map[h]?.win_rate ?? 0),
       avg_r_tp: map[h]?.avg_r_tp != null ? parseFloat(map[h].avg_r_tp) : null,
-      avg_total_mins_tp: fmtMins(map[h]?.avg_total_mins_tp),
-      avg_total_mins_sl: fmtMins(map[h]?.avg_total_mins_sl),
+      total_mins_tp: fmtMins(map[h]?.total_mins_tp),
+      entry_mins_tp: fmtMins(map[h]?.entry_mins_tp),
+      close_mins_tp: fmtMins(map[h]?.close_mins_tp),
+      total_mins_sl: fmtMins(map[h]?.total_mins_sl),
+      entry_mins_sl: fmtMins(map[h]?.entry_mins_sl),
+      close_mins_sl: fmtMins(map[h]?.close_mins_sl),
     }))
   }
 
