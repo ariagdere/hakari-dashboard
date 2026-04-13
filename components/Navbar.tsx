@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { label: 'SEQ',    href: '/sequential' },
   { label: 'MKT',   href: '/mkt' },
   { label: 'OPS',   href: '/ops' },
+  { label: 'INSIGHTS', href: '/insights' },
 ]
 
 export default function Navbar() {
