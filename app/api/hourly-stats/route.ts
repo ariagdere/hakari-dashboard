@@ -11,16 +11,17 @@ export async function GET() {
         COUNT(*) AS total,
         COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS tp_count,
         COUNT(*) FILTER (WHERE sim_result = 'SL_HIT') AS sl_count,
-        ROUND(
-          100.0 * COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') /
-          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT', 'SL_HIT')), 0)
-        , 1) AS win_rate,
-        ROUND(AVG(sim_r_multiple) FILTER (WHERE sim_result = 'TP_HIT'), 2) AS avg_r_tp
+        ROUND(100.0 * COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') /
+          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT', 'SL_HIT')), 0), 1) AS win_rate,
+        ROUND(AVG(sim_r_multiple) FILTER (WHERE sim_result = 'TP_HIT'), 2) AS avg_r_tp,
+        ROUND(AVG(EXTRACT(EPOCH FROM (sim_result_at - analyzed_at)) / 60)
+          FILTER (WHERE sim_result = 'TP_HIT'), 0) AS avg_total_mins_tp,
+        ROUND(AVG(EXTRACT(EPOCH FROM (sim_result_at - analyzed_at)) / 60)
+          FILTER (WHERE sim_result = 'SL_HIT'), 0) AS avg_total_mins_sl
       FROM btc_analysis
       WHERE sim_entry_triggered_at IS NOT NULL
         AND sim_result IN ('TP_HIT', 'SL_HIT')
-      GROUP BY hour
-      ORDER BY hour ASC
+      GROUP BY hour ORDER BY hour ASC
     `),
     pool.query(`
       SELECT
@@ -28,18 +29,25 @@ export async function GET() {
         COUNT(*) AS total,
         COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS tp_count,
         COUNT(*) FILTER (WHERE sim_result = 'SL_HIT') AS sl_count,
-        ROUND(
-          100.0 * COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') /
-          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT', 'SL_HIT')), 0)
-        , 1) AS win_rate,
-        ROUND(AVG(sim_r_multiple) FILTER (WHERE sim_result = 'TP_HIT'), 2) AS avg_r_tp
+        ROUND(100.0 * COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') /
+          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT', 'SL_HIT')), 0), 1) AS win_rate,
+        ROUND(AVG(sim_r_multiple) FILTER (WHERE sim_result = 'TP_HIT'), 2) AS avg_r_tp,
+        ROUND(AVG(EXTRACT(EPOCH FROM (sim_result_at - analyzed_at)) / 60)
+          FILTER (WHERE sim_result = 'TP_HIT'), 0) AS avg_total_mins_tp,
+        ROUND(AVG(EXTRACT(EPOCH FROM (sim_result_at - analyzed_at)) / 60)
+          FILTER (WHERE sim_result = 'SL_HIT'), 0) AS avg_total_mins_sl
       FROM btc_analysis
       WHERE analyzed_at IS NOT NULL
         AND sim_result IN ('TP_HIT', 'SL_HIT')
-      GROUP BY hour
-      ORDER BY hour ASC
+      GROUP BY hour ORDER BY hour ASC
     `),
   ])
+
+  const fmtMins = (m: number | null) => {
+    if (!m) return null
+    const h = Math.floor(m / 60), min = Math.round(m % 60)
+    return h > 0 ? `${h}s ${min}dk` : `${min}dk`
+  }
 
   const toSeries = (rows: any[]) => {
     const map: Record<number, any> = {}
@@ -51,6 +59,8 @@ export async function GET() {
       sl_count: parseInt(map[h]?.sl_count ?? 0),
       win_rate: parseFloat(map[h]?.win_rate ?? 0),
       avg_r_tp: map[h]?.avg_r_tp != null ? parseFloat(map[h].avg_r_tp) : null,
+      avg_total_mins_tp: fmtMins(map[h]?.avg_total_mins_tp),
+      avg_total_mins_sl: fmtMins(map[h]?.avg_total_mins_sl),
     }))
   }
 
