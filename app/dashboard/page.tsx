@@ -418,34 +418,19 @@ export default function Dashboard() {
             </div>
           )
 
-          const bestEntry = hourlyStats.by_entry.filter(h => h.total >= 2).sort((a, b) => b.win_rate - a.win_rate)[0]
           const bestAnalysis = hourlyStats.by_analysis.filter(h => h.total >= 2).sort((a, b) => b.win_rate - a.win_rate)[0]
 
           return (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }} className="synthesis-2col">
-              <div className="card" style={{ padding: 20 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div className="section-title">Entry Saati</div>
-                    {legend}
-                  </div>
-                  {bestEntry && <span className="mono" style={{ fontSize: 11, color: 'var(--green)' }}>En iyi: {String(bestEntry.hour).padStart(2, '0')}:00 (%{bestEntry.win_rate})</span>}
+            <div className="card" style={{ padding: 20, marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div className="section-title">Analiz Saati</div>
+                  {legend}
                 </div>
-                <div style={{ height: 180 }}>
-                  <Bar data={makeBarData(hourlyStats.by_entry)} options={makeOpts(hourlyStats.by_entry)} />
-                </div>
+                {bestAnalysis && <span className="mono" style={{ fontSize: 11, color: 'var(--green)' }}>En iyi: {String(bestAnalysis.hour).padStart(2, '0')}:00 (%{bestAnalysis.win_rate})</span>}
               </div>
-              <div className="card" style={{ padding: 20 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div className="section-title">Analiz Saati</div>
-                    {legend}
-                  </div>
-                  {bestAnalysis && <span className="mono" style={{ fontSize: 11, color: 'var(--green)' }}>En iyi: {String(bestAnalysis.hour).padStart(2, '0')}:00 (%{bestAnalysis.win_rate})</span>}
-                </div>
-                <div style={{ height: 180 }}>
-                  <Bar data={makeBarData(hourlyStats.by_analysis)} options={makeOpts(hourlyStats.by_analysis)} />
-                </div>
+              <div style={{ height: 180 }}>
+                <Bar data={makeBarData(hourlyStats.by_analysis)} options={makeOpts(hourlyStats.by_analysis)} />
               </div>
             </div>
           )
