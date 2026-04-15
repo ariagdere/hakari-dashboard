@@ -58,7 +58,19 @@ export async function GET() {
       ROUND(
         COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
         NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1
-      ) AS win_rate
+      ) AS win_rate,
+      COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT') AND direction = 'SHORT') AS total_short,
+      COUNT(*) FILTER (WHERE sim_result = 'TP_HIT' AND direction = 'SHORT') AS wins_short,
+      ROUND(
+        COUNT(*) FILTER (WHERE sim_result = 'TP_HIT' AND direction = 'SHORT') * 100.0 /
+        NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT') AND direction = 'SHORT'), 0), 1
+      ) AS win_rate_short,
+      COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT') AND direction = 'LONG') AS total_long,
+      COUNT(*) FILTER (WHERE sim_result = 'TP_HIT' AND direction = 'LONG') AS wins_long,
+      ROUND(
+        COUNT(*) FILTER (WHERE sim_result = 'TP_HIT' AND direction = 'LONG') * 100.0 /
+        NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT') AND direction = 'LONG'), 0), 1
+      ) AS win_rate_long
     FROM btc_analysis
     WHERE sent_synthesis_h1 IS NOT NULL
       AND sent_synthesis_m5 IS NOT NULL
