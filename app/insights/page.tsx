@@ -19,7 +19,7 @@ interface Overview {
   short_total: number; short_win_rate: number
 }
 interface ScoringRow  { score: number; total: number; wins: number; win_rate: number }
-interface RsiRow      { rsi_zone: string; total: number; wins: number; win_rate: number }
+interface RsiRow      { rsi_zone: string; total: number; wins: number; win_rate: number; total_short: number; wins_short: number; win_rate_short: number; total_long: number; wins_long: number; win_rate_long: number }
 interface ScoringData { by_score: ScoringRow[]; by_confidence: ScoringRow[]; by_rsi: RsiRow[] }
 interface IndicatorRow { indicator: string; sentiment: string; total: number; wins: number; win_rate: number }
 interface MtfRow       { h1: string; m5: string; mtf: string; total: number; wins: number; win_rate: number }
@@ -249,11 +249,24 @@ export default function InsightsPage() {
                 </div>
                 <div className="card" style={{ padding: 16 }}>
                   <CardTitle>RSI 4H zonu → win rate</CardTitle>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
                     {scoring.by_rsi.map(row => (
                       <div key={row.rsi_zone}>
-                        <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)', display: 'block', marginBottom: 4 }}>{row.rsi_zone}</span>
-                        <WinBar rate={Number(row.win_rate)} total={Number(row.total)} />
+                        <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)', display: 'block', marginBottom: 6 }}>{row.rsi_zone}</span>
+                        <div style={{ marginBottom: 4 }}>
+                          <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 2, display: 'block' }}>TÜMÜ</span>
+                          <WinBar rate={Number(row.win_rate)} total={Number(row.total)} />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 6 }}>
+                          <div>
+                            <span className="mono" style={{ fontSize: 9, color: 'var(--red)', marginBottom: 2, display: 'block' }}>SHORT</span>
+                            <WinBar rate={Number(row.win_rate_short)} total={Number(row.total_short)} />
+                          </div>
+                          <div>
+                            <span className="mono" style={{ fontSize: 9, color: 'var(--green)', marginBottom: 2, display: 'block' }}>LONG</span>
+                            <WinBar rate={Number(row.win_rate_long)} total={Number(row.total_long)} />
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
