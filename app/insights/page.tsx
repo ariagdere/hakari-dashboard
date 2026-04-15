@@ -22,7 +22,7 @@ interface ScoringRow  { score: number; total: number; wins: number; win_rate: nu
 interface RsiRow      { rsi_zone: string; total: number; wins: number; win_rate: number; total_short: number; wins_short: number; win_rate_short: number; total_long: number; wins_long: number; win_rate_long: number }
 interface ScoringData { by_score: ScoringRow[]; by_confidence: ScoringRow[]; by_rsi: RsiRow[] }
 interface IndicatorRow { indicator: string; sentiment: string; total: number; wins: number; win_rate: number; total_short: number; wins_short: number; win_rate_short: number; total_long: number; wins_long: number; win_rate_long: number }
-interface MtfRow       { h1: string; m5: string; mtf: string; total: number; wins: number; win_rate: number }
+interface MtfRow       { h1: string; m5: string; mtf: string; total: number; wins: number; win_rate: number; total_short: number; wins_short: number; win_rate_short: number; total_long: number; wins_long: number; win_rate_long: number }
 interface LiqRow       { liquidity: string; market_power: string; total: number; wins: number; win_rate: number }
 interface SentimentData { indicators: IndicatorRow[]; mtf_confluence: MtfRow[]; liquidity_cross: LiqRow[] }
 interface DirSentRow   { direction: string; mtf_strength: string; total: number; wins: number; win_rate: number }
@@ -322,9 +322,22 @@ export default function InsightsPage() {
                   <div className="card" style={{ padding: 16 }}>
                     <CardTitle>MTF synthesis kombinasyonları</CardTitle>
                     {sentiment.mtf_confluence.slice(0, 8).map((row, i) => (
-                      <div key={i} style={{ marginBottom: 10 }}>
-                        <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)', display: 'block', marginBottom: 3 }}>H1:{row.h1} M5:{row.m5} MTF:{row.mtf}</span>
-                        <WinBar rate={Number(row.win_rate)} total={Number(row.total)} />
+                      <div key={i} style={{ marginBottom: 12 }}>
+                        <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>H1:{row.h1} M5:{row.m5} MTF:{row.mtf}</span>
+                        <div style={{ marginBottom: 4 }}>
+                          <span className="mono" style={{ fontSize: 8, color: 'var(--text-3)', display: 'block', marginBottom: 2 }}>TÜMÜ</span>
+                          <WinBar rate={Number(row.win_rate)} total={Number(row.total)} />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                          <div>
+                            <span className="mono" style={{ fontSize: 8, color: 'var(--red)', display: 'block', marginBottom: 2 }}>SHORT</span>
+                            <WinBar rate={Number(row.win_rate_short)} total={Number(row.total_short)} />
+                          </div>
+                          <div>
+                            <span className="mono" style={{ fontSize: 8, color: 'var(--green)', display: 'block', marginBottom: 2 }}>LONG</span>
+                            <WinBar rate={Number(row.win_rate_long)} total={Number(row.total_long)} />
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
