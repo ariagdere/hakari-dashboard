@@ -21,7 +21,7 @@ interface Overview {
 interface ScoringRow  { score: number; total: number; wins: number; win_rate: number }
 interface RsiRow      { rsi_zone: string; total: number; wins: number; win_rate: number; total_short: number; wins_short: number; win_rate_short: number; total_long: number; wins_long: number; win_rate_long: number }
 interface ScoringData { by_score: ScoringRow[]; by_confidence: ScoringRow[]; by_rsi: RsiRow[] }
-interface IndicatorRow { indicator: string; sentiment: string; total: number; wins: number; win_rate: number }
+interface IndicatorRow { indicator: string; sentiment: string; total: number; wins: number; win_rate: number; total_short: number; wins_short: number; win_rate_short: number; total_long: number; wins_long: number; win_rate_long: number }
 interface MtfRow       { h1: string; m5: string; mtf: string; total: number; wins: number; win_rate: number }
 interface LiqRow       { liquidity: string; market_power: string; total: number; wins: number; win_rate: number }
 interface SentimentData { indicators: IndicatorRow[]; mtf_confluence: MtfRow[]; liquidity_cross: LiqRow[] }
@@ -293,9 +293,21 @@ export default function InsightsPage() {
                             {rows.filter(r => r.sentiment).map(row => {
                               const sl = sentLabel(row.sentiment)
                               return (
-                                <div key={row.sentiment} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                                  <span className="mono" style={{ fontSize: 10, color: sl.color, minWidth: 60, flexShrink: 0 }}>{sl.label}</span>
-                                  <div style={{ flex: 1 }}><WinBar rate={Number(row.win_rate)} total={Number(row.total)} /></div>
+                                <div key={row.sentiment} style={{ marginBottom: 10 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                                    <span className="mono" style={{ fontSize: 10, color: sl.color, minWidth: 60, flexShrink: 0 }}>{sl.label}</span>
+                                    <div style={{ flex: 1 }}><WinBar rate={Number(row.win_rate)} total={Number(row.total)} /></div>
+                                  </div>
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, paddingLeft: 68 }}>
+                                    <div>
+                                      <span className="mono" style={{ fontSize: 8, color: 'var(--red)', display: 'block', marginBottom: 2 }}>SHORT</span>
+                                      <WinBar rate={Number(row.win_rate_short)} total={Number(row.total_short)} />
+                                    </div>
+                                    <div>
+                                      <span className="mono" style={{ fontSize: 8, color: 'var(--green)', display: 'block', marginBottom: 2 }}>LONG</span>
+                                      <WinBar rate={Number(row.win_rate_long)} total={Number(row.total_long)} />
+                                    </div>
+                                  </div>
                                 </div>
                               )
                             })}
