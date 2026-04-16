@@ -143,6 +143,8 @@ interface Filters {
   sim_result: string
   order_type: string
   sequential_trade: string
+  date_from: string
+  date_to: string
   score_min: number; score_max: number
   conf_min: number;  conf_max: number
   rsi_min: number;   rsi_max: number
@@ -166,6 +168,7 @@ interface Filters {
 
 const DEFAULT_FILTERS: Filters = {
   direction: '', sim_result: '', order_type: '', sequential_trade: '',
+  date_from: '', date_to: '',
   score_min: 1,  score_max: 10,
   conf_min: 0,   conf_max: 100,
   rsi_min: 0,    rsi_max: 100,
@@ -184,6 +187,8 @@ function filtersToParams(f: Filters): URLSearchParams {
   if (f.sim_result)        p.set('sim_result', f.sim_result)
   if (f.order_type)        p.set('order_type', f.order_type)
   if (f.sequential_trade)  p.set('sequential_trade', f.sequential_trade)
+  if (f.date_from)         p.set('date_from', f.date_from)
+  if (f.date_to)           p.set('date_to', f.date_to)
   p.set('score_min', String(f.score_min)); p.set('score_max', String(f.score_max))
   p.set('conf_min',  String(f.conf_min));  p.set('conf_max',  String(f.conf_max))
   p.set('rsi_min',   String(f.rsi_min));   p.set('rsi_max',   String(f.rsi_max))
@@ -199,6 +204,7 @@ function filtersToParams(f: Filters): URLSearchParams {
 function activeFilterCount(f: Filters): number {
   let n = 0
   if (f.direction) n++; if (f.sim_result) n++; if (f.order_type) n++; if (f.sequential_trade) n++
+  if (f.date_from) n++; if (f.date_to) n++
   if (f.score_min > 1 || f.score_max < 10) n++
   if (f.conf_min > 0  || f.conf_max < 100) n++
   if (f.rsi_min > 0   || f.rsi_max < 100)  n++
@@ -275,6 +281,24 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
         <ToggleGroup label="Sonuç" field="sim_result" options={['TP_HIT','SL_HIT','EXPIRED','NO_ENTRY']} />
         <ToggleGroup label="Sequential" field="sequential_trade" options={['TRADE','WAIT']} />
         <ToggleGroup label="Order type" field="order_type" options={['LIMIT','MARKET']} />
+        <div>
+          <div className="col-label" style={{ marginBottom: 5, fontSize: 10 }}>Tarih aralığı</div>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <input
+              type="date"
+              value={filters.date_from}
+              onChange={e => set('date_from', e.target.value)}
+              style={{ flex: 1, background: 'var(--bg-3)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)', fontSize: 10, padding: '3px 6px', fontFamily: 'DM Mono, monospace' }}
+            />
+            <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>–</span>
+            <input
+              type="date"
+              value={filters.date_to}
+              onChange={e => set('date_to', e.target.value)}
+              style={{ flex: 1, background: 'var(--bg-3)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)', fontSize: 10, padding: '3px 6px', fontFamily: 'DM Mono, monospace' }}
+            />
+          </div>
+        </div>
       </div>
 
       {sep}
@@ -715,8 +739,8 @@ export default function InsightsPage() {
                       <Scatter
                         data={{
                           datasets: [
-                            { label: 'TP', data: rmae.scatter.filter(r => r.sim_result === 'TP_HIT').map(r => ({ x: +r.mae.toFixed(2), y: +r.mfe.toFixed(2) })), backgroundColor: 'rgba(74,222,128,0.5)', pointRadius: 3 },
-                            { label: 'SL', data: rmae.scatter.filter(r => r.sim_result === 'SL_HIT').map(r => ({ x: +r.mae.toFixed(2), y: +r.mfe.toFixed(2) })), backgroundColor: 'rgba(248,113,113,0.5)', pointRadius: 3 },
+                            { label: 'TP', data: rmae.scatter.filter(r => r.sim_result === 'TP_HIT').map(r => ({ x: +Number(r.mae).toFixed(2), y: +Number(r.mfe).toFixed(2) })), backgroundColor: 'rgba(74,222,128,0.5)', pointRadius: 3 },
+                            { label: 'SL', data: rmae.scatter.filter(r => r.sim_result === 'SL_HIT').map(r => ({ x: +Number(r.mae).toFixed(2), y: +Number(r.mfe).toFixed(2) })), backgroundColor: 'rgba(248,113,113,0.5)', pointRadius: 3 },
                           ],
                         }}
                         options={{ ...CHART_DEFAULTS, plugins: { legend: { display: true, labels: { color: '#555', font: { family: 'DM Mono', size: 10 } } } }, scales: { x: { ...axisStyle, title: { display: true, text: 'MAE ($)', color: '#555', font: { family: 'DM Mono', size: 10 } } }, y: { ...axisStyle, title: { display: true, text: 'MFE ($)', color: '#555', font: { family: 'DM Mono', size: 10 } } } } }}
