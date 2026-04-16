@@ -1,9 +1,13 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, NextRequest } from 'next/server'
 import pool from '@/lib/db'
+import { buildInsightsWhere } from '@/lib/insightsFilter'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const { where, params } = buildInsightsWhere(req)
+  const w = where || 'WHERE 1=1'
+
   const q = await pool.query(`
     SELECT
       COUNT(*) FILTER (WHERE sim_result IS NOT NULL AND sim_result != 'NO_ENTRY') AS total,
@@ -19,8 +23,6 @@ export async function GET() {
       ROUND(AVG(sim_r_multiple) FILTER (WHERE sim_result = 'TP_HIT'), 2) AS avg_r_win,
       ROUND(AVG(sim_r_multiple) FILTER (WHERE sim_result = 'SL_HIT'), 2) AS avg_r_loss,
       ROUND(AVG(sim_entry_to_result_minutes) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0) AS avg_duration_mins,
-      ROUND(AVG(sim_entry_to_result_minutes) FILTER (WHERE sim_result = 'TP_HIT'), 0) AS avg_duration_win,
-      ROUND(AVG(sim_entry_to_result_minutes) FILTER (WHERE sim_result = 'SL_HIT'), 0) AS avg_duration_loss,
       ROUND(SUM(sim_pnl_usd) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 2) AS total_pnl,
       COUNT(*) FILTER (WHERE sequential_trade = 'TRADE' AND sim_result IN ('TP_HIT','SL_HIT')) AS seq_total,
       ROUND(
@@ -38,7 +40,8 @@ export async function GET() {
         NULLIF(COUNT(*) FILTER (WHERE direction = 'SHORT' AND sim_result IN ('TP_HIT','SL_HIT')), 0), 1
       ) AS short_win_rate
     FROM btc_analysis
-  `)
+    ${w}
+  `, params)
 
   return NextResponse.json(q.rows[0])
 }
