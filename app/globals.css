@@ -30,6 +30,8 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+html, body { overflow-x: hidden; }
+
 body {
   background: var(--bg);
   color: var(--text);
@@ -57,7 +59,7 @@ body {
 .badge-ne { background: #ffffff08; color: var(--text-2); border: 1px solid var(--border); }
 .badge-pend { background: #ffffff06; color: var(--text-3); border: 1px solid var(--border); }
 
-.card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; }
+.card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; overflow: visible; }
 
 .stat-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; transition: border-color 0.15s; }
 .stat-card:hover { border-color: var(--border-2); }
@@ -150,9 +152,6 @@ body {
   .screenshot-grid { grid-template-columns: repeat(2, 1fr); }
   .filter-btn { font-size: 10px; padding: 4px 8px; }
 
-  .card { overflow-x: hidden; }
   .synthesis-block { font-size: 12px; word-break: break-word; }
-
-  /* stat card grid 2-col on mobile */
   .stat-card { padding: 12px 12px; }
 }
