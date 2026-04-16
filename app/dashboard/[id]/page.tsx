@@ -174,7 +174,7 @@ export default function AnalysisPage() {
               <ScoreCard label="Güven" value={`%${data.confidence_value}`} />
               <ScoreCard label="Skor" value={`${data.market_score_value}/10`} />
               {data.win_probability != null && (
-                <ScoreCard label="WP" value={`%${data.win_probability}`} color={data.win_probability >= 50 ? 'var(--green)' : 'var(--red)'} />
+                <ScoreCard label="WP" value={`%${data.win_probability}`} color={data.win_probability >= 65 ? 'var(--green)' : data.win_probability >= 55 ? 'var(--amber)' : 'var(--red)'} />
               )}
               <ScoreCard label="4H RSI" value={data.rsi_4h ?? '—'} />
               <ScoreCard label="R/R" value={data.rr} />
