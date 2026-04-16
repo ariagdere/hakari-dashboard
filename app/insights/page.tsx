@@ -52,7 +52,7 @@ interface OptimalRData {
   current_avg_r: number | null
   total_trades: number
 }
-interface WinProbBucket  { bucket: string; sort_order: number; avg_predicted: number; total: number; wins: number; actual_win_rate: number; total_r: number | null }
+interface WinProbBucket  { bucket: string; sort_order: number; avg_predicted: number; total: number; wins: number; actual_win_rate: number; total_r: number | null; avg_r: number | null }
 interface WinProbDir     { direction: string; avg_probability: number; total: number; actual_win_rate: number }
 interface WinProbScatter { predicted: number; actual_win_rate: number; total: number }
 interface WinProbData    { buckets: WinProbBucket[]; by_dir: WinProbDir[]; scatter: WinProbScatter[] }
@@ -895,6 +895,7 @@ export default function InsightsPage() {
                                   return [
                                     `n=${b.total}  TP=${b.wins}`,
                                     b.total_r != null ? `Toplam R: ${Number(b.total_r) > 0 ? '+' : ''}${Number(b.total_r).toFixed(2)}R` : '',
+                                    b.avg_r != null ? `Ort. R: ${Number(b.avg_r) > 0 ? '+' : ''}${Number(b.avg_r).toFixed(2)}R` : '',
                                   ].filter(Boolean)
                                 },
                               },
@@ -930,7 +931,7 @@ export default function InsightsPage() {
                     <div style={{ overflowX: 'auto' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
                         <thead>
-                          <tr>{['Bucket', 'Ort. Tahmin', 'Gerçek Win%', 'Toplam R', 'n'].map((h, i) => (
+                          <tr>{['Bucket', 'Ort. Tahmin', 'Gerçek Win%', 'Toplam R', 'Ort. R', 'n'].map((h, i) => (
                             <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
                           ))}</tr>
                         </thead>
@@ -942,6 +943,9 @@ export default function InsightsPage() {
                               <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(b.actual_win_rate)) }}>{b.actual_win_rate != null ? `%${Number(b.actual_win_rate).toFixed(1)}` : '—'}</td>
                               <td style={{ padding: '5px 0', textAlign: 'right', color: b.total_r != null ? (Number(b.total_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>
                                 {b.total_r != null ? `${Number(b.total_r) > 0 ? '+' : ''}${Number(b.total_r).toFixed(2)}R` : '—'}
+                              </td>
+                              <td style={{ padding: '5px 0', textAlign: 'right', color: b.avg_r != null ? (Number(b.avg_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>
+                                {b.avg_r != null ? `${Number(b.avg_r) > 0 ? '+' : ''}${Number(b.avg_r).toFixed(2)}R` : '—'}
                               </td>
                               <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
                             </tr>
