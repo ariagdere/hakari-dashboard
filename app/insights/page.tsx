@@ -35,6 +35,8 @@ interface MfeRow     { mfe_bucket: string; total: number; tp_count: number; avg_
 interface RmaeData   { r_histogram: RHistRow[]; scatter: ScatterRow[]; mfe_distribution: MfeRow[] }
 interface HourlyRow  { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number; avg_r_tp: number | null }
 interface HourlyData { by_analysis: HourlyRow[] }
+interface DailyRow   { day: string; total: number; tp_count: number; sl_count: number; expired_count: number; other_count: number; win_rate: number }
+interface DailyData  { daily: DailyRow[] }
 interface SweepPoint { r: number; pnl: number; wins: number; losses: number; win_rate: number }
 interface OptimalRData {
   sweep: SweepPoint[]
@@ -355,6 +357,7 @@ export default function InsightsPage() {
   const [pairs,     setPairs]     = useState<PairsData | null>(null)
   const [rmae,      setRmae]      = useState<RmaeData | null>(null)
   const [hourly,    setHourly]    = useState<HourlyData | null>(null)
+  const [daily,     setDaily]     = useState<DailyData | null>(null)
   const [optimalR,  setOptimalR]  = useState<OptimalRData | null>(null)
   const [loading,   setLoading]   = useState(true)
   const [filterOpen,   setFilterOpen]   = useState(false)
@@ -373,8 +376,9 @@ export default function InsightsPage() {
       fetch(`/api/insights-rmae${qs}`,      { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/hourly-stats${qs}`,       { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/insights-optimal-r${qs}`, { cache: 'no-store' }).then(r => r.json()),
-    ]).then(([ov, sc, se, pa, rm, hr, or_]) => {
-      setOverview(ov); setScoring(sc); setSentiment(se); setPairs(pa); setRmae(rm); setHourly(hr); setOptimalR(or_)
+      fetch(`/api/insights-daily${qs}`,     { cache: 'no-store' }).then(r => r.json()),
+    ]).then(([ov, sc, se, pa, rm, hr, or_, da]) => {
+      setOverview(ov); setScoring(sc); setSentiment(se); setPairs(pa); setRmae(rm); setHourly(hr); setOptimalR(or_); setDaily(da)
       setLoading(false)
     })
   }, [])
@@ -867,7 +871,92 @@ export default function InsightsPage() {
               </Section>
             )}
 
-            {/* ── 7. ZAMANLAMA ─────────────────────────────────────────────── */}
+            {/* ── 7. GÜNLÜK DAĞILIM ────────────────────────────────────────── */}
+            {daily && daily.daily?.length > 0 && (
+              <Section title="Günlük Dağılım">
+                <div className="card" style={{ padding: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <CardTitle>Günlük trade dağılımı (TP / SL)</CardTitle>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      {[{ label: 'TP', color: 'var(--green)' }, { label: 'SL', color: 'var(--red)' }, { label: 'Diğer', color: 'var(--text-3)' }].map(x => (
+                        <div key={x.label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{ width: 8, height: 8, borderRadius: 2, background: x.color }} />
+                          <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{x.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ height: 200 }}>
+                    <Bar
+                      data={{
+                        labels: daily.daily.map(d => {
+                          const date = new Date(d.day)
+                          return date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })
+                        }),
+                        datasets: [
+                          {
+                            label: 'TP',
+                            data: daily.daily.map(d => Number(d.tp_count)),
+                            backgroundColor: 'rgba(74,222,128,0.7)',
+                            borderColor: '#4ade80',
+                            borderWidth: 1,
+                            borderRadius: 2,
+                            stack: 'stack',
+                          },
+                          {
+                            label: 'SL',
+                            data: daily.daily.map(d => Number(d.sl_count)),
+                            backgroundColor: 'rgba(248,113,113,0.7)',
+                            borderColor: '#f87171',
+                            borderWidth: 1,
+                            borderRadius: 2,
+                            stack: 'stack',
+                          },
+                          {
+                            label: 'Diğer',
+                            data: daily.daily.map(d => Number(d.other_count) + Number(d.expired_count)),
+                            backgroundColor: 'rgba(85,85,85,0.5)',
+                            borderColor: '#555',
+                            borderWidth: 1,
+                            borderRadius: 2,
+                            stack: 'stack',
+                          },
+                        ],
+                      }}
+                      options={{
+                        ...CHART_DEFAULTS,
+                        plugins: {
+                          legend: { display: false },
+                          tooltip: {
+                            displayColors: false,
+                            callbacks: {
+                              title: (items: any) => daily.daily[items[0].dataIndex]
+                                ? new Date(daily.daily[items[0].dataIndex].day).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                                : '',
+                              afterBody: (items: any) => {
+                                const d = daily.daily[items[0].dataIndex]
+                                if (!d) return []
+                                return [
+                                  `Toplam: ${d.total}`,
+                                  `TP: ${d.tp_count} / SL: ${d.sl_count}`,
+                                  d.win_rate != null ? `Win rate: %${d.win_rate}` : '',
+                                ].filter(Boolean)
+                              },
+                            },
+                          },
+                        },
+                        scales: {
+                          x: { ...axisStyle, stacked: true, ticks: { ...axisStyle.ticks, maxTicksLimit: 20 } },
+                          y: { ...axisStyle, stacked: true, ticks: { ...axisStyle.ticks, stepSize: 1 } },
+                        },
+                      }}
+                    />
+                  </div>
+                </div>
+              </Section>
+            )}
+
+            {/* ── 8. ZAMANLAMA ─────────────────────────────────────────────── */}
             {hourly && hourly.by_analysis?.length > 0 && (() => {
               const series = hourly.by_analysis
               const best = series.filter(h => h.total >= 2).sort((a, b) => Number(b.win_rate) - Number(a.win_rate))[0]
