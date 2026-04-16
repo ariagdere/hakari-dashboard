@@ -364,9 +364,6 @@ export default function InsightsPage() {
   const [daily,     setDaily]     = useState<DailyData | null>(null)
   const [optimalR,  setOptimalR]  = useState<OptimalRData | null>(null)
   const [loading,   setLoading]   = useState(true)
-  const [rsiDir,    setRsiDir]    = useState('Tümü')
-  const [sentDir,   setSentDir]   = useState('Tümü')
-  const [mtfDir,    setMtfDir]    = useState('Tümü')
   const [filterOpen,   setFilterOpen]   = useState(false)
   const [draftFilters, setDraftFilters] = useState<Filters>(DEFAULT_FILTERS)
   const [appliedFilters, setAppliedFilters] = useState<Filters>(DEFAULT_FILTERS)
@@ -545,26 +542,23 @@ export default function InsightsPage() {
                   </div>
                 </div>
                 <div className="card" style={{ padding: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <CardTitle>RSI 4H zonu → win rate</CardTitle>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      {['Tümü', 'LONG', 'SHORT'].map(d => (
-                        <button key={d}
-                          className={`filter-btn${(rsiDir === d) ? ' active' : ''}`}
-                          style={{ fontSize: 10, padding: '2px 8px' }}
-                          onClick={() => setRsiDir(d)}
-                        >{d}</button>
-                      ))}
-                    </div>
+                  <CardTitle>RSI 4H zonu → win rate</CardTitle>
+                  <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr 1fr', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                    <div />
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--green)', textAlign: 'center' }}>LONG</span>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--red)', textAlign: 'center' }}>SHORT</span>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
-                    {(rsiDir === 'LONG' ? scoring.by_rsi_long : rsiDir === 'SHORT' ? scoring.by_rsi_short : scoring.by_rsi).map(row => (
-                      <div key={row.rsi_zone}>
-                        <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)', display: 'block', marginBottom: 4 }}>{row.rsi_zone}</span>
-                        <WinBar rate={Number(row.win_rate)} total={Number(row.total)} />
+                  {scoring.by_rsi.map(row => {
+                    const long  = scoring.by_rsi_long.find(r => r.rsi_zone === row.rsi_zone)
+                    const short = scoring.by_rsi_short.find(r => r.rsi_zone === row.rsi_zone)
+                    return (
+                      <div key={row.rsi_zone} style={{ display: 'grid', gridTemplateColumns: '160px 1fr 1fr', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                        <span className="mono" style={{ fontSize: 10, color: 'var(--text-2)' }}>{row.rsi_zone}</span>
+                        <WinBar rate={long ? Number(long.win_rate) : null} total={long ? Number(long.total) : 0} />
+                        <WinBar rate={short ? Number(short.win_rate) : null} total={short ? Number(short.total) : 0} />
                       </div>
-                    ))}
-                  </div>
+                    )
+                  })}
                 </div>
               </Section>
             )}
@@ -573,36 +567,33 @@ export default function InsightsPage() {
             {sentiment && (
               <Section title="Sentiment Analizi">
                 <div className="card" style={{ padding: 16, marginBottom: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <CardTitle>İndikatör × sentiment → win rate</CardTitle>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      {['Tümü', 'LONG', 'SHORT'].map(d => (
-                        <button key={d}
-                          className={`filter-btn${sentDir === d ? ' active' : ''}`}
-                          style={{ fontSize: 10, padding: '2px 8px' }}
-                          onClick={() => setSentDir(d)}
-                        >{d}</button>
-                      ))}
-                    </div>
-                  </div>
+                  <CardTitle>İndikatör × sentiment → win rate</CardTitle>
                   {(() => {
-                    const src = sentDir === 'LONG' ? sentiment.indicators_long : sentDir === 'SHORT' ? sentiment.indicators_short : sentiment.indicators
-                    const grouped: Record<string, IndicatorRow[]> = {}
-                    src.forEach(r => {
-                      if (!grouped[r.indicator]) grouped[r.indicator] = []
-                      grouped[r.indicator].push(r)
-                    })
+                    const groupedAll:   Record<string, IndicatorRow[]> = {}
+                    const groupedLong:  Record<string, IndicatorRow[]> = {}
+                    const groupedShort: Record<string, IndicatorRow[]> = {}
+                    sentiment.indicators.forEach(r => { if (!groupedAll[r.indicator]) groupedAll[r.indicator] = []; groupedAll[r.indicator].push(r) })
+                    sentiment.indicators_long.forEach(r => { if (!groupedLong[r.indicator]) groupedLong[r.indicator] = []; groupedLong[r.indicator].push(r) })
+                    sentiment.indicators_short.forEach(r => { if (!groupedShort[r.indicator]) groupedShort[r.indicator] = []; groupedShort[r.indicator].push(r) })
                     return (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
-                        {Object.entries(grouped).map(([indicator, rows]) => (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+                        {Object.keys(groupedAll).map(indicator => (
                           <div key={indicator}>
-                            <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 8, paddingBottom: 4, borderBottom: '1px solid var(--border)' }}>{indicator}</div>
-                            {rows.filter(r => r.sentiment).map(row => {
-                              const sl = sentLabel(row.sentiment)
+                            <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 6, paddingBottom: 4, borderBottom: '1px solid var(--border)' }}>{indicator}</div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '10px 1fr 1fr', gap: 4, marginBottom: 4 }}>
+                              <div />
+                              <span className="mono" style={{ fontSize: 9, color: 'var(--green)', textAlign: 'center' }}>LONG</span>
+                              <span className="mono" style={{ fontSize: 9, color: 'var(--red)', textAlign: 'center' }}>SHORT</span>
+                            </div>
+                            {(groupedAll[indicator] || []).filter(r => r.sentiment).map(row => {
+                              const sl    = sentLabel(row.sentiment)
+                              const long  = (groupedLong[indicator]  || []).find(r => r.sentiment === row.sentiment)
+                              const short = (groupedShort[indicator] || []).find(r => r.sentiment === row.sentiment)
                               return (
-                                <div key={row.sentiment} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                                  <span className="mono" style={{ fontSize: 10, color: sl.color, minWidth: 60, flexShrink: 0 }}>{sl.label}</span>
-                                  <div style={{ flex: 1 }}><WinBar rate={Number(row.win_rate)} total={Number(row.total)} /></div>
+                                <div key={row.sentiment} style={{ display: 'grid', gridTemplateColumns: '10px 1fr 1fr', gap: 4, alignItems: 'center', marginBottom: 5 }}>
+                                  <span className="mono" style={{ fontSize: 9, color: sl.color, writingMode: 'vertical-rl', transform: 'rotate(180deg)', height: 40, lineHeight: 1 }}>{sl.label}</span>
+                                  <WinBar rate={long ? Number(long.win_rate) : null} total={long ? Number(long.total) : 0} />
+                                  <WinBar rate={short ? Number(short.win_rate) : null} total={short ? Number(short.total) : 0} />
                                 </div>
                               )
                             })}
@@ -615,19 +606,8 @@ export default function InsightsPage() {
 
                 <div style={{ ...grid2, marginBottom: 12 }}>
                   <div className="card" style={{ padding: 16 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                      <CardTitle>MTF synthesis kombinasyonları</CardTitle>
-                      <div style={{ display: 'flex', gap: 4 }}>
-                        {['Tümü', 'LONG', 'SHORT'].map(d => (
-                          <button key={d}
-                            className={`filter-btn${mtfDir === d ? ' active' : ''}`}
-                            style={{ fontSize: 10, padding: '2px 8px' }}
-                            onClick={() => setMtfDir(d)}
-                          >{d}</button>
-                        ))}
-                      </div>
-                    </div>
-                    {(mtfDir === 'LONG' ? sentiment.mtf_confluence_long : mtfDir === 'SHORT' ? sentiment.mtf_confluence_short : sentiment.mtf_confluence).slice(0, 8).map((row, i) => (
+                    <CardTitle>MTF synthesis kombinasyonları — LONG</CardTitle>
+                    {sentiment.mtf_confluence_long.slice(0, 8).map((row, i) => (
                       <div key={i} style={{ marginBottom: 10 }}>
                         <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)', display: 'block', marginBottom: 3 }}>H1:{row.h1} M5:{row.m5} MTF:{row.mtf}</span>
                         <WinBar rate={Number(row.win_rate)} total={Number(row.total)} />
@@ -635,28 +615,37 @@ export default function InsightsPage() {
                     ))}
                   </div>
                   <div className="card" style={{ padding: 16 }}>
-                    <CardTitle>Liquidity × market power</CardTitle>
-                    <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
-                      <thead>
-                        <tr>{['Liquidity', 'Mkt Power', 'n', 'Win%'].map((h, i) => <th key={h} style={{ textAlign: i >= 2 ? 'right' : 'left', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400 }}>{h}</th>)}</tr>
-                      </thead>
-                      <tbody>
-                        {sentiment.liquidity_cross.map((row, i) => {
-                          const liq = sentLabel(row.liquidity)
-                          const mkt = sentLabel(row.market_power)
-                          return (
-                            <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
-                              <td style={{ padding: '6px 0', color: liq.color }}>{liq.label}</td>
-                              <td style={{ padding: '6px 0', color: mkt.color }}>{mkt.label}</td>
-                              <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-3)' }}>{row.total}</td>
-                              <td style={{ padding: '6px 0', textAlign: 'right', color: winColor(Number(row.win_rate)), fontWeight: 500 }}>{Number(row.win_rate).toFixed(1)}%</td>
-                            </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
-                    </div>
+                    <CardTitle>MTF synthesis kombinasyonları — SHORT</CardTitle>
+                    {sentiment.mtf_confluence_short.slice(0, 8).map((row, i) => (
+                      <div key={i} style={{ marginBottom: 10 }}>
+                        <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)', display: 'block', marginBottom: 3 }}>H1:{row.h1} M5:{row.m5} MTF:{row.mtf}</span>
+                        <WinBar rate={Number(row.win_rate)} total={Number(row.total)} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="card" style={{ padding: 16 }}>
+                  <CardTitle>Liquidity × market power</CardTitle>
+                  <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
+                    <thead>
+                      <tr>{['Liquidity', 'Mkt Power', 'n', 'Win%'].map((h, i) => <th key={h} style={{ textAlign: i >= 2 ? 'right' : 'left', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400 }}>{h}</th>)}</tr>
+                    </thead>
+                    <tbody>
+                      {sentiment.liquidity_cross.map((row, i) => {
+                        const liq = sentLabel(row.liquidity)
+                        const mkt = sentLabel(row.market_power)
+                        return (
+                          <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                            <td style={{ padding: '6px 0', color: liq.color }}>{liq.label}</td>
+                            <td style={{ padding: '6px 0', color: mkt.color }}>{mkt.label}</td>
+                            <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-3)' }}>{row.total}</td>
+                            <td style={{ padding: '6px 0', textAlign: 'right', color: winColor(Number(row.win_rate)), fontWeight: 500 }}>{Number(row.win_rate).toFixed(1)}%</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
                   </div>
                 </div>
               </Section>
