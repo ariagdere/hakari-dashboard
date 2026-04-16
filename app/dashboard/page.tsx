@@ -19,6 +19,7 @@ interface AnalysisSummary {
   sim_result: string
   sim_pnl_usd: number
   sim_r_multiple: number
+  win_probability: number | null
 }
 
 interface Stats {
@@ -466,6 +467,7 @@ export default function Dashboard() {
             <span className="col-label">R/R</span>
             <span className="col-label">Skor</span>
             <span className="col-label">Güven</span>
+            <span className="col-label">WP</span>
             <span className="col-label">Sonuç</span>
             <span className="col-label">PnL</span>
             <span className="col-label">R</span>
@@ -484,6 +486,9 @@ export default function Dashboard() {
               <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rr}</span>
               <span className="mono" style={{ fontSize: 12 }}>{a.market_score_value}/10</span>
               <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>%{a.confidence_value}</span>
+              <span className="mono" style={{ fontSize: 12, color: a.win_probability != null ? (a.win_probability >= 50 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>
+                {a.win_probability != null ? `%${a.win_probability}` : '—'}
+              </span>
               <span>{resultBadge(a.sim_result)}</span>
               <span className={`mono ${a.sim_pnl_usd != null ? pnlClass(a.sim_pnl_usd) : 'pnl-zero'}`} style={{ fontSize: 12 }}>
                 {a.sim_pnl_usd != null ? `${a.sim_pnl_usd > 0 ? '+' : ''}$${Math.abs(a.sim_pnl_usd).toFixed(2)}` : '—'}
