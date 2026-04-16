@@ -10,7 +10,7 @@ interface Analysis {
   id: number; analyzed_at: string; direction: string; order_type: string
   entry: number; tp: number; sl: number; rr: string
   risk_usd: number; position_size_btc: number
-  market_score_value: number; confidence_value: number; rsi_4h: number
+  market_score_value: number; confidence_value: number; rsi_4h: number; win_probability: number | null
   sim_result: string; sim_pnl_usd: number; sim_r_multiple: number
   sim_entry_to_result_minutes: number
   sim_entry_triggered_at: string; sim_result_at: string
@@ -173,6 +173,9 @@ export default function AnalysisPage() {
               <ScoreCard label="Yön" value={data.direction} color={data.direction === 'SHORT' ? 'var(--red)' : 'var(--green)'} />
               <ScoreCard label="Güven" value={`%${data.confidence_value}`} />
               <ScoreCard label="Skor" value={`${data.market_score_value}/10`} />
+              {data.win_probability != null && (
+                <ScoreCard label="WP" value={`%${data.win_probability}`} color={data.win_probability >= 50 ? 'var(--green)' : 'var(--red)'} />
+              )}
               <ScoreCard label="4H RSI" value={data.rsi_4h ?? '—'} />
               <ScoreCard label="R/R" value={data.rr} />
               <ScoreCard label="Entry" value={`$${fmt(data.entry)}`} color="var(--amber)" sub={data.order_type?.replace('ORDER_TYPE_', '')} />
