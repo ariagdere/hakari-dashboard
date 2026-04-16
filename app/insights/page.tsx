@@ -224,19 +224,29 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
     min: number; max: number; step?: number
   }) => (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
         <span className="col-label" style={{ fontSize: 10 }}>{label}</span>
-        <span className="mono" style={{ fontSize: 10, color: 'var(--amber)' }}>{filters[minKey]} – {filters[maxKey]}</span>
+        <span className="mono" style={{ fontSize: 10, color: 'var(--amber)' }}>
+          {filters[minKey]} – {filters[maxKey]}
+        </span>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', width: 20 }}>min</span>
-          <input type="range" min={min} max={max} step={step} value={filters[minKey] as number} onChange={e => set(minKey, Number(e.target.value))} style={{ flex: 1 }} />
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', width: 20 }}>max</span>
-          <input type="range" min={min} max={max} step={step} value={filters[maxKey] as number} onChange={e => set(maxKey, Number(e.target.value))} style={{ flex: 1 }} />
-        </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', minWidth: 20 }}>min</span>
+        <input type="range" min={min} max={max} step={step}
+          value={filters[minKey] as number}
+          onChange={e => set(minKey, Number(e.target.value))}
+          style={{ flex: 1, minWidth: 0 }}
+        />
+        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', minWidth: 24, textAlign: 'right' }}>{filters[minKey]}</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', minWidth: 20 }}>max</span>
+        <input type="range" min={min} max={max} step={step}
+          value={filters[maxKey] as number}
+          onChange={e => set(maxKey, Number(e.target.value))}
+          style={{ flex: 1, minWidth: 0 }}
+        />
+        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', minWidth: 24, textAlign: 'right' }}>{filters[maxKey]}</span>
       </div>
     </div>
   )
