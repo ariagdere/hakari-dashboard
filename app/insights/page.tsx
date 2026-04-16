@@ -19,10 +19,10 @@ interface Overview {
   short_total: number; short_win_rate: number
 }
 interface ScoringRow  { score: number; total: number; wins: number; win_rate: number }
-interface RsiRow      { rsi_zone: string; total: number; wins: number; win_rate: number; total_short: number; wins_short: number; win_rate_short: number; total_long: number; wins_long: number; win_rate_long: number }
+interface RsiRow      { rsi_zone: string; total: number; wins: number; win_rate: number }
 interface ScoringData { by_score: ScoringRow[]; by_confidence: ScoringRow[]; by_rsi: RsiRow[] }
-interface IndicatorRow { indicator: string; sentiment: string; total: number; wins: number; win_rate: number; total_short: number; wins_short: number; win_rate_short: number; total_long: number; wins_long: number; win_rate_long: number }
-interface MtfRow       { h1: string; m5: string; mtf: string; total: number; wins: number; win_rate: number; total_short: number; wins_short: number; win_rate_short: number; total_long: number; wins_long: number; win_rate_long: number }
+interface IndicatorRow { indicator: string; sentiment: string; total: number; wins: number; win_rate: number }
+interface MtfRow       { h1: string; m5: string; mtf: string; total: number; wins: number; win_rate: number }
 interface LiqRow       { liquidity: string; market_power: string; total: number; wins: number; win_rate: number }
 interface SentimentData { indicators: IndicatorRow[]; mtf_confluence: MtfRow[]; liquidity_cross: LiqRow[] }
 interface DirSentRow   { direction: string; mtf_strength: string; total: number; wins: number; win_rate: number }
@@ -125,6 +125,183 @@ function CombTable({ rows, nameKey }: { rows: any[]; nameKey: string }) {
 
 const grid2 = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 } as const
 
+// ── filter types ──────────────────────────────────────────────────────────────
+
+interface Filters {
+  direction: string
+  sim_result: string
+  order_type: string
+  sequential_trade: string
+  score_min: number; score_max: number
+  conf_min: number;  conf_max: number
+  rsi_min: number;   rsi_max: number
+  r_min: number;     r_max: number
+  sent_synthesis_mtf: string
+  sent_synthesis_h1: string
+  sent_synthesis_m5: string
+  sent_h1_ls_ratio: string
+  sent_h1_tt_accounts: string
+  sent_h1_tt_positions: string
+  sent_h1_oi: string
+  sent_h1_oi_mcap: string
+  sent_m5_ls_ratio: string
+  sent_m5_tt_accounts: string
+  sent_m5_tt_positions: string
+  sent_m5_oi: string
+  sent_m5_oi_mcap: string
+  sent_liquidity: string
+  sent_market_power: string
+}
+
+const DEFAULT_FILTERS: Filters = {
+  direction: '', sim_result: '', order_type: '', sequential_trade: '',
+  score_min: 1,  score_max: 10,
+  conf_min: 0,   conf_max: 100,
+  rsi_min: 0,    rsi_max: 100,
+  r_min: -5,     r_max: 20,
+  sent_synthesis_mtf: '', sent_synthesis_h1: '', sent_synthesis_m5: '',
+  sent_h1_ls_ratio: '', sent_h1_tt_accounts: '', sent_h1_tt_positions: '',
+  sent_h1_oi: '', sent_h1_oi_mcap: '',
+  sent_m5_ls_ratio: '', sent_m5_tt_accounts: '', sent_m5_tt_positions: '',
+  sent_m5_oi: '', sent_m5_oi_mcap: '',
+  sent_liquidity: '', sent_market_power: '',
+}
+
+function filtersToParams(f: Filters): URLSearchParams {
+  const p = new URLSearchParams()
+  if (f.direction)         p.set('direction', f.direction)
+  if (f.sim_result)        p.set('sim_result', f.sim_result)
+  if (f.order_type)        p.set('order_type', f.order_type)
+  if (f.sequential_trade)  p.set('sequential_trade', f.sequential_trade)
+  p.set('score_min', String(f.score_min)); p.set('score_max', String(f.score_max))
+  p.set('conf_min',  String(f.conf_min));  p.set('conf_max',  String(f.conf_max))
+  p.set('rsi_min',   String(f.rsi_min));   p.set('rsi_max',   String(f.rsi_max))
+  p.set('r_min',     String(f.r_min));     p.set('r_max',     String(f.r_max))
+  const sentFields = ['sent_synthesis_mtf','sent_synthesis_h1','sent_synthesis_m5',
+    'sent_h1_ls_ratio','sent_h1_tt_accounts','sent_h1_tt_positions','sent_h1_oi','sent_h1_oi_mcap',
+    'sent_m5_ls_ratio','sent_m5_tt_accounts','sent_m5_tt_positions','sent_m5_oi','sent_m5_oi_mcap',
+    'sent_liquidity','sent_market_power'] as (keyof Filters)[]
+  sentFields.forEach(k => { if (f[k]) p.set(k, f[k] as string) })
+  return p
+}
+
+function activeFilterCount(f: Filters): number {
+  let n = 0
+  if (f.direction) n++; if (f.sim_result) n++; if (f.order_type) n++; if (f.sequential_trade) n++
+  if (f.score_min > 1 || f.score_max < 10) n++
+  if (f.conf_min > 0  || f.conf_max < 100) n++
+  if (f.rsi_min > 0   || f.rsi_max < 100)  n++
+  if (f.r_min > -5    || f.r_max < 20)     n++
+  const sentFields = ['sent_synthesis_mtf','sent_synthesis_h1','sent_synthesis_m5',
+    'sent_h1_ls_ratio','sent_h1_tt_accounts','sent_h1_tt_positions','sent_h1_oi','sent_h1_oi_mcap',
+    'sent_m5_ls_ratio','sent_m5_tt_accounts','sent_m5_tt_positions','sent_m5_oi','sent_m5_oi_mcap',
+    'sent_liquidity','sent_market_power'] as (keyof Filters)[]
+  sentFields.forEach(k => { if (f[k]) n++ })
+  return n
+}
+
+// ── filter panel ──────────────────────────────────────────────────────────────
+
+function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Filters) => void }) {
+  const set = (k: keyof Filters, v: any) => onChange({ ...filters, [k]: v })
+
+  const ToggleGroup = ({ label, field, options }: { label: string; field: keyof Filters; options: string[] }) => (
+    <div style={{ marginBottom: 14 }}>
+      <div className="col-label" style={{ marginBottom: 6, fontSize: 10 }}>{label}</div>
+      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+        <button
+          className={`filter-btn${!filters[field] ? ' active' : ''}`}
+          style={{ fontSize: 10, padding: '2px 8px' }}
+          onClick={() => set(field, '')}
+        >TÜM</button>
+        {options.map(o => (
+          <button
+            key={o}
+            className={`filter-btn${filters[field] === o ? ' active' : ''}`}
+            style={{ fontSize: 10, padding: '2px 8px' }}
+            onClick={() => set(field, filters[field] === o ? '' : o)}
+          >{o}</button>
+        ))}
+      </div>
+    </div>
+  )
+
+  const RangeRow = ({ label, minKey, maxKey, min, max, step = 1 }: {
+    label: string; minKey: keyof Filters; maxKey: keyof Filters
+    min: number; max: number; step?: number
+  }) => (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+        <span className="col-label" style={{ fontSize: 10 }}>{label}</span>
+        <span className="mono" style={{ fontSize: 10, color: 'var(--text-2)' }}>
+          {filters[minKey]} – {filters[maxKey]}
+        </span>
+      </div>
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <input type="range" min={min} max={max} step={step}
+          value={filters[minKey] as number}
+          onChange={e => set(minKey, Number(e.target.value))}
+          style={{ flex: 1 }}
+        />
+        <input type="range" min={min} max={max} step={step}
+          value={filters[maxKey] as number}
+          onChange={e => set(maxKey, Number(e.target.value))}
+          style={{ flex: 1 }}
+        />
+      </div>
+    </div>
+  )
+
+  const sentOptions = { dir: ['bullish','bearish','neutral'], str: ['strong','mixed','weak'], pres: ['buying_pressure','selling_pressure','neutral'] }
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
+      {/* Kategorik */}
+      <div>
+        <ToggleGroup label="Direction" field="direction" options={['LONG','SHORT','WAIT']} />
+        <ToggleGroup label="Sonuç" field="sim_result" options={['TP_HIT','SL_HIT','EXPIRED','NO_ENTRY']} />
+        <ToggleGroup label="Sequential" field="sequential_trade" options={['TRADE','WAIT']} />
+        <ToggleGroup label="Order type" field="order_type" options={['LIMIT','MARKET']} />
+      </div>
+
+      {/* Numeric */}
+      <div>
+        <RangeRow label="Market score" minKey="score_min" maxKey="score_max" min={1} max={10} />
+        <RangeRow label="Confidence" minKey="conf_min" maxKey="conf_max" min={0} max={100} />
+        <RangeRow label="RSI 4H" minKey="rsi_min" maxKey="rsi_max" min={0} max={100} />
+        <RangeRow label="R multiple" minKey="r_min" maxKey="r_max" min={-5} max={20} step={0.5} />
+      </div>
+
+      {/* Synthesis sentiments */}
+      <div>
+        <ToggleGroup label="MTF synthesis" field="sent_synthesis_mtf" options={sentOptions.str} />
+        <ToggleGroup label="H1 synthesis" field="sent_synthesis_h1" options={sentOptions.str} />
+        <ToggleGroup label="M5 synthesis" field="sent_synthesis_m5" options={sentOptions.str} />
+        <ToggleGroup label="Liquidity" field="sent_liquidity" options={sentOptions.pres} />
+        <ToggleGroup label="Market power" field="sent_market_power" options={sentOptions.pres} />
+      </div>
+
+      {/* H1 indicators */}
+      <div>
+        <ToggleGroup label="H1 L/S ratio" field="sent_h1_ls_ratio" options={sentOptions.dir} />
+        <ToggleGroup label="H1 TT accounts" field="sent_h1_tt_accounts" options={sentOptions.dir} />
+        <ToggleGroup label="H1 TT positions" field="sent_h1_tt_positions" options={sentOptions.dir} />
+        <ToggleGroup label="H1 OI" field="sent_h1_oi" options={sentOptions.dir} />
+        <ToggleGroup label="H1 OI/MCap" field="sent_h1_oi_mcap" options={sentOptions.dir} />
+      </div>
+
+      {/* M5 indicators */}
+      <div>
+        <ToggleGroup label="M5 L/S ratio" field="sent_m5_ls_ratio" options={sentOptions.dir} />
+        <ToggleGroup label="M5 TT accounts" field="sent_m5_tt_accounts" options={sentOptions.dir} />
+        <ToggleGroup label="M5 TT positions" field="sent_m5_tt_positions" options={sentOptions.dir} />
+        <ToggleGroup label="M5 OI" field="sent_m5_oi" options={sentOptions.dir} />
+        <ToggleGroup label="M5 OI/MCap" field="sent_m5_oi_mcap" options={sentOptions.dir} />
+      </div>
+    </div>
+  )
+}
+
 export default function InsightsPage() {
   const [overview,  setOverview]  = useState<Overview | null>(null)
   const [scoring,   setScoring]   = useState<ScoringData | null>(null)
@@ -133,33 +310,50 @@ export default function InsightsPage() {
   const [rmae,      setRmae]      = useState<RmaeData | null>(null)
   const [hourly,    setHourly]    = useState<HourlyData | null>(null)
   const [loading,   setLoading]   = useState(true)
+  const [filterOpen,   setFilterOpen]   = useState(false)
+  const [draftFilters, setDraftFilters] = useState<Filters>(DEFAULT_FILTERS)
+  const [appliedFilters, setAppliedFilters] = useState<Filters>(DEFAULT_FILTERS)
 
-  const fetchAll = useCallback(() => {
+  const fetchAll = useCallback((f: Filters) => {
     setLoading(true)
+    const p = filtersToParams(f)
+    const qs = p.toString() ? `?${p}` : ''
     Promise.all([
-      fetch('/api/insights-overview',  { cache: 'no-store' }).then(r => r.json()),
-      fetch('/api/insights-scoring',   { cache: 'no-store' }).then(r => r.json()),
-      fetch('/api/insights-sentiment', { cache: 'no-store' }).then(r => r.json()),
-      fetch('/api/insights-pairs',     { cache: 'no-store' }).then(r => r.json()),
-      fetch('/api/insights-rmae',      { cache: 'no-store' }).then(r => r.json()),
-      fetch('/api/hourly-stats',       { cache: 'no-store' }).then(r => r.json()),
+      fetch(`/api/insights-overview${qs}`,  { cache: 'no-store' }).then(r => r.json()),
+      fetch(`/api/insights-scoring${qs}`,   { cache: 'no-store' }).then(r => r.json()),
+      fetch(`/api/insights-sentiment${qs}`, { cache: 'no-store' }).then(r => r.json()),
+      fetch(`/api/insights-pairs${qs}`,     { cache: 'no-store' }).then(r => r.json()),
+      fetch(`/api/insights-rmae${qs}`,      { cache: 'no-store' }).then(r => r.json()),
+      fetch(`/api/hourly-stats${qs}`,       { cache: 'no-store' }).then(r => r.json()),
     ]).then(([ov, sc, se, pa, rm, hr]) => {
       setOverview(ov); setScoring(sc); setSentiment(se); setPairs(pa); setRmae(rm); setHourly(hr)
       setLoading(false)
     })
   }, [])
 
-  useEffect(() => { fetchAll() }, [fetchAll])
+  const handleApply = () => {
+    setAppliedFilters(draftFilters)
+    setFilterOpen(false)
+    fetchAll(draftFilters)
+  }
+
+  const handleReset = () => {
+    setDraftFilters(DEFAULT_FILTERS)
+    setAppliedFilters(DEFAULT_FILTERS)
+    fetchAll(DEFAULT_FILTERS)
+  }
+
+  useEffect(() => { fetchAll(DEFAULT_FILTERS) }, [fetchAll])
   useEffect(() => {
-    const onVisible = () => { if (!document.hidden) fetchAll() }
-    const onFocus   = () => fetchAll()
+    const onVisible = () => { if (!document.hidden) fetchAll(appliedFilters) }
+    const onFocus   = () => fetchAll(appliedFilters)
     document.addEventListener('visibilitychange', onVisible)
     window.addEventListener('focus', onFocus)
     return () => {
       document.removeEventListener('visibilitychange', onVisible)
       window.removeEventListener('focus', onFocus)
     }
-  }, [fetchAll])
+  }, [fetchAll, appliedFilters])
 
   const fmtDur = (mins: any) => {
     if (!mins) return '—'
@@ -172,9 +366,52 @@ export default function InsightsPage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 64, overflowX: 'hidden' }}>
       <div className="container" style={{ paddingTop: 28, maxWidth: '100%', overflowX: 'hidden' }}>
 
-        {loading && (
-          <div style={{ padding: 80, textAlign: 'center', color: 'var(--text-3)' }} className="mono">yükleniyor...</div>
-        )}
+        {/* ── FİLTRE PANELİ ────────────────────────────────────────────── */}
+        <div className="card" style={{ padding: 16, marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button
+                className="filter-btn"
+                style={{ fontSize: 11 }}
+                onClick={() => setFilterOpen(o => !o)}
+              >
+                {filterOpen ? '▲ Filtreyi Kapat' : '▼ Filtrele'}
+              </button>
+              {activeFilterCount(appliedFilters) > 0 && (
+                <span className="mono" style={{ fontSize: 10, color: 'var(--amber)' }}>
+                  {activeFilterCount(appliedFilters)} filtre aktif
+                </span>
+              )}
+              {activeFilterCount(appliedFilters) > 0 && (
+                <button
+                  className="filter-btn"
+                  style={{ fontSize: 10, padding: '2px 10px', color: 'var(--text-3)' }}
+                  onClick={handleReset}
+                >Sıfırla</button>
+              )}
+            </div>
+            {loading && <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>yükleniyor...</span>}
+          </div>
+
+          {filterOpen && (
+            <>
+              <div style={{ borderTop: '1px solid var(--border)', margin: '14px 0' }} />
+              <FilterPanel filters={draftFilters} onChange={setDraftFilters} />
+              <div style={{ borderTop: '1px solid var(--border)', marginTop: 14, paddingTop: 14, display: 'flex', gap: 8 }}>
+                <button
+                  className="filter-btn active"
+                  style={{ fontSize: 11, padding: '5px 20px' }}
+                  onClick={handleApply}
+                >Uygula</button>
+                <button
+                  className="filter-btn"
+                  style={{ fontSize: 11, padding: '5px 14px', color: 'var(--text-3)' }}
+                  onClick={() => setDraftFilters(appliedFilters)}
+                >İptal</button>
+              </div>
+            </>
+          )}
+        </div>
 
         {!loading && overview && (
           <>
@@ -249,24 +486,11 @@ export default function InsightsPage() {
                 </div>
                 <div className="card" style={{ padding: 16 }}>
                   <CardTitle>RSI 4H zonu → win rate</CardTitle>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
                     {scoring.by_rsi.map(row => (
                       <div key={row.rsi_zone}>
-                        <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)', display: 'block', marginBottom: 6 }}>{row.rsi_zone}</span>
-                        <div style={{ marginBottom: 4 }}>
-                          <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 2, display: 'block' }}>TÜMÜ</span>
-                          <WinBar rate={Number(row.win_rate)} total={Number(row.total)} />
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 6 }}>
-                          <div>
-                            <span className="mono" style={{ fontSize: 9, color: 'var(--red)', marginBottom: 2, display: 'block' }}>SHORT</span>
-                            <WinBar rate={Number(row.win_rate_short)} total={Number(row.total_short)} />
-                          </div>
-                          <div>
-                            <span className="mono" style={{ fontSize: 9, color: 'var(--green)', marginBottom: 2, display: 'block' }}>LONG</span>
-                            <WinBar rate={Number(row.win_rate_long)} total={Number(row.total_long)} />
-                          </div>
-                        </div>
+                        <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)', display: 'block', marginBottom: 4 }}>{row.rsi_zone}</span>
+                        <WinBar rate={Number(row.win_rate)} total={Number(row.total)} />
                       </div>
                     ))}
                   </div>
@@ -293,21 +517,9 @@ export default function InsightsPage() {
                             {rows.filter(r => r.sentiment).map(row => {
                               const sl = sentLabel(row.sentiment)
                               return (
-                                <div key={row.sentiment} style={{ marginBottom: 10 }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                                    <span className="mono" style={{ fontSize: 10, color: sl.color, minWidth: 60, flexShrink: 0 }}>{sl.label}</span>
-                                    <div style={{ flex: 1 }}><WinBar rate={Number(row.win_rate)} total={Number(row.total)} /></div>
-                                  </div>
-                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, paddingLeft: 68 }}>
-                                    <div>
-                                      <span className="mono" style={{ fontSize: 8, color: 'var(--red)', display: 'block', marginBottom: 2 }}>SHORT</span>
-                                      <WinBar rate={Number(row.win_rate_short)} total={Number(row.total_short)} />
-                                    </div>
-                                    <div>
-                                      <span className="mono" style={{ fontSize: 8, color: 'var(--green)', display: 'block', marginBottom: 2 }}>LONG</span>
-                                      <WinBar rate={Number(row.win_rate_long)} total={Number(row.total_long)} />
-                                    </div>
-                                  </div>
+                                <div key={row.sentiment} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                                  <span className="mono" style={{ fontSize: 10, color: sl.color, minWidth: 60, flexShrink: 0 }}>{sl.label}</span>
+                                  <div style={{ flex: 1 }}><WinBar rate={Number(row.win_rate)} total={Number(row.total)} /></div>
                                 </div>
                               )
                             })}
@@ -322,22 +534,9 @@ export default function InsightsPage() {
                   <div className="card" style={{ padding: 16 }}>
                     <CardTitle>MTF synthesis kombinasyonları</CardTitle>
                     {sentiment.mtf_confluence.slice(0, 8).map((row, i) => (
-                      <div key={i} style={{ marginBottom: 12 }}>
-                        <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>H1:{row.h1} M5:{row.m5} MTF:{row.mtf}</span>
-                        <div style={{ marginBottom: 4 }}>
-                          <span className="mono" style={{ fontSize: 8, color: 'var(--text-3)', display: 'block', marginBottom: 2 }}>TÜMÜ</span>
-                          <WinBar rate={Number(row.win_rate)} total={Number(row.total)} />
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-                          <div>
-                            <span className="mono" style={{ fontSize: 8, color: 'var(--red)', display: 'block', marginBottom: 2 }}>SHORT</span>
-                            <WinBar rate={Number(row.win_rate_short)} total={Number(row.total_short)} />
-                          </div>
-                          <div>
-                            <span className="mono" style={{ fontSize: 8, color: 'var(--green)', display: 'block', marginBottom: 2 }}>LONG</span>
-                            <WinBar rate={Number(row.win_rate_long)} total={Number(row.total_long)} />
-                          </div>
-                        </div>
+                      <div key={i} style={{ marginBottom: 10 }}>
+                        <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)', display: 'block', marginBottom: 3 }}>H1:{row.h1} M5:{row.m5} MTF:{row.mtf}</span>
+                        <WinBar rate={Number(row.win_rate)} total={Number(row.total)} />
                       </div>
                     ))}
                   </div>
