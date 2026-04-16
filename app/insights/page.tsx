@@ -5,7 +5,7 @@ import {
   Tooltip, LineElement, PointElement,
   LinearScale, CategoryScale, BarElement, Filler,
 } from 'chart.js'
-import { Bar } from 'react-chartjs-2'
+import { Bar, Scatter } from 'react-chartjs-2'
 
 ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, BarElement, Filler)
 
@@ -736,33 +736,59 @@ export default function InsightsPage() {
                     </div>
                   </div>
                   <div className="card" style={{ padding: 16 }}>
-                    <CardTitle>MFE dağılımı — kazanç potansiyeli ($)</CardTitle>
-                    <div style={{ height: 180 }}>
-                      <Bar
-                        data={{
-                          labels: rmae.scatter.map((_, i) => i + 1),
-                          datasets: [
-                            { label: 'TP', data: rmae.scatter.filter(r => r.sim_result === 'TP_HIT').map(r => +Number(r.mfe).toFixed(2)), backgroundColor: 'rgba(74,222,128,0.5)', borderColor: '#4ade80', borderWidth: 1 },
-                            { label: 'SL', data: rmae.scatter.filter(r => r.sim_result === 'SL_HIT').map(r => +Number(r.mfe).toFixed(2)), backgroundColor: 'rgba(248,113,113,0.4)', borderColor: '#f87171', borderWidth: 1 },
-                          ],
-                        }}
-                        options={{ ...CHART_DEFAULTS, plugins: { legend: { display: true, labels: { color: '#555', font: { family: 'DM Mono', size: 10 } } } }, scales: { x: { ...axisStyle, display: false }, y: { ...axisStyle, ticks: { ...axisStyle.ticks, callback: (v: any) => `$${v}` } } } }}
-                      />
-                    </div>
-                  </div>
-                  <div className="card" style={{ padding: 16 }}>
-                    <CardTitle>MAE dağılımı — maksimum drawdown ($)</CardTitle>
-                    <div style={{ height: 180 }}>
-                      <Bar
-                        data={{
-                          labels: rmae.scatter.map((_, i) => i + 1),
-                          datasets: [
-                            { label: 'TP', data: rmae.scatter.filter(r => r.sim_result === 'TP_HIT').map(r => +Number(r.mae).toFixed(2)), backgroundColor: 'rgba(74,222,128,0.4)', borderColor: '#4ade80', borderWidth: 1 },
-                            { label: 'SL', data: rmae.scatter.filter(r => r.sim_result === 'SL_HIT').map(r => +Number(r.mae).toFixed(2)), backgroundColor: 'rgba(248,113,113,0.5)', borderColor: '#f87171', borderWidth: 1 },
-                          ],
-                        }}
-                        options={{ ...CHART_DEFAULTS, plugins: { legend: { display: true, labels: { color: '#555', font: { family: 'DM Mono', size: 10 } } } }, scales: { x: { ...axisStyle, display: false }, y: { ...axisStyle, ticks: { ...axisStyle.ticks, callback: (v: any) => `$${v}` } } } }}
-                      />
+                    <CardTitle>MFE vs MAE scatter ($) — x=y çizgisinin üstü: kazanç &gt; kayıp</CardTitle>
+                    <div style={{ height: 220 }}>
+                      {(() => {
+                        const allMfe = rmae.scatter.map(r => +Number(r.mfe).toFixed(2))
+                        const allMae = rmae.scatter.map(r => +Number(r.mae).toFixed(2))
+                        const maxVal = Math.max(...allMfe, ...allMae, 1)
+                        return (
+                          <Scatter
+                            data={{
+                              datasets: [
+                                {
+                                  label: 'TP',
+                                  data: rmae.scatter.filter(r => r.sim_result === 'TP_HIT').map(r => ({ x: +Number(r.mae).toFixed(2), y: +Number(r.mfe).toFixed(2) })),
+                                  backgroundColor: 'rgba(74,222,128,0.6)',
+                                  pointRadius: 4,
+                                },
+                                {
+                                  label: 'SL',
+                                  data: rmae.scatter.filter(r => r.sim_result === 'SL_HIT').map(r => ({ x: +Number(r.mae).toFixed(2), y: +Number(r.mfe).toFixed(2) })),
+                                  backgroundColor: 'rgba(248,113,113,0.6)',
+                                  pointRadius: 4,
+                                },
+                                {
+                                  label: 'x=y',
+                                  data: [{ x: 0, y: 0 }, { x: maxVal, y: maxVal }],
+                                  type: 'line' as const,
+                                  borderColor: 'rgba(255,255,255,0.15)',
+                                  borderWidth: 1,
+                                  borderDash: [4, 4],
+                                  pointRadius: 0,
+                                  fill: false,
+                                },
+                              ],
+                            }}
+                            options={{
+                              ...CHART_DEFAULTS,
+                              plugins: {
+                                legend: { display: true, labels: { color: '#555', font: { family: 'DM Mono', size: 10 }, filter: (item: any) => item.text !== 'x=y' } },
+                                tooltip: {
+                                  displayColors: false,
+                                  callbacks: {
+                                    label: (ctx: any) => ctx.dataset.label === 'x=y' ? '' : `MAE: $${ctx.parsed.x} / MFE: $${ctx.parsed.y}`,
+                                  },
+                                },
+                              },
+                              scales: {
+                                x: { ...axisStyle, title: { display: true, text: 'MAE ($)', color: '#555', font: { family: 'DM Mono', size: 10 } } },
+                                y: { ...axisStyle, title: { display: true, text: 'MFE ($)', color: '#555', font: { family: 'DM Mono', size: 10 } } },
+                              },
+                            } as any}
+                          />
+                        )
+                      })()}
                     </div>
                   </div>
                 </div>
