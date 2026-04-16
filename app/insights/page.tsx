@@ -756,19 +756,43 @@ export default function InsightsPage() {
             {optimalR && optimalR.sweep.length > 0 && (
               <Section title="Optimal R Analizi">
                 {/* Stat cards */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 8, marginBottom: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 8, marginBottom: 16 }}>
                   <div className="stat-card" style={{ borderColor: 'var(--amber-border)' }}>
                     <div className="col-label" style={{ marginBottom: 6 }}>Optimal R</div>
-                    <div className="mono" style={{ fontSize: 20, fontWeight: 500, color: 'var(--amber)' }}>
+                    <div className="mono" style={{ fontSize: 22, fontWeight: 500, color: 'var(--amber)' }}>
                       {optimalR.optimal_r != null ? `${optimalR.optimal_r}R` : '—'}
                     </div>
                   </div>
-                  <StatCard label="Mevcut Ort. R" value={optimalR.current_avg_r != null ? `${optimalR.current_avg_r}R` : '—'} color={optimalR.current_avg_r != null && optimalR.optimal_r != null && optimalR.current_avg_r >= optimalR.optimal_r ? 'var(--green)' : 'var(--red)'} />
-                  <StatCard label="Optimal P/L" value={optimalR.optimal_pnl != null ? `${optimalR.optimal_pnl > 0 ? '+' : ''}$${Math.abs(optimalR.optimal_pnl).toFixed(0)}` : '—'} color={optimalR.optimal_pnl > 0 ? 'var(--green)' : 'var(--red)'} />
-                  <StatCard label="Optimal Win%" value={`%${optimalR.optimal_win_rate}`} color={winColor(optimalR.optimal_win_rate)} />
-                  <StatCard label="Win (optimal)" value={optimalR.optimal_wins} color="var(--green)" />
-                  <StatCard label="Loss (optimal)" value={optimalR.optimal_losses} color="var(--red)" />
-                  <StatCard label="Trade Seti" value={optimalR.total_trades} />
+                  <div className="stat-card">
+                    <div className="col-label" style={{ marginBottom: 6 }}>Mevcut Ort. R</div>
+                    <div className="mono" style={{ fontSize: 22, fontWeight: 500, color: optimalR.current_avg_r != null && optimalR.optimal_r != null && optimalR.current_avg_r >= optimalR.optimal_r ? 'var(--green)' : 'var(--red)' }}>
+                      {optimalR.current_avg_r != null ? `${optimalR.current_avg_r}R` : '—'}
+                    </div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="col-label" style={{ marginBottom: 6 }}>P/L @ Optimal</div>
+                    <div className="mono" style={{ fontSize: 22, fontWeight: 500, color: optimalR.optimal_pnl > 0 ? 'var(--green)' : 'var(--red)' }}>
+                      {`${optimalR.optimal_pnl > 0 ? '+' : ''}$${Math.abs(optimalR.optimal_pnl).toFixed(0)}`}
+                    </div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="col-label" style={{ marginBottom: 6 }}>Win% @ Optimal</div>
+                    <div className="mono" style={{ fontSize: 22, fontWeight: 500, color: winColor(optimalR.optimal_win_rate) }}>
+                      {`%${optimalR.optimal_win_rate}`}
+                    </div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="col-label" style={{ marginBottom: 6 }}>Win @ Optimal</div>
+                    <div className="mono" style={{ fontSize: 22, fontWeight: 500, color: 'var(--green)' }}>{optimalR.optimal_wins}</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="col-label" style={{ marginBottom: 6 }}>Loss @ Optimal</div>
+                    <div className="mono" style={{ fontSize: 22, fontWeight: 500, color: 'var(--red)' }}>{optimalR.optimal_losses}</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="col-label" style={{ marginBottom: 6 }}>Trade Seti</div>
+                    <div className="mono" style={{ fontSize: 22, fontWeight: 500 }}>{optimalR.total_trades}</div>
+                  </div>
                 </div>
 
                 {/* Sweep chart */}
