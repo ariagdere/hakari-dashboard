@@ -20,11 +20,15 @@ interface Overview {
 }
 interface ScoringRow  { score: number; total: number; wins: number; win_rate: number }
 interface RsiRow      { rsi_zone: string; total: number; wins: number; win_rate: number }
-interface ScoringData { by_score: ScoringRow[]; by_confidence: ScoringRow[]; by_rsi: RsiRow[] }
+interface ScoringData { by_score: ScoringRow[]; by_confidence: ScoringRow[]; by_rsi: RsiRow[]; by_rsi_long: RsiRow[]; by_rsi_short: RsiRow[] }
 interface IndicatorRow { indicator: string; sentiment: string; total: number; wins: number; win_rate: number }
 interface MtfRow       { h1: string; m5: string; mtf: string; total: number; wins: number; win_rate: number }
 interface LiqRow       { liquidity: string; market_power: string; total: number; wins: number; win_rate: number }
-interface SentimentData { indicators: IndicatorRow[]; mtf_confluence: MtfRow[]; liquidity_cross: LiqRow[] }
+interface SentimentData {
+  indicators: IndicatorRow[]; indicators_long: IndicatorRow[]; indicators_short: IndicatorRow[]
+  mtf_confluence: MtfRow[]; mtf_confluence_long: MtfRow[]; mtf_confluence_short: MtfRow[]
+  liquidity_cross: LiqRow[]
+}
 interface DirSentRow   { direction: string; mtf_strength: string; total: number; wins: number; win_rate: number }
 interface ScoreSentRow { score_bucket: string; mtf_strength: string; total: number; wins: number; win_rate: number }
 interface CombRow      { pair_name?: string; trio_name?: string; combination: string; total: number; wins: number; win_rate: number }
@@ -360,6 +364,9 @@ export default function InsightsPage() {
   const [daily,     setDaily]     = useState<DailyData | null>(null)
   const [optimalR,  setOptimalR]  = useState<OptimalRData | null>(null)
   const [loading,   setLoading]   = useState(true)
+  const [rsiDir,    setRsiDir]    = useState('Tümü')
+  const [sentDir,   setSentDir]   = useState('Tümü')
+  const [mtfDir,    setMtfDir]    = useState('Tümü')
   const [filterOpen,   setFilterOpen]   = useState(false)
   const [draftFilters, setDraftFilters] = useState<Filters>(DEFAULT_FILTERS)
   const [appliedFilters, setAppliedFilters] = useState<Filters>(DEFAULT_FILTERS)
@@ -538,9 +545,20 @@ export default function InsightsPage() {
                   </div>
                 </div>
                 <div className="card" style={{ padding: 16 }}>
-                  <CardTitle>RSI 4H zonu → win rate</CardTitle>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <CardTitle>RSI 4H zonu → win rate</CardTitle>
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      {['Tümü', 'LONG', 'SHORT'].map(d => (
+                        <button key={d}
+                          className={`filter-btn${(rsiDir === d) ? ' active' : ''}`}
+                          style={{ fontSize: 10, padding: '2px 8px' }}
+                          onClick={() => setRsiDir(d)}
+                        >{d}</button>
+                      ))}
+                    </div>
+                  </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
-                    {scoring.by_rsi.map(row => (
+                    {(rsiDir === 'LONG' ? scoring.by_rsi_long : rsiDir === 'SHORT' ? scoring.by_rsi_short : scoring.by_rsi).map(row => (
                       <div key={row.rsi_zone}>
                         <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)', display: 'block', marginBottom: 4 }}>{row.rsi_zone}</span>
                         <WinBar rate={Number(row.win_rate)} total={Number(row.total)} />
@@ -555,10 +573,22 @@ export default function InsightsPage() {
             {sentiment && (
               <Section title="Sentiment Analizi">
                 <div className="card" style={{ padding: 16, marginBottom: 12 }}>
-                  <CardTitle>İndikatör × sentiment → win rate</CardTitle>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <CardTitle>İndikatör × sentiment → win rate</CardTitle>
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      {['Tümü', 'LONG', 'SHORT'].map(d => (
+                        <button key={d}
+                          className={`filter-btn${sentDir === d ? ' active' : ''}`}
+                          style={{ fontSize: 10, padding: '2px 8px' }}
+                          onClick={() => setSentDir(d)}
+                        >{d}</button>
+                      ))}
+                    </div>
+                  </div>
                   {(() => {
+                    const src = sentDir === 'LONG' ? sentiment.indicators_long : sentDir === 'SHORT' ? sentiment.indicators_short : sentiment.indicators
                     const grouped: Record<string, IndicatorRow[]> = {}
-                    sentiment.indicators.forEach(r => {
+                    src.forEach(r => {
                       if (!grouped[r.indicator]) grouped[r.indicator] = []
                       grouped[r.indicator].push(r)
                     })
@@ -583,10 +613,21 @@ export default function InsightsPage() {
                   })()}
                 </div>
 
-                <div style={grid2}>
+                <div style={{ ...grid2, marginBottom: 12 }}>
                   <div className="card" style={{ padding: 16 }}>
-                    <CardTitle>MTF synthesis kombinasyonları</CardTitle>
-                    {sentiment.mtf_confluence.slice(0, 8).map((row, i) => (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                      <CardTitle>MTF synthesis kombinasyonları</CardTitle>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        {['Tümü', 'LONG', 'SHORT'].map(d => (
+                          <button key={d}
+                            className={`filter-btn${mtfDir === d ? ' active' : ''}`}
+                            style={{ fontSize: 10, padding: '2px 8px' }}
+                            onClick={() => setMtfDir(d)}
+                          >{d}</button>
+                        ))}
+                      </div>
+                    </div>
+                    {(mtfDir === 'LONG' ? sentiment.mtf_confluence_long : mtfDir === 'SHORT' ? sentiment.mtf_confluence_short : sentiment.mtf_confluence).slice(0, 8).map((row, i) => (
                       <div key={i} style={{ marginBottom: 10 }}>
                         <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)', display: 'block', marginBottom: 3 }}>H1:{row.h1} M5:{row.m5} MTF:{row.mtf}</span>
                         <WinBar rate={Number(row.win_rate)} total={Number(row.total)} />
