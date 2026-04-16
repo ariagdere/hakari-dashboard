@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
         ROUND(sim_r_multiple::numeric, 1) AS r_bucket,
         COUNT(*) AS count
       FROM btc_analysis
-      ${base} sim_r_multiple IS NOT NULL AND sim_result IN ('TP_HIT','SL_HIT')
+      ${base} sim_r_multiple IS NOT NULL AND sim_result = 'TP_HIT'
       GROUP BY sim_result, r_bucket ORDER BY r_bucket
     `, params),
 
