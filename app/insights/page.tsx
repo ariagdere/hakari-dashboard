@@ -10,7 +10,7 @@ import { Bar, Scatter } from 'react-chartjs-2'
 ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, BarElement, Filler)
 
 interface Overview {
-  total: number; tp_count: number; sl_count: number
+  total: number; total_all: number; tp_count: number; sl_count: number
   expired_count: number; no_entry_count: number; pending_count: number
   win_rate: number; avg_r_win: number; avg_r_loss: number
   avg_duration_mins: number; total_pnl: number
@@ -35,6 +35,17 @@ interface MfeRow     { mfe_bucket: string; total: number; tp_count: number; avg_
 interface RmaeData   { r_histogram: RHistRow[]; scatter: ScatterRow[]; mfe_distribution: MfeRow[] }
 interface HourlyRow  { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number; avg_r_tp: number | null }
 interface HourlyData { by_analysis: HourlyRow[] }
+interface SweepPoint { r: number; pnl: number; wins: number; losses: number; win_rate: number }
+interface OptimalRData {
+  sweep: SweepPoint[]
+  optimal_r: number | null
+  optimal_pnl: number
+  optimal_wins: number
+  optimal_losses: number
+  optimal_win_rate: number
+  current_avg_r: number | null
+  total_trades: number
+}
 
 const N = (v: any, d = 1) => v == null ? '—' : Number(v).toFixed(d)
 const winColor = (v: number | null) => {
@@ -320,6 +331,7 @@ export default function InsightsPage() {
   const [pairs,     setPairs]     = useState<PairsData | null>(null)
   const [rmae,      setRmae]      = useState<RmaeData | null>(null)
   const [hourly,    setHourly]    = useState<HourlyData | null>(null)
+  const [optimalR,  setOptimalR]  = useState<OptimalRData | null>(null)
   const [loading,   setLoading]   = useState(true)
   const [filterOpen,   setFilterOpen]   = useState(false)
   const [draftFilters, setDraftFilters] = useState<Filters>(DEFAULT_FILTERS)
@@ -336,8 +348,9 @@ export default function InsightsPage() {
       fetch(`/api/insights-pairs${qs}`,     { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/insights-rmae${qs}`,      { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/hourly-stats${qs}`,       { cache: 'no-store' }).then(r => r.json()),
-    ]).then(([ov, sc, se, pa, rm, hr]) => {
-      setOverview(ov); setScoring(sc); setSentiment(se); setPairs(pa); setRmae(rm); setHourly(hr)
+      fetch(`/api/insights-optimal-r${qs}`, { cache: 'no-store' }).then(r => r.json()),
+    ]).then(([ov, sc, se, pa, rm, hr, or_]) => {
+      setOverview(ov); setScoring(sc); setSentiment(se); setPairs(pa); setRmae(rm); setHourly(hr); setOptimalR(or_)
       setLoading(false)
     })
   }, [])
@@ -429,6 +442,7 @@ export default function InsightsPage() {
             {/* ── 1. OVERVIEW ──────────────────────────────────────────────── */}
             <Section title="Genel Bakış">
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 8, marginBottom: 16 }}>
+                <StatCard label="Toplam Trade" value={Number(overview.total_all)} />
                 <StatCard label="Win Rate"   value={`%${Number(overview.win_rate).toFixed(1)}`} color={Number(overview.win_rate) >= 40 ? 'var(--green)' : 'var(--red)'} />
                 <StatCard label="Toplam PnL" value={overview.total_pnl != null ? `${Number(overview.total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.total_pnl)).toFixed(0)}` : '—'} color={Number(overview.total_pnl) > 0 ? 'var(--green)' : 'var(--red)'} />
                 <StatCard label="Ort. Win R"  value={overview.avg_r_win  != null ? `+${N(overview.avg_r_win)}R`  : '—'} color="var(--green)" />
@@ -738,7 +752,96 @@ export default function InsightsPage() {
                 </div>
               </Section>
             )}
-            {/* ── 6. ZAMANLAMA ─────────────────────────────────────────────── */}
+            {/* ── 6. OPTİMAL R ─────────────────────────────────────────────── */}
+            {optimalR && optimalR.sweep.length > 0 && (
+              <Section title="Optimal R Analizi">
+                {/* Stat cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 8, marginBottom: 16 }}>
+                  <div className="stat-card" style={{ borderColor: 'var(--amber-border)' }}>
+                    <div className="col-label" style={{ marginBottom: 6 }}>Optimal R</div>
+                    <div className="mono" style={{ fontSize: 20, fontWeight: 500, color: 'var(--amber)' }}>
+                      {optimalR.optimal_r != null ? `${optimalR.optimal_r}R` : '—'}
+                    </div>
+                  </div>
+                  <StatCard label="Mevcut Ort. R" value={optimalR.current_avg_r != null ? `${optimalR.current_avg_r}R` : '—'} color={optimalR.current_avg_r != null && optimalR.optimal_r != null && optimalR.current_avg_r >= optimalR.optimal_r ? 'var(--green)' : 'var(--red)'} />
+                  <StatCard label="Optimal P/L" value={optimalR.optimal_pnl != null ? `${optimalR.optimal_pnl > 0 ? '+' : ''}$${Math.abs(optimalR.optimal_pnl).toFixed(0)}` : '—'} color={optimalR.optimal_pnl > 0 ? 'var(--green)' : 'var(--red)'} />
+                  <StatCard label="Optimal Win%" value={`%${optimalR.optimal_win_rate}`} color={winColor(optimalR.optimal_win_rate)} />
+                  <StatCard label="Win (optimal)" value={optimalR.optimal_wins} color="var(--green)" />
+                  <StatCard label="Loss (optimal)" value={optimalR.optimal_losses} color="var(--red)" />
+                  <StatCard label="Trade Seti" value={optimalR.total_trades} />
+                </div>
+
+                {/* Sweep chart */}
+                <div className="card" style={{ padding: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <CardTitle>R sweep — her TP hedefinde toplam P/L</CardTitle>
+                    <div style={{ display: 'flex', gap: 16 }}>
+                      {optimalR.optimal_r != null && (
+                        <span className="mono" style={{ fontSize: 10, color: 'var(--amber)' }}>
+                          peak: {optimalR.optimal_r}R → ${optimalR.optimal_pnl > 0 ? '+' : ''}{optimalR.optimal_pnl.toFixed(0)}
+                        </span>
+                      )}
+                      {optimalR.current_avg_r != null && (
+                        <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>
+                          mevcut ort: {optimalR.current_avg_r}R
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ height: 200 }}>
+                    <Bar
+                      data={{
+                        labels: optimalR.sweep.map(p => `${p.r}R`),
+                        datasets: [{
+                          label: 'P/L ($)',
+                          data: optimalR.sweep.map(p => p.pnl),
+                          backgroundColor: optimalR.sweep.map(p =>
+                            p.r === optimalR.optimal_r
+                              ? 'rgba(251,191,36,0.7)'
+                              : p.pnl > 0 ? 'rgba(74,222,128,0.3)' : 'rgba(248,113,113,0.3)'
+                          ),
+                          borderColor: optimalR.sweep.map(p =>
+                            p.r === optimalR.optimal_r ? '#fbbf24' : p.pnl > 0 ? '#4ade80' : '#f87171'
+                          ),
+                          borderWidth: 1,
+                        }],
+                      }}
+                      options={{
+                        ...CHART_DEFAULTS,
+                        plugins: {
+                          legend: { display: false },
+                          tooltip: {
+                            displayColors: false,
+                            callbacks: {
+                              title: (items: any) => `TP hedefi: ${items[0].label}`,
+                              afterBody: (items: any) => {
+                                const p = optimalR.sweep[items[0].dataIndex]
+                                return [`P/L: ${p.pnl > 0 ? '+' : ''}$${p.pnl.toFixed(0)}`, `Win: ${p.wins} / Loss: ${p.losses}`, `Win rate: %${p.win_rate}`]
+                              },
+                            },
+                          },
+                        },
+                        scales: {
+                          x: { ...axisStyle, ticks: { ...axisStyle.ticks, maxTicksLimit: 12 } },
+                          y: { ...axisStyle, ticks: { ...axisStyle.ticks, callback: (v: any) => `$${v}` } },
+                        },
+                      }}
+                    />
+                  </div>
+                  {optimalR.current_avg_r != null && optimalR.optimal_r != null && (
+                    <div style={{ marginTop: 10, fontSize: 11, fontFamily: 'DM Mono, monospace', color: 'var(--text-3)' }}>
+                      {optimalR.current_avg_r < optimalR.optimal_r
+                        ? `Mevcut ort. TP (${optimalR.current_avg_r}R), optimal R'dan (${optimalR.optimal_r}R) düşük — TP hedefini yükseltmek P/L'i artırabilir.`
+                        : optimalR.current_avg_r > optimalR.optimal_r
+                        ? `Mevcut ort. TP (${optimalR.current_avg_r}R), optimal R'dan (${optimalR.optimal_r}R) yüksek — TP hedefini düşürmek daha fazla trade kapatabilir.`
+                        : `Mevcut ort. TP, optimal R ile örtüşüyor.`}
+                    </div>
+                  )}
+                </div>
+              </Section>
+            )}
+
+            {/* ── 7. ZAMANLAMA ─────────────────────────────────────────────── */}
             {hourly && hourly.by_analysis?.length > 0 && (() => {
               const series = hourly.by_analysis
               const best = series.filter(h => h.total >= 2).sort((a, b) => Number(b.win_rate) - Number(a.win_rate))[0]
