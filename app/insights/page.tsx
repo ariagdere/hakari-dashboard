@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import {
   Chart as ChartJS,
   Tooltip, LineElement, PointElement,
@@ -222,34 +222,72 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
   const RangeRow = ({ label, minKey, maxKey, min, max, step = 1 }: {
     label: string; minKey: keyof Filters; maxKey: keyof Filters
     min: number; max: number; step?: number
-  }) => (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-        <span className="col-label" style={{ fontSize: 10 }}>{label}</span>
-        <span className="mono" style={{ fontSize: 10, color: 'var(--amber)' }}>
-          {filters[minKey]} – {filters[maxKey]}
-        </span>
+  }) => {
+    const minVal = filters[minKey] as number
+    const maxVal = filters[maxKey] as number
+
+    const Slider = ({ valKey, val }: { valKey: keyof Filters; val: number }) => {
+      const trackRef = React.useRef<HTMLDivElement>(null)
+      const dragging = React.useRef(false)
+
+      const calcVal = (clientX: number) => {
+        const rect = trackRef.current!.getBoundingClientRect()
+        const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
+        const raw = min + ratio * (max - min)
+        const stepped = Math.round(raw / step) * step
+        return Math.max(min, Math.min(max, parseFloat(stepped.toFixed(2))))
+      }
+
+      const onDown = (e: React.MouseEvent | React.TouchEvent) => {
+        dragging.current = true
+        const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+        set(valKey, calcVal(clientX))
+
+        const onMove = (ev: MouseEvent | TouchEvent) => {
+          if (!dragging.current) return
+          const cx = 'touches' in ev ? (ev as TouchEvent).touches[0].clientX : (ev as MouseEvent).clientX
+          set(valKey, calcVal(cx))
+        }
+        const onUp = () => { dragging.current = false; window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onUp) }
+        window.addEventListener('mousemove', onMove)
+        window.addEventListener('mouseup', onUp)
+        window.addEventListener('touchmove', onMove, { passive: true })
+        window.addEventListener('touchend', onUp)
+      }
+
+      const pct = ((val - min) / (max - min)) * 100
+
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, userSelect: 'none' }}>
+          <div ref={trackRef} onMouseDown={onDown} onTouchStart={onDown}
+            style={{ flex: 1, height: 4, background: 'var(--border)', borderRadius: 2, position: 'relative', cursor: 'pointer' }}>
+            <div style={{ position: 'absolute', left: 0, width: `${pct}%`, height: '100%', background: 'var(--text-2)', borderRadius: 2 }} />
+            <div style={{ position: 'absolute', left: `${pct}%`, top: '50%', transform: 'translate(-50%, -50%)', width: 12, height: 12, borderRadius: '50%', background: 'var(--text)', border: '2px solid var(--bg)', cursor: 'grab', boxSizing: 'border-box' }} />
+          </div>
+          <span className="mono" style={{ fontSize: 10, color: 'var(--amber)', minWidth: 28, textAlign: 'right' }}>{val}</span>
+        </div>
+      )
+    }
+
+    return (
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span className="col-label" style={{ fontSize: 10 }}>{label}</span>
+          <span className="mono" style={{ fontSize: 10, color: 'var(--amber)' }}>{minVal} – {maxVal}</span>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', minWidth: 20 }}>min</span>
+            <Slider valKey={minKey} val={minVal} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', minWidth: 20 }}>max</span>
+            <Slider valKey={maxKey} val={maxVal} />
+          </div>
+        </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', minWidth: 20 }}>min</span>
-        <input type="range" min={min} max={max} step={step}
-          value={filters[minKey] as number}
-          onChange={e => set(minKey, Number(e.target.value))}
-          style={{ flex: 1, minWidth: 0 }}
-        />
-        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', minWidth: 24, textAlign: 'right' }}>{filters[minKey]}</span>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', minWidth: 20 }}>max</span>
-        <input type="range" min={min} max={max} step={step}
-          value={filters[maxKey] as number}
-          onChange={e => set(maxKey, Number(e.target.value))}
-          style={{ flex: 1, minWidth: 0 }}
-        />
-        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', minWidth: 24, textAlign: 'right' }}>{filters[maxKey]}</span>
-      </div>
-    </div>
-  )
+    )
+  }
 
   const so = { dir: ['bullish','bearish','neutral'], str: ['strong','mixed','weak'], pres: ['buying_pressure','selling_pressure','neutral'] }
 
