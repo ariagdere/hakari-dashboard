@@ -1,9 +1,13 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, NextRequest } from 'next/server'
 import pool from '@/lib/db'
+import { buildInsightsWhere } from '@/lib/insightsFilter'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const { where, params } = buildInsightsWhere(req)
+  const base = where ? `${where} AND` : 'WHERE'
+
   const [histRows, scatterRows, mfeRows] = await Promise.all([
     pool.query(`
       SELECT
@@ -11,27 +15,23 @@ export async function GET() {
         ROUND(sim_r_multiple::numeric, 1) AS r_bucket,
         COUNT(*) AS count
       FROM btc_analysis
-      WHERE sim_r_multiple IS NOT NULL
-        AND sim_result IN ('TP_HIT','SL_HIT')
-      GROUP BY sim_result, r_bucket
-      ORDER BY r_bucket
-    `),
+      ${base} sim_r_multiple IS NOT NULL AND sim_result IN ('TP_HIT','SL_HIT')
+      GROUP BY sim_result, r_bucket ORDER BY r_bucket
+    `, params),
 
     pool.query(`
       SELECT
-        id,
-        sim_result,
+        id, sim_result,
         ROUND(sim_max_favorable_move::numeric, 2) AS mfe,
         ROUND(sim_max_adverse_move::numeric, 2) AS mae,
         ROUND(sim_r_multiple::numeric, 2) AS r_multiple,
         market_score_value AS score
       FROM btc_analysis
-      WHERE sim_max_favorable_move IS NOT NULL
+      ${base} sim_max_favorable_move IS NOT NULL
         AND sim_max_adverse_move IS NOT NULL
         AND sim_result IN ('TP_HIT','SL_HIT')
-      ORDER BY analyzed_at DESC
-      LIMIT 200
-    `),
+      ORDER BY analyzed_at DESC LIMIT 200
+    `, params),
 
     pool.query(`
       SELECT
@@ -53,11 +53,9 @@ export async function GET() {
         COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS tp_count,
         ROUND(AVG(sim_entry_to_result_minutes), 0) AS avg_mins
       FROM btc_analysis
-      WHERE sim_max_favorable_move IS NOT NULL
-        AND sim_result IN ('TP_HIT','SL_HIT')
-      GROUP BY mfe_bucket, sort_order
-      ORDER BY sort_order
-    `),
+      ${base} sim_max_favorable_move IS NOT NULL AND sim_result IN ('TP_HIT','SL_HIT')
+      GROUP BY mfe_bucket, sort_order ORDER BY sort_order
+    `, params),
   ])
 
   return NextResponse.json({
