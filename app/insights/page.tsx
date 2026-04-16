@@ -777,8 +777,7 @@ export default function InsightsPage() {
                       {(() => {
                         const tpScatter = rmae.scatter.filter(r => r.sim_result === 'TP_HIT')
                         const maxMfe = Math.ceil(Math.max(...tpScatter.map(r => +Number(r.mfe))) * 1.1)
-                        const maxMae = Math.ceil(Math.max(...tpScatter.map(r => +Number(r.mae))) * 1.1)
-                        const axisMax = Math.max(maxMfe, maxMae)
+                        const axisMax = Math.max(maxMfe, 25)
                         return (
                           <Scatter
                             data={{
