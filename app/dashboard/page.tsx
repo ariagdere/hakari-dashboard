@@ -486,7 +486,7 @@ export default function Dashboard() {
               <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rr}</span>
               <span className="mono" style={{ fontSize: 12 }}>{a.market_score_value}/10</span>
               <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>%{a.confidence_value}</span>
-              <span className="mono" style={{ fontSize: 12, color: a.win_probability != null ? (a.win_probability >= 50 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>
+              <span className="mono" style={{ fontSize: 12, color: a.win_probability != null ? (a.win_probability >= 65 ? 'var(--green)' : a.win_probability >= 55 ? 'var(--amber)' : 'var(--red)') : 'var(--text-3)' }}>
                 {a.win_probability != null ? `%${a.win_probability}` : '—'}
               </span>
               <span>{resultBadge(a.sim_result)}</span>
