@@ -206,21 +206,14 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
   const set = (k: keyof Filters, v: any) => onChange({ ...filters, [k]: v })
 
   const ToggleGroup = ({ label, field, options }: { label: string; field: keyof Filters; options: string[] }) => (
-    <div style={{ marginBottom: 14 }}>
-      <div className="col-label" style={{ marginBottom: 6, fontSize: 10 }}>{label}</div>
+    <div>
+      <div className="col-label" style={{ marginBottom: 5, fontSize: 10 }}>{label}</div>
       <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-        <button
-          className={`filter-btn${!filters[field] ? ' active' : ''}`}
-          style={{ fontSize: 10, padding: '2px 8px' }}
-          onClick={() => set(field, '')}
-        >TÜM</button>
+        <button className={`filter-btn${!filters[field] ? ' active' : ''}`} style={{ fontSize: 10, padding: '2px 8px' }} onClick={() => set(field, '')}>TÜM</button>
         {options.map(o => (
-          <button
-            key={o}
-            className={`filter-btn${filters[field] === o ? ' active' : ''}`}
-            style={{ fontSize: 10, padding: '2px 8px' }}
-            onClick={() => set(field, filters[field] === o ? '' : o)}
-          >{o}</button>
+          <button key={o} className={`filter-btn${filters[field] === o ? ' active' : ''}`} style={{ fontSize: 10, padding: '2px 8px' }} onClick={() => set(field, filters[field] === o ? '' : o)}>
+            {o.replace('_pressure', '')}
+          </button>
         ))}
       </div>
     </div>
@@ -230,74 +223,82 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
     label: string; minKey: keyof Filters; maxKey: keyof Filters
     min: number; max: number; step?: number
   }) => (
-    <div style={{ marginBottom: 14 }}>
+    <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
         <span className="col-label" style={{ fontSize: 10 }}>{label}</span>
-        <span className="mono" style={{ fontSize: 10, color: 'var(--text-2)' }}>
-          {filters[minKey]} – {filters[maxKey]}
-        </span>
+        <span className="mono" style={{ fontSize: 10, color: 'var(--amber)' }}>{filters[minKey]} – {filters[maxKey]}</span>
       </div>
-      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-        <input type="range" min={min} max={max} step={step}
-          value={filters[minKey] as number}
-          onChange={e => set(minKey, Number(e.target.value))}
-          style={{ flex: 1 }}
-        />
-        <input type="range" min={min} max={max} step={step}
-          value={filters[maxKey] as number}
-          onChange={e => set(maxKey, Number(e.target.value))}
-          style={{ flex: 1 }}
-        />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', width: 20 }}>min</span>
+          <input type="range" min={min} max={max} step={step} value={filters[minKey] as number} onChange={e => set(minKey, Number(e.target.value))} style={{ flex: 1 }} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', width: 20 }}>max</span>
+          <input type="range" min={min} max={max} step={step} value={filters[maxKey] as number} onChange={e => set(maxKey, Number(e.target.value))} style={{ flex: 1 }} />
+        </div>
       </div>
     </div>
   )
 
-  const sentOptions = { dir: ['bullish','bearish','neutral'], str: ['strong','mixed','weak'], pres: ['buying_pressure','selling_pressure','neutral'] }
+  const so = { dir: ['bullish','bearish','neutral'], str: ['strong','mixed','weak'], pres: ['buying_pressure','selling_pressure','neutral'] }
+
+  const sep = <div style={{ borderTop: '1px solid var(--border)', margin: '14px 0' }} />
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
-      {/* Kategorik */}
-      <div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+
+      {/* Satır 1: Kategorik filtreler */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 14 }}>
         <ToggleGroup label="Direction" field="direction" options={['LONG','SHORT','WAIT']} />
         <ToggleGroup label="Sonuç" field="sim_result" options={['TP_HIT','SL_HIT','EXPIRED','NO_ENTRY']} />
         <ToggleGroup label="Sequential" field="sequential_trade" options={['TRADE','WAIT']} />
         <ToggleGroup label="Order type" field="order_type" options={['LIMIT','MARKET']} />
       </div>
 
-      {/* Numeric */}
-      <div>
+      {sep}
+
+      {/* Satır 2: Numeric sliderlar */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
         <RangeRow label="Market score" minKey="score_min" maxKey="score_max" min={1} max={10} />
         <RangeRow label="Confidence" minKey="conf_min" maxKey="conf_max" min={0} max={100} />
         <RangeRow label="RSI 4H" minKey="rsi_min" maxKey="rsi_max" min={0} max={100} />
         <RangeRow label="R multiple" minKey="r_min" maxKey="r_max" min={-5} max={20} step={0.5} />
       </div>
 
-      {/* Synthesis sentiments */}
-      <div>
-        <ToggleGroup label="MTF synthesis" field="sent_synthesis_mtf" options={sentOptions.str} />
-        <ToggleGroup label="H1 synthesis" field="sent_synthesis_h1" options={sentOptions.str} />
-        <ToggleGroup label="M5 synthesis" field="sent_synthesis_m5" options={sentOptions.str} />
-        <ToggleGroup label="Liquidity" field="sent_liquidity" options={sentOptions.pres} />
-        <ToggleGroup label="Market power" field="sent_market_power" options={sentOptions.pres} />
+      {sep}
+
+      {/* Satır 3: Synthesis + liquidity/power */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 14 }}>
+        <ToggleGroup label="MTF synthesis" field="sent_synthesis_mtf" options={so.str} />
+        <ToggleGroup label="H1 synthesis"  field="sent_synthesis_h1"  options={so.str} />
+        <ToggleGroup label="M5 synthesis"  field="sent_synthesis_m5"  options={so.str} />
+        <ToggleGroup label="Liquidity"     field="sent_liquidity"     options={so.pres} />
+        <ToggleGroup label="Market power"  field="sent_market_power"  options={so.pres} />
       </div>
 
-      {/* H1 indicators */}
-      <div>
-        <ToggleGroup label="H1 L/S ratio" field="sent_h1_ls_ratio" options={sentOptions.dir} />
-        <ToggleGroup label="H1 TT accounts" field="sent_h1_tt_accounts" options={sentOptions.dir} />
-        <ToggleGroup label="H1 TT positions" field="sent_h1_tt_positions" options={sentOptions.dir} />
-        <ToggleGroup label="H1 OI" field="sent_h1_oi" options={sentOptions.dir} />
-        <ToggleGroup label="H1 OI/MCap" field="sent_h1_oi_mcap" options={sentOptions.dir} />
+      {sep}
+
+      {/* Satır 4: H1 + M5 indikatörler yan yana */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <div className="col-label" style={{ fontSize: 10, gridColumn: '1/-1', marginBottom: -4 }}>H1 İndikatörler</div>
+          <ToggleGroup label="L/S ratio"    field="sent_h1_ls_ratio"     options={so.dir} />
+          <ToggleGroup label="TT accounts"  field="sent_h1_tt_accounts"  options={so.dir} />
+          <ToggleGroup label="TT positions" field="sent_h1_tt_positions" options={so.dir} />
+          <ToggleGroup label="OI"           field="sent_h1_oi"           options={so.dir} />
+          <ToggleGroup label="OI/MCap"      field="sent_h1_oi_mcap"      options={so.dir} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <div className="col-label" style={{ fontSize: 10, gridColumn: '1/-1', marginBottom: -4 }}>M5 İndikatörler</div>
+          <ToggleGroup label="L/S ratio"    field="sent_m5_ls_ratio"     options={so.dir} />
+          <ToggleGroup label="TT accounts"  field="sent_m5_tt_accounts"  options={so.dir} />
+          <ToggleGroup label="TT positions" field="sent_m5_tt_positions" options={so.dir} />
+          <ToggleGroup label="OI"           field="sent_m5_oi"           options={so.dir} />
+          <ToggleGroup label="OI/MCap"      field="sent_m5_oi_mcap"      options={so.dir} />
+        </div>
       </div>
 
-      {/* M5 indicators */}
-      <div>
-        <ToggleGroup label="M5 L/S ratio" field="sent_m5_ls_ratio" options={sentOptions.dir} />
-        <ToggleGroup label="M5 TT accounts" field="sent_m5_tt_accounts" options={sentOptions.dir} />
-        <ToggleGroup label="M5 TT positions" field="sent_m5_tt_positions" options={sentOptions.dir} />
-        <ToggleGroup label="M5 OI" field="sent_m5_oi" options={sentOptions.dir} />
-        <ToggleGroup label="M5 OI/MCap" field="sent_m5_oi_mcap" options={sentOptions.dir} />
-      </div>
     </div>
   )
 }
