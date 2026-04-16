@@ -35,7 +35,7 @@ interface MfeRow     { mfe_bucket: string; total: number; tp_count: number; avg_
 interface RmaeData   { r_histogram: RHistRow[]; scatter: ScatterRow[]; mfe_distribution: MfeRow[] }
 interface HourlyRow  { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number; avg_r_tp: number | null }
 interface HourlyData { by_analysis: HourlyRow[] }
-interface DailyRow   { day: string; total: number; tp_count: number; sl_count: number; expired_count: number; other_count: number; win_rate: number }
+interface DailyRow   { day: string; total: number; tp_count: number; sl_count: number; win_rate: number }
 interface DailyData  { daily: DailyRow[] }
 interface SweepPoint { r: number; pnl: number; wins: number; losses: number; win_rate: number }
 interface OptimalRData {
@@ -736,13 +736,12 @@ export default function InsightsPage() {
                     </div>
                   </div>
                   <div className="card" style={{ padding: 16 }}>
-                    <CardTitle>MFE vs MAE scatter ($) — x=y çizgisinin üstü: kazanç &gt; kayıp</CardTitle>
+                    <CardTitle>MFE vs MAE — TP tradeler ($) — x=y üstü: kazanç &gt; drawdown</CardTitle>
                     <div style={{ height: 220 }}>
                       {(() => {
                         const tpScatter = rmae.scatter.filter(r => r.sim_result === 'TP_HIT')
-                        const slScatter = rmae.scatter.filter(r => r.sim_result === 'SL_HIT')
-                        const maxMfe = Math.ceil(Math.max(...rmae.scatter.map(r => +Number(r.mfe))) * 1.1)
-                        const maxMae = Math.ceil(Math.max(...rmae.scatter.map(r => +Number(r.mae))) * 1.1)
+                        const maxMfe = Math.ceil(Math.max(...tpScatter.map(r => +Number(r.mfe))) * 1.1)
+                        const maxMae = Math.ceil(Math.max(...tpScatter.map(r => +Number(r.mae))) * 1.1)
                         const axisMax = Math.max(maxMfe, maxMae)
                         return (
                           <Scatter
@@ -752,12 +751,6 @@ export default function InsightsPage() {
                                   label: 'TP',
                                   data: tpScatter.map(r => ({ x: +Number(r.mae).toFixed(2), y: +Number(r.mfe).toFixed(2) })),
                                   backgroundColor: 'rgba(74,222,128,0.7)',
-                                  pointRadius: 5,
-                                },
-                                {
-                                  label: 'SL',
-                                  data: slScatter.map(r => ({ x: +Number(r.mae).toFixed(2), y: +Number(r.mfe).toFixed(2) })),
-                                  backgroundColor: 'rgba(248,113,113,0.7)',
                                   pointRadius: 5,
                                 },
                                 {
@@ -919,7 +912,7 @@ export default function InsightsPage() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                     <CardTitle>Günlük trade dağılımı (TP / SL)</CardTitle>
                     <div style={{ display: 'flex', gap: 10 }}>
-                      {[{ label: 'TP', color: 'var(--green)' }, { label: 'SL', color: 'var(--red)' }, { label: 'Diğer', color: 'var(--text-3)' }].map(x => (
+                      {[{ label: 'TP', color: 'var(--green)' }, { label: 'SL', color: 'var(--red)' }].map(x => (
                         <div key={x.label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                           <span style={{ width: 8, height: 8, borderRadius: 2, background: x.color }} />
                           <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{x.label}</span>
@@ -949,15 +942,6 @@ export default function InsightsPage() {
                             data: daily.daily.map(d => Number(d.sl_count)),
                             backgroundColor: 'rgba(248,113,113,0.7)',
                             borderColor: '#f87171',
-                            borderWidth: 1,
-                            borderRadius: 2,
-                            stack: 'stack',
-                          },
-                          {
-                            label: 'Diğer',
-                            data: daily.daily.map(d => Number(d.other_count) + Number(d.expired_count)),
-                            backgroundColor: 'rgba(85,85,85,0.5)',
-                            borderColor: '#555',
                             borderWidth: 1,
                             borderRadius: 2,
                             stack: 'stack',
