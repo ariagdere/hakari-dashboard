@@ -760,14 +760,14 @@ export default function InsightsPage() {
                                 },
                                 {
                                   label: 'x=y',
-                                  data: [{ x: 0, y: 0 }, { x: maxVal, y: maxVal }],
-                                  type: 'line' as const,
+                                  data: Array.from({ length: 21 }, (_, i) => ({ x: i * maxVal / 20, y: i * maxVal / 20 })),
+                                  backgroundColor: 'rgba(255,255,255,0.0)',
                                   borderColor: 'rgba(255,255,255,0.15)',
-                                  borderWidth: 1,
+                                  pointRadius: 1.5,
+                                  pointStyle: 'line' as const,
+                                  showLine: true,
                                   borderDash: [4, 4],
-                                  pointRadius: 0,
-                                  fill: false,
-                                },
+                                } as any,
                               ],
                             }}
                             options={{
