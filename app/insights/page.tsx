@@ -739,32 +739,33 @@ export default function InsightsPage() {
                     <CardTitle>MFE vs MAE scatter ($) — x=y çizgisinin üstü: kazanç &gt; kayıp</CardTitle>
                     <div style={{ height: 220 }}>
                       {(() => {
-                        const allMfe = rmae.scatter.map(r => +Number(r.mfe).toFixed(2))
-                        const allMae = rmae.scatter.map(r => +Number(r.mae).toFixed(2))
-                        const maxVal = Math.max(...allMfe, ...allMae, 1)
+                        const tpScatter = rmae.scatter.filter(r => r.sim_result === 'TP_HIT')
+                        const slScatter = rmae.scatter.filter(r => r.sim_result === 'SL_HIT')
+                        const maxMfe = Math.ceil(Math.max(...rmae.scatter.map(r => +Number(r.mfe))) * 1.1)
+                        const maxMae = Math.ceil(Math.max(...rmae.scatter.map(r => +Number(r.mae))) * 1.1)
+                        const axisMax = Math.max(maxMfe, maxMae)
                         return (
                           <Scatter
                             data={{
                               datasets: [
                                 {
                                   label: 'TP',
-                                  data: rmae.scatter.filter(r => r.sim_result === 'TP_HIT').map(r => ({ x: +Number(r.mae).toFixed(2), y: +Number(r.mfe).toFixed(2) })),
-                                  backgroundColor: 'rgba(74,222,128,0.6)',
-                                  pointRadius: 4,
+                                  data: tpScatter.map(r => ({ x: +Number(r.mae).toFixed(2), y: +Number(r.mfe).toFixed(2) })),
+                                  backgroundColor: 'rgba(74,222,128,0.7)',
+                                  pointRadius: 5,
                                 },
                                 {
                                   label: 'SL',
-                                  data: rmae.scatter.filter(r => r.sim_result === 'SL_HIT').map(r => ({ x: +Number(r.mae).toFixed(2), y: +Number(r.mfe).toFixed(2) })),
-                                  backgroundColor: 'rgba(248,113,113,0.6)',
-                                  pointRadius: 4,
+                                  data: slScatter.map(r => ({ x: +Number(r.mae).toFixed(2), y: +Number(r.mfe).toFixed(2) })),
+                                  backgroundColor: 'rgba(248,113,113,0.7)',
+                                  pointRadius: 5,
                                 },
                                 {
                                   label: 'x=y',
-                                  data: Array.from({ length: 21 }, (_, i) => ({ x: i * maxVal / 20, y: i * maxVal / 20 })),
+                                  data: Array.from({ length: 21 }, (_, i) => ({ x: i * axisMax / 20, y: i * axisMax / 20 })),
                                   backgroundColor: 'rgba(255,255,255,0.0)',
-                                  borderColor: 'rgba(255,255,255,0.15)',
-                                  pointRadius: 1.5,
-                                  pointStyle: 'line' as const,
+                                  borderColor: 'rgba(255,255,255,0.2)',
+                                  pointRadius: 1,
                                   showLine: true,
                                   borderDash: [4, 4],
                                 } as any,
@@ -782,8 +783,8 @@ export default function InsightsPage() {
                                 },
                               },
                               scales: {
-                                x: { ...axisStyle, title: { display: true, text: 'MAE ($)', color: '#555', font: { family: 'DM Mono', size: 10 } } },
-                                y: { ...axisStyle, title: { display: true, text: 'MFE ($)', color: '#555', font: { family: 'DM Mono', size: 10 } } },
+                                x: { ...axisStyle, min: 0, max: axisMax, title: { display: true, text: 'MAE ($)', color: '#555', font: { family: 'DM Mono', size: 10 } } },
+                                y: { ...axisStyle, min: 0, max: axisMax, title: { display: true, text: 'MFE ($)', color: '#555', font: { family: 'DM Mono', size: 10 } } },
                               },
                             } as any}
                           />
