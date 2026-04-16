@@ -39,18 +39,24 @@ interface Stats {
   max_r_tp: number | null
   min_r_tp: number | null
   avg_rsi_tp: number | null
+  avg_rsi_tp_short: number | null
+  avg_rsi_tp_long: number | null
   avg_conf_tp: number | null
   avg_score_tp: number | null
   avg_mins_tp: number | null
+  avg_mins_to_entry_tp: number | null
   avg_max_fav_tp: number | null
   avg_max_fav_tp_usd: number | null
   avg_r_sl: number | null
   max_r_sl: number | null
   min_r_sl: number | null
   avg_rsi_sl: number | null
+  avg_rsi_sl_short: number | null
+  avg_rsi_sl_long: number | null
   avg_conf_sl: number | null
   avg_score_sl: number | null
   avg_mins_sl: number | null
+  avg_mins_to_entry_sl: number | null
   avg_max_fav_sl: number | null
   avg_max_fav_sl_usd: number | null
   r_series: { date: string; r: number }[]
@@ -223,10 +229,11 @@ export default function Dashboard() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 4, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
                   {[
-                    { label: 'Ort. RSI 4H', val: stats.avg_rsi_tp != null ? String(stats.avg_rsi_tp) : '—' },
+                    { label: 'Ort. RSI 4H', val: stats.avg_rsi_tp != null ? `${stats.avg_rsi_tp} (S:${stats.avg_rsi_tp_short ?? '—'} / L:${stats.avg_rsi_tp_long ?? '—'})` : '—' },
                     { label: 'Ort. Güven', val: stats.avg_conf_tp != null ? `%${stats.avg_conf_tp}` : '—' },
                     { label: 'Ort. Skor', val: stats.avg_score_tp != null ? `${stats.avg_score_tp}/10` : '—' },
                     { label: 'Ort. Süre', val: fmtMins(stats.avg_mins_tp) },
+                    { label: 'Ort. Entry Süresi', val: fmtMins(stats.avg_mins_to_entry_tp) },
                     { label: 'Ort. Max Kazanç', val: stats.avg_max_fav_tp != null ? `$${parseFloat(String(stats.avg_max_fav_tp_usd)).toFixed(2)} / +${parseFloat(String(stats.avg_max_fav_tp)).toFixed(2)}R` : '—' },
                   ].map((x, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -254,10 +261,11 @@ export default function Dashboard() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 4, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
                   {[
-                    { label: 'Ort. RSI 4H', val: stats.avg_rsi_sl != null ? String(stats.avg_rsi_sl) : '—' },
+                    { label: 'Ort. RSI 4H', val: stats.avg_rsi_sl != null ? `${stats.avg_rsi_sl} (S:${stats.avg_rsi_sl_short ?? '—'} / L:${stats.avg_rsi_sl_long ?? '—'})` : '—' },
                     { label: 'Ort. Güven', val: stats.avg_conf_sl != null ? `%${stats.avg_conf_sl}` : '—' },
                     { label: 'Ort. Skor', val: stats.avg_score_sl != null ? `${stats.avg_score_sl}/10` : '—' },
                     { label: 'Ort. Süre', val: fmtMins(stats.avg_mins_sl) },
+                    { label: 'Ort. Entry Süresi', val: fmtMins(stats.avg_mins_to_entry_sl) },
                     { label: 'Ort. Max Kazanç', val: stats.avg_max_fav_sl != null ? `$${parseFloat(String(stats.avg_max_fav_sl_usd)).toFixed(2)} / +${parseFloat(String(stats.avg_max_fav_sl)).toFixed(2)}R` : '—' },
                   ].map((x, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
