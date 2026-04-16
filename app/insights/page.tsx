@@ -30,7 +30,7 @@ interface ScoreSentRow { score_bucket: string; mtf_strength: string; total: numb
 interface CombRow      { pair_name?: string; trio_name?: string; combination: string; total: number; wins: number; win_rate: number }
 interface PairsData    { direction_x_sentiment: DirSentRow[]; score_x_sentiment: ScoreSentRow[]; long_pairs: CombRow[]; short_pairs: CombRow[]; long_trios: CombRow[]; short_trios: CombRow[] }
 interface RHistRow   { sim_result: string; r_bucket: number; count: number }
-interface ScatterRow { id: number; sim_result: string; mfe: number; mae: number; r_multiple: number; score: number }
+interface ScatterRow { id: number; sim_result: string; mfe: number; mae: number; r_multiple: number; score: number; risk_usd: number }
 interface MfeRow     { mfe_bucket: string; total: number; tp_count: number; avg_mins: number }
 interface RmaeData   { r_histogram: RHistRow[]; scatter: ScatterRow[]; mfe_distribution: MfeRow[] }
 interface HourlyRow  { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number; avg_r_tp: number | null }
@@ -696,16 +696,16 @@ export default function InsightsPage() {
                     </div>
                   </div>
                   <div className="card" style={{ padding: 16 }}>
-                    <CardTitle>MFE vs MAE scatter</CardTitle>
+                    <CardTitle>MFE vs MAE scatter ($)</CardTitle>
                     <div style={{ height: 180 }}>
                       <Scatter
                         data={{
                           datasets: [
-                            { label: 'TP', data: rmae.scatter.filter(r => r.sim_result === 'TP_HIT').map(r => ({ x: r.mae, y: r.mfe })), backgroundColor: 'rgba(74,222,128,0.5)', pointRadius: 3 },
-                            { label: 'SL', data: rmae.scatter.filter(r => r.sim_result === 'SL_HIT').map(r => ({ x: r.mae, y: r.mfe })), backgroundColor: 'rgba(248,113,113,0.5)', pointRadius: 3 },
+                            { label: 'TP', data: rmae.scatter.filter(r => r.sim_result === 'TP_HIT').map(r => ({ x: +(r.mae * r.risk_usd).toFixed(1), y: +(r.mfe * r.risk_usd).toFixed(1) })), backgroundColor: 'rgba(74,222,128,0.5)', pointRadius: 3 },
+                            { label: 'SL', data: rmae.scatter.filter(r => r.sim_result === 'SL_HIT').map(r => ({ x: +(r.mae * r.risk_usd).toFixed(1), y: +(r.mfe * r.risk_usd).toFixed(1) })), backgroundColor: 'rgba(248,113,113,0.5)', pointRadius: 3 },
                           ],
                         }}
-                        options={{ ...CHART_DEFAULTS, plugins: { legend: { display: true, labels: { color: '#555', font: { family: 'DM Mono', size: 10 } } } }, scales: { x: { ...axisStyle, title: { display: true, text: 'MAE (R)', color: '#555', font: { family: 'DM Mono', size: 10 } } }, y: { ...axisStyle, title: { display: true, text: 'MFE (R)', color: '#555', font: { family: 'DM Mono', size: 10 } } } } }}
+                        options={{ ...CHART_DEFAULTS, plugins: { legend: { display: true, labels: { color: '#555', font: { family: 'DM Mono', size: 10 } } } }, scales: { x: { ...axisStyle, title: { display: true, text: 'MAE ($)', color: '#555', font: { family: 'DM Mono', size: 10 } } }, y: { ...axisStyle, title: { display: true, text: 'MFE ($)', color: '#555', font: { family: 'DM Mono', size: 10 } } } } }}
                       />
                     </div>
                   </div>
