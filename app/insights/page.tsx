@@ -777,7 +777,8 @@ export default function InsightsPage() {
                       {(() => {
                         const tpScatter = rmae.scatter.filter(r => r.sim_result === 'TP_HIT')
                         const maxMfe = Math.ceil(Math.max(...tpScatter.map(r => +Number(r.mfe))) * 1.1)
-                        const axisMax = Math.max(maxMfe, 25)
+                        const xMax = 25
+                        const yMax = maxMfe
                         return (
                           <Scatter
                             data={{
@@ -790,7 +791,7 @@ export default function InsightsPage() {
                                 },
                                 {
                                   label: 'x=y',
-                                  data: Array.from({ length: 21 }, (_, i) => ({ x: i * axisMax / 20, y: i * axisMax / 20 })),
+                                  data: Array.from({ length: 21 }, (_, i) => ({ x: i * xMax / 20, y: i * xMax / 20 })),
                                   backgroundColor: 'rgba(255,255,255,0.0)',
                                   borderColor: 'rgba(255,255,255,0.2)',
                                   pointRadius: 1,
@@ -811,8 +812,8 @@ export default function InsightsPage() {
                                 },
                               },
                               scales: {
-                                x: { ...axisStyle, min: 0, max: axisMax, title: { display: true, text: 'MAE ($)', color: '#555', font: { family: 'DM Mono', size: 10 } } },
-                                y: { ...axisStyle, min: 0, max: axisMax, title: { display: true, text: 'MFE ($)', color: '#555', font: { family: 'DM Mono', size: 10 } } },
+                                x: { ...axisStyle, min: 0, max: xMax, title: { display: true, text: 'MAE ($)', color: '#555', font: { family: 'DM Mono', size: 10 } } },
+                                y: { ...axisStyle, min: 0, max: yMax, title: { display: true, text: 'MFE ($)', color: '#555', font: { family: 'DM Mono', size: 10 } } },
                               },
                             } as any}
                           />
