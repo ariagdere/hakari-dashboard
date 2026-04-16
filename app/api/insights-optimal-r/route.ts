@@ -8,10 +8,12 @@ export async function GET(req: NextRequest) {
   const { where, params } = buildInsightsWhere(req)
   const base = where ? `${where} AND` : 'WHERE'
 
+  // sim_max_favorable_move is already in USD (maxFavorable * positionSizeBtc)
+  // mfe_r = mfe_usd / risk_usd  →  how many R units the price moved in favor
   const { rows } = await pool.query(`
     SELECT
-      sim_max_favorable_move  AS mfe,
-      COALESCE(risk_usd, 10)  AS risk_usd,
+      sim_max_favorable_move  AS mfe_usd,
+      COALESCE(risk_usd, 20)  AS risk_usd,
       sim_r_multiple          AS actual_r,
       sim_result
     FROM btc_analysis
@@ -25,28 +27,28 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ sweep: [], optimal_r: null, current_avg_r: null, total_trades: 0 })
   }
 
-  // Current average actual R on TP trades
-  const tpTrades = rows.filter((r: any) => r.sim_result === 'TP_HIT')
+  const trades = rows.map((r: any) => ({
+    mfe_r:    Number(r.mfe_usd) / Number(r.risk_usd),
+    risk_usd: Number(r.risk_usd),
+    actual_r: Number(r.actual_r),
+    result:   r.sim_result,
+  }))
+
+  const tpTrades = trades.filter((t: any) => t.result === 'TP_HIT')
   const current_avg_r = tpTrades.length > 0
-    ? Math.round(tpTrades.reduce((sum: number, r: any) => sum + Number(r.actual_r), 0) / tpTrades.length * 100) / 100
+    ? Math.round(tpTrades.reduce((s: number, t: any) => s + t.actual_r, 0) / tpTrades.length * 100) / 100
     : null
 
-  // R sweep: for each target R, count how many trades had MFE >= R
-  // Those trades would have hit TP → WIN (earn R * risk)
-  // Others → LOSS (lose 1 * risk = SL)
-  // This is the classic "what if I had placed TP at X" question
   const steps: number[] = []
   for (let r = 0.25; r <= 6.0; r = Math.round((r + 0.25) * 100) / 100) steps.push(r)
 
   const sweep = steps.map(r => {
     let pnl = 0; let wins = 0; let losses = 0
-    for (const trade of rows) {
-      const mfe  = Number(trade.mfe)
-      const risk = Number(trade.risk_usd)
-      if (mfe >= r) { pnl += r * risk; wins++ }
-      else           { pnl -= 1  * risk; losses++ }
+    for (const t of trades) {
+      if (t.mfe_r >= r) { pnl += r * t.risk_usd; wins++ }
+      else               { pnl -= t.risk_usd;     losses++ }
     }
-    const win_rate = rows.length > 0 ? Math.round((wins / rows.length) * 1000) / 10 : 0
+    const win_rate = trades.length > 0 ? Math.round((wins / trades.length) * 1000) / 10 : 0
     return { r, pnl: Math.round(pnl * 100) / 100, wins, losses, win_rate }
   })
 
@@ -60,6 +62,6 @@ export async function GET(req: NextRequest) {
     optimal_losses:   optimal.losses,
     optimal_win_rate: optimal.win_rate,
     current_avg_r,
-    total_trades:     rows.length,
+    total_trades:     trades.length,
   })
 }
