@@ -25,7 +25,8 @@ export async function GET(req: NextRequest) {
         ROUND(sim_max_favorable_move::numeric, 2) AS mfe,
         ROUND(sim_max_adverse_move::numeric, 2) AS mae,
         ROUND(sim_r_multiple::numeric, 2) AS r_multiple,
-        market_score_value AS score
+        market_score_value AS score,
+        ROUND(risk_usd::numeric, 2) AS risk_usd
       FROM btc_analysis
       ${base} sim_max_favorable_move IS NOT NULL
         AND sim_max_adverse_move IS NOT NULL
