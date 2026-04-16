@@ -29,6 +29,7 @@ export async function GET(request: Request) {
       entry, tp, sl, rr,
       market_score_value, confidence_value,
       sim_result, sim_pnl_usd, sim_entry_to_result_minutes,
+      win_probability,
       risk_usd, position_size_btc
     FROM btc_analysis
     ${where}
