@@ -715,8 +715,8 @@ export default function InsightsPage() {
                       <Scatter
                         data={{
                           datasets: [
-                            { label: 'TP', data: rmae.scatter.filter(r => r.sim_result === 'TP_HIT').map(r => ({ x: +(r.mae * r.risk_usd).toFixed(1), y: +(r.mfe * r.risk_usd).toFixed(1) })), backgroundColor: 'rgba(74,222,128,0.5)', pointRadius: 3 },
-                            { label: 'SL', data: rmae.scatter.filter(r => r.sim_result === 'SL_HIT').map(r => ({ x: +(r.mae * r.risk_usd).toFixed(1), y: +(r.mfe * r.risk_usd).toFixed(1) })), backgroundColor: 'rgba(248,113,113,0.5)', pointRadius: 3 },
+                            { label: 'TP', data: rmae.scatter.filter(r => r.sim_result === 'TP_HIT').map(r => ({ x: +r.mae.toFixed(2), y: +r.mfe.toFixed(2) })), backgroundColor: 'rgba(74,222,128,0.5)', pointRadius: 3 },
+                            { label: 'SL', data: rmae.scatter.filter(r => r.sim_result === 'SL_HIT').map(r => ({ x: +r.mae.toFixed(2), y: +r.mfe.toFixed(2) })), backgroundColor: 'rgba(248,113,113,0.5)', pointRadius: 3 },
                           ],
                         }}
                         options={{ ...CHART_DEFAULTS, plugins: { legend: { display: true, labels: { color: '#555', font: { family: 'DM Mono', size: 10 } } } }, scales: { x: { ...axisStyle, title: { display: true, text: 'MAE ($)', color: '#555', font: { family: 'DM Mono', size: 10 } } }, y: { ...axisStyle, title: { display: true, text: 'MFE ($)', color: '#555', font: { family: 'DM Mono', size: 10 } } } } }}
