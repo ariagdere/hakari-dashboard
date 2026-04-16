@@ -17,26 +17,25 @@ const INDICATOR_COLS = [
   { col: 'sent_m5_oi_mcap',      label: 'M5 OI/MCap' },
 ]
 
-export async function GET(req: NextRequest) {
-  const { where, params } = buildInsightsWhere(req)
-  const base = where ? `${where} AND` : 'WHERE'
+function indicatorQuery(col: string, label: string, base: string, params: any[], direction?: string) {
+  const dirFilter = direction ? `AND direction = '${direction}'` : ''
+  return pool.query(`
+    SELECT
+      '${label}' AS indicator,
+      ${col} AS sentiment,
+      COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')) AS total,
+      COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS wins,
+      ROUND(COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
+        NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate
+    FROM btc_analysis
+    ${base} ${col} IS NOT NULL ${dirFilter}
+    GROUP BY ${col}
+  `, params)
+}
 
-  const indicatorQueries = INDICATOR_COLS.map(({ col, label }) =>
-    pool.query(`
-      SELECT
-        '${label}' AS indicator,
-        ${col} AS sentiment,
-        COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')) AS total,
-        COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS wins,
-        ROUND(COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
-          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate
-      FROM btc_analysis
-      ${base} ${col} IS NOT NULL
-      GROUP BY ${col}
-    `, params)
-  )
-
-  const mtfQuery = pool.query(`
+function mtfQuery(base: string, params: any[], direction?: string) {
+  const dirFilter = direction ? `AND direction = '${direction}'` : ''
+  return pool.query(`
     SELECT
       sent_synthesis_h1  AS h1,
       sent_synthesis_m5  AS m5,
@@ -49,31 +48,53 @@ export async function GET(req: NextRequest) {
     ${base} sent_synthesis_h1 IS NOT NULL
       AND sent_synthesis_m5 IS NOT NULL
       AND sent_synthesis_mtf IS NOT NULL
+      ${dirFilter}
     GROUP BY sent_synthesis_h1, sent_synthesis_m5, sent_synthesis_mtf
-    ORDER BY total DESC LIMIT 12
+    ORDER BY total DESC LIMIT 10
   `, params)
+}
 
-  const liqQuery = pool.query(`
-    SELECT
-      sent_liquidity    AS liquidity,
-      sent_market_power AS market_power,
-      COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')) AS total,
-      COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS wins,
-      ROUND(COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
-        NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate
-    FROM btc_analysis
-    ${base} sent_liquidity IS NOT NULL AND sent_market_power IS NOT NULL
-    GROUP BY sent_liquidity, sent_market_power
-    ORDER BY total DESC
-  `, params)
+export async function GET(req: NextRequest) {
+  const { where, params } = buildInsightsWhere(req)
+  const base = where ? `${where} AND` : 'WHERE'
 
-  const [indicatorResults, mtfResult, liqResult] = await Promise.all([
-    Promise.all(indicatorQueries), mtfQuery, liqQuery,
+  const [
+    indicatorResults,
+    indicatorLongResults,
+    indicatorShortResults,
+    mtfResult,
+    mtfLongResult,
+    mtfShortResult,
+    liqResult,
+  ] = await Promise.all([
+    Promise.all(INDICATOR_COLS.map(({ col, label }) => indicatorQuery(col, label, base, params))),
+    Promise.all(INDICATOR_COLS.map(({ col, label }) => indicatorQuery(col, label, base, params, 'LONG'))),
+    Promise.all(INDICATOR_COLS.map(({ col, label }) => indicatorQuery(col, label, base, params, 'SHORT'))),
+    mtfQuery(base, params),
+    mtfQuery(base, params, 'LONG'),
+    mtfQuery(base, params, 'SHORT'),
+    pool.query(`
+      SELECT
+        sent_liquidity    AS liquidity,
+        sent_market_power AS market_power,
+        COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')) AS total,
+        COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS wins,
+        ROUND(COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
+          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate
+      FROM btc_analysis
+      ${base} sent_liquidity IS NOT NULL AND sent_market_power IS NOT NULL
+      GROUP BY sent_liquidity, sent_market_power
+      ORDER BY total DESC
+    `, params),
   ])
 
   return NextResponse.json({
-    indicators: indicatorResults.flatMap(r => r.rows),
-    mtf_confluence: mtfResult.rows,
-    liquidity_cross: liqResult.rows,
+    indicators:        indicatorResults.flatMap(r => r.rows),
+    indicators_long:   indicatorLongResults.flatMap(r => r.rows),
+    indicators_short:  indicatorShortResults.flatMap(r => r.rows),
+    mtf_confluence:    mtfResult.rows,
+    mtf_confluence_long:  mtfLongResult.rows,
+    mtf_confluence_short: mtfShortResult.rows,
+    liquidity_cross:   liqResult.rows,
   })
 }
