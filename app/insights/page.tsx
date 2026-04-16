@@ -52,6 +52,10 @@ interface OptimalRData {
   current_avg_r: number | null
   total_trades: number
 }
+interface WinProbBucket  { bucket: string; sort_order: number; avg_predicted: number; total: number; wins: number; actual_win_rate: number }
+interface WinProbDir     { direction: string; avg_probability: number; total: number; actual_win_rate: number }
+interface WinProbScatter { predicted: number; actual_win_rate: number; total: number }
+interface WinProbData    { buckets: WinProbBucket[]; by_dir: WinProbDir[]; scatter: WinProbScatter[] }
 
 const N = (v: any, d = 1) => v == null ? '—' : Number(v).toFixed(d)
 const winColor = (v: number | null) => {
@@ -363,6 +367,7 @@ export default function InsightsPage() {
   const [hourly,    setHourly]    = useState<HourlyData | null>(null)
   const [daily,     setDaily]     = useState<DailyData | null>(null)
   const [optimalR,  setOptimalR]  = useState<OptimalRData | null>(null)
+  const [winProb,   setWinProb]   = useState<WinProbData | null>(null)
   const [loading,   setLoading]   = useState(true)
   const [filterOpen,   setFilterOpen]   = useState(false)
   const [draftFilters, setDraftFilters] = useState<Filters>(DEFAULT_FILTERS)
@@ -381,8 +386,9 @@ export default function InsightsPage() {
       fetch(`/api/hourly-stats${qs}`,       { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/insights-optimal-r${qs}`, { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/insights-daily${qs}`,     { cache: 'no-store' }).then(r => r.json()),
-    ]).then(([ov, sc, se, pa, rm, hr, or_, da]) => {
-      setOverview(ov); setScoring(sc); setSentiment(se); setPairs(pa); setRmae(rm); setHourly(hr); setOptimalR(or_); setDaily(da)
+      fetch(`/api/insights-win-prob${qs}`,  { cache: 'no-store' }).then(r => r.json()),
+    ]).then(([ov, sc, se, pa, rm, hr, or_, da, wp]) => {
+      setOverview(ov); setScoring(sc); setSentiment(se); setPairs(pa); setRmae(rm); setHourly(hr); setOptimalR(or_); setDaily(da); setWinProb(wp)
       setLoading(false)
     })
   }, [])
@@ -844,7 +850,104 @@ export default function InsightsPage() {
                 </div>
               </Section>
             )}
-            {/* ── 6. OPTİMAL R ─────────────────────────────────────────────── */}
+            {/* ── 6. WIN PROBABILITY KALİBRASYONU ─────────────────────────── */}
+            {winProb && winProb.buckets?.length > 0 && (
+              <Section title="Win Probability Kalibrasyonu">
+                <div style={{ ...grid2, marginBottom: 12 }}>
+                  {/* Calibration bar chart */}
+                  <div className="card" style={{ padding: 16 }}>
+                    <CardTitle>Tahmin edilen vs gerçekleşen win rate</CardTitle>
+                    <div style={{ height: 200 }}>
+                      <Bar
+                        data={{
+                          labels: winProb.buckets.map(b => b.bucket),
+                          datasets: [
+                            {
+                              label: 'Tahmin edilen %',
+                              data: winProb.buckets.map(b => Number(b.avg_predicted)),
+                              backgroundColor: 'rgba(96,165,250,0.3)',
+                              borderColor: '#60a5fa',
+                              borderWidth: 1,
+                            },
+                            {
+                              label: 'Gerçek win %',
+                              data: winProb.buckets.map(b => Number(b.actual_win_rate)),
+                              backgroundColor: winProb.buckets.map(b =>
+                                Number(b.actual_win_rate) >= 40 ? 'rgba(74,222,128,0.5)' : 'rgba(248,113,113,0.5)'
+                              ),
+                              borderColor: winProb.buckets.map(b =>
+                                Number(b.actual_win_rate) >= 40 ? '#4ade80' : '#f87171'
+                              ),
+                              borderWidth: 1,
+                            },
+                          ],
+                        }}
+                        options={{
+                          ...CHART_DEFAULTS,
+                          plugins: {
+                            legend: { display: true, labels: { color: '#555', font: { family: 'DM Mono', size: 10 } } },
+                            tooltip: {
+                              displayColors: false,
+                              callbacks: {
+                                afterBody: (items: any) => {
+                                  const b = winProb.buckets[items[0].dataIndex]
+                                  return [`n=${b.total}  TP=${b.wins}`]
+                                },
+                              },
+                            },
+                          },
+                          scales: {
+                            x: axisStyle,
+                            y: { ...axisStyle, max: 100, ticks: { ...axisStyle.ticks, callback: (v: any) => `${v}%` } },
+                          },
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Direction breakdown + table */}
+                  <div className="card" style={{ padding: 16 }}>
+                    <CardTitle>Yöne göre ortalama win probability</CardTitle>
+                    <div style={{ marginBottom: 16 }}>
+                      {winProb.by_dir.map(row => (
+                        <div key={row.direction} style={{ marginBottom: 12 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                            <span className="mono" style={{ fontSize: 11, color: row.direction === 'LONG' ? 'var(--green)' : 'var(--red)' }}>{row.direction}</span>
+                            <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>
+                              tahmin: %{Number(row.avg_probability).toFixed(1)} → gerçek: %{Number(row.actual_win_rate).toFixed(1)}
+                            </span>
+                          </div>
+                          <WinBar rate={Number(row.actual_win_rate)} total={Number(row.total)} />
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="col-label" style={{ marginBottom: 8 }}>Bucket detayı</div>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
+                        <thead>
+                          <tr>{['Bucket', 'Ort. Tahmin', 'Gerçek Win%', 'n'].map((h, i) => (
+                            <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
+                          ))}</tr>
+                        </thead>
+                        <tbody>
+                          {winProb.buckets.map((b, i) => (
+                            <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                              <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
+                              <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--blue)' }}>%{Number(b.avg_predicted).toFixed(1)}</td>
+                              <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(b.actual_win_rate)) }}>{b.actual_win_rate != null ? `%${Number(b.actual_win_rate).toFixed(1)}` : '—'}</td>
+                              <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </Section>
+            )}
+
+            {/* ── 7. OPTİMAL R ─────────────────────────────────────────────── */}
             {optimalR && optimalR.sweep.length > 0 && (
               <Section title="Optimal R Analizi">
                 {/* Stat cards */}
