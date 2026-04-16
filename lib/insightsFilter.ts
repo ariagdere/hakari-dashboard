@@ -21,6 +21,11 @@ export function buildInsightsWhere(req: NextRequest): { where: string; params: a
   p('order_type',       s.get('order_type'))
   p('sequential_trade', s.get('sequential_trade'))
 
+  const dateFrom = s.get('date_from')
+  const dateTo   = s.get('date_to')
+  if (dateFrom) { conditions.push(`analyzed_at >= $${i++}`); params.push(dateFrom) }
+  if (dateTo)   { conditions.push(`analyzed_at <= $${i++}`); params.push(dateTo + 'T23:59:59') }
+
   range('market_score_value',       s.get('score_min'), s.get('score_max'), 1,   10)
   range('confidence_value',         s.get('conf_min'),  s.get('conf_max'),  0,   100)
   range('rsi_4h',                   s.get('rsi_min'),   s.get('rsi_max'),   0,   100)
