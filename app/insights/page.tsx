@@ -5,7 +5,7 @@ import {
   Tooltip, LineElement, PointElement,
   LinearScale, CategoryScale, BarElement, Filler,
 } from 'chart.js'
-import { Bar, Scatter } from 'react-chartjs-2'
+import { Bar } from 'react-chartjs-2'
 
 ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, BarElement, Filler)
 
@@ -720,15 +720,13 @@ export default function InsightsPage() {
                     <div style={{ height: 180 }}>
                       {(() => {
                         const buckets = Array.from(new Set(rmae.r_histogram.map(r => r.r_bucket))).sort((a, b) => a - b)
-                        const tpData  = buckets.map(b => rmae.r_histogram.find(r => r.r_bucket === b && r.sim_result === 'TP_HIT')?.count ?? 0)
-                        const slData  = buckets.map(b => rmae.r_histogram.find(r => r.r_bucket === b && r.sim_result === 'SL_HIT')?.count ?? 0)
+                        const tpData  = buckets.map(b => rmae.r_histogram.find(r => r.r_bucket === b)?.count ?? 0)
                         return (
                           <Bar
                             data={{
-                              labels: buckets.map(b => `${b > 0 ? '+' : ''}${b}R`),
+                              labels: buckets.map(b => `+${b}R`),
                               datasets: [
-                                { label: 'TP', data: tpData, backgroundColor: 'rgba(74,222,128,0.4)',  borderColor: '#4ade80', borderWidth: 1 },
-                                { label: 'SL', data: slData, backgroundColor: 'rgba(248,113,113,0.4)', borderColor: '#f87171', borderWidth: 1 },
+                                { label: 'TP', data: tpData, backgroundColor: 'rgba(74,222,128,0.4)', borderColor: '#4ade80', borderWidth: 1 },
                               ],
                             }}
                             options={{ ...CHART_DEFAULTS, plugins: { legend: { display: true, labels: { color: '#555', font: { family: 'DM Mono', size: 10 } } } }, scales: { x: axisStyle, y: { ...axisStyle, ticks: { ...axisStyle.ticks, stepSize: 1 } } } }}
@@ -738,16 +736,32 @@ export default function InsightsPage() {
                     </div>
                   </div>
                   <div className="card" style={{ padding: 16 }}>
-                    <CardTitle>MFE vs MAE scatter ($)</CardTitle>
+                    <CardTitle>MFE dağılımı — kazanç potansiyeli ($)</CardTitle>
                     <div style={{ height: 180 }}>
-                      <Scatter
+                      <Bar
                         data={{
+                          labels: rmae.scatter.map((_, i) => i + 1),
                           datasets: [
-                            { label: 'TP', data: rmae.scatter.filter(r => r.sim_result === 'TP_HIT').map(r => ({ x: +Number(r.mae).toFixed(2), y: +Number(r.mfe).toFixed(2) })), backgroundColor: 'rgba(74,222,128,0.5)', pointRadius: 3 },
-                            { label: 'SL', data: rmae.scatter.filter(r => r.sim_result === 'SL_HIT').map(r => ({ x: +Number(r.mae).toFixed(2), y: +Number(r.mfe).toFixed(2) })), backgroundColor: 'rgba(248,113,113,0.5)', pointRadius: 3 },
+                            { label: 'TP', data: rmae.scatter.filter(r => r.sim_result === 'TP_HIT').map(r => +Number(r.mfe).toFixed(2)), backgroundColor: 'rgba(74,222,128,0.5)', borderColor: '#4ade80', borderWidth: 1, pointRadius: 3 },
+                            { label: 'SL', data: rmae.scatter.filter(r => r.sim_result === 'SL_HIT').map(r => +Number(r.mfe).toFixed(2)), backgroundColor: 'rgba(248,113,113,0.4)', borderColor: '#f87171', borderWidth: 1, pointRadius: 3 },
                           ],
                         }}
-                        options={{ ...CHART_DEFAULTS, plugins: { legend: { display: true, labels: { color: '#555', font: { family: 'DM Mono', size: 10 } } } }, scales: { x: { ...axisStyle, title: { display: true, text: 'MAE ($)', color: '#555', font: { family: 'DM Mono', size: 10 } } }, y: { ...axisStyle, title: { display: true, text: 'MFE ($)', color: '#555', font: { family: 'DM Mono', size: 10 } } } } }}
+                        options={{ ...CHART_DEFAULTS, plugins: { legend: { display: true, labels: { color: '#555', font: { family: 'DM Mono', size: 10 } } } }, scales: { x: { ...axisStyle, display: false }, y: { ...axisStyle, ticks: { ...axisStyle.ticks, callback: (v: any) => `$${v}` } } } }}
+                      />
+                    </div>
+                  </div>
+                  <div className="card" style={{ padding: 16 }}>
+                    <CardTitle>MAE dağılımı — maksimum drawdown ($)</CardTitle>
+                    <div style={{ height: 180 }}>
+                      <Bar
+                        data={{
+                          labels: rmae.scatter.map((_, i) => i + 1),
+                          datasets: [
+                            { label: 'TP', data: rmae.scatter.filter(r => r.sim_result === 'TP_HIT').map(r => +Number(r.mae).toFixed(2)), backgroundColor: 'rgba(74,222,128,0.4)', borderColor: '#4ade80', borderWidth: 1 },
+                            { label: 'SL', data: rmae.scatter.filter(r => r.sim_result === 'SL_HIT').map(r => +Number(r.mae).toFixed(2)), backgroundColor: 'rgba(248,113,113,0.5)', borderColor: '#f87171', borderWidth: 1 },
+                          ],
+                        }}
+                        options={{ ...CHART_DEFAULTS, plugins: { legend: { display: true, labels: { color: '#555', font: { family: 'DM Mono', size: 10 } } } }, scales: { x: { ...axisStyle, display: false }, y: { ...axisStyle, ticks: { ...axisStyle.ticks, callback: (v: any) => `$${v}` } } } }}
                       />
                     </div>
                   </div>
