@@ -1,38 +1,38 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, NextRequest } from 'next/server'
 import pool from '@/lib/db'
+import { buildInsightsWhere } from '@/lib/insightsFilter'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const { where, params } = buildInsightsWhere(req)
+  const base = where ? `${where} AND` : 'WHERE'
+
   const [scoreRows, confRows, rsiRows] = await Promise.all([
     pool.query(`
       SELECT
         market_score_value AS score,
         COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')) AS total,
         COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS wins,
-        ROUND(
-          COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
-          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1
-        ) AS win_rate
+        ROUND(COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
+          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate
       FROM btc_analysis
-      WHERE market_score_value IS NOT NULL
-      GROUP BY market_score_value
-      ORDER BY market_score_value
-    `),
+      ${base} market_score_value IS NOT NULL
+      GROUP BY market_score_value ORDER BY market_score_value
+    `, params),
+
     pool.query(`
       SELECT
         confidence_value AS score,
         COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')) AS total,
         COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS wins,
-        ROUND(
-          COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
-          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1
-        ) AS win_rate
+        ROUND(COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
+          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate
       FROM btc_analysis
-      WHERE confidence_value IS NOT NULL
-      GROUP BY confidence_value
-      ORDER BY confidence_value
-    `),
+      ${base} confidence_value IS NOT NULL
+      GROUP BY confidence_value ORDER BY confidence_value
+    `, params),
+
     pool.query(`
       SELECT
         CASE
@@ -51,27 +51,12 @@ export async function GET() {
         END AS sort_order,
         COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')) AS total,
         COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS wins,
-        ROUND(
-          COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
-          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1
-        ) AS win_rate,
-        COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT') AND direction = 'SHORT') AS total_short,
-        COUNT(*) FILTER (WHERE sim_result = 'TP_HIT' AND direction = 'SHORT') AS wins_short,
-        ROUND(
-          COUNT(*) FILTER (WHERE sim_result = 'TP_HIT' AND direction = 'SHORT') * 100.0 /
-          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT') AND direction = 'SHORT'), 0), 1
-        ) AS win_rate_short,
-        COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT') AND direction = 'LONG') AS total_long,
-        COUNT(*) FILTER (WHERE sim_result = 'TP_HIT' AND direction = 'LONG') AS wins_long,
-        ROUND(
-          COUNT(*) FILTER (WHERE sim_result = 'TP_HIT' AND direction = 'LONG') * 100.0 /
-          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT') AND direction = 'LONG'), 0), 1
-        ) AS win_rate_long
+        ROUND(COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
+          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate
       FROM btc_analysis
-      WHERE rsi_4h IS NOT NULL
-      GROUP BY rsi_zone, sort_order
-      ORDER BY sort_order
-    `),
+      ${base} rsi_4h IS NOT NULL
+      GROUP BY rsi_zone, sort_order ORDER BY sort_order
+    `, params),
   ])
 
   return NextResponse.json({
