@@ -1,9 +1,13 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
+import { buildInsightsWhere } from '@/lib/insightsFilter'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const { where, params } = buildInsightsWhere(req)
+  const base = where ? `${where} AND` : 'WHERE'
+
   const [entryRows, analysisRows] = await Promise.all([
     pool.query(`
       SELECT
@@ -15,10 +19,10 @@ export async function GET() {
           NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT', 'SL_HIT')), 0), 1) AS win_rate,
         ROUND(AVG(sim_r_multiple) FILTER (WHERE sim_result = 'TP_HIT'), 2) AS avg_r_tp
       FROM btc_analysis
-      WHERE sim_entry_triggered_at IS NOT NULL
+      ${base} sim_entry_triggered_at IS NOT NULL
         AND sim_result IN ('TP_HIT', 'SL_HIT')
       GROUP BY hour ORDER BY hour ASC
-    `),
+    `, params),
     pool.query(`
       SELECT
         EXTRACT(HOUR FROM analyzed_at AT TIME ZONE 'Europe/Istanbul') AS hour,
@@ -29,10 +33,10 @@ export async function GET() {
           NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT', 'SL_HIT')), 0), 1) AS win_rate,
         ROUND(AVG(sim_r_multiple) FILTER (WHERE sim_result = 'TP_HIT'), 2) AS avg_r_tp
       FROM btc_analysis
-      WHERE analyzed_at IS NOT NULL
+      ${base} analyzed_at IS NOT NULL
         AND sim_result IN ('TP_HIT', 'SL_HIT')
       GROUP BY hour ORDER BY hour ASC
-    `),
+    `, params),
   ])
 
   const toSeries = (rows: any[]) => {
@@ -40,7 +44,7 @@ export async function GET() {
     for (const row of rows) map[parseInt(row.hour)] = row
     return Array.from({ length: 24 }, (_, h) => ({
       hour: h,
-      total: parseInt(map[h]?.total ?? 0),
+      total:    parseInt(map[h]?.total    ?? 0),
       tp_count: parseInt(map[h]?.tp_count ?? 0),
       sl_count: parseInt(map[h]?.sl_count ?? 0),
       win_rate: parseFloat(map[h]?.win_rate ?? 0),
@@ -49,7 +53,7 @@ export async function GET() {
   }
 
   return NextResponse.json({
-    by_entry: toSeries(entryRows.rows),
+    by_entry:    toSeries(entryRows.rows),
     by_analysis: toSeries(analysisRows.rows),
   })
 }
