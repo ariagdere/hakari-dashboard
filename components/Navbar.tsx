@@ -4,7 +4,6 @@ import { usePathname } from 'next/navigation'
 
 const NAV_ITEMS = [
   { label: 'ANALİZ',   href: '/dashboard' },
-  { label: 'SEQ',      href: '/sequential' },
   { label: 'MKT',      href: '/mkt' },
   { label: 'OPS',      href: '/ops' },
   { label: 'INSIGHTS', href: '/insights' },
