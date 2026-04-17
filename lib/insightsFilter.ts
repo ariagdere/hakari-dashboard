@@ -30,6 +30,7 @@ export function buildInsightsWhere(req: NextRequest): { where: string; params: a
   range('confidence_value',         s.get('conf_min'),  s.get('conf_max'),  0,   100)
   range('rsi_4h',                   s.get('rsi_min'),   s.get('rsi_max'),   0,   100)
   range('sim_r_multiple',           s.get('r_min'),     s.get('r_max'),     -5,  20)
+  range('win_probability',          s.get('wp_min'),    s.get('wp_max'),    0,   100)
 
   const sentFields = [
     'sent_synthesis_mtf','sent_synthesis_h1','sent_synthesis_m5',
