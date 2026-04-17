@@ -159,6 +159,7 @@ interface Filters {
   conf_min: number;  conf_max: number
   rsi_min: number;   rsi_max: number
   r_min: number;     r_max: number
+  wp_min: number;    wp_max: number
   sent_synthesis_mtf: string
   sent_synthesis_h1: string
   sent_synthesis_m5: string
@@ -183,6 +184,7 @@ const DEFAULT_FILTERS: Filters = {
   conf_min: 0,   conf_max: 100,
   rsi_min: 0,    rsi_max: 100,
   r_min: -5,     r_max: 20,
+  wp_min: 0,     wp_max: 100,
   sent_synthesis_mtf: '', sent_synthesis_h1: '', sent_synthesis_m5: '',
   sent_h1_ls_ratio: '', sent_h1_tt_accounts: '', sent_h1_tt_positions: '',
   sent_h1_oi: '', sent_h1_oi_mcap: '',
@@ -203,6 +205,7 @@ function filtersToParams(f: Filters): URLSearchParams {
   p.set('conf_min',  String(f.conf_min));  p.set('conf_max',  String(f.conf_max))
   p.set('rsi_min',   String(f.rsi_min));   p.set('rsi_max',   String(f.rsi_max))
   p.set('r_min',     String(f.r_min));     p.set('r_max',     String(f.r_max))
+  p.set('wp_min',    String(f.wp_min));    p.set('wp_max',    String(f.wp_max))
   const sentFields = ['sent_synthesis_mtf','sent_synthesis_h1','sent_synthesis_m5',
     'sent_h1_ls_ratio','sent_h1_tt_accounts','sent_h1_tt_positions','sent_h1_oi','sent_h1_oi_mcap',
     'sent_m5_ls_ratio','sent_m5_tt_accounts','sent_m5_tt_positions','sent_m5_oi','sent_m5_oi_mcap',
@@ -219,6 +222,7 @@ function activeFilterCount(f: Filters): number {
   if (f.conf_min > 0  || f.conf_max < 100) n++
   if (f.rsi_min > 0   || f.rsi_max < 100)  n++
   if (f.r_min > -5    || f.r_max < 20)     n++
+  if (f.wp_min > 0    || f.wp_max < 100)   n++
   const sentFields = ['sent_synthesis_mtf','sent_synthesis_h1','sent_synthesis_m5',
     'sent_h1_ls_ratio','sent_h1_tt_accounts','sent_h1_tt_positions','sent_h1_oi','sent_h1_oi_mcap',
     'sent_m5_ls_ratio','sent_m5_tt_accounts','sent_m5_tt_positions','sent_m5_oi','sent_m5_oi_mcap',
@@ -318,7 +322,8 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
         <RangeRow label="Market score" minKey="score_min" maxKey="score_max" min={1} max={10} />
         <RangeRow label="Confidence" minKey="conf_min" maxKey="conf_max" min={0} max={100} />
         <RangeRow label="RSI 4H" minKey="rsi_min" maxKey="rsi_max" min={0} max={100} />
-        <RangeRow label="R multiple" minKey="r_min" maxKey="r_max" min={-5} max={20} step={0.5} />
+        <RangeRow label="R multiple"       minKey="r_min"  maxKey="r_max"  min={-5} max={20}  step={0.5} />
+        <RangeRow label="Win probability %" minKey="wp_min" maxKey="wp_max" min={0}  max={100} step={5} />
       </div>
 
       {sep}
