@@ -5,7 +5,7 @@ import {
   Tooltip, LineElement, PointElement,
   LinearScale, CategoryScale, BarElement, Filler,
 } from 'chart.js'
-import { Bar, Scatter } from 'react-chartjs-2'
+import { Bar, Scatter, Line } from 'react-chartjs-2'
 
 ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, BarElement, Filler)
 
@@ -56,6 +56,8 @@ interface WinProbBucket  { bucket: string; sort_order: number; avg_predicted: nu
 interface WinProbDir     { direction: string; avg_probability: number; total: number; actual_win_rate: number }
 interface WinProbScatter { predicted: number; actual_win_rate: number; total: number }
 interface WinProbData    { buckets: WinProbBucket[]; by_dir: WinProbDir[]; scatter: WinProbScatter[] }
+interface CumRPoint     { day: string; cumulative_r: number; daily_r: number }
+interface CumRData      { series: CumRPoint[]; max_drawdown: number; final_r: number }
 
 const N = (v: any, d = 1) => v == null ? '—' : Number(v).toFixed(d)
 const winColor = (v: number | null) => {
@@ -373,6 +375,7 @@ export default function InsightsPage() {
   const [daily,     setDaily]     = useState<DailyData | null>(null)
   const [optimalR,  setOptimalR]  = useState<OptimalRData | null>(null)
   const [winProb,   setWinProb]   = useState<WinProbData | null>(null)
+  const [cumR,      setCumR]      = useState<CumRData | null>(null)
   const [loading,   setLoading]   = useState(true)
   const [filterOpen,   setFilterOpen]   = useState(false)
   const [draftFilters, setDraftFilters] = useState<Filters>(DEFAULT_FILTERS)
@@ -392,8 +395,9 @@ export default function InsightsPage() {
       fetch(`/api/insights-optimal-r${qs}`, { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/insights-daily${qs}`,     { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/insights-win-prob${qs}`,  { cache: 'no-store' }).then(r => r.json()),
-    ]).then(([ov, sc, se, pa, rm, hr, or_, da, wp]) => {
-      setOverview(ov); setScoring(sc); setSentiment(se); setPairs(pa); setRmae(rm); setHourly(hr); setOptimalR(or_); setDaily(da); setWinProb(wp)
+      fetch(`/api/insights-cumr${qs}`,      { cache: 'no-store' }).then(r => r.json()),
+    ]).then(([ov, sc, se, pa, rm, hr, or_, da, wp, cr]) => {
+      setOverview(ov); setScoring(sc); setSentiment(se); setPairs(pa); setRmae(rm); setHourly(hr); setOptimalR(or_); setDaily(da); setWinProb(wp); setCumR(cr)
       setLoading(false)
     })
   }, [])
@@ -495,6 +499,58 @@ export default function InsightsPage() {
                 <StatCard label="SL Hit"     value={overview.sl_count}      color="var(--red)" />
                 <StatCard label="Expired"    value={overview.expired_count} color="var(--amber)" />
               </div>
+
+              {/* Kümülatif R grafiği */}
+              {cumR && cumR.series.length > 0 && (
+                <div className="card" style={{ padding: 16, marginBottom: 12, position: 'relative' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <CardTitle>Kümülatif R</CardTitle>
+                    <div style={{ display: 'flex', gap: 16 }}>
+                      <span className="mono" style={{ fontSize: 11, color: cumR.max_drawdown < 0 ? 'var(--red)' : 'var(--text-3)' }}>
+                        Max DD: {cumR.max_drawdown.toFixed(2)}R
+                      </span>
+                      <span className="mono" style={{ fontSize: 11, color: cumR.final_r >= 0 ? 'var(--green)' : 'var(--red)', fontWeight: 600 }}>
+                        {cumR.final_r >= 0 ? '+' : ''}{cumR.final_r.toFixed(2)}R
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ height: 160 }}>
+                    <Line
+                      data={{
+                        labels: cumR.series.map(p => {
+                          const d = new Date(p.day)
+                          return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })
+                        }),
+                        datasets: [{
+                          data: cumR.series.map(p => p.cumulative_r),
+                          borderColor: cumR.final_r >= 0 ? '#4ade80' : '#f87171',
+                          borderWidth: 1.5,
+                          pointRadius: 0,
+                          fill: true,
+                          backgroundColor: cumR.final_r >= 0 ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)',
+                          tension: 0.3,
+                        }],
+                      }}
+                      options={{
+                        ...CHART_DEFAULTS,
+                        plugins: { legend: { display: false }, tooltip: {
+                          displayColors: false,
+                          callbacks: {
+                            label: (ctx: any) => {
+                              const p = cumR.series[ctx.dataIndex]
+                              return [`Kümülatif: ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(2)}R`, `Günlük: ${p.daily_r >= 0 ? '+' : ''}${p.daily_r.toFixed(2)}R`]
+                            }
+                          }
+                        }},
+                        scales: {
+                          x: { ...axisStyle, ticks: { ...axisStyle.ticks, maxTicksLimit: 12 } },
+                          y: { ...axisStyle, ticks: { ...axisStyle.ticks, callback: (v: any) => `${v}R` } },
+                        },
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
               <div style={grid2}>
                 <div className="card" style={{ padding: 16 }}>
                   <CardTitle>Yön bazında win rate</CardTitle>
