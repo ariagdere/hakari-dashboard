@@ -191,7 +191,7 @@ const DEFAULT_FILTERS: Filters = {
   rsi_min: 0,    rsi_max: 100,
   r_min: -5,     r_max: 20,
   wp_min: 0,     wp_max: 100,
-  wait_min: 0,   wait_max: 360,
+  wait_min: 0,   wait_max: 4320,
   entry_wait_min: 0, entry_wait_max: 360,
   sent_synthesis_mtf: '', sent_synthesis_h1: '', sent_synthesis_m5: '',
   sent_h1_ls_ratio: '', sent_h1_tt_accounts: '', sent_h1_tt_positions: '',
@@ -233,7 +233,7 @@ function activeFilterCount(f: Filters): number {
   if (f.rsi_min > 0   || f.rsi_max < 100)  n++
   if (f.r_min > -5    || f.r_max < 20)     n++
   if (f.wp_min > 0    || f.wp_max < 100)   n++
-  if (f.wait_min > 0  || f.wait_max < 360) n++
+  if (f.wait_min > 0  || f.wait_max < 4320) n++
   if (f.entry_wait_min > 0 || f.entry_wait_max < 360) n++
   const sentFields = ['sent_synthesis_mtf','sent_synthesis_h1','sent_synthesis_m5',
     'sent_h1_ls_ratio','sent_h1_tt_accounts','sent_h1_tt_positions','sent_h1_oi','sent_h1_oi_mcap',
@@ -336,7 +336,7 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
         <RangeRow label="RSI 4H" minKey="rsi_min" maxKey="rsi_max" min={0} max={100} />
         <RangeRow label="R multiple"       minKey="r_min"  maxKey="r_max"  min={-5} max={20}  step={0.5} />
         <RangeRow label="Win probability %" minKey="wp_min"   maxKey="wp_max"   min={0}  max={100} step={5} />
-        <RangeRow label="Entry bekleme (dk)" minKey="wait_min" maxKey="wait_max" min={0}  max={360} step={15} />
+        <RangeRow label="Entry bekleme (dk)" minKey="wait_min" maxKey="wait_max" min={0}  max={4320} step={60} />
       </div>
 
       {sep}
