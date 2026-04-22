@@ -38,7 +38,7 @@ export function buildInsightsWhere(req: NextRequest): { where: string; params: a
     conditions.push(`EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 >= $${i++}`)
     params.push(Number(waitMin))
   }
-  if (waitMax && Number(waitMax) < 360) {
+  if (waitMax && Number(waitMax) < 4320) {
     conditions.push(`EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 <= $${i++}`)
     params.push(Number(waitMax))
   }
