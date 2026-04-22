@@ -32,6 +32,28 @@ export function buildInsightsWhere(req: NextRequest): { where: string; params: a
   range('sim_r_multiple',           s.get('r_min'),     s.get('r_max'),     -5,  20)
   range('win_probability',          s.get('wp_min'),    s.get('wp_max'),    0,   100)
 
+  const waitMin = s.get('wait_min')
+  const waitMax = s.get('wait_max')
+  if (waitMin && Number(waitMin) > 0) {
+    conditions.push(`EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 >= $${i++}`)
+    params.push(Number(waitMin))
+  }
+  if (waitMax && Number(waitMax) < 360) {
+    conditions.push(`EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 <= $${i++}`)
+    params.push(Number(waitMax))
+  }
+
+  const ewMin = s.get('entry_wait_min')
+  const ewMax = s.get('entry_wait_max')
+  if (ewMin && Number(ewMin) > 0) {
+    conditions.push(`EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 >= $${i++}`)
+    params.push(Number(ewMin))
+  }
+  if (ewMax && Number(ewMax) < 360) {
+    conditions.push(`EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 <= $${i++}`)
+    params.push(Number(ewMax))
+  }
+
   const sentFields = [
     'sent_synthesis_mtf','sent_synthesis_h1','sent_synthesis_m5',
     'sent_h1_ls_ratio','sent_h1_tt_accounts','sent_h1_tt_positions',
