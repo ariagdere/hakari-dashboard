@@ -60,8 +60,6 @@ interface CumRPoint     { day: string; cumulative_r: number; daily_r: number }
 interface CumRData      { series: CumRPoint[]; max_drawdown: number; final_r: number }
 interface EntryWaitBucket { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; avg_r: number | null; total_r: number | null; avg_wait_mins: number }
 interface EntryWaitData   { buckets: EntryWaitBucket[] }
-interface EntryWaitBucket { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; avg_r: number; total_r: number; avg_wait_mins: number }
-interface EntryWaitData   { buckets: EntryWaitBucket[] }
 
 const N = (v: any, d = 1) => v == null ? '—' : Number(v).toFixed(d)
 const winColor = (v: number | null) => {
