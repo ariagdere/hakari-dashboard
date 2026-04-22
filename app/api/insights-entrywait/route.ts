@@ -11,20 +11,24 @@ export async function GET(req: NextRequest) {
   const { rows } = await pool.query(`
     SELECT
       CASE
-        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 15  THEN '0-15dk'
-        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 30  THEN '15-30dk'
-        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 60  THEN '30-60dk'
-        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 120 THEN '1-2sa'
-        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 240 THEN '2-4sa'
-        ELSE '4sa+'
+        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 15   THEN '0-15dk'
+        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 30   THEN '15-30dk'
+        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 60   THEN '30-60dk'
+        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 120  THEN '1-2sa'
+        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 240  THEN '2-4sa'
+        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 480  THEN '4-8sa'
+        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 1440 THEN '8-24sa'
+        ELSE '1gün+'
       END AS bucket,
       CASE
-        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 15  THEN 1
-        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 30  THEN 2
-        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 60  THEN 3
-        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 120 THEN 4
-        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 240 THEN 5
-        ELSE 6
+        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 15   THEN 1
+        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 30   THEN 2
+        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 60   THEN 3
+        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 120  THEN 4
+        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 240  THEN 5
+        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 480  THEN 6
+        WHEN EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 < 1440 THEN 7
+        ELSE 8
       END AS sort_order,
       COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')) AS total,
       COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS wins,
