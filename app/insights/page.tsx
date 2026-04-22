@@ -58,6 +58,10 @@ interface WinProbScatter { predicted: number; actual_win_rate: number; total: nu
 interface WinProbData    { buckets: WinProbBucket[]; by_dir: WinProbDir[]; scatter: WinProbScatter[] }
 interface CumRPoint     { day: string; cumulative_r: number; daily_r: number }
 interface CumRData      { series: CumRPoint[]; max_drawdown: number; final_r: number }
+interface EntryWaitBucket { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; avg_r: number | null; total_r: number | null; avg_wait_mins: number }
+interface EntryWaitData   { buckets: EntryWaitBucket[] }
+interface EntryWaitBucket { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; avg_r: number; total_r: number; avg_wait_mins: number }
+interface EntryWaitData   { buckets: EntryWaitBucket[] }
 
 const N = (v: any, d = 1) => v == null ? '—' : Number(v).toFixed(d)
 const winColor = (v: number | null) => {
@@ -162,6 +166,8 @@ interface Filters {
   rsi_min: number;   rsi_max: number
   r_min: number;     r_max: number
   wp_min: number;    wp_max: number
+  wait_min: number;  wait_max: number
+  entry_wait_min: number; entry_wait_max: number
   sent_synthesis_mtf: string
   sent_synthesis_h1: string
   sent_synthesis_m5: string
@@ -187,6 +193,8 @@ const DEFAULT_FILTERS: Filters = {
   rsi_min: 0,    rsi_max: 100,
   r_min: -5,     r_max: 20,
   wp_min: 0,     wp_max: 100,
+  wait_min: 0,   wait_max: 360,
+  entry_wait_min: 0, entry_wait_max: 360,
   sent_synthesis_mtf: '', sent_synthesis_h1: '', sent_synthesis_m5: '',
   sent_h1_ls_ratio: '', sent_h1_tt_accounts: '', sent_h1_tt_positions: '',
   sent_h1_oi: '', sent_h1_oi_mcap: '',
@@ -208,6 +216,8 @@ function filtersToParams(f: Filters): URLSearchParams {
   p.set('rsi_min',   String(f.rsi_min));   p.set('rsi_max',   String(f.rsi_max))
   p.set('r_min',     String(f.r_min));     p.set('r_max',     String(f.r_max))
   p.set('wp_min',    String(f.wp_min));    p.set('wp_max',    String(f.wp_max))
+  p.set('wait_min',  String(f.wait_min));  p.set('wait_max',  String(f.wait_max))
+  p.set('entry_wait_min', String(f.entry_wait_min)); p.set('entry_wait_max', String(f.entry_wait_max))
   const sentFields = ['sent_synthesis_mtf','sent_synthesis_h1','sent_synthesis_m5',
     'sent_h1_ls_ratio','sent_h1_tt_accounts','sent_h1_tt_positions','sent_h1_oi','sent_h1_oi_mcap',
     'sent_m5_ls_ratio','sent_m5_tt_accounts','sent_m5_tt_positions','sent_m5_oi','sent_m5_oi_mcap',
@@ -225,6 +235,8 @@ function activeFilterCount(f: Filters): number {
   if (f.rsi_min > 0   || f.rsi_max < 100)  n++
   if (f.r_min > -5    || f.r_max < 20)     n++
   if (f.wp_min > 0    || f.wp_max < 100)   n++
+  if (f.wait_min > 0  || f.wait_max < 360) n++
+  if (f.entry_wait_min > 0 || f.entry_wait_max < 360) n++
   const sentFields = ['sent_synthesis_mtf','sent_synthesis_h1','sent_synthesis_m5',
     'sent_h1_ls_ratio','sent_h1_tt_accounts','sent_h1_tt_positions','sent_h1_oi','sent_h1_oi_mcap',
     'sent_m5_ls_ratio','sent_m5_tt_accounts','sent_m5_tt_positions','sent_m5_oi','sent_m5_oi_mcap',
@@ -325,7 +337,8 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
         <RangeRow label="Confidence" minKey="conf_min" maxKey="conf_max" min={0} max={100} />
         <RangeRow label="RSI 4H" minKey="rsi_min" maxKey="rsi_max" min={0} max={100} />
         <RangeRow label="R multiple"       minKey="r_min"  maxKey="r_max"  min={-5} max={20}  step={0.5} />
-        <RangeRow label="Win probability %" minKey="wp_min" maxKey="wp_max" min={0}  max={100} step={5} />
+        <RangeRow label="Win probability %" minKey="wp_min"   maxKey="wp_max"   min={0}  max={100} step={5} />
+        <RangeRow label="Entry bekleme (dk)" minKey="wait_min" maxKey="wait_max" min={0}  max={360} step={15} />
       </div>
 
       {sep}
@@ -376,6 +389,7 @@ export default function InsightsPage() {
   const [optimalR,  setOptimalR]  = useState<OptimalRData | null>(null)
   const [winProb,   setWinProb]   = useState<WinProbData | null>(null)
   const [cumR,      setCumR]      = useState<CumRData | null>(null)
+  const [entryWait, setEntryWait] = useState<EntryWaitData | null>(null)
   const [loading,   setLoading]   = useState(true)
   const [filterOpen,   setFilterOpen]   = useState(false)
   const [draftFilters, setDraftFilters] = useState<Filters>(DEFAULT_FILTERS)
@@ -396,8 +410,10 @@ export default function InsightsPage() {
       fetch(`/api/insights-daily${qs}`,     { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/insights-win-prob${qs}`,  { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/insights-cumr${qs}`,      { cache: 'no-store' }).then(r => r.json()),
-    ]).then(([ov, sc, se, pa, rm, hr, or_, da, wp, cr]) => {
-      setOverview(ov); setScoring(sc); setSentiment(se); setPairs(pa); setRmae(rm); setHourly(hr); setOptimalR(or_); setDaily(da); setWinProb(wp); setCumR(cr)
+      fetch(`/api/insights-entrywait${qs}`, { cache: 'no-store' }).then(r => r.json()),
+    ]).then(([ov, sc, se, pa, rm, hr, or_, da, wp, cr, ew]) => {
+      setOverview(ov); setScoring(sc); setSentiment(se); setPairs(pa); setRmae(rm)
+      setHourly(hr); setOptimalR(or_); setDaily(da); setWinProb(wp); setCumR(cr); setEntryWait(ew)
       setLoading(false)
     })
   }, [])
@@ -1186,7 +1202,178 @@ export default function InsightsPage() {
               </Section>
             )}
 
-            {/* ── 8. ZAMANLAMA ─────────────────────────────────────────────── */}
+            {/* ── 8. ENTRY BEKLEME SÜRESİ ─────────────────────────────────── */}
+            {entryWait && entryWait.buckets?.length > 0 && (
+              <Section title="Entry Bekleme Süresi">
+                <div style={grid2}>
+                  {/* Bar chart */}
+                  <div className="card" style={{ padding: 16 }}>
+                    <CardTitle>Bekleme süresi → win rate</CardTitle>
+                    <div style={{ height: 200 }}>
+                      <Bar
+                        data={{
+                          labels: entryWait.buckets.map(b => b.bucket),
+                          datasets: [
+                            {
+                              label: 'Win %',
+                              data: entryWait.buckets.map(b => Number(b.win_rate)),
+                              backgroundColor: entryWait.buckets.map(b =>
+                                Number(b.win_rate) >= 40 ? 'rgba(74,222,128,0.5)' : 'rgba(248,113,113,0.5)'
+                              ),
+                              borderColor: entryWait.buckets.map(b =>
+                                Number(b.win_rate) >= 40 ? '#4ade80' : '#f87171'
+                              ),
+                              borderWidth: 1,
+                              borderRadius: 3,
+                              yAxisID: 'y',
+                            },
+                            {
+                              label: 'Ort. R',
+                              data: entryWait.buckets.map(b => Number(b.avg_r)),
+                              backgroundColor: entryWait.buckets.map(b =>
+                                Number(b.avg_r) >= 0 ? 'rgba(96,165,250,0.4)' : 'rgba(251,146,60,0.4)'
+                              ),
+                              borderColor: entryWait.buckets.map(b =>
+                                Number(b.avg_r) >= 0 ? '#60a5fa' : '#fb923c'
+                              ),
+                              borderWidth: 1,
+                              borderRadius: 3,
+                              yAxisID: 'y2',
+                            },
+                          ],
+                        }}
+                        options={{
+                          ...CHART_DEFAULTS,
+                          plugins: {
+                            legend: { display: true, labels: { color: '#555', font: { family: 'DM Mono', size: 10 } } },
+                            tooltip: { displayColors: false },
+                          },
+                          scales: {
+                            x: axisStyle,
+                            y:  { ...axisStyle, position: 'left',  max: 100, ticks: { ...axisStyle.ticks, callback: (v: any) => `${v}%` } },
+                            y2: { ...axisStyle, position: 'right', grid: { display: false }, ticks: { ...axisStyle.ticks, callback: (v: any) => `${v}R` } },
+                          },
+                        } as any}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Tablo */}
+                  <div className="card" style={{ padding: 16 }}>
+                    <CardTitle>Bekleme süresi detayı</CardTitle>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
+                        <thead>
+                          <tr>{['Süre', 'n', 'Win%', 'Ort. R', 'Toplam R', 'Ort. Bekleme'].map((h, i) => (
+                            <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
+                          ))}</tr>
+                        </thead>
+                        <tbody>
+                          {entryWait.buckets.map((b, i) => (
+                            <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                              <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
+                              <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
+                              <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(b.win_rate)) }}>{Number(b.win_rate).toFixed(1)}%</td>
+                              <td style={{ padding: '5px 0', textAlign: 'right', color: Number(b.avg_r) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                                {Number(b.avg_r) > 0 ? '+' : ''}{Number(b.avg_r).toFixed(2)}R
+                              </td>
+                              <td style={{ padding: '5px 0', textAlign: 'right', color: Number(b.total_r) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                                {Number(b.total_r) > 0 ? '+' : ''}{Number(b.total_r).toFixed(2)}R
+                              </td>
+                              <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>
+                                {Number(b.avg_wait_mins).toFixed(0)}dk
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </Section>
+            )}
+
+            {/* ── 9. ENTRY BEKLEME SÜRESİ ─────────────────────────────────── */}
+            {entryWait && entryWait.buckets?.length > 0 && (
+              <Section title="Entry Bekleme Süresi Analizi">
+                <div style={grid2}>
+                  <div className="card" style={{ padding: 16 }}>
+                    <CardTitle>Bekleme süresi → win rate</CardTitle>
+                    <div style={{ height: 200 }}>
+                      <Bar
+                        data={{
+                          labels: entryWait.buckets.map(b => b.bucket),
+                          datasets: [
+                            {
+                              label: 'Win %',
+                              data: entryWait.buckets.map(b => Number(b.win_rate)),
+                              backgroundColor: entryWait.buckets.map(b =>
+                                Number(b.win_rate) >= 40 ? 'rgba(74,222,128,0.5)' : 'rgba(248,113,113,0.5)'
+                              ),
+                              borderColor: entryWait.buckets.map(b =>
+                                Number(b.win_rate) >= 40 ? '#4ade80' : '#f87171'
+                              ),
+                              borderWidth: 1,
+                            },
+                          ],
+                        }}
+                        options={{
+                          ...CHART_DEFAULTS,
+                          plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                              displayColors: false,
+                              callbacks: {
+                                afterBody: (items: any) => {
+                                  const b = entryWait.buckets[items[0].dataIndex]
+                                  return [
+                                    `n=${b.total}  TP=${b.wins}`,
+                                    b.avg_r != null ? `Ort. R: ${Number(b.avg_r) > 0 ? '+' : ''}${Number(b.avg_r).toFixed(2)}R` : '',
+                                    `Ort. bekleme: ${Math.round(Number(b.avg_wait_mins))}dk`,
+                                  ].filter(Boolean)
+                                },
+                              },
+                            },
+                          },
+                          scales: {
+                            x: axisStyle,
+                            y: { ...axisStyle, max: 100, ticks: { ...axisStyle.ticks, callback: (v: any) => `${v}%` } },
+                          },
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="card" style={{ padding: 16 }}>
+                    <CardTitle>Bekleme süresi detayı</CardTitle>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
+                      <thead>
+                        <tr>{['Süre', 'Win%', 'Ort. R', 'Toplam R', 'n'].map((h, i) => (
+                          <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
+                        ))}</tr>
+                      </thead>
+                      <tbody>
+                        {entryWait.buckets.map((b, i) => (
+                          <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                            <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
+                            <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(b.win_rate)) }}>%{Number(b.win_rate).toFixed(1)}</td>
+                            <td style={{ padding: '5px 0', textAlign: 'right', color: b.avg_r != null ? (Number(b.avg_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>
+                              {b.avg_r != null ? `${Number(b.avg_r) > 0 ? '+' : ''}${Number(b.avg_r).toFixed(2)}R` : '—'}
+                            </td>
+                            <td style={{ padding: '5px 0', textAlign: 'right', color: b.total_r != null ? (Number(b.total_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>
+                              {b.total_r != null ? `${Number(b.total_r) > 0 ? '+' : ''}${Number(b.total_r).toFixed(2)}R` : '—'}
+                            </td>
+                            <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </Section>
+            )}
+
+            {/* ── 10. ZAMANLAMA ─────────────────────────────────────────────── */}
             {hourly && hourly.by_analysis?.length > 0 && (() => {
               const series = hourly.by_analysis
               const best = series.filter(h => h.total >= 2).sort((a, b) => Number(b.win_rate) - Number(a.win_rate))[0]
