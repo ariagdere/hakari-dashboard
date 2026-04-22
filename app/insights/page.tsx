@@ -1204,9 +1204,9 @@ export default function InsightsPage() {
             {entryWait && entryWait.buckets?.length > 0 && (
               <Section title="Entry Bekleme Süresi">
                 <div style={grid2}>
-                  {/* Bar chart */}
+                  {/* Win Rate Chart */}
                   <div className="card" style={{ padding: 16 }}>
-                    <CardTitle>Bekleme süresi → win rate</CardTitle>
+                    <CardTitle>Bekleme süresi → win rate & ort. R</CardTitle>
                     <div style={{ height: 200 }}>
                       <Bar
                         data={{
@@ -1216,42 +1216,39 @@ export default function InsightsPage() {
                               label: 'Win %',
                               data: entryWait.buckets.map(b => Number(b.win_rate)),
                               backgroundColor: entryWait.buckets.map(b =>
-                                Number(b.win_rate) >= 40 ? 'rgba(74,222,128,0.5)' : 'rgba(248,113,113,0.5)'
+                                Number(b.win_rate) >= 40 ? 'rgba(74,222,128,0.6)' : 'rgba(248,113,113,0.6)'
                               ),
                               borderColor: entryWait.buckets.map(b =>
                                 Number(b.win_rate) >= 40 ? '#4ade80' : '#f87171'
                               ),
                               borderWidth: 1,
                               borderRadius: 3,
-                              yAxisID: 'y',
-                            },
-                            {
-                              label: 'Ort. R',
-                              data: entryWait.buckets.map(b => Number(b.avg_r)),
-                              backgroundColor: entryWait.buckets.map(b =>
-                                Number(b.avg_r) >= 0 ? 'rgba(96,165,250,0.4)' : 'rgba(251,146,60,0.4)'
-                              ),
-                              borderColor: entryWait.buckets.map(b =>
-                                Number(b.avg_r) >= 0 ? '#60a5fa' : '#fb923c'
-                              ),
-                              borderWidth: 1,
-                              borderRadius: 3,
-                              yAxisID: 'y2',
                             },
                           ],
                         }}
                         options={{
                           ...CHART_DEFAULTS,
                           plugins: {
-                            legend: { display: true, labels: { color: '#555', font: { family: 'DM Mono', size: 10 } } },
-                            tooltip: { displayColors: false },
+                            legend: { display: false },
+                            tooltip: {
+                              displayColors: false,
+                              callbacks: {
+                                afterBody: (items: any) => {
+                                  const b = entryWait.buckets[items[0].dataIndex]
+                                  return [
+                                    `n=${b.total}  TP=${b.wins}`,
+                                    b.avg_r != null ? `Ort. R: ${Number(b.avg_r) >= 0 ? '+' : ''}${Number(b.avg_r).toFixed(2)}R` : '',
+                                    `Ort. bekleme: ${Math.round(Number(b.avg_wait_mins))}dk`,
+                                  ].filter(Boolean)
+                                },
+                              },
+                            },
                           },
                           scales: {
                             x: axisStyle,
-                            y:  { ...axisStyle, position: 'left',  max: 100, ticks: { ...axisStyle.ticks, callback: (v: any) => `${v}%` } },
-                            y2: { ...axisStyle, position: 'right', grid: { display: false }, ticks: { ...axisStyle.ticks, callback: (v: any) => `${v}R` } },
+                            y: { ...axisStyle, min: 0, max: 100, ticks: { ...axisStyle.ticks, callback: (v: any) => `${v}%` } },
                           },
-                        } as any}
+                        }}
                       />
                     </div>
                   </div>
