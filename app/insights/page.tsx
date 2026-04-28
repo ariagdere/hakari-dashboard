@@ -60,6 +60,8 @@ interface CumRPoint     { day: string; cumulative_r: number; daily_r: number }
 interface CumRData      { series: CumRPoint[]; max_drawdown: number; final_r: number }
 interface EntryWaitBucket { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; avg_r: number | null; total_r: number | null; avg_wait_mins: number }
 interface EntryWaitData   { buckets: EntryWaitBucket[] }
+interface DistBucket      { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; avg_r: number | null; total_r: number | null; avg_dist: number }
+interface DistanceData    { tp_buckets: DistBucket[]; sl_buckets: DistBucket[] }
 
 const N = (v: any, d = 1) => v == null ? '—' : Number(v).toFixed(d)
 const winColor = (v: number | null) => {
@@ -166,6 +168,8 @@ interface Filters {
   wp_min: number;    wp_max: number
   wait_min: number;  wait_max: number
   entry_wait_min: number; entry_wait_max: number
+  tp_dist_min: number; tp_dist_max: number
+  sl_dist_min: number; sl_dist_max: number
   sent_synthesis_mtf: string
   sent_synthesis_h1: string
   sent_synthesis_m5: string
@@ -193,6 +197,8 @@ const DEFAULT_FILTERS: Filters = {
   wp_min: 0,     wp_max: 100,
   wait_min: 0,   wait_max: 4320,
   entry_wait_min: 0, entry_wait_max: 360,
+  tp_dist_min: 0, tp_dist_max: 4000,
+  sl_dist_min: 0, sl_dist_max: 1500,
   sent_synthesis_mtf: '', sent_synthesis_h1: '', sent_synthesis_m5: '',
   sent_h1_ls_ratio: '', sent_h1_tt_accounts: '', sent_h1_tt_positions: '',
   sent_h1_oi: '', sent_h1_oi_mcap: '',
@@ -216,6 +222,8 @@ function filtersToParams(f: Filters): URLSearchParams {
   p.set('wp_min',    String(f.wp_min));    p.set('wp_max',    String(f.wp_max))
   p.set('wait_min',  String(f.wait_min));  p.set('wait_max',  String(f.wait_max))
   p.set('entry_wait_min', String(f.entry_wait_min)); p.set('entry_wait_max', String(f.entry_wait_max))
+  p.set('tp_dist_min', String(f.tp_dist_min)); p.set('tp_dist_max', String(f.tp_dist_max))
+  p.set('sl_dist_min', String(f.sl_dist_min)); p.set('sl_dist_max', String(f.sl_dist_max))
   const sentFields = ['sent_synthesis_mtf','sent_synthesis_h1','sent_synthesis_m5',
     'sent_h1_ls_ratio','sent_h1_tt_accounts','sent_h1_tt_positions','sent_h1_oi','sent_h1_oi_mcap',
     'sent_m5_ls_ratio','sent_m5_tt_accounts','sent_m5_tt_positions','sent_m5_oi','sent_m5_oi_mcap',
@@ -235,6 +243,8 @@ function activeFilterCount(f: Filters): number {
   if (f.wp_min > 0    || f.wp_max < 100)   n++
   if (f.wait_min > 0  || f.wait_max < 4320) n++
   if (f.entry_wait_min > 0 || f.entry_wait_max < 360) n++
+  if (f.tp_dist_min > 0 || f.tp_dist_max < 4000) n++
+  if (f.sl_dist_min > 0 || f.sl_dist_max < 1500) n++
   const sentFields = ['sent_synthesis_mtf','sent_synthesis_h1','sent_synthesis_m5',
     'sent_h1_ls_ratio','sent_h1_tt_accounts','sent_h1_tt_positions','sent_h1_oi','sent_h1_oi_mcap',
     'sent_m5_ls_ratio','sent_m5_tt_accounts','sent_m5_tt_positions','sent_m5_oi','sent_m5_oi_mcap',
@@ -334,9 +344,11 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
         <RangeRow label="Market score" minKey="score_min" maxKey="score_max" min={1} max={10} />
         <RangeRow label="Confidence" minKey="conf_min" maxKey="conf_max" min={0} max={100} />
         <RangeRow label="RSI 4H" minKey="rsi_min" maxKey="rsi_max" min={0} max={100} />
-        <RangeRow label="R multiple"       minKey="r_min"  maxKey="r_max"  min={-5} max={20}  step={0.5} />
-        <RangeRow label="Win probability %" minKey="wp_min"   maxKey="wp_max"   min={0}  max={100} step={5} />
-        <RangeRow label="Entry bekleme (dk)" minKey="wait_min" maxKey="wait_max" min={0}  max={4320} step={60} />
+        <RangeRow label="R multiple"         minKey="r_min"      maxKey="r_max"      min={-5} max={20}   step={0.5} />
+        <RangeRow label="Win probability %"  minKey="wp_min"     maxKey="wp_max"     min={0}  max={100}  step={5} />
+        <RangeRow label="Entry bekleme (dk)" minKey="wait_min"   maxKey="wait_max"   min={0}  max={4320} step={60} />
+        <RangeRow label="TP mesafe ($)"      minKey="tp_dist_min" maxKey="tp_dist_max" min={0}  max={4000} step={100} />
+        <RangeRow label="SL mesafe ($)"      minKey="sl_dist_min" maxKey="sl_dist_max" min={0}  max={1500} step={50} />
       </div>
 
       {sep}
@@ -388,6 +400,7 @@ export default function InsightsPage() {
   const [winProb,   setWinProb]   = useState<WinProbData | null>(null)
   const [cumR,      setCumR]      = useState<CumRData | null>(null)
   const [entryWait, setEntryWait] = useState<EntryWaitData | null>(null)
+  const [distance,  setDistance]  = useState<DistanceData | null>(null)
   const [loading,   setLoading]   = useState(true)
   const [filterOpen,   setFilterOpen]   = useState(false)
   const [draftFilters, setDraftFilters] = useState<Filters>(DEFAULT_FILTERS)
@@ -409,9 +422,10 @@ export default function InsightsPage() {
       fetch(`/api/insights-win-prob${qs}`,  { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/insights-cumr${qs}`,      { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/insights-entrywait${qs}`, { cache: 'no-store' }).then(r => r.json()),
-    ]).then(([ov, sc, se, pa, rm, hr, or_, da, wp, cr, ew]) => {
+      fetch(`/api/insights-distance${qs}`,  { cache: 'no-store' }).then(r => r.json()),
+    ]).then(([ov, sc, se, pa, rm, hr, or_, da, wp, cr, ew, dist]) => {
       setOverview(ov); setScoring(sc); setSentiment(se); setPairs(pa); setRmae(rm)
-      setHourly(hr); setOptimalR(or_); setDaily(da); setWinProb(wp); setCumR(cr); setEntryWait(ew)
+      setHourly(hr); setOptimalR(or_); setDaily(da); setWinProb(wp); setCumR(cr); setEntryWait(ew); setDistance(dist)
       setLoading(false)
     })
   }, [])
@@ -1200,7 +1214,106 @@ export default function InsightsPage() {
               </Section>
             )}
 
-            {/* ── 8. ENTRY BEKLEME SÜRESİ ─────────────────────────────────── */}
+            {/* ── 8. HEDEF MESAFE ANALİZİ ──────────────────────────────────── */}
+            {distance && (distance.tp_buckets?.length > 0 || distance.sl_buckets?.length > 0) && (
+              <Section title="Hedef Mesafe Analizi">
+                <div style={grid2}>
+                  {/* TP Mesafe */}
+                  <div className="card" style={{ padding: 16 }}>
+                    <CardTitle>TP mesafesi → win rate</CardTitle>
+                    <div style={{ height: 160, marginBottom: 12 }}>
+                      <Bar
+                        data={{
+                          labels: distance.tp_buckets.map(b => b.bucket),
+                          datasets: [{
+                            data: distance.tp_buckets.map(b => Number(b.win_rate)),
+                            backgroundColor: distance.tp_buckets.map(b =>
+                              Number(b.win_rate) >= 40 ? 'rgba(74,222,128,0.6)' : 'rgba(248,113,113,0.6)'
+                            ),
+                            borderColor: distance.tp_buckets.map(b =>
+                              Number(b.win_rate) >= 40 ? '#4ade80' : '#f87171'
+                            ),
+                            borderWidth: 1, borderRadius: 3,
+                          }],
+                        }}
+                        options={{
+                          ...CHART_DEFAULTS,
+                          plugins: { legend: { display: false }, tooltip: { displayColors: false,
+                            callbacks: { afterBody: (items: any) => {
+                              const b = distance.tp_buckets[items[0].dataIndex]
+                              return [`n=${b.total}  TP=${b.wins}`, b.avg_r != null ? `Ort. R: ${Number(b.avg_r) >= 0 ? '+' : ''}${Number(b.avg_r).toFixed(2)}R` : '', `Ort. mesafe: $${Math.round(Number(b.avg_dist))}`].filter(Boolean)
+                            }}
+                          }},
+                          scales: { x: axisStyle, y: { ...axisStyle, min: 0, max: 100, ticks: { ...axisStyle.ticks, callback: (v: any) => `${v}%` } } },
+                        }}
+                      />
+                    </div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
+                      <thead><tr>{['Mesafe', 'Win%', 'Ort. R', 'Toplam R', 'n'].map((h, i) => (
+                        <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 5, fontWeight: 400 }}>{h}</th>
+                      ))}</tr></thead>
+                      <tbody>{distance.tp_buckets.map((b, i) => (
+                        <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                          <td style={{ padding: '4px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
+                          <td style={{ padding: '4px 0', textAlign: 'right', color: winColor(Number(b.win_rate)) }}>%{Number(b.win_rate).toFixed(1)}</td>
+                          <td style={{ padding: '4px 0', textAlign: 'right', color: Number(b.avg_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{b.avg_r != null ? `${Number(b.avg_r) >= 0 ? '+' : ''}${Number(b.avg_r).toFixed(2)}R` : '—'}</td>
+                          <td style={{ padding: '4px 0', textAlign: 'right', color: Number(b.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{b.total_r != null ? `${Number(b.total_r) >= 0 ? '+' : ''}${Number(b.total_r).toFixed(2)}R` : '—'}</td>
+                          <td style={{ padding: '4px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
+                        </tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+
+                  {/* SL Mesafe */}
+                  <div className="card" style={{ padding: 16 }}>
+                    <CardTitle>SL mesafesi → win rate</CardTitle>
+                    <div style={{ height: 160, marginBottom: 12 }}>
+                      <Bar
+                        data={{
+                          labels: distance.sl_buckets.map(b => b.bucket),
+                          datasets: [{
+                            data: distance.sl_buckets.map(b => Number(b.win_rate)),
+                            backgroundColor: distance.sl_buckets.map(b =>
+                              Number(b.win_rate) >= 40 ? 'rgba(74,222,128,0.6)' : 'rgba(248,113,113,0.6)'
+                            ),
+                            borderColor: distance.sl_buckets.map(b =>
+                              Number(b.win_rate) >= 40 ? '#4ade80' : '#f87171'
+                            ),
+                            borderWidth: 1, borderRadius: 3,
+                          }],
+                        }}
+                        options={{
+                          ...CHART_DEFAULTS,
+                          plugins: { legend: { display: false }, tooltip: { displayColors: false,
+                            callbacks: { afterBody: (items: any) => {
+                              const b = distance.sl_buckets[items[0].dataIndex]
+                              return [`n=${b.total}  TP=${b.wins}`, b.avg_r != null ? `Ort. R: ${Number(b.avg_r) >= 0 ? '+' : ''}${Number(b.avg_r).toFixed(2)}R` : '', `Ort. mesafe: $${Math.round(Number(b.avg_dist))}`].filter(Boolean)
+                            }}
+                          }},
+                          scales: { x: axisStyle, y: { ...axisStyle, min: 0, max: 100, ticks: { ...axisStyle.ticks, callback: (v: any) => `${v}%` } } },
+                        }}
+                      />
+                    </div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
+                      <thead><tr>{['Mesafe', 'Win%', 'Ort. R', 'Toplam R', 'n'].map((h, i) => (
+                        <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 5, fontWeight: 400 }}>{h}</th>
+                      ))}</tr></thead>
+                      <tbody>{distance.sl_buckets.map((b, i) => (
+                        <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                          <td style={{ padding: '4px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
+                          <td style={{ padding: '4px 0', textAlign: 'right', color: winColor(Number(b.win_rate)) }}>%{Number(b.win_rate).toFixed(1)}</td>
+                          <td style={{ padding: '4px 0', textAlign: 'right', color: Number(b.avg_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{b.avg_r != null ? `${Number(b.avg_r) >= 0 ? '+' : ''}${Number(b.avg_r).toFixed(2)}R` : '—'}</td>
+                          <td style={{ padding: '4px 0', textAlign: 'right', color: Number(b.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{b.total_r != null ? `${Number(b.total_r) >= 0 ? '+' : ''}${Number(b.total_r).toFixed(2)}R` : '—'}</td>
+                          <td style={{ padding: '4px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
+                        </tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+                </div>
+              </Section>
+            )}
+
+            {/* ── 9. ENTRY BEKLEME SÜRESİ ─────────────────────────────────── */}
             {entryWait && entryWait.buckets?.length > 0 && (
               <Section title="Entry Bekleme Süresi">
                 <div style={grid2}>
