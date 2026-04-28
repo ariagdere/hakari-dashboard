@@ -15,16 +15,18 @@ export async function GET(req: NextRequest) {
         WHEN sim_entry_to_result_minutes < 240  THEN '1-4sa'
         WHEN sim_entry_to_result_minutes < 720  THEN '4-12sa'
         WHEN sim_entry_to_result_minutes < 1440 THEN '12-24sa'
-        WHEN sim_entry_to_result_minutes < 4320 THEN '1-3gün'
-        ELSE '3gün+'
+        WHEN sim_entry_to_result_minutes < 2880 THEN '24-48sa'
+        WHEN sim_entry_to_result_minutes < 4320 THEN '48-72sa'
+        ELSE '72sa+'
       END AS bucket,
       CASE
         WHEN sim_entry_to_result_minutes < 60   THEN 1
         WHEN sim_entry_to_result_minutes < 240  THEN 2
         WHEN sim_entry_to_result_minutes < 720  THEN 3
         WHEN sim_entry_to_result_minutes < 1440 THEN 4
-        WHEN sim_entry_to_result_minutes < 4320 THEN 5
-        ELSE 6
+        WHEN sim_entry_to_result_minutes < 2880 THEN 5
+        WHEN sim_entry_to_result_minutes < 4320 THEN 6
+        ELSE 7
       END AS sort_order,
       COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')) AS total,
       COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS wins,
