@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
         COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS wins,
         ROUND(COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
           NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate,
-        ROUND(AVG(sim_r_multiple) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 2) AS avg_r,
+        ROUND(AVG(SPLIT_PART(rr, ':', 2)::numeric), 2) AS avg_r,
         ROUND(SUM(sim_r_multiple) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 2) AS total_r,
         ROUND(AVG(ABS(tp - entry)), 0) AS avg_dist
       FROM btc_analysis
@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
         COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS wins,
         ROUND(COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
           NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate,
-        ROUND(AVG(sim_r_multiple) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 2) AS avg_r,
+        ROUND(AVG(SPLIT_PART(rr, ':', 2)::numeric), 2) AS avg_r,
         ROUND(SUM(sim_r_multiple) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 2) AS total_r,
         ROUND(AVG(ABS(sl - entry)), 0) AS avg_dist
       FROM btc_analysis
