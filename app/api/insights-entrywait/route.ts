@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
         COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
         NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1
       ) AS win_rate,
-      ROUND(AVG(sim_r_multiple) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 2) AS avg_r,
+      ROUND(AVG(SPLIT_PART(rr, ':', 2)::numeric), 2) AS avg_r,
       ROUND(SUM(sim_r_multiple) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 2) AS total_r,
       ROUND(AVG(EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60), 0) AS avg_wait_mins
     FROM btc_analysis
