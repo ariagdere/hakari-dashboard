@@ -41,6 +41,11 @@ export function buildInsightsWhere(req: NextRequest): { where: string; params: a
   if (slDistMin && Number(slDistMin) > 0)    { conditions.push(`ABS(sl - entry) >= $${i++}`); params.push(Number(slDistMin)) }
   if (slDistMax && Number(slDistMax) < 1500) { conditions.push(`ABS(sl - entry) <= $${i++}`); params.push(Number(slDistMax)) }
 
+  const tradeDurMin = s.get('trade_dur_min')
+  const tradeDurMax = s.get('trade_dur_max')
+  if (tradeDurMin && Number(tradeDurMin) > 0)    { conditions.push(`sim_entry_to_result_minutes >= $${i++}`); params.push(Number(tradeDurMin)) }
+  if (tradeDurMax && Number(tradeDurMax) < 4320) { conditions.push(`sim_entry_to_result_minutes <= $${i++}`); params.push(Number(tradeDurMax)) }
+
   const waitMin = s.get('wait_min')
   const waitMax = s.get('wait_max')
   if (waitMin && Number(waitMin) > 0) {
