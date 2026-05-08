@@ -31,6 +31,25 @@ export function buildInsightsWhere(req: NextRequest): { where: string; params: a
   range('rsi_4h',                   s.get('rsi_min'),   s.get('rsi_max'),   0,   100)
   range('sim_r_multiple',           s.get('r_min'),     s.get('r_max'),     -5,  20)
   range('win_probability',          s.get('wp_min'),    s.get('wp_max'),    0,   100)
+  range('win_probability_v3',       s.get('wp3_min'),   s.get('wp3_max'),   0,   100)
+
+  // Delta filtreleri
+  const h1LsDMin = s.get('h1_ls_delta_min'); const h1LsDMax = s.get('h1_ls_delta_max')
+  const h1OiDMin = s.get('h1_oi_delta_min'); const h1OiDMax = s.get('h1_oi_delta_max')
+  const h1McapDMin = s.get('h1_oi_mcap_delta_min'); const h1McapDMax = s.get('h1_oi_mcap_delta_max')
+  const m5LsDMin = s.get('m5_ls_delta_min'); const m5LsDMax = s.get('m5_ls_delta_max')
+  const m5OiDMin = s.get('m5_oi_delta_min'); const m5OiDMax = s.get('m5_oi_delta_max')
+
+  if (h1LsDMin && Number(h1LsDMin) > -3)       { conditions.push(`(h1_ls_ratio_current - h1_ls_ratio_start) >= $${i++}`); params.push(Number(h1LsDMin)) }
+  if (h1LsDMax && Number(h1LsDMax) < 3)         { conditions.push(`(h1_ls_ratio_current - h1_ls_ratio_start) <= $${i++}`); params.push(Number(h1LsDMax)) }
+  if (h1OiDMin && Number(h1OiDMin) > -20000)    { conditions.push(`(h1_oi_current - h1_oi_start) >= $${i++}`); params.push(Number(h1OiDMin)) }
+  if (h1OiDMax && Number(h1OiDMax) < 20000)     { conditions.push(`(h1_oi_current - h1_oi_start) <= $${i++}`); params.push(Number(h1OiDMax)) }
+  if (h1McapDMin && Number(h1McapDMin) > -0.05) { conditions.push(`(h1_oi_mcap_current - h1_oi_mcap_start) >= $${i++}`); params.push(Number(h1McapDMin)) }
+  if (h1McapDMax && Number(h1McapDMax) < 0.05)  { conditions.push(`(h1_oi_mcap_current - h1_oi_mcap_start) <= $${i++}`); params.push(Number(h1McapDMax)) }
+  if (m5LsDMin && Number(m5LsDMin) > -3)        { conditions.push(`(m5_ls_ratio_current - m5_ls_ratio_start) >= $${i++}`); params.push(Number(m5LsDMin)) }
+  if (m5LsDMax && Number(m5LsDMax) < 3)         { conditions.push(`(m5_ls_ratio_current - m5_ls_ratio_start) <= $${i++}`); params.push(Number(m5LsDMax)) }
+  if (m5OiDMin && Number(m5OiDMin) > -20000)    { conditions.push(`(m5_oi_current - m5_oi_start) >= $${i++}`); params.push(Number(m5OiDMin)) }
+  if (m5OiDMax && Number(m5OiDMax) < 20000)     { conditions.push(`(m5_oi_current - m5_oi_start) <= $${i++}`); params.push(Number(m5OiDMax)) }
 
   const tpDistMin = s.get('tp_dist_min')
   const tpDistMax = s.get('tp_dist_max')
