@@ -81,8 +81,10 @@ const resultBadge = (r: string) => {
 
 const wpColor = (v: number | null) => {
   if (v == null) return 'var(--text-3)'
-  if (v >= 65) return 'var(--green)'
-  if (v >= 55) return 'var(--amber)'
+  const n = Number(v)
+  if (isNaN(n)) return 'var(--text-3)'
+  if (n >= 65) return 'var(--green)'
+  if (n >= 55) return 'var(--amber)'
   return 'var(--red)'
 }
 
@@ -92,7 +94,9 @@ const fmtMins = (m: number | null) => { if (!m) return '—'; const h = Math.flo
 const fmtDate = (s: string) => new Date(s).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 const fmtR = (v: number | null, result?: string) => {
   if (v == null) return '—'
-  const signed = result === 'SL_HIT' ? -Math.abs(v) : result === 'TP_HIT' ? Math.abs(v) : v
+  const n = Number(v)
+  if (isNaN(n)) return '—'
+  const signed = result === 'SL_HIT' ? -Math.abs(n) : result === 'TP_HIT' ? Math.abs(n) : n
   return (signed > 0 ? '+' : '') + signed.toFixed(2) + 'R'
 }
 
@@ -349,7 +353,7 @@ export default function Dashboard() {
           })
           const makeOpts = (series: typeof hourlyStats.by_entry): any => ({
             responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false }, tooltip: { displayColors: false, padding: 10, callbacks: { title: (items: any) => `Saat ${items[0].label}`, afterBody: (items: any) => { const h = series[items[0].dataIndex]; if (!h.total) return ['Veri yok']; const lines: string[] = [`Win Rate: %${h.win_rate}`, `Toplam: ${h.total} (TP: ${h.tp_count} / SL: ${h.sl_count})`]; if (h.avg_r_tp != null) lines.push(`Ort. Win R: +${h.avg_r_tp.toFixed(2)}R`); return lines } } } },
+            plugins: { legend: { display: false }, tooltip: { displayColors: false, padding: 10, callbacks: { title: (items: any) => `Saat ${items[0].label}`, afterBody: (items: any) => { const h = series[items[0].dataIndex]; if (!h.total) return ['Veri yok']; const lines: string[] = [`Win Rate: %${h.win_rate}`, `Toplam: ${h.total} (TP: ${h.tp_count} / SL: ${h.sl_count})`]; if (h.avg_r_tp != null) lines.push(`Ort. Win R: +${Number(h.avg_r_tp).toFixed(2)}R`); return lines } } } },
             scales: { x: { stacked: true, grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 9 } }, border: { color: '#242424' } }, y: { stacked: true, grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 10 }, stepSize: 1 }, border: { color: '#242424' }, min: 0 } },
           })
           const legend = (
@@ -420,16 +424,16 @@ export default function Dashboard() {
               <span className="mono" style={{ fontSize: 12 }}>{a.market_score_value}/10</span>
               <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>%{a.confidence_value}</span>
               <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability) }}>
-                {a.win_probability != null ? `%${a.win_probability}` : '—'}
+                {a.win_probability != null ? `%${Number(a.win_probability).toFixed(0)}` : '—'}
               </span>
               <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability_v3) }}>
-                {a.win_probability_v3 != null ? `%${a.win_probability_v3}` : '—'}
+                {a.win_probability_v3 != null ? `%${Number(a.win_probability_v3).toFixed(0)}` : '—'}
               </span>
               <span>{resultBadge(a.sim_result)}</span>
-              <span className={`mono ${a.sim_pnl_usd != null ? pnlClass(a.sim_pnl_usd) : 'pnl-zero'}`} style={{ fontSize: 12 }}>
-                {a.sim_pnl_usd != null ? `${a.sim_pnl_usd > 0 ? '+' : ''}$${Math.abs(a.sim_pnl_usd).toFixed(2)}` : '—'}
+              <span className={`mono ${a.sim_pnl_usd != null ? pnlClass(Number(a.sim_pnl_usd)) : 'pnl-zero'}`} style={{ fontSize: 12 }}>
+                {a.sim_pnl_usd != null ? `${Number(a.sim_pnl_usd) > 0 ? '+' : ''}$${Math.abs(Number(a.sim_pnl_usd)).toFixed(2)}` : '—'}
               </span>
-              <span className={`mono ${a.sim_r_multiple != null ? pnlClass(a.sim_result === 'SL_HIT' ? -1 : a.sim_r_multiple) : 'pnl-zero'}`} style={{ fontSize: 12 }}>
+              <span className={`mono ${a.sim_r_multiple != null ? pnlClass(a.sim_result === 'SL_HIT' ? -1 : Number(a.sim_r_multiple)) : 'pnl-zero'}`} style={{ fontSize: 12 }}>
                 {fmtR(a.sim_r_multiple, a.sim_result)}
               </span>
             </div>
@@ -455,19 +459,18 @@ export default function Dashboard() {
                 <div><span className="col-label">Güven </span><span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>%{a.confidence_value}</span></div>
                 <div>
                   <span className="col-label">WP </span>
-                  <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability) }}>{a.win_probability != null ? `%${a.win_probability}` : '—'}</span>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginLeft: 4 }}>v1</span>
+                  <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability) }}>{a.win_probability != null ? `%${Number(a.win_probability).toFixed(0)}` : '—'}</span>
                 </div>
                 <div>
                   <span className="col-label">V3 </span>
-                  <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability_v3) }}>{a.win_probability_v3 != null ? `%${a.win_probability_v3}` : '—'}</span>
+                  <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability_v3) }}>{a.win_probability_v3 != null ? `%${Number(a.win_probability_v3).toFixed(0)}` : '—'}</span>
                 </div>
                 {a.sim_pnl_usd != null && (
                   <div style={{ marginLeft: 'auto' }}>
-                    <span className={`mono ${pnlClass(a.sim_pnl_usd)}`} style={{ fontSize: 13, fontWeight: 500 }}>
-                      {a.sim_pnl_usd > 0 ? '+' : ''}${Math.abs(a.sim_pnl_usd).toFixed(2)}
+                    <span className={`mono ${pnlClass(Number(a.sim_pnl_usd))}`} style={{ fontSize: 13, fontWeight: 500 }}>
+                      {Number(a.sim_pnl_usd) > 0 ? '+' : ''}${Math.abs(Number(a.sim_pnl_usd)).toFixed(2)}
                     </span>
-                    <span className={`mono ${a.sim_r_multiple != null ? pnlClass(a.sim_result === 'SL_HIT' ? -1 : a.sim_r_multiple) : 'pnl-zero'}`} style={{ fontSize: 11, marginLeft: 6 }}>
+                    <span className={`mono ${a.sim_r_multiple != null ? pnlClass(a.sim_result === 'SL_HIT' ? -1 : Number(a.sim_r_multiple)) : 'pnl-zero'}`} style={{ fontSize: 11, marginLeft: 6 }}>
                       {fmtR(a.sim_r_multiple, a.sim_result)}
                     </span>
                   </div>
