@@ -20,6 +20,7 @@ interface AnalysisSummary {
   sim_pnl_usd: number
   sim_r_multiple: number
   win_probability: number | null
+  win_probability_v3: number | null
 }
 
 interface Stats {
@@ -78,6 +79,13 @@ const resultBadge = (r: string) => {
   return <span className="badge badge-ne">N/E</span>
 }
 
+const wpColor = (v: number | null) => {
+  if (v == null) return 'var(--text-3)'
+  if (v >= 65) return 'var(--green)'
+  if (v >= 55) return 'var(--amber)'
+  return 'var(--red)'
+}
+
 const pnlClass = (v: number) => v > 0 ? 'pnl-pos' : v < 0 ? 'pnl-neg' : 'pnl-zero'
 const fmt = (n: number) => n?.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) ?? '—'
 const fmtMins = (m: number | null) => { if (!m) return '—'; const h = Math.floor(m / 60); const min = Math.round(m % 60); return h > 0 ? `${h}s ${min}dk` : `${min}dk` }
@@ -123,7 +131,6 @@ export default function Dashboard() {
 
   useEffect(() => { fetchAnalyses() }, [fetchAnalyses])
 
-  // Sekmeye geri dönüldüğünde yenile
   useEffect(() => {
     const onVisible = () => { if (!document.hidden) fetchAnalyses() }
     const onFocus = () => fetchAnalyses()
@@ -221,12 +228,8 @@ export default function Dashboard() {
                   {stats.avg_r_tp != null ? `+${parseFloat(String(stats.avg_r_tp)).toFixed(2)}R` : '—'}
                 </div>
                 <div style={{ display: 'flex', gap: 12 }}>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>
-                    max <span style={{ color: 'var(--green)' }}>{stats.max_r_tp != null ? `+${parseFloat(String(stats.max_r_tp)).toFixed(2)}R` : '—'}</span>
-                  </span>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>
-                    min <span style={{ color: 'var(--text-2)' }}>{stats.min_r_tp != null ? `+${parseFloat(String(stats.min_r_tp)).toFixed(2)}R` : '—'}</span>
-                  </span>
+                  <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>max <span style={{ color: 'var(--green)' }}>{stats.max_r_tp != null ? `+${parseFloat(String(stats.max_r_tp)).toFixed(2)}R` : '—'}</span></span>
+                  <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>min <span style={{ color: 'var(--text-2)' }}>{stats.min_r_tp != null ? `+${parseFloat(String(stats.min_r_tp)).toFixed(2)}R` : '—'}</span></span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 4, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
                   {[
@@ -253,12 +256,8 @@ export default function Dashboard() {
                   {stats.avg_r_sl != null ? `${parseFloat(String(stats.avg_r_sl)).toFixed(2)}R` : '—'}
                 </div>
                 <div style={{ display: 'flex', gap: 12 }}>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>
-                    max <span style={{ color: 'var(--text-2)' }}>{stats.max_r_sl != null ? `${parseFloat(String(stats.max_r_sl)).toFixed(2)}R` : '—'}</span>
-                  </span>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>
-                    min <span style={{ color: 'var(--text-2)' }}>{stats.min_r_sl != null ? `${parseFloat(String(stats.min_r_sl)).toFixed(2)}R` : '—'}</span>
-                  </span>
+                  <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>max <span style={{ color: 'var(--text-2)' }}>{stats.max_r_sl != null ? `${parseFloat(String(stats.max_r_sl)).toFixed(2)}R` : '—'}</span></span>
+                  <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>min <span style={{ color: 'var(--text-2)' }}>{stats.min_r_sl != null ? `${parseFloat(String(stats.min_r_sl)).toFixed(2)}R` : '—'}</span></span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 4, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
                   {[
@@ -285,7 +284,7 @@ export default function Dashboard() {
           let cumulative = 0
           const cumulativeData = [
             { x: '', y: 0 },
-            ...stats.r_series.map((p, i) => {
+            ...stats.r_series.map((p) => {
               cumulative += p.r
               return { x: new Date(p.date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' }), y: parseFloat(cumulative.toFixed(2)) }
             })
@@ -294,16 +293,7 @@ export default function Dashboard() {
           const lineColor = totalR >= 0 ? '#4ade80' : '#f87171'
           const lineData = {
             labels: cumulativeData.map(d => d.x),
-            datasets: [{
-              data: cumulativeData.map(d => d.y),
-              borderColor: lineColor,
-              backgroundColor: totalR >= 0 ? 'rgba(74,222,128,0.06)' : 'rgba(248,113,113,0.06)',
-              borderWidth: 1.5,
-              pointRadius: cumulativeData.length <= 20 ? 3 : 0,
-              pointBackgroundColor: lineColor,
-              tension: 0.3,
-              fill: true,
-            }]
+            datasets: [{ data: cumulativeData.map(d => d.y), borderColor: lineColor, backgroundColor: totalR >= 0 ? 'rgba(74,222,128,0.06)' : 'rgba(248,113,113,0.06)', borderWidth: 1.5, pointRadius: cumulativeData.length <= 20 ? 3 : 0, pointBackgroundColor: lineColor, tension: 0.3, fill: true }]
           }
           const lineOpts: any = {
             responsive: true, maintainAspectRatio: false,
@@ -319,29 +309,15 @@ export default function Dashboard() {
                 <div className="section-title">Kümülatif R</div>
                 <span className="mono" style={{ fontSize: 13, fontWeight: 600, color: lineColor }}>{totalR > 0 ? '+' : ''}{totalR.toFixed(2)}R</span>
               </div>
-              <div style={{ height: 160 }}>
-                <Line data={lineData} options={lineOpts} />
-              </div>
+              <div style={{ height: 160 }}><Line data={lineData} options={lineOpts} /></div>
             </div>
           )
         })()}
 
         {stats && stats.active_trade_series?.length > 0 && (() => {
           const activeData = {
-            labels: stats.active_trade_series.map(p => {
-              const d = new Date(p.date)
-              return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })
-            }),
-            datasets: [{
-              data: stats.active_trade_series.map(p => p.count),
-              borderColor: '#60a5fa',
-              backgroundColor: 'rgba(96,165,250,0.12)',
-              borderWidth: 1.5,
-              pointRadius: stats.active_trade_series.length <= 20 ? 3 : 0,
-              pointBackgroundColor: '#60a5fa',
-              tension: 0.3,
-              fill: true,
-            }]
+            labels: stats.active_trade_series.map(p => new Date(p.date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })),
+            datasets: [{ data: stats.active_trade_series.map(p => p.count), borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.12)', borderWidth: 1.5, pointRadius: stats.active_trade_series.length <= 20 ? 3 : 0, pointBackgroundColor: '#60a5fa', tension: 0.3, fill: true }]
           }
           const activeOpts: any = {
             responsive: true, maintainAspectRatio: false,
@@ -358,9 +334,7 @@ export default function Dashboard() {
                 <div className="section-title">Günlük Aktif Trade</div>
                 <span className="mono" style={{ fontSize: 13, fontWeight: 600, color: '#60a5fa' }}>Maks: {maxActive}</span>
               </div>
-              <div style={{ height: 160 }}>
-                <Line data={activeData} options={activeOpts} />
-              </div>
+              <div style={{ height: 160 }}><Line data={activeData} options={activeOpts} /></div>
             </div>
           )
         })()}
@@ -369,53 +343,15 @@ export default function Dashboard() {
           const makeBarData = (series: typeof hourlyStats.by_entry) => ({
             labels: series.map(h => `${String(h.hour).padStart(2, '0')}:00`),
             datasets: [
-              {
-                label: 'TP',
-                data: series.map(h => h.tp_count),
-                backgroundColor: 'rgba(74,222,128,0.7)',
-                borderColor: 'rgba(74,222,128,0.9)',
-                borderWidth: 1,
-                borderRadius: 3,
-              },
-              {
-                label: 'SL',
-                data: series.map(h => h.sl_count),
-                backgroundColor: 'rgba(248,113,113,0.7)',
-                borderColor: 'rgba(248,113,113,0.9)',
-                borderWidth: 1,
-                borderRadius: 3,
-              },
+              { label: 'TP', data: series.map(h => h.tp_count), backgroundColor: 'rgba(74,222,128,0.7)', borderColor: 'rgba(74,222,128,0.9)', borderWidth: 1, borderRadius: 3 },
+              { label: 'SL', data: series.map(h => h.sl_count), backgroundColor: 'rgba(248,113,113,0.7)', borderColor: 'rgba(248,113,113,0.9)', borderWidth: 1, borderRadius: 3 },
             ]
           })
-
           const makeOpts = (series: typeof hourlyStats.by_entry): any => ({
             responsive: true, maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                displayColors: false,
-                padding: 10,
-                callbacks: {
-                  title: (items: any) => `Saat ${items[0].label}`,
-                  afterBody: (items: any) => {
-                    const h = series[items[0].dataIndex]
-                    if (!h.total) return ['Veri yok']
-                    const lines: string[] = [
-                      `Win Rate: %${h.win_rate}`,
-                      `Toplam: ${h.total} (TP: ${h.tp_count} / SL: ${h.sl_count})`,
-                    ]
-                    if (h.avg_r_tp != null) lines.push(`Ort. Win R: +${h.avg_r_tp.toFixed(2)}R`)
-                    return lines
-                  }
-                }
-              }
-            },
-            scales: {
-              x: { stacked: true, grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 9 } }, border: { color: '#242424' } },
-              y: { stacked: true, grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 10 }, stepSize: 1 }, border: { color: '#242424' }, min: 0 },
-            },
+            plugins: { legend: { display: false }, tooltip: { displayColors: false, padding: 10, callbacks: { title: (items: any) => `Saat ${items[0].label}`, afterBody: (items: any) => { const h = series[items[0].dataIndex]; if (!h.total) return ['Veri yok']; const lines: string[] = [`Win Rate: %${h.win_rate}`, `Toplam: ${h.total} (TP: ${h.tp_count} / SL: ${h.sl_count})`]; if (h.avg_r_tp != null) lines.push(`Ort. Win R: +${h.avg_r_tp.toFixed(2)}R`); return lines } } } },
+            scales: { x: { stacked: true, grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 9 } }, border: { color: '#242424' } }, y: { stacked: true, grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 10 }, stepSize: 1 }, border: { color: '#242424' }, min: 0 } },
           })
-
           const legend = (
             <div style={{ display: 'flex', gap: 10 }}>
               {[{ label: 'TP', color: 'var(--green)' }, { label: 'SL', color: 'var(--red)' }].map((x, i) => (
@@ -426,9 +362,7 @@ export default function Dashboard() {
               ))}
             </div>
           )
-
           const bestAnalysis = hourlyStats.by_analysis.filter(h => h.total >= 2).sort((a, b) => b.win_rate - a.win_rate)[0]
-
           return (
             <div className="card" style={{ padding: 20, marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -438,9 +372,7 @@ export default function Dashboard() {
                 </div>
                 {bestAnalysis && <span className="mono" style={{ fontSize: 11, color: 'var(--green)' }}>En iyi: {String(bestAnalysis.hour).padStart(2, '0')}:00 (%{bestAnalysis.win_rate})</span>}
               </div>
-              <div style={{ height: 180 }}>
-                <Bar data={makeBarData(hourlyStats.by_analysis)} options={makeOpts(hourlyStats.by_analysis)} />
-              </div>
+              <div style={{ height: 180 }}><Bar data={makeBarData(hourlyStats.by_analysis)} options={makeOpts(hourlyStats.by_analysis)} /></div>
             </div>
           )
         })()}
@@ -468,6 +400,7 @@ export default function Dashboard() {
             <span className="col-label">Skor</span>
             <span className="col-label">Güven</span>
             <span className="col-label">WP</span>
+            <span className="col-label">WP V3</span>
             <span className="col-label">Sonuç</span>
             <span className="col-label">PnL</span>
             <span className="col-label">R</span>
@@ -486,8 +419,11 @@ export default function Dashboard() {
               <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rr}</span>
               <span className="mono" style={{ fontSize: 12 }}>{a.market_score_value}/10</span>
               <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>%{a.confidence_value}</span>
-              <span className="mono" style={{ fontSize: 12, color: a.win_probability != null ? (a.win_probability >= 65 ? 'var(--green)' : a.win_probability >= 55 ? 'var(--amber)' : 'var(--red)') : 'var(--text-3)' }}>
+              <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability) }}>
                 {a.win_probability != null ? `%${a.win_probability}` : '—'}
+              </span>
+              <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability_v3) }}>
+                {a.win_probability_v3 != null ? `%${a.win_probability_v3}` : '—'}
               </span>
               <span>{resultBadge(a.sim_result)}</span>
               <span className={`mono ${a.sim_pnl_usd != null ? pnlClass(a.sim_pnl_usd) : 'pnl-zero'}`} style={{ fontSize: 12 }}>
@@ -509,31 +445,22 @@ export default function Dashboard() {
                 <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{fmtDate(a.analyzed_at)}</span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
-                <div>
-                  <div className="col-label" style={{ marginBottom: 3 }}>Giriş</div>
-                  <div className="price" style={{ fontSize: 13 }}>${fmt(a.entry)}</div>
-                </div>
-                <div>
-                  <div className="col-label" style={{ marginBottom: 3 }}>TP</div>
-                  <div className="mono" style={{ fontSize: 13, color: 'var(--green)' }}>${fmt(a.tp)}</div>
-                </div>
-                <div>
-                  <div className="col-label" style={{ marginBottom: 3 }}>SL</div>
-                  <div className="mono" style={{ fontSize: 13, color: 'var(--red)' }}>${fmt(a.sl)}</div>
-                </div>
+                <div><div className="col-label" style={{ marginBottom: 3 }}>Giriş</div><div className="price" style={{ fontSize: 13 }}>${fmt(a.entry)}</div></div>
+                <div><div className="col-label" style={{ marginBottom: 3 }}>TP</div><div className="mono" style={{ fontSize: 13, color: 'var(--green)' }}>${fmt(a.tp)}</div></div>
+                <div><div className="col-label" style={{ marginBottom: 3 }}>SL</div><div className="mono" style={{ fontSize: 13, color: 'var(--red)' }}>${fmt(a.sl)}</div></div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div><span className="col-label">R/R </span><span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rr}</span></div>
+                <div><span className="col-label">Skor </span><span className="mono" style={{ fontSize: 12 }}>{a.market_score_value}/10</span></div>
+                <div><span className="col-label">Güven </span><span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>%{a.confidence_value}</span></div>
                 <div>
-                  <span className="col-label">R/R </span>
-                  <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rr}</span>
+                  <span className="col-label">WP </span>
+                  <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability) }}>{a.win_probability != null ? `%${a.win_probability}` : '—'}</span>
+                  <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginLeft: 4 }}>v1</span>
                 </div>
                 <div>
-                  <span className="col-label">Skor </span>
-                  <span className="mono" style={{ fontSize: 12 }}>{a.market_score_value}/10</span>
-                </div>
-                <div>
-                  <span className="col-label">Güven </span>
-                  <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>%{a.confidence_value}</span>
+                  <span className="col-label">V3 </span>
+                  <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability_v3) }}>{a.win_probability_v3 != null ? `%${a.win_probability_v3}` : '—'}</span>
                 </div>
                 {a.sim_pnl_usd != null && (
                   <div style={{ marginLeft: 'auto' }}>
