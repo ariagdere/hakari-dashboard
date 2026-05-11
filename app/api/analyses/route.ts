@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     SELECT
       id, analyzed_at, direction, order_type,
       entry, tp, sl, rr,
-      market_score_value, confidence_value, rsi_4h,
+      market_score_value, confidence_value, rsi_4h, rsi_30m,
       sim_result, sim_pnl_usd, sim_entry_to_result_minutes,
       sim_r_multiple,
       win_probability, win_probability_v3,
