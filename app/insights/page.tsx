@@ -330,34 +330,46 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
   const RangeRow = ({ label, minKey, maxKey, min, max, step = 1 }: {
     label: string; minKey: keyof Filters; maxKey: keyof Filters
     min: number; max: number; step?: number
-  }) => (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-        <span className="col-label" style={{ fontSize: 10 }}>{label}</span>
-        <span className="mono" style={{ fontSize: 10, color: 'var(--text)' }}>
-          {filters[minKey]} – {filters[maxKey]}
-        </span>
+  }) => {
+    const [localMin, setLocalMin] = React.useState<number>(filters[minKey] as number)
+    const [localMax, setLocalMax] = React.useState<number>(filters[maxKey] as number)
+
+    React.useEffect(() => { setLocalMin(filters[minKey] as number) }, [filters[minKey]])
+    React.useEffect(() => { setLocalMax(filters[maxKey] as number) }, [filters[maxKey]])
+
+    return (
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+          <span className="col-label" style={{ fontSize: 10 }}>{label}</span>
+          <span className="mono" style={{ fontSize: 10, color: 'var(--text)' }}>
+            {localMin} – {localMax}
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+          <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', width: 20 }}>min</span>
+          <input type="range" min={min} max={max} step={step}
+            value={localMin}
+            onChange={e => setLocalMin(Number(e.target.value))}
+            onMouseUp={e => set(minKey, Number((e.target as HTMLInputElement).value))}
+            onTouchEnd={e => set(minKey, Number((e.target as HTMLInputElement).value))}
+            style={{ flex: 1, cursor: 'pointer' }}
+          />
+          <span className="mono" style={{ fontSize: 10, color: 'var(--text-2)', width: 28, textAlign: 'right' }}>{localMin}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', width: 20 }}>max</span>
+          <input type="range" min={min} max={max} step={step}
+            value={localMax}
+            onChange={e => setLocalMax(Number(e.target.value))}
+            onMouseUp={e => set(maxKey, Number((e.target as HTMLInputElement).value))}
+            onTouchEnd={e => set(maxKey, Number((e.target as HTMLInputElement).value))}
+            style={{ flex: 1, cursor: 'pointer' }}
+          />
+          <span className="mono" style={{ fontSize: 10, color: 'var(--text-2)', width: 28, textAlign: 'right' }}>{localMax}</span>
+        </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
-        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', width: 20 }}>min</span>
-        <input type="range" min={min} max={max} step={step}
-          value={filters[minKey] as number}
-          onChange={e => set(minKey, Number(e.target.value))}
-          style={{ flex: 1, cursor: 'pointer' }}
-        />
-        <span className="mono" style={{ fontSize: 10, color: 'var(--text-2)', width: 28, textAlign: 'right' }}>{filters[minKey]}</span>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', width: 20 }}>max</span>
-        <input type="range" min={min} max={max} step={step}
-          value={filters[maxKey] as number}
-          onChange={e => set(maxKey, Number(e.target.value))}
-          style={{ flex: 1, cursor: 'pointer' }}
-        />
-        <span className="mono" style={{ fontSize: 10, color: 'var(--text-2)', width: 28, textAlign: 'right' }}>{filters[maxKey]}</span>
-      </div>
-    </div>
-  )
+    )
+  }
 
   const so = { dir: ['bullish','bearish','neutral'], str: ['strong','mixed','weak'], pres: ['buying_pressure','selling_pressure','neutral'] }
 
