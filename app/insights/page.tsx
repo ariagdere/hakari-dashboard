@@ -277,7 +277,7 @@ function filtersToParams(f: Filters): URLSearchParams {
 
 function activeFilterCount(f: Filters): number {
   let n = 0
-  if (f.direction) n++; if (f.sim_result) n++; if (f.order_type) n++; if (f.sequential_trade) n++
+  if (f.direction) n++; if (f.sim_result) n++; if (f.date_from || f.date_to) n++
   if (f.date_from) n++; if (f.date_to) n++
   if (f.score_min > 1 || f.score_max < 10) n++
   if (f.conf_min > 0  || f.conf_max < 100) n++
@@ -363,75 +363,94 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
 
   const sep = <div style={{ borderTop: '1px solid var(--border)', margin: '14px 0' }} />
 
+  const GroupLabel = ({ children }: { children: string }) => (
+    <div className="col-label" style={{ fontSize: 9, letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 8, textTransform: 'uppercase' }}>{children}</div>
+  )
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
 
-      {/* Satır 1: Kategorik filtreler */}
+      {/* 1. Temel Filtreler */}
+      <GroupLabel>Temel Filtreler</GroupLabel>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 14 }}>
         <ToggleGroup label="Direction" field="direction" options={['LONG','SHORT','WAIT']} />
         <ToggleGroup label="Sonuç" field="sim_result" options={['TP_HIT','SL_HIT','EXPIRED','NO_ENTRY']} />
-        <ToggleGroup label="Sequential" field="sequential_trade" options={['TRADE','WAIT']} />
-        <ToggleGroup label="Order type" field="order_type" options={['LIMIT','MARKET']} />
         <div>
           <div className="col-label" style={{ marginBottom: 5, fontSize: 10 }}>Tarih aralığı</div>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <input
-              type="date"
-              value={filters.date_from}
-              onChange={e => set('date_from', e.target.value)}
-              style={{ flex: 1, background: 'var(--bg-3)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)', fontSize: 10, padding: '3px 6px', fontFamily: 'DM Mono, monospace' }}
-            />
+            <input type="date" value={filters.date_from} onChange={e => set('date_from', e.target.value)}
+              style={{ flex: 1, background: 'var(--bg-3)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)', fontSize: 10, padding: '3px 6px', fontFamily: 'DM Mono, monospace' }} />
             <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>–</span>
-            <input
-              type="date"
-              value={filters.date_to}
-              onChange={e => set('date_to', e.target.value)}
-              style={{ flex: 1, background: 'var(--bg-3)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)', fontSize: 10, padding: '3px 6px', fontFamily: 'DM Mono, monospace' }}
-            />
+            <input type="date" value={filters.date_to} onChange={e => set('date_to', e.target.value)}
+              style={{ flex: 1, background: 'var(--bg-3)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)', fontSize: 10, padding: '3px 6px', fontFamily: 'DM Mono, monospace' }} />
           </div>
         </div>
       </div>
 
       {sep}
 
-      {/* Satır 2: Numeric sliderlar */}
+      {/* 2. Performans */}
+      <GroupLabel>Performans</GroupLabel>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
-        <RangeRow label="Market score" minKey="score_min" maxKey="score_max" min={1} max={10} />
-        <RangeRow label="Confidence" minKey="conf_min" maxKey="conf_max" min={0} max={100} />
+        <RangeRow label="R multiple"    minKey="r_min"   maxKey="r_max"   min={-5} max={20}  step={0.5} />
+        <RangeRow label="Win prob V1 %" minKey="wp_min"  maxKey="wp_max"  min={0}  max={100} step={5} />
+        <RangeRow label="Win prob V3 %" minKey="wp3_min" maxKey="wp3_max" min={0}  max={100} step={5} />
+      </div>
+
+      {sep}
+
+      {/* 3. RSI */}
+      <GroupLabel>RSI</GroupLabel>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
         <RangeRow label="RSI 4H" minKey="rsi_min" maxKey="rsi_max" min={0} max={100} />
-        <RangeRow label="R multiple"          minKey="r_min"      maxKey="r_max"      min={-5}     max={20}     step={0.5} />
-        <RangeRow label="Win prob v1 %"       minKey="wp_min"     maxKey="wp_max"     min={0}      max={100}    step={5} />
-        <RangeRow label="Win prob v3 %"       minKey="wp3_min"    maxKey="wp3_max"    min={0}      max={100}    step={5} />
-        <RangeRow label="Entry bekleme (dk)"  minKey="wait_min"   maxKey="wait_max"   min={0}      max={4320}   step={60} />
-        <RangeRow label="TP mesafe ($)"       minKey="tp_dist_min"       maxKey="tp_dist_max"       min={0}      max={4000}   step={100} />
-        <RangeRow label="SL mesafe ($)"       minKey="sl_dist_min"       maxKey="sl_dist_max"       min={0}      max={1500}   step={50} />
-        <RangeRow label="Trade süresi (dk)"   minKey="trade_dur_min"     maxKey="trade_dur_max"     min={0}      max={4320}   step={60} />
-        <RangeRow label="H1 LS delta"              minKey="h1_ls_delta_min"              maxKey="h1_ls_delta_max"              min={-3}     max={3}      step={0.1} />
-        <RangeRow label="H1 TT Positions delta"    minKey="h1_tt_positions_delta_min"    maxKey="h1_tt_positions_delta_max"    min={-1}     max={1}      step={0.05} />
-        <RangeRow label="H1 TT Accounts delta"     minKey="h1_tt_accounts_delta_min"     maxKey="h1_tt_accounts_delta_max"     min={-1}     max={1}      step={0.05} />
-        <RangeRow label="H1 OI delta (BTC)"        minKey="h1_oi_delta_min"              maxKey="h1_oi_delta_max"              min={-20000} max={20000}  step={500} />
-        <RangeRow label="H1 OI/MCap delta"         minKey="h1_oi_mcap_delta_min"         maxKey="h1_oi_mcap_delta_max"         min={-0.05}  max={0.05}   step={0.005} />
-        <RangeRow label="M5 LS delta"              minKey="m5_ls_delta_min"              maxKey="m5_ls_delta_max"              min={-3}     max={3}      step={0.1} />
-        <RangeRow label="M5 TT Positions delta"    minKey="m5_tt_positions_delta_min"    maxKey="m5_tt_positions_delta_max"    min={-1}     max={1}      step={0.05} />
-        <RangeRow label="M5 TT Accounts delta"     minKey="m5_tt_accounts_delta_min"     maxKey="m5_tt_accounts_delta_max"     min={-1}     max={1}      step={0.05} />
-        <RangeRow label="M5 OI delta (BTC)"        minKey="m5_oi_delta_min"              maxKey="m5_oi_delta_max"              min={-20000} max={20000}  step={500} />
-        <RangeRow label="M5 OI/MCap delta"         minKey="m5_oi_mcap_delta_min"         maxKey="m5_oi_mcap_delta_max"         min={-0.05}  max={0.05}   step={0.005} />
       </div>
 
       {sep}
 
-      {/* Satır 3: Synthesis + liquidity/power */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 14 }}>
-        <ToggleGroup label="MTF synthesis" field="sent_synthesis_mtf" options={so.str} />
-        <ToggleGroup label="H1 synthesis"  field="sent_synthesis_h1"  options={so.str} />
-        <ToggleGroup label="M5 synthesis"  field="sent_synthesis_m5"  options={so.str} />
-        <ToggleGroup label="Liquidity"     field="sent_liquidity"     options={so.pres} />
-        <ToggleGroup label="Market power"  field="sent_market_power"  options={so.pres} />
+      {/* 4. Zamanlama */}
+      <GroupLabel>Zamanlama</GroupLabel>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+        <RangeRow label="Entry bekleme (dk)" minKey="wait_min"      maxKey="wait_max"      min={0} max={4320} step={60} />
+        <RangeRow label="Trade süresi (dk)"  minKey="trade_dur_min" maxKey="trade_dur_max" min={0} max={4320} step={60} />
       </div>
 
       {sep}
 
-      {/* Satır 4: H1 + M5 indikatörler yan yana */}
+      {/* 5. Hedef Mesafe */}
+      <GroupLabel>Hedef Mesafe</GroupLabel>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+        <RangeRow label="TP mesafe ($)" minKey="tp_dist_min" maxKey="tp_dist_max" min={0} max={4000} step={100} />
+        <RangeRow label="SL mesafe ($)" minKey="sl_dist_min" maxKey="sl_dist_max" min={0} max={1500} step={50} />
+      </div>
+
+      {sep}
+
+      {/* 6. Delta — H1 */}
+      <GroupLabel>Delta Filtreleri — H1</GroupLabel>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+        <RangeRow label="LS delta"         minKey="h1_ls_delta_min"           maxKey="h1_ls_delta_max"           min={-3}     max={3}     step={0.1} />
+        <RangeRow label="TT Positions delta" minKey="h1_tt_positions_delta_min" maxKey="h1_tt_positions_delta_max" min={-1}     max={1}     step={0.05} />
+        <RangeRow label="TT Accounts delta"  minKey="h1_tt_accounts_delta_min"  maxKey="h1_tt_accounts_delta_max"  min={-1}     max={1}     step={0.05} />
+        <RangeRow label="OI delta (BTC)"   minKey="h1_oi_delta_min"           maxKey="h1_oi_delta_max"           min={-20000} max={20000} step={500} />
+        <RangeRow label="OI/MCap delta"    minKey="h1_oi_mcap_delta_min"      maxKey="h1_oi_mcap_delta_max"      min={-0.05}  max={0.05}  step={0.005} />
+      </div>
+
+      {sep}
+
+      {/* 7. Delta — M5 */}
+      <GroupLabel>Delta Filtreleri — M5</GroupLabel>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+        <RangeRow label="LS delta"           minKey="m5_ls_delta_min"           maxKey="m5_ls_delta_max"           min={-3}     max={3}     step={0.1} />
+        <RangeRow label="TT Positions delta" minKey="m5_tt_positions_delta_min" maxKey="m5_tt_positions_delta_max" min={-1}     max={1}     step={0.05} />
+        <RangeRow label="TT Accounts delta"  minKey="m5_tt_accounts_delta_min"  maxKey="m5_tt_accounts_delta_max"  min={-1}     max={1}     step={0.05} />
+        <RangeRow label="OI delta (BTC)"     minKey="m5_oi_delta_min"           maxKey="m5_oi_delta_max"           min={-20000} max={20000} step={500} />
+        <RangeRow label="OI/MCap delta"      minKey="m5_oi_mcap_delta_min"      maxKey="m5_oi_mcap_delta_max"      min={-0.05}  max={0.05}  step={0.005} />
+      </div>
+
+      {sep}
+
+      {/* 8. Sentiment — H1 & M5 */}
+      <GroupLabel>Sentiment — H1 & M5</GroupLabel>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           <div className="col-label" style={{ fontSize: 10, gridColumn: '1/-1', marginBottom: -4 }}>H1 İndikatörler</div>
@@ -449,6 +468,17 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
           <ToggleGroup label="OI"           field="sent_m5_oi"           options={so.dir} />
           <ToggleGroup label="OI/MCap"      field="sent_m5_oi_mcap"      options={so.dir} />
         </div>
+      </div>
+
+      {sep}
+
+      {/* 9. Sentez */}
+      <GroupLabel>Sentez</GroupLabel>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 14 }}>
+        <ToggleGroup label="MTF Synthesis" field="sent_synthesis_mtf" options={so.str} />
+        <ToggleGroup label="H1 Synthesis"  field="sent_synthesis_h1"  options={so.str} />
+        <ToggleGroup label="M5 Synthesis"  field="sent_synthesis_m5"  options={so.str} />
+        <ToggleGroup label="Liquidity"     field="sent_liquidity"     options={so.pres} />
       </div>
 
     </div>
