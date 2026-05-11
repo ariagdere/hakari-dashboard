@@ -5,11 +5,16 @@ import { buildInsightsWhere } from '@/lib/insightsFilter'
 export const dynamic = 'force-dynamic'
 
 const DELTAS = [
-  { key: 'h1_ls_ratio',  label: 'H1 L/S Ratio',  start: 'h1_ls_ratio_start',  current: 'h1_ls_ratio_current',  bins: [-1.5, -0.5, -0.2, 0, 0.2, 0.5, 1.5] },
-  { key: 'h1_oi',        label: 'H1 OI (BTC)',    start: 'h1_oi_start',        current: 'h1_oi_current',        bins: [-10000, -3000, -1000, 0, 1000, 3000, 10000] },
-  { key: 'h1_oi_mcap',   label: 'H1 OI/MCap',     start: 'h1_oi_mcap_start',   current: 'h1_oi_mcap_current',   bins: [-0.02, -0.01, -0.005, 0, 0.005, 0.01, 0.02] },
-  { key: 'm5_ls_ratio',  label: 'M5 L/S Ratio',   start: 'm5_ls_ratio_start',  current: 'm5_ls_ratio_current',  bins: [-1.5, -0.5, -0.2, 0, 0.2, 0.5, 1.5] },
-  { key: 'm5_oi',        label: 'M5 OI (BTC)',     start: 'm5_oi_start',        current: 'm5_oi_current',        bins: [-10000, -3000, -1000, 0, 1000, 3000, 10000] },
+  { key: 'h1_ls_ratio',      label: 'H1 L/S Ratio',       start: 'h1_ls_ratio_start',      current: 'h1_ls_ratio_current',      bins: [-1.5, -0.5, -0.2, 0, 0.2, 0.5, 1.5] },
+  { key: 'h1_tt_positions',  label: 'H1 TT Positions',     start: 'h1_tt_positions_start',  current: 'h1_tt_positions_current',  bins: [-0.3, -0.1, -0.05, 0, 0.05, 0.1, 0.3] },
+  { key: 'h1_tt_accounts',   label: 'H1 TT Accounts',      start: 'h1_tt_accounts_start',   current: 'h1_tt_accounts_current',   bins: [-0.3, -0.1, -0.05, 0, 0.05, 0.1, 0.3] },
+  { key: 'h1_oi',            label: 'H1 OI (BTC)',         start: 'h1_oi_start',            current: 'h1_oi_current',            bins: [-10000, -3000, -1000, 0, 1000, 3000, 10000] },
+  { key: 'h1_oi_mcap',       label: 'H1 OI/MCap',          start: 'h1_oi_mcap_start',       current: 'h1_oi_mcap_current',       bins: [-0.02, -0.01, -0.005, 0, 0.005, 0.01, 0.02] },
+  { key: 'm5_ls_ratio',      label: 'M5 L/S Ratio',        start: 'm5_ls_ratio_start',      current: 'm5_ls_ratio_current',      bins: [-1.5, -0.5, -0.2, 0, 0.2, 0.5, 1.5] },
+  { key: 'm5_tt_positions',  label: 'M5 TT Positions',     start: 'm5_tt_positions_start',  current: 'm5_tt_positions_current',  bins: [-0.3, -0.1, -0.05, 0, 0.05, 0.1, 0.3] },
+  { key: 'm5_tt_accounts',   label: 'M5 TT Accounts',      start: 'm5_tt_accounts_start',   current: 'm5_tt_accounts_current',   bins: [-0.3, -0.1, -0.05, 0, 0.05, 0.1, 0.3] },
+  { key: 'm5_oi',            label: 'M5 OI (BTC)',         start: 'm5_oi_start',            current: 'm5_oi_current',            bins: [-10000, -3000, -1000, 0, 1000, 3000, 10000] },
+  { key: 'm5_oi_mcap',       label: 'M5 OI/MCap',          start: 'm5_oi_mcap_start',       current: 'm5_oi_mcap_current',       bins: [-0.02, -0.01, -0.005, 0, 0.005, 0.01, 0.02] },
 ]
 
 function buildBucketCase(delta_expr: string, bins: number[]): string {
