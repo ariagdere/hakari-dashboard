@@ -180,10 +180,15 @@ interface Filters {
   sl_dist_min: number; sl_dist_max: number
   trade_dur_min: number; trade_dur_max: number
   h1_ls_delta_min: number; h1_ls_delta_max: number
+  h1_tt_positions_delta_min: number; h1_tt_positions_delta_max: number
+  h1_tt_accounts_delta_min: number; h1_tt_accounts_delta_max: number
   h1_oi_delta_min: number; h1_oi_delta_max: number
   h1_oi_mcap_delta_min: number; h1_oi_mcap_delta_max: number
   m5_ls_delta_min: number; m5_ls_delta_max: number
+  m5_tt_positions_delta_min: number; m5_tt_positions_delta_max: number
+  m5_tt_accounts_delta_min: number; m5_tt_accounts_delta_max: number
   m5_oi_delta_min: number; m5_oi_delta_max: number
+  m5_oi_mcap_delta_min: number; m5_oi_mcap_delta_max: number
   sent_synthesis_mtf: string
   sent_synthesis_h1: string
   sent_synthesis_m5: string
@@ -216,10 +221,15 @@ const DEFAULT_FILTERS: Filters = {
   sl_dist_min: 0, sl_dist_max: 1500,
   trade_dur_min: 0, trade_dur_max: 4320,
   h1_ls_delta_min: -3, h1_ls_delta_max: 3,
+  h1_tt_positions_delta_min: -1, h1_tt_positions_delta_max: 1,
+  h1_tt_accounts_delta_min: -1, h1_tt_accounts_delta_max: 1,
   h1_oi_delta_min: -20000, h1_oi_delta_max: 20000,
   h1_oi_mcap_delta_min: -0.05, h1_oi_mcap_delta_max: 0.05,
   m5_ls_delta_min: -3, m5_ls_delta_max: 3,
+  m5_tt_positions_delta_min: -1, m5_tt_positions_delta_max: 1,
+  m5_tt_accounts_delta_min: -1, m5_tt_accounts_delta_max: 1,
   m5_oi_delta_min: -20000, m5_oi_delta_max: 20000,
+  m5_oi_mcap_delta_min: -0.05, m5_oi_mcap_delta_max: 0.05,
   sent_synthesis_mtf: '', sent_synthesis_h1: '', sent_synthesis_m5: '',
   sent_h1_ls_ratio: '', sent_h1_tt_accounts: '', sent_h1_tt_positions: '',
   sent_h1_oi: '', sent_h1_oi_mcap: '',
@@ -248,10 +258,15 @@ function filtersToParams(f: Filters): URLSearchParams {
   p.set('sl_dist_min', String(f.sl_dist_min)); p.set('sl_dist_max', String(f.sl_dist_max))
   p.set('trade_dur_min', String(f.trade_dur_min)); p.set('trade_dur_max', String(f.trade_dur_max))
   p.set('h1_ls_delta_min', String(f.h1_ls_delta_min)); p.set('h1_ls_delta_max', String(f.h1_ls_delta_max))
+  p.set('h1_tt_positions_delta_min', String(f.h1_tt_positions_delta_min)); p.set('h1_tt_positions_delta_max', String(f.h1_tt_positions_delta_max))
+  p.set('h1_tt_accounts_delta_min', String(f.h1_tt_accounts_delta_min)); p.set('h1_tt_accounts_delta_max', String(f.h1_tt_accounts_delta_max))
   p.set('h1_oi_delta_min', String(f.h1_oi_delta_min)); p.set('h1_oi_delta_max', String(f.h1_oi_delta_max))
   p.set('h1_oi_mcap_delta_min', String(f.h1_oi_mcap_delta_min)); p.set('h1_oi_mcap_delta_max', String(f.h1_oi_mcap_delta_max))
   p.set('m5_ls_delta_min', String(f.m5_ls_delta_min)); p.set('m5_ls_delta_max', String(f.m5_ls_delta_max))
+  p.set('m5_tt_positions_delta_min', String(f.m5_tt_positions_delta_min)); p.set('m5_tt_positions_delta_max', String(f.m5_tt_positions_delta_max))
+  p.set('m5_tt_accounts_delta_min', String(f.m5_tt_accounts_delta_min)); p.set('m5_tt_accounts_delta_max', String(f.m5_tt_accounts_delta_max))
   p.set('m5_oi_delta_min', String(f.m5_oi_delta_min)); p.set('m5_oi_delta_max', String(f.m5_oi_delta_max))
+  p.set('m5_oi_mcap_delta_min', String(f.m5_oi_mcap_delta_min)); p.set('m5_oi_mcap_delta_max', String(f.m5_oi_mcap_delta_max))
   const sentFields = ['sent_synthesis_mtf','sent_synthesis_h1','sent_synthesis_m5',
     'sent_h1_ls_ratio','sent_h1_tt_accounts','sent_h1_tt_positions','sent_h1_oi','sent_h1_oi_mcap',
     'sent_m5_ls_ratio','sent_m5_tt_accounts','sent_m5_tt_positions','sent_m5_oi','sent_m5_oi_mcap',
@@ -276,10 +291,15 @@ function activeFilterCount(f: Filters): number {
   if (f.sl_dist_min > 0 || f.sl_dist_max < 1500) n++
   if (f.trade_dur_min > 0 || f.trade_dur_max < 4320) n++
   if (f.h1_ls_delta_min > -3 || f.h1_ls_delta_max < 3) n++
+  if (f.h1_tt_positions_delta_min > -1 || f.h1_tt_positions_delta_max < 1) n++
+  if (f.h1_tt_accounts_delta_min > -1 || f.h1_tt_accounts_delta_max < 1) n++
   if (f.h1_oi_delta_min > -20000 || f.h1_oi_delta_max < 20000) n++
   if (f.h1_oi_mcap_delta_min > -0.05 || f.h1_oi_mcap_delta_max < 0.05) n++
   if (f.m5_ls_delta_min > -3 || f.m5_ls_delta_max < 3) n++
+  if (f.m5_tt_positions_delta_min > -1 || f.m5_tt_positions_delta_max < 1) n++
+  if (f.m5_tt_accounts_delta_min > -1 || f.m5_tt_accounts_delta_max < 1) n++
   if (f.m5_oi_delta_min > -20000 || f.m5_oi_delta_max < 20000) n++
+  if (f.m5_oi_mcap_delta_min > -0.05 || f.m5_oi_mcap_delta_max < 0.05) n++
   const sentFields = ['sent_synthesis_mtf','sent_synthesis_h1','sent_synthesis_m5',
     'sent_h1_ls_ratio','sent_h1_tt_accounts','sent_h1_tt_positions','sent_h1_oi','sent_h1_oi_mcap',
     'sent_m5_ls_ratio','sent_m5_tt_accounts','sent_m5_tt_positions','sent_m5_oi','sent_m5_oi_mcap',
@@ -386,11 +406,16 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
         <RangeRow label="TP mesafe ($)"       minKey="tp_dist_min"       maxKey="tp_dist_max"       min={0}      max={4000}   step={100} />
         <RangeRow label="SL mesafe ($)"       minKey="sl_dist_min"       maxKey="sl_dist_max"       min={0}      max={1500}   step={50} />
         <RangeRow label="Trade süresi (dk)"   minKey="trade_dur_min"     maxKey="trade_dur_max"     min={0}      max={4320}   step={60} />
-        <RangeRow label="H1 LS delta"         minKey="h1_ls_delta_min"   maxKey="h1_ls_delta_max"   min={-3}     max={3}      step={0.1} />
-        <RangeRow label="H1 OI delta (BTC)"   minKey="h1_oi_delta_min"   maxKey="h1_oi_delta_max"   min={-20000} max={20000}  step={500} />
-        <RangeRow label="H1 OI/MCap delta"    minKey="h1_oi_mcap_delta_min" maxKey="h1_oi_mcap_delta_max" min={-0.05} max={0.05} step={0.005} />
-        <RangeRow label="M5 LS delta"         minKey="m5_ls_delta_min"   maxKey="m5_ls_delta_max"   min={-3}     max={3}      step={0.1} />
-        <RangeRow label="M5 OI delta (BTC)"   minKey="m5_oi_delta_min"   maxKey="m5_oi_delta_max"   min={-20000} max={20000}  step={500} />
+        <RangeRow label="H1 LS delta"              minKey="h1_ls_delta_min"              maxKey="h1_ls_delta_max"              min={-3}     max={3}      step={0.1} />
+        <RangeRow label="H1 TT Positions delta"    minKey="h1_tt_positions_delta_min"    maxKey="h1_tt_positions_delta_max"    min={-1}     max={1}      step={0.05} />
+        <RangeRow label="H1 TT Accounts delta"     minKey="h1_tt_accounts_delta_min"     maxKey="h1_tt_accounts_delta_max"     min={-1}     max={1}      step={0.05} />
+        <RangeRow label="H1 OI delta (BTC)"        minKey="h1_oi_delta_min"              maxKey="h1_oi_delta_max"              min={-20000} max={20000}  step={500} />
+        <RangeRow label="H1 OI/MCap delta"         minKey="h1_oi_mcap_delta_min"         maxKey="h1_oi_mcap_delta_max"         min={-0.05}  max={0.05}   step={0.005} />
+        <RangeRow label="M5 LS delta"              minKey="m5_ls_delta_min"              maxKey="m5_ls_delta_max"              min={-3}     max={3}      step={0.1} />
+        <RangeRow label="M5 TT Positions delta"    minKey="m5_tt_positions_delta_min"    maxKey="m5_tt_positions_delta_max"    min={-1}     max={1}      step={0.05} />
+        <RangeRow label="M5 TT Accounts delta"     minKey="m5_tt_accounts_delta_min"     maxKey="m5_tt_accounts_delta_max"     min={-1}     max={1}      step={0.05} />
+        <RangeRow label="M5 OI delta (BTC)"        minKey="m5_oi_delta_min"              maxKey="m5_oi_delta_max"              min={-20000} max={20000}  step={500} />
+        <RangeRow label="M5 OI/MCap delta"         minKey="m5_oi_mcap_delta_min"         maxKey="m5_oi_mcap_delta_max"         min={-0.05}  max={0.05}   step={0.005} />
       </div>
 
       {sep}
