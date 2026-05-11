@@ -20,6 +20,7 @@ interface AnalysisSummary {
   sim_pnl_usd: number
   sim_r_multiple: number
   rsi_4h: number | null
+  rsi_30m: number | null
   win_probability: number | null
   win_probability_v3: number | null
 }
@@ -403,6 +404,7 @@ export default function Dashboard() {
             <span className="col-label">SL</span>
             <span className="col-label">R/R</span>
             <span className="col-label">RSI 4H</span>
+            <span className="col-label">RSI 30M</span>
             <span className="col-label">WP</span>
             <span className="col-label">WP V3</span>
             <span className="col-label">Sonuç</span>
@@ -422,6 +424,7 @@ export default function Dashboard() {
               <span className="price" style={{ color: 'var(--red)' }}>${fmt(a.sl)}</span>
               <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rr}</span>
               <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span>
+              <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rsi_30m != null ? Number(a.rsi_30m).toFixed(1) : '—'}</span>
               <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability) }}>
                 {a.win_probability != null ? `%${Number(a.win_probability).toFixed(0)}` : '—'}
               </span>
@@ -454,7 +457,8 @@ export default function Dashboard() {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                 <div><span className="col-label">R/R </span><span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rr}</span></div>
-                <div><span className="col-label">RSI </span><span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span></div>
+                <div><span className="col-label">RSI4H </span><span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span></div>
+                <div><span className="col-label">RSI30 </span><span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rsi_30m != null ? Number(a.rsi_30m).toFixed(1) : '—'}</span></div>
                 <div>
                   <span className="col-label">WP </span>
                   <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability) }}>{a.win_probability != null ? `%${Number(a.win_probability).toFixed(0)}` : '—'}</span>
