@@ -35,21 +35,36 @@ export function buildInsightsWhere(req: NextRequest): { where: string; params: a
 
   // Delta filtreleri
   const h1LsDMin = s.get('h1_ls_delta_min'); const h1LsDMax = s.get('h1_ls_delta_max')
+  const h1TtPosDMin = s.get('h1_tt_positions_delta_min'); const h1TtPosDMax = s.get('h1_tt_positions_delta_max')
+  const h1TtAccDMin = s.get('h1_tt_accounts_delta_min'); const h1TtAccDMax = s.get('h1_tt_accounts_delta_max')
   const h1OiDMin = s.get('h1_oi_delta_min'); const h1OiDMax = s.get('h1_oi_delta_max')
   const h1McapDMin = s.get('h1_oi_mcap_delta_min'); const h1McapDMax = s.get('h1_oi_mcap_delta_max')
   const m5LsDMin = s.get('m5_ls_delta_min'); const m5LsDMax = s.get('m5_ls_delta_max')
+  const m5TtPosDMin = s.get('m5_tt_positions_delta_min'); const m5TtPosDMax = s.get('m5_tt_positions_delta_max')
+  const m5TtAccDMin = s.get('m5_tt_accounts_delta_min'); const m5TtAccDMax = s.get('m5_tt_accounts_delta_max')
   const m5OiDMin = s.get('m5_oi_delta_min'); const m5OiDMax = s.get('m5_oi_delta_max')
+  const m5McapDMin = s.get('m5_oi_mcap_delta_min'); const m5McapDMax = s.get('m5_oi_mcap_delta_max')
 
-  if (h1LsDMin && Number(h1LsDMin) > -3)       { conditions.push(`(h1_ls_ratio_current - h1_ls_ratio_start) >= $${i++}`); params.push(Number(h1LsDMin)) }
-  if (h1LsDMax && Number(h1LsDMax) < 3)         { conditions.push(`(h1_ls_ratio_current - h1_ls_ratio_start) <= $${i++}`); params.push(Number(h1LsDMax)) }
-  if (h1OiDMin && Number(h1OiDMin) > -20000)    { conditions.push(`(h1_oi_current - h1_oi_start) >= $${i++}`); params.push(Number(h1OiDMin)) }
-  if (h1OiDMax && Number(h1OiDMax) < 20000)     { conditions.push(`(h1_oi_current - h1_oi_start) <= $${i++}`); params.push(Number(h1OiDMax)) }
-  if (h1McapDMin && Number(h1McapDMin) > -0.05) { conditions.push(`(h1_oi_mcap_current - h1_oi_mcap_start) >= $${i++}`); params.push(Number(h1McapDMin)) }
-  if (h1McapDMax && Number(h1McapDMax) < 0.05)  { conditions.push(`(h1_oi_mcap_current - h1_oi_mcap_start) <= $${i++}`); params.push(Number(h1McapDMax)) }
-  if (m5LsDMin && Number(m5LsDMin) > -3)        { conditions.push(`(m5_ls_ratio_current - m5_ls_ratio_start) >= $${i++}`); params.push(Number(m5LsDMin)) }
-  if (m5LsDMax && Number(m5LsDMax) < 3)         { conditions.push(`(m5_ls_ratio_current - m5_ls_ratio_start) <= $${i++}`); params.push(Number(m5LsDMax)) }
-  if (m5OiDMin && Number(m5OiDMin) > -20000)    { conditions.push(`(m5_oi_current - m5_oi_start) >= $${i++}`); params.push(Number(m5OiDMin)) }
-  if (m5OiDMax && Number(m5OiDMax) < 20000)     { conditions.push(`(m5_oi_current - m5_oi_start) <= $${i++}`); params.push(Number(m5OiDMax)) }
+  if (h1LsDMin && Number(h1LsDMin) > -3)           { conditions.push(`(h1_ls_ratio_current - h1_ls_ratio_start) >= $${i++}`); params.push(Number(h1LsDMin)) }
+  if (h1LsDMax && Number(h1LsDMax) < 3)             { conditions.push(`(h1_ls_ratio_current - h1_ls_ratio_start) <= $${i++}`); params.push(Number(h1LsDMax)) }
+  if (h1TtPosDMin && Number(h1TtPosDMin) > -1)      { conditions.push(`(h1_tt_positions_current - h1_tt_positions_start) >= $${i++}`); params.push(Number(h1TtPosDMin)) }
+  if (h1TtPosDMax && Number(h1TtPosDMax) < 1)       { conditions.push(`(h1_tt_positions_current - h1_tt_positions_start) <= $${i++}`); params.push(Number(h1TtPosDMax)) }
+  if (h1TtAccDMin && Number(h1TtAccDMin) > -1)      { conditions.push(`(h1_tt_accounts_current - h1_tt_accounts_start) >= $${i++}`); params.push(Number(h1TtAccDMin)) }
+  if (h1TtAccDMax && Number(h1TtAccDMax) < 1)       { conditions.push(`(h1_tt_accounts_current - h1_tt_accounts_start) <= $${i++}`); params.push(Number(h1TtAccDMax)) }
+  if (h1OiDMin && Number(h1OiDMin) > -20000)        { conditions.push(`(h1_oi_current - h1_oi_start) >= $${i++}`); params.push(Number(h1OiDMin)) }
+  if (h1OiDMax && Number(h1OiDMax) < 20000)         { conditions.push(`(h1_oi_current - h1_oi_start) <= $${i++}`); params.push(Number(h1OiDMax)) }
+  if (h1McapDMin && Number(h1McapDMin) > -0.05)     { conditions.push(`(h1_oi_mcap_current - h1_oi_mcap_start) >= $${i++}`); params.push(Number(h1McapDMin)) }
+  if (h1McapDMax && Number(h1McapDMax) < 0.05)      { conditions.push(`(h1_oi_mcap_current - h1_oi_mcap_start) <= $${i++}`); params.push(Number(h1McapDMax)) }
+  if (m5LsDMin && Number(m5LsDMin) > -3)            { conditions.push(`(m5_ls_ratio_current - m5_ls_ratio_start) >= $${i++}`); params.push(Number(m5LsDMin)) }
+  if (m5LsDMax && Number(m5LsDMax) < 3)             { conditions.push(`(m5_ls_ratio_current - m5_ls_ratio_start) <= $${i++}`); params.push(Number(m5LsDMax)) }
+  if (m5TtPosDMin && Number(m5TtPosDMin) > -1)      { conditions.push(`(m5_tt_positions_current - m5_tt_positions_start) >= $${i++}`); params.push(Number(m5TtPosDMin)) }
+  if (m5TtPosDMax && Number(m5TtPosDMax) < 1)       { conditions.push(`(m5_tt_positions_current - m5_tt_positions_start) <= $${i++}`); params.push(Number(m5TtPosDMax)) }
+  if (m5TtAccDMin && Number(m5TtAccDMin) > -1)      { conditions.push(`(m5_tt_accounts_current - m5_tt_accounts_start) >= $${i++}`); params.push(Number(m5TtAccDMin)) }
+  if (m5TtAccDMax && Number(m5TtAccDMax) < 1)       { conditions.push(`(m5_tt_accounts_current - m5_tt_accounts_start) <= $${i++}`); params.push(Number(m5TtAccDMax)) }
+  if (m5OiDMin && Number(m5OiDMin) > -20000)        { conditions.push(`(m5_oi_current - m5_oi_start) >= $${i++}`); params.push(Number(m5OiDMin)) }
+  if (m5OiDMax && Number(m5OiDMax) < 20000)         { conditions.push(`(m5_oi_current - m5_oi_start) <= $${i++}`); params.push(Number(m5OiDMax)) }
+  if (m5McapDMin && Number(m5McapDMin) > -0.05)     { conditions.push(`(m5_oi_mcap_current - m5_oi_mcap_start) >= $${i++}`); params.push(Number(m5McapDMin)) }
+  if (m5McapDMax && Number(m5McapDMax) < 0.05)      { conditions.push(`(m5_oi_mcap_current - m5_oi_mcap_start) <= $${i++}`); params.push(Number(m5McapDMax)) }
 
   const tpDistMin = s.get('tp_dist_min')
   const tpDistMax = s.get('tp_dist_max')
