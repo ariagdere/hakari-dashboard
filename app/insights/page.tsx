@@ -20,7 +20,7 @@ interface Overview {
 }
 interface ScoringRow  { score: number; total: number; wins: number; win_rate: number }
 interface RsiRow      { rsi_zone: string; total: number; wins: number; win_rate: number }
-interface ScoringData { by_score: ScoringRow[]; by_confidence: ScoringRow[]; by_rsi: RsiRow[]; by_rsi_long: RsiRow[]; by_rsi_short: RsiRow[] }
+interface ScoringData { by_score: ScoringRow[]; by_confidence: ScoringRow[]; by_rsi: RsiRow[]; by_rsi_long: RsiRow[]; by_rsi_short: RsiRow[]; by_rsi30: RsiRow[]; by_rsi30_long: RsiRow[]; by_rsi30_short: RsiRow[] }
 interface IndicatorRow { indicator: string; sentiment: string; total: number; wins: number; win_rate: number }
 interface MtfRow       { h1: string; m5: string; mtf: string; total: number; wins: number; win_rate: number }
 interface LiqRow       { liquidity: string; market_power: string; total: number; wins: number; win_rate: number }
@@ -171,6 +171,7 @@ interface Filters {
   score_min: number; score_max: number
   conf_min: number;  conf_max: number
   rsi_min: number;   rsi_max: number
+  rsi30_min: number; rsi30_max: number
   r_min: number;     r_max: number
   wp_min: number;    wp_max: number
   wp3_min: number;   wp3_max: number
@@ -212,6 +213,7 @@ const DEFAULT_FILTERS: Filters = {
   score_min: 1,  score_max: 10,
   conf_min: 0,   conf_max: 100,
   rsi_min: 0,    rsi_max: 100,
+  rsi30_min: 0,  rsi30_max: 100,
   r_min: -5,     r_max: 20,
   wp_min: 0,     wp_max: 100,
   wp3_min: 0,    wp3_max: 100,
@@ -249,6 +251,7 @@ function filtersToParams(f: Filters): URLSearchParams {
   p.set('score_min', String(f.score_min)); p.set('score_max', String(f.score_max))
   p.set('conf_min',  String(f.conf_min));  p.set('conf_max',  String(f.conf_max))
   p.set('rsi_min',   String(f.rsi_min));   p.set('rsi_max',   String(f.rsi_max))
+  p.set('rsi30_min', String(f.rsi30_min)); p.set('rsi30_max', String(f.rsi30_max))
   p.set('r_min',     String(f.r_min));     p.set('r_max',     String(f.r_max))
   p.set('wp_min',    String(f.wp_min));    p.set('wp_max',    String(f.wp_max))
   p.set('wp3_min',   String(f.wp3_min));   p.set('wp3_max',   String(f.wp3_max))
@@ -282,6 +285,7 @@ function activeFilterCount(f: Filters): number {
   if (f.score_min > 1 || f.score_max < 10) n++
   if (f.conf_min > 0  || f.conf_max < 100) n++
   if (f.rsi_min > 0   || f.rsi_max < 100)  n++
+  if (f.rsi30_min > 0 || f.rsi30_max < 100) n++
   if (f.r_min > -5    || f.r_max < 20)     n++
   if (f.wp_min > 0    || f.wp_max < 100)   n++
   if (f.wp3_min > 0   || f.wp3_max < 100)  n++
@@ -414,7 +418,8 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
       {/* 3. RSI */}
       <GroupLabel>RSI</GroupLabel>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
-        <RangeRow label="RSI 4H" minKey="rsi_min" maxKey="rsi_max" min={0} max={100} />
+        <RangeRow label="RSI 4H"  minKey="rsi_min"   maxKey="rsi_max"   min={0} max={100} />
+        <RangeRow label="RSI 30M" minKey="rsi30_min" maxKey="rsi30_max" min={0} max={100} />
       </div>
 
       {sep}
@@ -771,6 +776,27 @@ export default function InsightsPage() {
                     )
                   })}
                 </div>
+                {scoring.by_rsi30 && scoring.by_rsi30.length > 0 && (
+                  <div className="card" style={{ padding: 16 }}>
+                    <CardTitle>RSI 30M zonu → win rate</CardTitle>
+                    <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr 1fr', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                      <div />
+                      <span className="mono" style={{ fontSize: 10, color: 'var(--green)', textAlign: 'center' }}>LONG</span>
+                      <span className="mono" style={{ fontSize: 10, color: 'var(--red)', textAlign: 'center' }}>SHORT</span>
+                    </div>
+                    {scoring.by_rsi30.map((row: any) => {
+                      const long  = scoring.by_rsi30_long?.find((r: any) => r.rsi_zone === row.rsi_zone)
+                      const short = scoring.by_rsi30_short?.find((r: any) => r.rsi_zone === row.rsi_zone)
+                      return (
+                        <div key={row.rsi_zone} style={{ display: 'grid', gridTemplateColumns: '160px 1fr 1fr', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                          <span className="mono" style={{ fontSize: 10, color: 'var(--text-2)' }}>{row.rsi_zone}</span>
+                          <WinBar rate={long ? Number(long.win_rate) : null} total={long ? Number(long.total) : 0} />
+                          <WinBar rate={short ? Number(short.win_rate) : null} total={short ? Number(short.total) : 0} />
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </Section>
             )}
 
