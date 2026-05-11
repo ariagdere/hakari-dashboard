@@ -140,66 +140,6 @@ export async function GET(req: NextRequest) {
       GROUP BY rsi_zone, sort_order ORDER BY sort_order
     `, params),
   ])
-    pool.query(`
-      SELECT
-        market_score_value AS score,
-        COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')) AS total,
-        COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS wins,
-        ROUND(COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
-          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate
-      FROM btc_analysis
-      ${base} market_score_value IS NOT NULL
-      GROUP BY market_score_value ORDER BY market_score_value
-    `, params),
-
-    pool.query(`
-      SELECT
-        confidence_value AS score,
-        COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')) AS total,
-        COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS wins,
-        ROUND(COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
-          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate
-      FROM btc_analysis
-      ${base} confidence_value IS NOT NULL
-      GROUP BY confidence_value ORDER BY confidence_value
-    `, params),
-
-    // RSI overall
-    pool.query(`
-      SELECT ${RSI_CASE} AS rsi_zone, ${RSI_ORDER} AS sort_order,
-        COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')) AS total,
-        COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS wins,
-        ROUND(COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
-          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate
-      FROM btc_analysis
-      ${base} rsi_4h IS NOT NULL
-      GROUP BY rsi_zone, sort_order ORDER BY sort_order
-    `, params),
-
-    // RSI × LONG
-    pool.query(`
-      SELECT ${RSI_CASE} AS rsi_zone, ${RSI_ORDER} AS sort_order,
-        COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')) AS total,
-        COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS wins,
-        ROUND(COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
-          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate
-      FROM btc_analysis
-      ${base} rsi_4h IS NOT NULL AND direction = 'LONG'
-      GROUP BY rsi_zone, sort_order ORDER BY sort_order
-    `, params),
-
-    // RSI × SHORT
-    pool.query(`
-      SELECT ${RSI_CASE} AS rsi_zone, ${RSI_ORDER} AS sort_order,
-        COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')) AS total,
-        COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS wins,
-        ROUND(COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
-          NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate
-      FROM btc_analysis
-      ${base} rsi_4h IS NOT NULL AND direction = 'SHORT'
-      GROUP BY rsi_zone, sort_order ORDER BY sort_order
-    `, params),
-  ])
 
   return NextResponse.json({
     by_score:       scoreRows.rows,
