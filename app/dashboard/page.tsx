@@ -176,8 +176,6 @@ export default function Dashboard() {
               { label: 'Bekleyen', value: stats.pending_count, color: 'var(--text-3)' },
               { label: 'Toplam PnL', value: stats.total_pnl != null ? `${stats.total_pnl > 0 ? '+' : ''}$${Math.abs(stats.total_pnl).toFixed(2)}` : '—', color: stats.total_pnl > 0 ? 'var(--green)' : stats.total_pnl < 0 ? 'var(--red)' : 'var(--text)' },
               { label: 'Ort. PnL', value: stats.avg_pnl != null ? `${stats.avg_pnl > 0 ? '+' : ''}$${Math.abs(stats.avg_pnl).toFixed(2)}` : '—', color: Number(stats.avg_pnl ?? 0) > 0 ? 'var(--green)' : 'var(--red)' },
-              { label: 'Ort. Güven', value: stats.avg_confidence ? `%${stats.avg_confidence}` : '—', color: 'var(--text)' },
-              { label: 'Ort. Skor', value: stats.avg_score ? `${stats.avg_score}/10` : '—', color: 'var(--text)' },
             ].map((s, i) => (
               <div key={i} className="stat-card">
                 <div className="col-label" style={{ marginBottom: 6 }}>{s.label}</div>
@@ -241,8 +239,6 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 4, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
                   {[
                     { label: 'Ort. RSI 4H', val: stats.avg_rsi_tp != null ? `${stats.avg_rsi_tp} (S:${stats.avg_rsi_tp_short ?? '—'} / L:${stats.avg_rsi_tp_long ?? '—'})` : '—' },
-                    { label: 'Ort. Güven', val: stats.avg_conf_tp != null ? `%${stats.avg_conf_tp}` : '—' },
-                    { label: 'Ort. Skor', val: stats.avg_score_tp != null ? `${stats.avg_score_tp}/10` : '—' },
                     { label: 'Ort. Süre', val: fmtMins(stats.avg_mins_tp) },
                     { label: 'Ort. Entry Süresi', val: fmtMins(stats.avg_mins_to_entry_tp) },
                     { label: 'Ort. Max Kazanç', val: stats.avg_max_fav_tp != null ? `$${parseFloat(String(stats.avg_max_fav_tp_usd)).toFixed(2)} / +${parseFloat(String(stats.avg_max_fav_tp)).toFixed(2)}R` : '—' },
@@ -269,8 +265,6 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 4, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
                   {[
                     { label: 'Ort. RSI 4H', val: stats.avg_rsi_sl != null ? `${stats.avg_rsi_sl} (S:${stats.avg_rsi_sl_short ?? '—'} / L:${stats.avg_rsi_sl_long ?? '—'})` : '—' },
-                    { label: 'Ort. Güven', val: stats.avg_conf_sl != null ? `%${stats.avg_conf_sl}` : '—' },
-                    { label: 'Ort. Skor', val: stats.avg_score_sl != null ? `${stats.avg_score_sl}/10` : '—' },
                     { label: 'Ort. Süre', val: fmtMins(stats.avg_mins_sl) },
                     { label: 'Ort. Entry Süresi', val: fmtMins(stats.avg_mins_to_entry_sl) },
                     { label: 'Ort. Max Kazanç', val: stats.avg_max_fav_sl != null ? `$${parseFloat(String(stats.avg_max_fav_sl_usd)).toFixed(2)} / +${parseFloat(String(stats.avg_max_fav_sl)).toFixed(2)}R` : '—' },
@@ -409,9 +403,9 @@ export default function Dashboard() {
             <span className="col-label">WP</span>
             <span className="col-label">WP V3</span>
             <span className="col-label">WP V4</span>
-            <span className="col-label">Sonuç</span>
             <span className="col-label">PnL</span>
             <span className="col-label">R</span>
+            <span className="col-label">Sonuç</span>
           </div>
 
           {loading && <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }} className="mono">yükleniyor...</div>}
@@ -436,13 +430,13 @@ export default function Dashboard() {
               <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability_v4) }}>
                 {a.win_probability_v4 != null ? `%${Number(a.win_probability_v4).toFixed(0)}` : '—'}
               </span>
-              <span>{resultBadge(a.sim_result)}</span>
               <span className={`mono ${a.sim_pnl_usd != null ? pnlClass(Number(a.sim_pnl_usd)) : 'pnl-zero'}`} style={{ fontSize: 12 }}>
                 {a.sim_pnl_usd != null ? `${Number(a.sim_pnl_usd) > 0 ? '+' : ''}$${Math.abs(Number(a.sim_pnl_usd)).toFixed(2)}` : '—'}
               </span>
               <span className={`mono ${a.sim_r_multiple != null ? pnlClass(a.sim_result === 'SL_HIT' ? -1 : Number(a.sim_r_multiple)) : 'pnl-zero'}`} style={{ fontSize: 12 }}>
                 {fmtR(a.sim_r_multiple, a.sim_result)}
               </span>
+              <span>{resultBadge(a.sim_result)}</span>
             </div>
           ))}
 
