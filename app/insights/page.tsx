@@ -732,32 +732,6 @@ export default function InsightsPage() {
             {/* ── 2. SCORING ───────────────────────────────────────────────── */}
             {scoring && (
               <Section title="Skor Analizi">
-                <div style={{ ...grid2, marginBottom: 12 }}>
-                  <div className="card" style={{ padding: 16 }}>
-                    <CardTitle>Market score → win rate</CardTitle>
-                    <div style={{ height: 160 }}>
-                      <Bar
-                        data={{
-                          labels: scoring.by_score.map(r => `${r.score}`),
-                          datasets: [{ data: scoring.by_score.map(r => Number(r.win_rate)), backgroundColor: scoring.by_score.map(r => Number(r.win_rate) >= 50 ? 'rgba(74,222,128,0.4)' : Number(r.win_rate) >= 40 ? 'rgba(251,191,36,0.4)' : 'rgba(248,113,113,0.4)'), borderColor: scoring.by_score.map(r => Number(r.win_rate) >= 50 ? '#4ade80' : Number(r.win_rate) >= 40 ? '#fbbf24' : '#f87171'), borderWidth: 1 }],
-                        }}
-                        options={{ ...CHART_DEFAULTS, scales: { x: axisStyle, y: { ...axisStyle, max: 100, ticks: { ...axisStyle.ticks, callback: (v: any) => `${v}%` } } } }}
-                      />
-                    </div>
-                  </div>
-                  <div className="card" style={{ padding: 16 }}>
-                    <CardTitle>Confidence → win rate</CardTitle>
-                    <div style={{ height: 160 }}>
-                      <Bar
-                        data={{
-                          labels: scoring.by_confidence.map(r => `${r.score}`),
-                          datasets: [{ data: scoring.by_confidence.map(r => Number(r.win_rate)), backgroundColor: scoring.by_confidence.map(r => Number(r.win_rate) >= 50 ? 'rgba(74,222,128,0.4)' : Number(r.win_rate) >= 40 ? 'rgba(251,191,36,0.4)' : 'rgba(248,113,113,0.4)'), borderColor: scoring.by_confidence.map(r => Number(r.win_rate) >= 50 ? '#4ade80' : Number(r.win_rate) >= 40 ? '#fbbf24' : '#f87171'), borderWidth: 1 }],
-                        }}
-                        options={{ ...CHART_DEFAULTS, scales: { x: axisStyle, y: { ...axisStyle, max: 100, ticks: { ...axisStyle.ticks, callback: (v: any) => `${v}%` } } } }}
-                      />
-                    </div>
-                  </div>
-                </div>
                 <div className="card" style={{ padding: 16 }}>
                   <CardTitle>RSI 4H zonu → win rate</CardTitle>
                   <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr 1fr', gap: 8, alignItems: 'center', marginBottom: 8 }}>
