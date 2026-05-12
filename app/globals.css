@@ -64,7 +64,7 @@ body {
 .stat-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; transition: border-color 0.15s; }
 .stat-card:hover { border-color: var(--border-2); }
 
-.row-item { display: grid; grid-template-columns: 128px 66px 86px 86px 86px 68px 58px 58px 86px 78px 70px; align-items: center; padding: 9px 20px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; gap: 6px; }
+.row-item { display: grid; grid-template-columns: 128px 66px 86px 86px 86px 68px 54px 54px 62px 62px 62px 80px 70px 66px; align-items: center; padding: 9px 20px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; gap: 6px; }
 .row-item:hover { background: var(--bg-3); }
 .row-item:last-child { border-bottom: none; }
 
