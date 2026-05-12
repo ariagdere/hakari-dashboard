@@ -33,6 +33,7 @@ export function buildInsightsWhere(req: NextRequest): { where: string; params: a
   range("SPLIT_PART(rr, ':', 2)::numeric", s.get('r_min'), s.get('r_max'), -5, 20)
   range('win_probability',          s.get('wp_min'),    s.get('wp_max'),    0,   100)
   range('win_probability_v3',       s.get('wp3_min'),   s.get('wp3_max'),   0,   100)
+  range('win_probability_v4',       s.get('wp4_min'),   s.get('wp4_max'),   0,   100)
 
   // Delta filtreleri
   const h1LsDMin = s.get('h1_ls_delta_min'); const h1LsDMax = s.get('h1_ls_delta_max')
