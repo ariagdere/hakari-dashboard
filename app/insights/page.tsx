@@ -36,7 +36,8 @@ interface PairsData    { direction_x_sentiment: DirSentRow[]; score_x_sentiment:
 interface RHistRow   { sim_result: string; r_bucket: number; count: number }
 interface ScatterRow { id: number; sim_result: string; mfe: number; mae: number; r_multiple: number; score: number; risk_usd: number }
 interface MfeRow     { mfe_bucket: string; total: number; tp_count: number; avg_mins: number }
-interface RmaeData   { r_histogram: RHistRow[]; scatter: ScatterRow[]; mfe_distribution: MfeRow[] }
+interface TargetRRow  { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; total_r: number | null; avg_target_r: number }
+interface RmaeData   { r_histogram: RHistRow[]; scatter: ScatterRow[]; mfe_distribution: MfeRow[]; target_r_distribution: TargetRRow[] }
 interface HourlyRow  { hour: number; total: number; tp_count: number; sl_count: number; win_rate: number; avg_r_tp: number | null }
 interface HourlyData { by_analysis: HourlyRow[] }
 interface DailyRow   { day: string; total: number; tp_count: number; sl_count: number; win_rate: number }
@@ -1079,6 +1080,33 @@ export default function InsightsPage() {
                   </table>
                   </div>
                 </div>
+
+                {/* Hedef R dağılımı */}
+                {rmae.target_r_distribution?.length > 0 && (
+                  <div className="card" style={{ padding: 16, marginTop: 12 }}>
+                    <CardTitle>Hedef R aralığına göre sonuçlar</CardTitle>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
+                      <thead>
+                        <tr>{['Hedef R', 'n', 'Win%', 'Toplam R', 'Ort. Hedef R'].map((h, i) => (
+                          <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400 }}>{h}</th>
+                        ))}</tr>
+                      </thead>
+                      <tbody>
+                        {rmae.target_r_distribution.map((row, i) => (
+                          <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                            <td style={{ padding: '7px 0', color: 'var(--text-2)' }}>{row.bucket}</td>
+                            <td style={{ padding: '7px 0', textAlign: 'right', color: 'var(--text-3)' }}>{row.total}</td>
+                            <td style={{ padding: '7px 0', textAlign: 'right', color: winColor(Number(row.win_rate)) }}>{Number(row.win_rate).toFixed(1)}%</td>
+                            <td style={{ padding: '7px 0', textAlign: 'right', color: Number(row.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                              {row.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(2)}R` : '—'}
+                            </td>
+                            <td style={{ padding: '7px 0', textAlign: 'right', color: 'var(--text-2)' }}>{Number(row.avg_target_r).toFixed(2)}R</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </Section>
             )}
             {/* ── 6. WIN PROBABILITY KALİBRASYONU ─────────────────────────── */}
