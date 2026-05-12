@@ -30,7 +30,7 @@ export function buildInsightsWhere(req: NextRequest): { where: string; params: a
   range('confidence_value',         s.get('conf_min'),  s.get('conf_max'),  0,   100)
   range('rsi_4h',                   s.get('rsi_min'),    s.get('rsi_max'),    0,   100)
   range('rsi_30m',                  s.get('rsi30_min'),  s.get('rsi30_max'),  0,   100)
-  range('sim_r_multiple',           s.get('r_min'),     s.get('r_max'),     -5,  20)
+  range("SPLIT_PART(rr, ':', 2)::numeric", s.get('r_min'), s.get('r_max'), -5, 20)
   range('win_probability',          s.get('wp_min'),    s.get('wp_max'),    0,   100)
   range('win_probability_v3',       s.get('wp3_min'),   s.get('wp3_max'),   0,   100)
 
