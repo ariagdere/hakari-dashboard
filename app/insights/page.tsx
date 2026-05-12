@@ -60,6 +60,9 @@ interface WinProbData    { buckets: WinProbBucket[]; by_dir: WinProbDir[]; scatt
 interface WinProbV3Bucket { bucket: string; sort_order: number; avg_predicted: number; total: number; wins: number; actual_win_rate: number; total_r: number | null; avg_r: number | null }
 interface WinProbV3Dir    { direction: string; avg_probability: number; total: number; actual_win_rate: number }
 interface WinProbV3Data   { buckets: WinProbV3Bucket[]; by_dir: WinProbV3Dir[] }
+interface WinProbV4Bucket { bucket: string; sort_order: number; avg_predicted: number; total: number; wins: number; actual_win_rate: number; total_r: number | null; avg_r: number | null }
+interface WinProbV4Dir    { direction: string; avg_probability: number; total: number; actual_win_rate: number }
+interface WinProbV4Data   { buckets: WinProbV4Bucket[]; by_dir: WinProbV4Dir[] }
 interface DeltaBucket     { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; avg_r: number | null; total_r: number | null; avg_delta: number; label: string }
 interface DeltaData       { [key: string]: DeltaBucket[] }
 interface CumRPoint     { day: string; cumulative_r: number; daily_r: number }
@@ -176,6 +179,7 @@ interface Filters {
   r_min: number;     r_max: number
   wp_min: number;    wp_max: number
   wp3_min: number;   wp3_max: number
+  wp4_min: number;   wp4_max: number
   wait_min: number;  wait_max: number
   entry_wait_min: number; entry_wait_max: number
   tp_dist_min: number; tp_dist_max: number
@@ -218,6 +222,7 @@ const DEFAULT_FILTERS: Filters = {
   r_min: 0,     r_max: 7,
   wp_min: 0,     wp_max: 100,
   wp3_min: 0,    wp3_max: 100,
+  wp4_min: 0,    wp4_max: 100,
   wait_min: 0,   wait_max: 4320,
   entry_wait_min: 0, entry_wait_max: 360,
   tp_dist_min: 0, tp_dist_max: 4000,
@@ -256,6 +261,7 @@ function filtersToParams(f: Filters): URLSearchParams {
   p.set('r_min',     String(f.r_min));     p.set('r_max',     String(f.r_max))
   p.set('wp_min',    String(f.wp_min));    p.set('wp_max',    String(f.wp_max))
   p.set('wp3_min',   String(f.wp3_min));   p.set('wp3_max',   String(f.wp3_max))
+  p.set('wp4_min',   String(f.wp4_min));   p.set('wp4_max',   String(f.wp4_max))
   p.set('wait_min',  String(f.wait_min));  p.set('wait_max',  String(f.wait_max))
   p.set('entry_wait_min', String(f.entry_wait_min)); p.set('entry_wait_max', String(f.entry_wait_max))
   p.set('tp_dist_min', String(f.tp_dist_min)); p.set('tp_dist_max', String(f.tp_dist_max))
@@ -290,6 +296,7 @@ function activeFilterCount(f: Filters): number {
   if (f.r_min > 0    || f.r_max < 7)     n++
   if (f.wp_min > 0    || f.wp_max < 100)   n++
   if (f.wp3_min > 0   || f.wp3_max < 100)  n++
+  if (f.wp4_min > 0   || f.wp4_max < 100)  n++
   if (f.wait_min > 0  || f.wait_max < 4320) n++
   if (f.entry_wait_min > 0 || f.entry_wait_max < 360) n++
   if (f.tp_dist_min > 0 || f.tp_dist_max < 4000) n++
@@ -412,6 +419,7 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
         <RangeRow label="Hedef R"      minKey="r_min"   maxKey="r_max"   min={0} max={7}  step={0.1} />
         <RangeRow label="Win prob V1 %" minKey="wp_min"  maxKey="wp_max"  min={0}  max={100} step={5} />
         <RangeRow label="Win prob V3 %" minKey="wp3_min" maxKey="wp3_max" min={0}  max={100} step={5} />
+        <RangeRow label="Win prob V4 %" minKey="wp4_min" maxKey="wp4_max" min={0}  max={100} step={5} />
       </div>
 
       {sep}
@@ -514,6 +522,7 @@ export default function InsightsPage() {
   const [optimalR,  setOptimalR]  = useState<OptimalRData | null>(null)
   const [winProb,   setWinProb]   = useState<WinProbData | null>(null)
   const [winProbV3, setWinProbV3] = useState<WinProbV3Data | null>(null)
+  const [winProbV4, setWinProbV4] = useState<WinProbV4Data | null>(null)
   const [deltaData, setDeltaData] = useState<DeltaData | null>(null)
   const [cumR,      setCumR]      = useState<CumRData | null>(null)
   const [entryWait, setEntryWait] = useState<EntryWaitData | null>(null)
@@ -543,11 +552,12 @@ export default function InsightsPage() {
       fetch(`/api/insights-distance${qs}`,    { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/insights-tradedur${qs}`,    { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/insights-winprob-v3${qs}`,  { cache: 'no-store' }).then(r => r.json()),
+      fetch(`/api/insights-winprob-v4${qs}`,  { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/insights-delta${qs}`,       { cache: 'no-store' }).then(r => r.json()),
-    ]).then(([ov, sc, se, pa, rm, hr, or_, da, wp, cr, ew, dist, td, wpv3, delta]) => {
+    ]).then(([ov, sc, se, pa, rm, hr, or_, da, wp, cr, ew, dist, td, wpv3, wpv4, delta]) => {
       setOverview(ov); setScoring(sc); setSentiment(se); setPairs(pa); setRmae(rm)
       setHourly(hr); setOptimalR(or_); setDaily(da); setWinProb(wp); setCumR(cr)
-      setEntryWait(ew); setDistance(dist); setTradeDur(td); setWinProbV3(wpv3); setDeltaData(delta)
+      setEntryWait(ew); setDistance(dist); setTradeDur(td); setWinProbV3(wpv3); setWinProbV4(wpv4); setDeltaData(delta)
       setLoading(false)
     })
   }, [])
@@ -1247,7 +1257,63 @@ export default function InsightsPage() {
               </Section>
             )}
 
-            {/* ── 8. DELTA ANALİZİ ─────────────────────────────────────────── */}
+            {/* ── 8. WIN PROBABILITY V4 KALİBRASYONU ──────────────────────── */}
+            {winProbV4 && winProbV4.buckets?.length > 0 && (
+              <Section title="Win Probability V4 Kalibrasyonu (Synthesis + Delta)">
+                <div style={grid2}>
+                  <div className="card" style={{ padding: 16 }}>
+                    <CardTitle>V4 Tahmin edilen vs gerçekleşen win rate</CardTitle>
+                    <div style={{ height: 200 }}>
+                      <Bar
+                        data={{
+                          labels: winProbV4.buckets.map(b => b.bucket),
+                          datasets: [
+                            { label: 'Tahmin %', data: winProbV4.buckets.map(b => Number(b.avg_predicted)), backgroundColor: 'rgba(96,165,250,0.3)', borderColor: '#60a5fa', borderWidth: 1 },
+                            { label: 'Gerçek Win %', data: winProbV4.buckets.map(b => Number(b.actual_win_rate)),
+                              backgroundColor: winProbV4.buckets.map(b => Number(b.actual_win_rate) >= 40 ? 'rgba(74,222,128,0.5)' : 'rgba(248,113,113,0.5)'),
+                              borderColor: winProbV4.buckets.map(b => Number(b.actual_win_rate) >= 40 ? '#4ade80' : '#f87171'), borderWidth: 1 },
+                          ],
+                        }}
+                        options={{ ...CHART_DEFAULTS, plugins: { legend: { display: true, labels: { color: '#555', font: { family: 'DM Mono', size: 10 } } },
+                          tooltip: { displayColors: false, callbacks: { afterBody: (items: any) => { const b = winProbV4.buckets[items[0].dataIndex]; return b ? [`n=${b.total}  TP=${b.wins}`, b.total_r != null ? `Toplam R: ${Number(b.total_r) >= 0 ? '+' : ''}${Number(b.total_r).toFixed(2)}R` : ''].filter(Boolean) : [] } } } },
+                          scales: { x: axisStyle, y: { ...axisStyle, max: 100, ticks: { ...axisStyle.ticks, callback: (v: any) => `${v}%` } } } }}
+                      />
+                    </div>
+                  </div>
+                  <div className="card" style={{ padding: 16 }}>
+                    <CardTitle>V4 Bucket detayı</CardTitle>
+                    <div style={{ marginBottom: 12 }}>
+                      {winProbV4.by_dir.map(row => (
+                        <div key={row.direction} style={{ marginBottom: 10 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                            <span className="mono" style={{ fontSize: 11, color: row.direction === 'LONG' ? 'var(--green)' : 'var(--red)' }}>{row.direction}</span>
+                            <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>tahmin: %{Number(row.avg_probability).toFixed(1)} → gerçek: %{Number(row.actual_win_rate).toFixed(1)}</span>
+                          </div>
+                          <WinBar rate={Number(row.actual_win_rate)} total={Number(row.total)} />
+                        </div>
+                      ))}
+                    </div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
+                      <thead><tr>{['Bucket', 'Ort. Tahmin', 'Gerçek Win%', 'Toplam R', 'Ort. R', 'n'].map((h, i) => (
+                        <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
+                      ))}</tr></thead>
+                      <tbody>{winProbV4.buckets.map((b, i) => (
+                        <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                          <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--blue)' }}>%{Number(b.avg_predicted).toFixed(1)}</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(b.actual_win_rate)) }}>%{Number(b.actual_win_rate).toFixed(1)}</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: Number(b.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{b.total_r != null ? `${Number(b.total_r) >= 0 ? '+' : ''}${Number(b.total_r).toFixed(2)}R` : '—'}</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: Number(b.avg_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{b.avg_r != null ? `${Number(b.avg_r) >= 0 ? '+' : ''}${Number(b.avg_r).toFixed(2)}R` : '—'}</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
+                        </tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+                </div>
+              </Section>
+            )}
+
+            {/* ── 9. DELTA ANALİZİ ─────────────────────────────────────────── */}
             {deltaData && Object.keys(deltaData).length > 0 && (
               <Section title="Delta Analizi (Başlangıç → Anlık Değişim)">
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: 12 }}>
