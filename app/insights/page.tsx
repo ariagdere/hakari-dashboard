@@ -214,7 +214,7 @@ const DEFAULT_FILTERS: Filters = {
   conf_min: 0,   conf_max: 100,
   rsi_min: 0,    rsi_max: 100,
   rsi30_min: 0,  rsi30_max: 100,
-  r_min: -5,     r_max: 20,
+  r_min: 0,     r_max: 7,
   wp_min: 0,     wp_max: 100,
   wp3_min: 0,    wp3_max: 100,
   wait_min: 0,   wait_max: 4320,
@@ -286,7 +286,7 @@ function activeFilterCount(f: Filters): number {
   if (f.conf_min > 0  || f.conf_max < 100) n++
   if (f.rsi_min > 0   || f.rsi_max < 100)  n++
   if (f.rsi30_min > 0 || f.rsi30_max < 100) n++
-  if (f.r_min > -5    || f.r_max < 20)     n++
+  if (f.r_min > 0    || f.r_max < 7)     n++
   if (f.wp_min > 0    || f.wp_max < 100)   n++
   if (f.wp3_min > 0   || f.wp3_max < 100)  n++
   if (f.wait_min > 0  || f.wait_max < 4320) n++
@@ -408,7 +408,7 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
       {/* 2. Performans */}
       <GroupLabel>Performans</GroupLabel>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
-        <RangeRow label="R multiple"    minKey="r_min"   maxKey="r_max"   min={-5} max={20}  step={0.5} />
+        <RangeRow label="Hedef R"      minKey="r_min"   maxKey="r_max"   min={0} max={7}  step={0.1} />
         <RangeRow label="Win prob V1 %" minKey="wp_min"  maxKey="wp_max"  min={0}  max={100} step={5} />
         <RangeRow label="Win prob V3 %" minKey="wp3_min" maxKey="wp3_max" min={0}  max={100} step={5} />
       </div>
