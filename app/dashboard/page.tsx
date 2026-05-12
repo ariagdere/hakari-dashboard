@@ -23,6 +23,7 @@ interface AnalysisSummary {
   rsi_30m: number | null
   win_probability: number | null
   win_probability_v3: number | null
+  win_probability_v4: number | null
 }
 
 interface Stats {
@@ -407,6 +408,7 @@ export default function Dashboard() {
             <span className="col-label">RSI 30M</span>
             <span className="col-label">WP</span>
             <span className="col-label">WP V3</span>
+            <span className="col-label">WP V4</span>
             <span className="col-label">Sonuç</span>
             <span className="col-label">PnL</span>
             <span className="col-label">R</span>
@@ -430,6 +432,9 @@ export default function Dashboard() {
               </span>
               <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability_v3) }}>
                 {a.win_probability_v3 != null ? `%${Number(a.win_probability_v3).toFixed(0)}` : '—'}
+              </span>
+              <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability_v4) }}>
+                {a.win_probability_v4 != null ? `%${Number(a.win_probability_v4).toFixed(0)}` : '—'}
               </span>
               <span>{resultBadge(a.sim_result)}</span>
               <span className={`mono ${a.sim_pnl_usd != null ? pnlClass(Number(a.sim_pnl_usd)) : 'pnl-zero'}`} style={{ fontSize: 12 }}>
@@ -466,6 +471,10 @@ export default function Dashboard() {
                 <div>
                   <span className="col-label">V3 </span>
                   <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability_v3) }}>{a.win_probability_v3 != null ? `%${Number(a.win_probability_v3).toFixed(0)}` : '—'}</span>
+                </div>
+                <div>
+                  <span className="col-label">V4 </span>
+                  <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability_v4) }}>{a.win_probability_v4 != null ? `%${Number(a.win_probability_v4).toFixed(0)}` : '—'}</span>
                 </div>
                 {a.sim_pnl_usd != null && (
                   <div style={{ marginLeft: 'auto' }}>
