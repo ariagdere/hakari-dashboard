@@ -86,8 +86,8 @@ const wpColor = (v: number | null) => {
   if (v == null) return 'var(--text-3)'
   const n = Number(v)
   if (isNaN(n)) return 'var(--text-3)'
-  if (n >= 65) return 'var(--green)'
-  if (n >= 55) return 'var(--amber)'
+  if (n >= 60) return 'var(--green)'
+  if (n >= 50) return 'var(--amber)'
   return 'var(--red)'
 }
 
