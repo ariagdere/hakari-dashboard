@@ -5,7 +5,7 @@ const ASSETS = [
   { symbol: 'DXY',    name: 'US Dollar Index',  tv: 'CAPITALCOM:DXY'  },
   { symbol: 'US500',  name: 'S&P 500 CFD',      tv: 'OANDA:SPX500USD' },
   { symbol: 'US100',  name: 'Nasdaq 100 CFD',   tv: 'OANDA:NAS100USD' },
-  { symbol: 'VIXY',   name: 'VIX Short-Term',   tv: 'AMEX:VIXY'       },
+  { symbol: 'VIX',    name: 'Volatility Index', tv: 'TVC:VIX'         },
   { symbol: 'BTC',    name: 'Bitcoin / USD',    tv: 'BINANCE:BTCUSDT' },
   { symbol: 'XAUUSD', name: 'Gold / USD',       tv: 'OANDA:XAUUSD'    },
   { symbol: 'US02Y',  name: '2Y Treasury ETF',  tv: 'NASDAQ:SHY'      },
