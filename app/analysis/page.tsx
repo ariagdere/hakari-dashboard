@@ -347,7 +347,7 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
                 { key: 'include_weekdays' as const, label: 'Weekdays' },
                 { key: 'include_weekends' as const, label: 'Weekend' },
               ]).map(({ key, label }) => (
-                <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', userSelect: 'none' as const }}
+                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}
                   onClick={() => {
                     const next = { ...filters, [key]: !filters[key] }
                     if (!next.include_weekdays && !next.include_weekends) return
@@ -359,10 +359,10 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
                     background: filters[key] ? 'var(--bg-3)' : 'transparent',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
-                    {filters[key] && <span style={{ color: 'var(--text)', fontSize: 9, lineHeight: 1 }}>✓</span>}
+                    {filters[key] && <span style={{ color: 'var(--text)', fontSize: 9, lineHeight: 1 }}>&#10003;</span>}
                   </span>
                   <span className="mono" style={{ fontSize: 10, color: filters[key] ? 'var(--text)' : 'var(--text-3)' }}>{label}</span>
-                </label>
+                </div>
               ))}
             </div>
           </div>
