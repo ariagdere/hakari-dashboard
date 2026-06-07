@@ -327,7 +327,7 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
   const so = { str: ['strong', 'mixed', 'weak'], pres: ['buying_pressure', 'selling_pressure', 'neutral'] }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0, minWidth: 600 }}>
       <GL c="Temel Filtreler" />
       <div style={{ display: 'grid', gridTemplateColumns: 'auto auto 1fr', gap: 14 }}>
         <ToggleGroup label="Direction" field="direction" options={['LONG','SHORT','WAIT']} filters={filters} onChange={onChange} />
@@ -927,18 +927,14 @@ export default function AnalysisPage() {
                 <span className="col-label">SL</span>
                 <span className="col-label">R/R</span>
                 <span className="col-label">RSI</span>
-                <span className="col-label">V1 1304</span>
-                <span className="col-label">V3 1304</span>
-                <span className="col-label">V4 1304</span>
-                <span className="col-label">V5 1304</span>
-                <span className="col-label">V1</span>
-                <span className="col-label">V3</span>
-                <span className="col-label">V4</span>
-                <span className="col-label">V5</span>
-                <span className="col-label">V1 Rev</span>
-                <span className="col-label">V3 Rev</span>
-                <span className="col-label">V4 Rev</span>
-                <span className="col-label">V5 Rev</span>
+                <span className="col-label" style={{ background: 'var(--bg-3)', borderRadius: 3, padding: '1px 3px' }}>V1 1304</span>
+                <span className="col-label" style={{ background: 'var(--bg-3)', borderRadius: 3, padding: '1px 3px' }}>V3 1304</span>
+                <span className="col-label" style={{ background: 'var(--bg-3)', borderRadius: 3, padding: '1px 3px' }}>V4 1304</span>
+                <span className="col-label" style={{ background: 'var(--bg-3)', borderRadius: 3, padding: '1px 3px' }}>V5 1304</span>
+                <span className="col-label" style={{ background: '#1a2a1a', borderRadius: 3, padding: '1px 3px' }}>V1</span>
+                <span className="col-label" style={{ background: '#1a2a1a', borderRadius: 3, padding: '1px 3px' }}>V3</span>
+                <span className="col-label" style={{ background: '#1a2a1a', borderRadius: 3, padding: '1px 3px' }}>V4</span>
+                <span className="col-label" style={{ background: '#1a2a1a', borderRadius: 3, padding: '1px 3px' }}>V5</span>
                 <span className="col-label">PnL</span>
                 <span className="col-label">R</span>
                 <span className="col-label">Sonuc</span>
@@ -958,21 +954,22 @@ export default function AnalysisPage() {
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rr}</span>
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span>
                   {([
-                    a.win_probability_1304,
-                    a.win_probability_v3_1304,
-                    a.win_probability_v4_1304,
-                    a.win_probability_v5_1304,
-                    a.win_probability,
-                    a.win_probability_v3,
-                    a.win_probability_v4,
-                    a.win_probability_v5,
-                    a.win_probability_reverse,
-                    a.win_probability_v3_reverse,
-                    a.win_probability_v4_reverse,
-                    a.win_probability_v5_reverse,
-                  ]).map((wp, i) => (
-                    <span key={i} className="mono" style={{ fontSize: 11, color: wpColor(wp) }}>
+                    { wp: a.win_probability_1304,    rev: null },
+                    { wp: a.win_probability_v3_1304, rev: null },
+                    { wp: a.win_probability_v4_1304, rev: null },
+                    { wp: a.win_probability_v5_1304, rev: null },
+                    { wp: a.win_probability,         rev: a.win_probability_reverse },
+                    { wp: a.win_probability_v3,      rev: a.win_probability_v3_reverse },
+                    { wp: a.win_probability_v4,      rev: a.win_probability_v4_reverse },
+                    { wp: a.win_probability_v5,      rev: a.win_probability_v5_reverse },
+                  ]).map(({ wp, rev }, i) => (
+                    <span key={i} className="mono" style={{ fontSize: 11, color: wpColor(wp), background: i >= 4 ? '#1a2a1a' : 'transparent', borderRadius: 3, padding: '1px 2px' }}>
                       {wp != null ? `%${Number(wp).toFixed(0)}` : '—'}
+                      {rev != null && (
+                        <span style={{ fontSize: 9, color: 'var(--text-3)', marginLeft: 2 }}>
+                          ({Number(rev).toFixed(0)})
+                        </span>
+                      )}
                     </span>
                   ))}
                   <span className={`mono ${a.sim_pnl_usd != null ? pnlClass(Number(a.sim_pnl_usd)) : 'pnl-zero'}`} style={{ fontSize: 11 }}>
