@@ -511,14 +511,14 @@ export default function AnalysisPage() {
             {/* ── SUMMARY SCORE CARDS ──────────────────────────────────────── */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 8, marginBottom: 16 }}>
               {[
-                { label: 'Toplam Analiz', value: overview.total_all, sub: null },
+                { label: 'Toplam Analiz', value: overview.total_all, sub: `L:${overview.long_total} S:${overview.short_total}` },
                 { label: 'Sim Edilen', value: overview.total, sub: null },
                 { label: 'Win Rate', value: `%${Number(overview.win_rate).toFixed(1)}`, color: winColor(Number(overview.win_rate)), sub: null },
-                { label: 'TP Hit', value: overview.tp_count, color: 'var(--green)', sub: `L:${overview.long_tp ?? '—'} S:${overview.short_tp ?? '—'}` },
-                { label: 'SL Hit', value: overview.sl_count, color: 'var(--red)', sub: `L:${overview.long_sl ?? '—'} S:${overview.short_sl ?? '—'}` },
+                { label: 'Toplam R', value: overview.total_pnl != null ? `${Number(overview.total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.total_pnl)).toFixed(0)}` : '—', color: Number(overview.total_pnl) >= 0 ? 'var(--green)' : 'var(--red)', sub: null },
+                { label: 'TP Hit', value: overview.tp_count, color: 'var(--green)', sub: null },
+                { label: 'SL Hit', value: overview.sl_count, color: 'var(--red)', sub: null },
                 { label: 'Expired', value: overview.expired_count, color: 'var(--amber)', sub: null },
                 { label: 'No Entry', value: overview.no_entry_count, color: 'var(--text-2)', sub: null },
-                { label: 'Toplam R', value: overview.total_pnl != null ? `${Number(overview.total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.total_pnl)).toFixed(0)}` : '—', color: Number(overview.total_pnl) >= 0 ? 'var(--green)' : 'var(--red)', sub: null },
               ].map((s, i) => (
                 <div key={i} className="stat-card">
                   <div className="col-label" style={{ marginBottom: 4 }}>{s.label}</div>
@@ -533,12 +533,11 @@ export default function AnalysisPage() {
             {/* Long / Short breakdown */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
               {[
-                { dir: 'LONG', total: overview.long_total, wr: overview.long_win_rate, color: 'var(--green)' },
-                { dir: 'SHORT', total: overview.short_total, wr: overview.short_win_rate, color: 'var(--red)' },
+                { dir: 'LONG',  total: overview.long_total,  wr: overview.long_win_rate,  color: 'var(--green)', tp: overview.tp_count, sl: overview.sl_count },
+                { dir: 'SHORT', total: overview.short_total, wr: overview.short_win_rate, color: 'var(--red)',   tp: overview.tp_count, sl: overview.sl_count },
               ].map(d => (
                 <div key={d.dir} className="card" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span className={`badge badge-${d.dir.toLowerCase()}`}>{d.dir}</span>
-                  <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>n={d.total}</span>
                   <div style={{ flex: 1 }}><WinBar rate={Number(d.wr)} total={Number(d.total)} /></div>
                 </div>
               ))}
@@ -562,6 +561,7 @@ export default function AnalysisPage() {
                         labels: cumR.series.map(p => new Date(p.day).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })),
                         datasets: [
                           {
+                            type: 'line' as const,
                             data: cumR.series.map(p => p.cumulative_r),
                             borderColor: lineColor,
                             borderWidth: 1.5,
@@ -569,36 +569,34 @@ export default function AnalysisPage() {
                             fill: true,
                             backgroundColor: cumR.final_r >= 0 ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)',
                             tension: 0.3,
-                            yAxisID: 'y',
+                            yAxisID: 'yR',
                           },
                           {
-                            data: cumR.series.map(p => p.daily_r),
-                            borderColor: 'rgba(96,165,250,0.4)',
-                            backgroundColor: 'rgba(96,165,250,0.08)',
+                            type: 'bar' as const,
+                            data: cumR.series.map(p => (p as any).trade_count ?? 0),
+                            backgroundColor: 'rgba(96,165,250,0.25)',
+                            borderColor: 'rgba(96,165,250,0.5)',
                             borderWidth: 1,
-                            pointRadius: 0,
-                            fill: false,
-                            tension: 0.3,
-                            yAxisID: 'y',
-                            type: 'bar' as any,
+                            yAxisID: 'yCount',
                           },
                         ],
                       }}
                       options={{
-                        ...CHART_DEFAULTS,
+                        responsive: true,
+                        maintainAspectRatio: false,
                         plugins: {
-                          legend: { display: true, labels: { color: '#555', font: { family: 'DM Mono', size: 9 }, generateLabels: () => [
-                            { text: 'Küm. R', fillStyle: lineColor, strokeStyle: lineColor, lineWidth: 1, hidden: false, index: 0 },
-                            { text: 'Günlük R', fillStyle: 'rgba(96,165,250,0.4)', strokeStyle: 'rgba(96,165,250,0.4)', lineWidth: 1, hidden: false, index: 1 },
-                          ]}},
+                          legend: { display: false },
                           tooltip: { displayColors: false, callbacks: { label: (ctx: any) => {
                             const p = cumR.series[ctx.dataIndex]
-                            return [`Küm: ${p.cumulative_r >= 0 ? '+' : ''}${p.cumulative_r.toFixed(2)}R`, `Günlük: ${p.daily_r >= 0 ? '+' : ''}${p.daily_r.toFixed(2)}R`]
+                            return ctx.datasetIndex === 0
+                              ? `Küm: ${p.cumulative_r >= 0 ? '+' : ''}${p.cumulative_r.toFixed(2)}R`
+                              : `Trade: ${(p as any).trade_count ?? 0}`
                           }}},
                         },
                         scales: {
                           x: { ...axisStyle, ticks: { ...axisStyle.ticks, maxTicksLimit: 12 } },
-                          y: { ...axisStyle, ticks: { ...axisStyle.ticks, callback: (v: any) => `${v}R` } },
+                          yR: { ...axisStyle, position: 'left', ticks: { ...axisStyle.ticks, callback: (v: any) => `${v}R` } },
+                          yCount: { ...axisStyle, position: 'right', grid: { drawOnChartArea: false }, ticks: { ...axisStyle.ticks, stepSize: 1, callback: (v: any) => `${v}` } },
                         },
                       } as any}
                     />
@@ -610,7 +608,7 @@ export default function AnalysisPage() {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <span style={{ width: 12, height: 8, background: 'rgba(96,165,250,0.4)', display: 'inline-block', borderRadius: 1 }} />
-                      <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>Günlük R</span>
+                      <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>Günlük Trade</span>
                     </div>
                   </div>
                 </div>
