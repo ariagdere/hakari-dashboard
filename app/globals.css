@@ -68,6 +68,10 @@ body {
 .row-item:hover { background: var(--bg-3); }
 .row-item:last-child { border-bottom: none; }
 
+.analysis-row { display: grid; grid-template-columns: 128px 66px 60px 52px 50px 50px 50px 50px 76px 62px 60px; align-items: center; padding: 9px 20px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; gap: 6px; }
+.analysis-row:hover { background: var(--bg-3); }
+.analysis-row:last-child { border-bottom: none; }
+
 .col-label { font-size: 10px; color: var(--text-3); font-family: 'DM Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; }
 
 .price { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); }
@@ -121,6 +125,7 @@ body {
   .container { padding: 0 12px; }
 
   .row-item { display: none !important; }
+  .analysis-row { display: none !important; }
   .mobile-card { display: block; }
 
   .scorecard-grid { grid-template-columns: repeat(3, 1fr); }
