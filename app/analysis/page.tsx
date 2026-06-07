@@ -70,6 +70,7 @@ interface Filters {
   sent_liquidity: string
   wait_min: number; wait_max: number
   trade_dur_min: number; trade_dur_max: number
+  r_min: number; r_max: number
 }
 
 interface Preset { name: string; filters: Filters }
@@ -102,6 +103,7 @@ const DEFAULT_FILTERS: Filters = {
   sent_liquidity: '',
   wait_min: 0, wait_max: 4320,
   trade_dur_min: 0, trade_dur_max: 4320,
+  r_min: 0, r_max: 10,
 }
 
 function filtersToParams(f: Filters): URLSearchParams {
@@ -138,6 +140,7 @@ function filtersToParams(f: Filters): URLSearchParams {
   if (f.sent_liquidity)     p.set('sent_liquidity',     f.sent_liquidity)
   p.set('wait_min', String(f.wait_min));           p.set('wait_max', String(f.wait_max))
   p.set('trade_dur_min', String(f.trade_dur_min)); p.set('trade_dur_max', String(f.trade_dur_max))
+  p.set('r_min', String(f.r_min));                 p.set('r_max', String(f.r_max))
   return p
 }
 
@@ -170,6 +173,7 @@ function activeFilterCount(f: Filters): number {
   if (f.sent_synthesis_m5) n++; if (f.sent_liquidity) n++
   if (f.wait_min > 0 || f.wait_max < 4320) n++
   if (f.trade_dur_min > 0 || f.trade_dur_max < 4320) n++
+  if (f.r_min > 0 || f.r_max < 10) n++
   return n
 }
 
@@ -391,10 +395,11 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
       </div>
 
       {sep}
-      <GL c="Zamanlama" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14 }}>
+      <GL c="Trade Dynamics" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
         <RangeRow label="Giris Bekleme (dk)" minKey="wait_min" maxKey="wait_max" min={0} max={4320} step={30} filters={filters} onChange={onChange} />
         <RangeRow label="Trade Suresi (dk)" minKey="trade_dur_min" maxKey="trade_dur_max" min={0} max={4320} step={30} filters={filters} onChange={onChange} />
+        <RangeRow label="Hedef R" minKey="r_min" maxKey="r_max" min={0} max={10} step={0.5} filters={filters} onChange={onChange} />
       </div>
 
       {sep}
@@ -650,6 +655,12 @@ export default function AnalysisPage() {
               <div className="stat-card">
                 <div className="col-label" style={{ marginBottom: 4 }}>No Entry</div>
                 <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--text-2)' }}>{overview.no_entry_count}</div>
+              </div>
+              <div className="stat-card">
+                <div className="col-label" style={{ marginBottom: 4 }}>Avg Win R</div>
+                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>
+                  {overview.avg_r_win != null ? `+${Number(overview.avg_r_win).toFixed(2)}R` : '—'}
+                </div>
               </div>
             </div>
 
