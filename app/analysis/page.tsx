@@ -35,11 +35,8 @@ interface AnalysisSummary {
   entry: number; tp: number; sl: number; rr: string
   sim_result: string; sim_pnl_usd: number; sim_r_multiple: number
   rsi_4h: number | null; rsi_30m: number | null
-  win_probability: number | null; win_probability_v3: number | null
   win_probability_v4: number | null; win_probability_v5: number | null
-  win_probability_1304: number | null; win_probability_v3_1304: number | null
   win_probability_v4_1304: number | null; win_probability_v5_1304: number | null
-  win_probability_reverse: number | null; win_probability_v3_reverse: number | null
   win_probability_v4_reverse: number | null; win_probability_v5_reverse: number | null
 }
 
@@ -51,14 +48,6 @@ interface Filters {
   include_weekdays: boolean; include_weekends: boolean
   rsi_min: number; rsi_max: number
   rsi30_min: number; rsi30_max: number
-  wp_min: number; wp_max: number
-  wp_1304_min: number; wp_1304_max: number
-  wp_rev_min: number; wp_rev_max: number
-  wp_1304_rev_min: number; wp_1304_rev_max: number
-  wp3_min: number; wp3_max: number
-  wp3_1304_min: number; wp3_1304_max: number
-  wp3_rev_min: number; wp3_rev_max: number
-  wp3_1304_rev_min: number; wp3_1304_rev_max: number
   wp4_min: number; wp4_max: number
   wp4_1304_min: number; wp4_1304_max: number
   wp4_rev_min: number; wp4_rev_max: number
@@ -91,14 +80,6 @@ const DEFAULT_FILTERS: Filters = {
   include_weekdays: true, include_weekends: true,
   rsi_min: 0, rsi_max: 100,
   rsi30_min: 0, rsi30_max: 100,
-  wp_min: 0, wp_max: 100,
-  wp_1304_min: 0, wp_1304_max: 100,
-  wp_rev_min: 0, wp_rev_max: 100,
-  wp_1304_rev_min: 0, wp_1304_rev_max: 100,
-  wp3_min: 0, wp3_max: 100,
-  wp3_1304_min: 0, wp3_1304_max: 100,
-  wp3_rev_min: 0, wp3_rev_max: 100,
-  wp3_1304_rev_min: 0, wp3_1304_rev_max: 100,
   wp4_min: 0, wp4_max: 100,
   wp4_1304_min: 0, wp4_1304_max: 100,
   wp4_rev_min: 0, wp4_rev_max: 100,
@@ -133,14 +114,6 @@ function filtersToParams(f: Filters): URLSearchParams {
   if (!f.include_weekends) p.set('exclude_weekends', '1')
   p.set('rsi_min', String(f.rsi_min));   p.set('rsi_max', String(f.rsi_max))
   p.set('rsi30_min', String(f.rsi30_min)); p.set('rsi30_max', String(f.rsi30_max))
-  p.set('wp_min', String(f.wp_min));         p.set('wp_max', String(f.wp_max))
-  p.set('wp_1304_min', String(f.wp_1304_min)); p.set('wp_1304_max', String(f.wp_1304_max))
-  p.set('wp_rev_min', String(f.wp_rev_min));   p.set('wp_rev_max', String(f.wp_rev_max))
-  p.set('wp_1304_rev_min', String(f.wp_1304_rev_min)); p.set('wp_1304_rev_max', String(f.wp_1304_rev_max))
-  p.set('wp3_min', String(f.wp3_min));         p.set('wp3_max', String(f.wp3_max))
-  p.set('wp3_1304_min', String(f.wp3_1304_min)); p.set('wp3_1304_max', String(f.wp3_1304_max))
-  p.set('wp3_rev_min', String(f.wp3_rev_min));   p.set('wp3_rev_max', String(f.wp3_rev_max))
-  p.set('wp3_1304_rev_min', String(f.wp3_1304_rev_min)); p.set('wp3_1304_rev_max', String(f.wp3_1304_rev_max))
   p.set('wp4_min', String(f.wp4_min));         p.set('wp4_max', String(f.wp4_max))
   p.set('wp4_1304_min', String(f.wp4_1304_min)); p.set('wp4_1304_max', String(f.wp4_1304_max))
   p.set('wp4_rev_min', String(f.wp4_rev_min));   p.set('wp4_rev_max', String(f.wp4_rev_max))
@@ -175,14 +148,6 @@ function activeFilterCount(f: Filters): number {
   if (!f.include_weekdays || !f.include_weekends) n++
   if (f.rsi_min > 0 || f.rsi_max < 100) n++
   if (f.rsi30_min > 0 || f.rsi30_max < 100) n++
-  if (f.wp_min > 0 || f.wp_max < 100) n++
-  if (f.wp_1304_min > 0 || f.wp_1304_max < 100) n++
-  if (f.wp_rev_min > 0 || f.wp_rev_max < 100) n++
-  if (f.wp_1304_rev_min > 0 || f.wp_1304_rev_max < 100) n++
-  if (f.wp3_min > 0 || f.wp3_max < 100) n++
-  if (f.wp3_1304_min > 0 || f.wp3_1304_max < 100) n++
-  if (f.wp3_rev_min > 0 || f.wp3_rev_max < 100) n++
-  if (f.wp3_1304_rev_min > 0 || f.wp3_1304_rev_max < 100) n++
   if (f.wp4_min > 0 || f.wp4_max < 100) n++
   if (f.wp4_1304_min > 0 || f.wp4_1304_max < 100) n++
   if (f.wp4_rev_min > 0 || f.wp4_rev_max < 100) n++
@@ -372,8 +337,6 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
       {sep}
       <GL c="Win Probability" />
       {([
-        { label: 'V1', keys: ['wp', 'wp_1304', 'wp_rev', 'wp_1304_rev'] as const },
-        { label: 'V3', keys: ['wp3', 'wp3_1304', 'wp3_rev', 'wp3_1304_rev'] as const },
         { label: 'V4', keys: ['wp4', 'wp4_1304', 'wp4_rev', 'wp4_1304_rev'] as const },
         { label: 'V5', keys: ['wp5', 'wp5_1304', 'wp5_rev', 'wp5_1304_rev'] as const },
       ] as const).map(model => (
@@ -815,7 +778,7 @@ export default function AnalysisPage() {
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   WIN PROBABILITY KALİBRASYONU
                 </div>
-                {(['v1','v3','v4','v5'] as const).map(v => {
+                {(['v4','v5'] as const).map(v => {
                   const VERSIONS = [
                     { key: `${v}`,          label: 'Latest' },
                     { key: `${v}_1304`,     label: '1304' },
@@ -942,10 +905,10 @@ export default function AnalysisPage() {
                 <span className="col-label">SL</span>
                 <span className="col-label">R/R</span>
                 <span className="col-label">RSI</span>
-                {['V1 1304','V3 1304','V4 1304','V5 1304'].map(h => (
+                {['V4 1304','V5 1304'].map(h => (
                   <span key={h} className="col-label" style={{ background: '#1e1e1e', marginTop: -9, marginBottom: -9, paddingTop: 9, paddingBottom: 9 }}>{h}</span>
                 ))}
-                {['V1 (Rev)','V3 (Rev)','V4 (Rev)','V5 (Rev)'].map(h => (
+                {['V4 (Rev)','V5 (Rev)'].map(h => (
                   <span key={h} className="col-label" style={{ background: '#141f14', marginTop: -9, marginBottom: -9, paddingTop: 9, paddingBottom: 9 }}>{h}</span>
                 ))}
                 <span className="col-label">PnL</span>
@@ -967,12 +930,8 @@ export default function AnalysisPage() {
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rr}</span>
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span>
                   {([
-                    { wp: a.win_probability_1304,    rev: null,                        bg: '#1e1e1e' },
-                    { wp: a.win_probability_v3_1304, rev: null,                        bg: '#1e1e1e' },
                     { wp: a.win_probability_v4_1304, rev: null,                        bg: '#1e1e1e' },
                     { wp: a.win_probability_v5_1304, rev: null,                        bg: '#1e1e1e' },
-                    { wp: a.win_probability,         rev: a.win_probability_reverse,    bg: '#141f14' },
-                    { wp: a.win_probability_v3,      rev: a.win_probability_v3_reverse, bg: '#141f14' },
                     { wp: a.win_probability_v4,      rev: a.win_probability_v4_reverse, bg: '#141f14' },
                     { wp: a.win_probability_v5,      rev: a.win_probability_v5_reverse, bg: '#141f14' },
                   ]).map(({ wp, rev, bg }, i) => (
