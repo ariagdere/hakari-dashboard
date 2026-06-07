@@ -609,7 +609,7 @@ export default function AnalysisPage() {
         {!loading && overview && (
           <>
             {/* ── SUMMARY SCORE CARDS ──────────────────────────────────────── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 8, marginBottom: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9, minmax(0, 1fr))', gap: 8, marginBottom: 16 }}>
               <div className="stat-card">
                 <div className="col-label" style={{ marginBottom: 4 }}>Toplam Analiz</div>
                 <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{overview.total_all}</div>
