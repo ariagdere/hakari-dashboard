@@ -292,21 +292,22 @@ function RangeRow({ label, minKey, maxKey, min, max, step = 1, filters, onChange
   )
 }
 
-function ToggleGroup({ label, field, options, filters, onChange }: {
+function ToggleGroup({ label, field, options, filters, onChange, nowrap }: {
   label: string; field: keyof Filters; options: string[]
   filters: Filters; onChange: (f: Filters) => void
+  nowrap?: boolean
 }) {
   const set = (k: keyof Filters, v: any) => onChange({ ...filters, [k]: v })
   return (
     <div>
       <div className="col-label" style={{ marginBottom: 5, fontSize: 10 }}>{label}</div>
-      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 4, flexWrap: nowrap ? 'nowrap' : 'wrap' }}>
         <button className={`filter-btn${!filters[field] ? ' active' : ''}`} style={{ fontSize: 10, padding: '2px 8px' }} onClick={() => set(field, '')}>TÜM</button>
         {options.map(o => (
           <button key={o} className={`filter-btn${filters[field] === o ? ' active' : ''}`}
-            style={{ fontSize: 10, padding: '2px 8px' }}
+            style={{ fontSize: 10, padding: '2px 6px' }}
             onClick={() => set(field, filters[field] === o ? '' : o)}>
-            {o.replace('_pressure', '')}
+            {o.replace('_pressure', '').replace('_HIT', '').replace('NO_ENTRY', 'N/E')}
           </button>
         ))}
       </div>
@@ -324,9 +325,9 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       <GL c="Temel Filtreler" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
         <ToggleGroup label="Direction" field="direction" options={['LONG','SHORT','WAIT']} filters={filters} onChange={onChange} />
-        <ToggleGroup label="Sonuç" field="sim_result" options={['TP_HIT','SL_HIT','EXPIRED','NO_ENTRY']} filters={filters} onChange={onChange} />
+        <ToggleGroup label="Sonuç" field="sim_result" options={['TP_HIT','SL_HIT','EXPIRED','NO_ENTRY']} filters={filters} onChange={onChange} nowrap />
         <div>
           <div className="col-label" style={{ marginBottom: 5, fontSize: 10 }}>Tarih aralığı</div>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
@@ -369,7 +370,7 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
       ] as const).map(model => (
         <div key={model.label} style={{ marginBottom: 14 }}>
           <div className="col-label" style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 8 }}>{model.label}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+          <div className="wp-model-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
             {(['Latest', '1304', 'Latest Rev', '1304 Rev'] as const).map((suffix, i) => {
               const base = model.keys[i]
               const minKey = `${base}_min` as keyof Filters
@@ -746,8 +747,8 @@ export default function AnalysisPage() {
 
             {/* ── RSI WIN RATE TABLOLARI ───────────────────────────────────── */}
             {scoring && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-                <div className="card" style={{ padding: 16 }}>
+              <div className="rsi-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+                <div className="card" style={{ padding: 16, overflowX: 'auto' }}>
                   <div className="col-label" style={{ marginBottom: 12 }}>RSI 4H Zonu → Win Rate</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: 6, marginBottom: 6 }}>
                     <div />
@@ -866,7 +867,7 @@ export default function AnalysisPage() {
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   DELTA ANALİZİ (BAŞLANGIÇ → ANLIK DEĞİŞİM)
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 12 }}>
+                <div className="delta-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 12 }}>
                   {Object.entries(deltaData).map(([key, rows]) => {
                     if (!rows || rows.length === 0) return null
                     const label = rows[0]?.label || key
@@ -956,6 +957,47 @@ export default function AnalysisPage() {
                     {fmtR(a.sim_r_multiple, a.sim_result)}
                   </span>
                   <span>{resultBadge(a.sim_result)}</span>
+                </div>
+              ))}
+
+              {analyses.map(a => (
+                <div key={`m-${a.id}`} className="mobile-card" onClick={() => router.push(`/dashboard/${a.id}`)}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {dirBadge(a.direction)}
+                      {resultBadge(a.sim_result)}
+                    </div>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{fmtDate(a.analyzed_at)}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
+                    <div><span className="col-label">R/R </span><span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rr}</span></div>
+                    <div><span className="col-label">RSI4H </span><span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span></div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
+                    {([
+                      { wp: a.win_probability,    label: 'V1' },
+                      { wp: a.win_probability_v3, label: 'V3' },
+                      { wp: a.win_probability_v4, label: 'V4' },
+                      { wp: a.win_probability_v5, label: 'V5' },
+                    ] as const).map(({ wp, label }) => (
+                      <div key={label}>
+                        <span className="col-label">{label} </span>
+                        <span className="mono" style={{ fontSize: 12, color: wpColor(wp) }}>
+                          {wp != null ? `%${Number(wp).toFixed(0)}` : '—'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {a.sim_pnl_usd != null && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span className={`mono ${pnlClass(Number(a.sim_pnl_usd))}`} style={{ fontSize: 13, fontWeight: 500 }}>
+                        {Number(a.sim_pnl_usd) > 0 ? '+' : ''}${Math.abs(Number(a.sim_pnl_usd)).toFixed(2)}
+                      </span>
+                      <span className={`mono ${pnlClass(a.sim_result === 'SL_HIT' ? -1 : Number(a.sim_r_multiple))}`} style={{ fontSize: 11 }}>
+                        {fmtR(a.sim_r_multiple, a.sim_result)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
