@@ -44,6 +44,7 @@ interface AnalysisSummary {
 interface Filters {
   direction: string; sim_result: string
   date_from: string; date_to: string
+  include_weekdays: boolean; include_weekends: boolean
   rsi_min: number; rsi_max: number
   rsi30_min: number; rsi30_max: number
   wp_min: number; wp_max: number
@@ -81,6 +82,7 @@ interface Preset { name: string; filters: Filters }
 const DEFAULT_FILTERS: Filters = {
   direction: '', sim_result: '',
   date_from: '', date_to: '',
+  include_weekdays: true, include_weekends: true,
   rsi_min: 0, rsi_max: 100,
   rsi30_min: 0, rsi30_max: 100,
   wp_min: 0, wp_max: 100,
@@ -119,6 +121,8 @@ function filtersToParams(f: Filters): URLSearchParams {
   if (f.sim_result)  p.set('sim_result', f.sim_result)
   if (f.date_from)   p.set('date_from',  f.date_from)
   if (f.date_to)     p.set('date_to',    f.date_to)
+  if (!f.include_weekdays) p.set('exclude_weekdays', '1')
+  if (!f.include_weekends) p.set('exclude_weekends', '1')
   p.set('rsi_min', String(f.rsi_min));   p.set('rsi_max', String(f.rsi_max))
   p.set('rsi30_min', String(f.rsi30_min)); p.set('rsi30_max', String(f.rsi30_max))
   p.set('wp_min', String(f.wp_min));         p.set('wp_max', String(f.wp_max))
@@ -158,6 +162,7 @@ function activeFilterCount(f: Filters): number {
   let n = 0
   if (f.direction) n++; if (f.sim_result) n++
   if (f.date_from || f.date_to) n++
+  if (!f.include_weekdays || !f.include_weekends) n++
   if (f.rsi_min > 0 || f.rsi_max < 100) n++
   if (f.rsi30_min > 0 || f.rsi30_max < 100) n++
   if (f.wp_min > 0 || f.wp_max < 100) n++
@@ -324,12 +329,32 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
         <ToggleGroup label="Sonuç" field="sim_result" options={['TP_HIT','SL_HIT','EXPIRED','NO_ENTRY']} filters={filters} onChange={onChange} />
         <div>
           <div className="col-label" style={{ marginBottom: 5, fontSize: 10 }}>Tarih aralığı</div>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
             <input type="date" value={filters.date_from} onChange={e => onChange({ ...filters, date_from: e.target.value })}
               style={{ flex: 1, background: 'var(--bg-3)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)', fontSize: 10, padding: '3px 6px', fontFamily: 'DM Mono, monospace' }} />
             <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>–</span>
             <input type="date" value={filters.date_to} onChange={e => onChange({ ...filters, date_to: e.target.value })}
               style={{ flex: 1, background: 'var(--bg-3)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)', fontSize: 10, padding: '3px 6px', fontFamily: 'DM Mono, monospace' }} />
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {([
+              { key: 'include_weekdays' as const, label: 'Weekdays' },
+              { key: 'include_weekends' as const, label: 'Weekend' },
+            ]).map(({ key, label }) => (
+              <button
+                key={key}
+                className={`filter-btn${filters[key] ? ' active' : ''}`}
+                style={{ fontSize: 10, padding: '2px 10px' }}
+                onClick={() => {
+                  const next = { ...filters, [key]: !filters[key] }
+                  // en az biri seçili olmalı
+                  if (!next.include_weekdays && !next.include_weekends) return
+                  onChange(next)
+                }}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -890,18 +915,15 @@ export default function AnalysisPage() {
             </div>
 
             <div className="card">
-              <div className="row-item" style={{ cursor: 'default' }}>
+              <div className="analysis-row" style={{ cursor: 'default' }}>
                 <span className="col-label">Tarih</span>
                 <span className="col-label">Yön</span>
-                <span className="col-label">Giriş</span>
-                <span className="col-label">TP</span>
-                <span className="col-label">SL</span>
                 <span className="col-label">R/R</span>
                 <span className="col-label">RSI 4H</span>
-                <span className="col-label">RSI 30M</span>
-                <span className="col-label">WP</span>
-                <span className="col-label">WP V3</span>
-                <span className="col-label">WP V4</span>
+                <span className="col-label">V1</span>
+                <span className="col-label">V3</span>
+                <span className="col-label">V4</span>
+                <span className="col-label">V5</span>
                 <span className="col-label">PnL</span>
                 <span className="col-label">R</span>
                 <span className="col-label">Sonuç</span>
@@ -912,24 +934,21 @@ export default function AnalysisPage() {
               )}
 
               {analyses.map(a => (
-                <div key={a.id} className="row-item" onClick={() => router.push(`/dashboard/${a.id}`)}>
+                <div key={a.id} className="analysis-row" onClick={() => router.push(`/dashboard/${a.id}`)}>
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{fmtDate(a.analyzed_at)}</span>
                   <span>{dirBadge(a.direction)}</span>
-                  <span className="price">${fmt(a.entry)}</span>
-                  <span className="price" style={{ color: 'var(--green)' }}>${fmt(a.tp)}</span>
-                  <span className="price" style={{ color: 'var(--red)' }}>${fmt(a.sl)}</span>
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rr}</span>
                   <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span>
-                  <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rsi_30m != null ? Number(a.rsi_30m).toFixed(1) : '—'}</span>
-                  <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability) }}>
-                    {a.win_probability != null ? `%${Number(a.win_probability).toFixed(0)}` : '—'}
-                  </span>
-                  <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability_v3) }}>
-                    {a.win_probability_v3 != null ? `%${Number(a.win_probability_v3).toFixed(0)}` : '—'}
-                  </span>
-                  <span className="mono" style={{ fontSize: 12, color: wpColor(a.win_probability_v4) }}>
-                    {a.win_probability_v4 != null ? `%${Number(a.win_probability_v4).toFixed(0)}` : '—'}
-                  </span>
+                  {([
+                    { wp: a.win_probability,    label: 'V1' },
+                    { wp: a.win_probability_v3, label: 'V3' },
+                    { wp: a.win_probability_v4, label: 'V4' },
+                    { wp: a.win_probability_v5, label: 'V5' },
+                  ] as const).map(({ wp, label }) => (
+                    <span key={label} className="mono" style={{ fontSize: 12, color: wpColor(wp) }}>
+                      {wp != null ? `%${Number(wp).toFixed(0)}` : '—'}
+                    </span>
+                  ))}
                   <span className={`mono ${a.sim_pnl_usd != null ? pnlClass(Number(a.sim_pnl_usd)) : 'pnl-zero'}`} style={{ fontSize: 12 }}>
                     {a.sim_pnl_usd != null ? `${Number(a.sim_pnl_usd) > 0 ? '+' : ''}$${Math.abs(Number(a.sim_pnl_usd)).toFixed(2)}` : '—'}
                   </span>
