@@ -68,7 +68,7 @@ body {
 .row-item:hover { background: var(--bg-3); }
 .row-item:last-child { border-bottom: none; }
 
-.analysis-row { display: grid; grid-template-columns: 110px 54px 72px 64px 64px 48px 44px 46px 46px 46px 46px 52px 52px 52px 52px 68px 52px 50px; align-items: center; padding: 9px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; gap: 4px; }
+.analysis-row { overflow: hidden; display: grid; grid-template-columns: 110px 54px 72px 64px 64px 48px 44px 46px 46px 46px 46px 52px 52px 52px 52px 68px 52px 50px; align-items: center; padding: 9px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; gap: 4px; }
 .analysis-row:hover { background: var(--bg-3); }
 .analysis-row:last-child { border-bottom: none; }
 
