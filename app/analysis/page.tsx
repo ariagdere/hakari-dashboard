@@ -347,7 +347,7 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
                 { key: 'include_weekdays' as const, label: 'Weekdays' },
                 { key: 'include_weekends' as const, label: 'Weekend' },
               ]).map(({ key, label }) => (
-                <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', userSelect: 'none' }}
+                <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', userSelect: 'none' as const }}
                   onClick={() => {
                     const next = { ...filters, [key]: !filters[key] }
                     if (!next.include_weekdays && !next.include_weekends) return
