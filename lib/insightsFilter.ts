@@ -122,6 +122,10 @@ export function buildInsightsWhere(req: NextRequest): { where: string; params: a
     params.push(Number(waitMax))
   }
 
+  const rMin = s.get('r_min'); const rMax = s.get('r_max')
+  if (rMin && Number(rMin) > 0)   { conditions.push(`SPLIT_PART(rr, ':', 1)::numeric >= $${i++}`); params.push(Number(rMin)) }
+  if (rMax && Number(rMax) < 10)  { conditions.push(`SPLIT_PART(rr, ':', 1)::numeric <= $${i++}`); params.push(Number(rMax)) }
+
   const sentFields = [
     'sent_synthesis_mtf','sent_synthesis_h1','sent_synthesis_m5',
     'sent_h1_ls_ratio','sent_h1_tt_accounts','sent_h1_tt_positions',
