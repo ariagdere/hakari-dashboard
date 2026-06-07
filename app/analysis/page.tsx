@@ -9,7 +9,7 @@ import { Bar, Line, Chart } from 'react-chartjs-2'
 
 ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, BarElement, Filler, ArcElement)
 
-// ── Types ──────────────────────────────────────────────────────────────────
+// -- Types --
 
 interface Overview {
   total: number; total_all: number; tp_count: number; sl_count: number
@@ -45,7 +45,7 @@ interface AnalysisSummary {
   win_probability_v5_reverse: number | null
 }
 
-// ── Filters ────────────────────────────────────────────────────────────────
+// -- Filters --
 
 interface Filters {
   direction: string; sim_result: string
@@ -202,7 +202,7 @@ function activeFilterCount(f: Filters): number {
   return n
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
+// -- Helpers --
 
 const CHART_DEFAULTS = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
 const axisStyle = { grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 10 } }, border: { color: '#242424' } }
@@ -258,7 +258,7 @@ const resultBadge = (r: string) => {
   return <span className="badge badge-ne">N/E</span>
 }
 
-// ── Filter Panel ───────────────────────────────────────────────────────────
+// -- Filter Panel --
 
 function RangeRow({ label, minKey, maxKey, min, max, step = 1, filters, onChange }: {
   label: string; minKey: keyof Filters; maxKey: keyof Filters
@@ -439,7 +439,7 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
   )
 }
 
-// ── Main Page ──────────────────────────────────────────────────────────────
+// -- Main Page --
 
 export default function AnalysisPage() {
   const router = useRouter()
@@ -546,7 +546,7 @@ export default function AnalysisPage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 64 }}>
       <div className="container" style={{ paddingTop: 24 }}>
 
-        {/* ── PRESET BAR ─────────────────────────────────────────────────── */}
+        {/* -- PRESET BAR ---- */}
         {presets.length > 0 && (
           <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
             <span className="col-label" style={{ fontSize: 9 }}>PRESET</span>
@@ -560,13 +560,13 @@ export default function AnalysisPage() {
                 <button
                   onClick={() => deletePreset(p.name)}
                   style={{ padding: '2px 6px', fontSize: 10, fontFamily: 'DM Mono, monospace', background: 'transparent', border: '1px solid var(--border)', borderLeft: 'none', borderRadius: '0 4px 4px 0', color: 'var(--text-3)', cursor: 'pointer' }}
-                >×</button>
+                >x</button>
               </div>
             ))}
           </div>
         )}
 
-        {/* ── FİLTRE PANEL ───────────────────────────────────────────────── */}
+        {/* -- FILTRE PANEL ---- */}
         <div className="card" style={{ padding: 16, marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -622,7 +622,7 @@ export default function AnalysisPage() {
 
         {!loading && overview && (
           <>
-            {/* ── SUMMARY SCORE CARDS ──────────────────────────────────────── */}
+            {/* -- SUMMARY SCORE CARDS ---- */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 8, marginBottom: 16 }}>
               <div className="stat-card">
                 <div className="col-label" style={{ marginBottom: 4 }}>Toplam Analiz</div>
@@ -684,13 +684,13 @@ export default function AnalysisPage() {
               </div>
             </div>
 
-            {/* ── KÜMÜLATİF R + GÜNLÜK TRADE ─────────────────────────────── */}
+            {/* -- KUMULATIF R + GUNLUK TRADE ---- */}
             {cumR && cumR.series.length > 0 && (() => {
               const lineColor = cumR.final_r >= 0 ? '#4ade80' : '#f87171'
               return (
                 <div className="card" style={{ padding: 16, marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <div className="col-label">Kümülatif R</div>
+                    <div className="col-label">Kumulatif R</div>
                     <div style={{ display: 'flex', gap: 16 }}>
                       <span className="mono" style={{ fontSize: 11, color: 'var(--red)' }}>Max DD: {cumR.max_drawdown.toFixed(2)}R</span>
                       <span className="mono" style={{ fontSize: 11, color: lineColor, fontWeight: 600 }}>{cumR.final_r >= 0 ? '+' : ''}{cumR.final_r.toFixed(2)}R</span>
@@ -746,7 +746,7 @@ export default function AnalysisPage() {
                   <div style={{ display: 'flex', gap: 16, marginTop: 8, justifyContent: 'flex-end' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <span style={{ width: 12, height: 2, background: lineColor, display: 'inline-block', borderRadius: 1 }} />
-                      <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>Kümülatif R</span>
+                      <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>Kumulatif R</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <span style={{ width: 12, height: 8, background: 'rgba(96,165,250,0.4)', display: 'inline-block', borderRadius: 1 }} />
@@ -757,7 +757,7 @@ export default function AnalysisPage() {
               )
             })()}
 
-            {/* ── RSI WIN RATE TABLOLARI ───────────────────────────────────── */}
+            {/* -- RSI WIN RATE TABLOLARI ---- */}
             {scoring && (
               <div className="rsi-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
                 <div className="card" style={{ padding: 16, overflowX: 'auto' }}>
@@ -803,11 +803,11 @@ export default function AnalysisPage() {
               </div>
             )}
 
-            {/* ── WIN PROBABILITY KALİBRASYON TABLOSU ─────────────────────── */}
+            {/* -- WIN PROBABILITY KALIBRASYON TABLOSU ---- */}
             {wpAll && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  WIN PROBABILITY KALİBRASYONU
+                  WIN PROBABILITY KALIBRASYONU
                 </div>
                 {(['v1','v3','v4','v5'] as const).map(v => {
                   const VERSIONS = [
@@ -873,11 +873,11 @@ export default function AnalysisPage() {
               </div>
             )}
 
-            {/* ── DELTA ANALİZİ ────────────────────────────────────────────── */}
+            {/* -- DELTA ANALIZI ---- */}
             {deltaData && Object.keys(deltaData).length > 0 && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  DELTA ANALİZİ (BAŞLANGIÇ → ANLIK DEĞİŞİM)
+                  DELTA ANALIZI (Baslangic - Anlik Degisim)
                 </div>
                 <div className="delta-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 12 }}>
                   {Object.entries(deltaData).map(([key, rows]) => {
@@ -917,10 +917,10 @@ export default function AnalysisPage() {
               </div>
             )}
 
-            {/* ── ANALİZ LİSTESİ ───────────────────────────────────────────── */}
+            {/* -- ANALIZ LISTESI ---- */}
             <div style={{ marginBottom: 12 }}>
               <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                ANALİZ LİSTESİ
+                ANALIZ LISTESI
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
                 <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{total} kayıt</span>
