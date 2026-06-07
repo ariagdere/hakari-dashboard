@@ -26,6 +26,16 @@ export function buildInsightsWhere(req: NextRequest): { where: string; params: a
   if (dateFrom) { conditions.push(`analyzed_at >= $${i++}`); params.push(dateFrom) }
   if (dateTo)   { conditions.push(`analyzed_at <= $${i++}`); params.push(dateTo + 'T23:59:59') }
 
+  const excludeWeekdays = s.get('exclude_weekdays') === '1'
+  const excludeWeekends = s.get('exclude_weekends') === '1'
+  if (excludeWeekends && !excludeWeekdays) {
+    // sadece hafta içi
+    conditions.push(`EXTRACT(DOW FROM analyzed_at AT TIME ZONE 'UTC') NOT IN (0, 6)`)
+  } else if (excludeWeekdays && !excludeWeekends) {
+    // sadece hafta sonu
+    conditions.push(`EXTRACT(DOW FROM analyzed_at AT TIME ZONE 'UTC') IN (0, 6)`)
+  }
+
   range('market_score_value', s.get('score_min'), s.get('score_max'), 1, 10)
   range('confidence_value',   s.get('conf_min'),  s.get('conf_max'),  0, 100)
   range('rsi_4h',             s.get('rsi_min'),   s.get('rsi_max'),   0, 100)
