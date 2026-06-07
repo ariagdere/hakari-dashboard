@@ -5,7 +5,7 @@ import {
   Chart as ChartJS, Tooltip, LineElement, PointElement,
   LinearScale, CategoryScale, BarElement, Filler, ArcElement,
 } from 'chart.js'
-import { Bar, Line, Chart } from 'react-chartjs-2'
+import { Bar, Line, Chart, Scatter } from 'react-chartjs-2'
 
 ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, BarElement, Filler, ArcElement)
 
@@ -30,6 +30,12 @@ interface CumRPoint { day: string; cumulative_r: number; daily_r: number }
 interface CumRData { series: CumRPoint[]; max_drawdown: number; final_r: number }
 interface WpBucket { bucket: string; sort_order: number; avg_predicted: number; total: number; wins: number; win_rate: number; total_r: number | null }
 interface WpAllData { [key: string]: WpBucket[] }
+interface SweepPoint { r: number; pnl: number; wins: number; losses: number; win_rate: number }
+interface OptimalRData { sweep: SweepPoint[]; optimal_r: number | null; optimal_pnl: number; optimal_wins: number; optimal_losses: number; optimal_win_rate: number; current_avg_r: number | null; total_trades: number }
+interface RHistRow   { sim_result: string; r_bucket: number; count: number }
+interface ScatterRow { id: number; sim_result: string; mfe: number; mae: number; r_multiple: number }
+interface TargetRRow { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; total_r: number | null; avg_target_r: number }
+interface RmaeData   { r_histogram: RHistRow[]; scatter: ScatterRow[]; target_r_distribution: TargetRRow[] }
 interface AnalysisSummary {
   id: number; analyzed_at: string; direction: string
   entry: number; tp: number; sl: number; rr: string
@@ -423,6 +429,8 @@ export default function AnalysisPage() {
   const [deltaData, setDeltaData] = useState<DeltaData | null>(null)
   const [cumR,      setCumR]      = useState<CumRData | null>(null)
   const [wpAll,     setWpAll]     = useState<WpAllData | null>(null)
+  const [optimalR,  setOptimalR]  = useState<OptimalRData | null>(null)
+  const [rmae,      setRmae]      = useState<RmaeData | null>(null)
   const [analyses,  setAnalyses]  = useState<AnalysisSummary[]>([])
   const [loading,   setLoading]   = useState(true)
   const [filterOpen, setFilterOpen] = useState(false)
@@ -475,13 +483,17 @@ export default function AnalysisPage() {
       fetch(`/api/insights-delta${qs}`,         { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/insights-cumr${qs}`,          { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/insights-winprob-all${qs}`,   { cache: 'no-store' }).then(r => r.json()),
+      fetch(`/api/insights-optimal-r${qs}`,     { cache: 'no-store' }).then(r => r.json()),
+      fetch(`/api/insights-rmae${qs}`,          { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/analyses?${p}&page=${pg}`,    { cache: 'no-store' }).then(r => r.json()),
-    ]).then(([ov, sc, delta, cr, wpa, an]) => {
+    ]).then(([ov, sc, delta, cr, wpa, optR, rm, an]) => {
       setOverview(ov)
       setScoring(sc)
       setDeltaData(delta)
       setCumR(cr)
       setWpAll(wpa)
+      setOptimalR(optR)
+      setRmae(rm)
       setAnalyses(an.analyses)
       setTotalPages(an.totalPages)
       setTotal(an.total)
@@ -597,7 +609,7 @@ export default function AnalysisPage() {
         {!loading && overview && (
           <>
             {/* ── SUMMARY SCORE CARDS ──────────────────────────────────────── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 8, marginBottom: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 8, marginBottom: 16 }}>
               <div className="stat-card">
                 <div className="col-label" style={{ marginBottom: 4 }}>Toplam Analiz</div>
                 <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{overview.total_all}</div>
@@ -850,6 +862,111 @@ export default function AnalysisPage() {
                     </div>
                   )
                 })}
+              </div>
+            )}
+
+            {/* ── OPTIMAL R ────────────────────────────────────────────────── */}
+            {optimalR && optimalR.sweep.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+                  OPTIMAL R ANALIZI
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 8, marginBottom: 12 }}>
+                  {[
+                    { label: 'Optimal R', value: optimalR.optimal_r != null ? `${optimalR.optimal_r}R` : '—', color: 'var(--amber)' },
+                    { label: 'Mevcut R',  value: optimalR.current_avg_r != null ? `${optimalR.current_avg_r}R` : '—', color: optimalR.current_avg_r != null && optimalR.optimal_r != null && optimalR.current_avg_r >= optimalR.optimal_r ? 'var(--green)' : 'var(--red)' },
+                    { label: 'P/L',       value: `${optimalR.optimal_pnl > 0 ? '+' : ''}$${Math.abs(optimalR.optimal_pnl).toFixed(0)}`, color: optimalR.optimal_pnl > 0 ? 'var(--green)' : 'var(--red)' },
+                    { label: 'Win%',      value: `%${optimalR.optimal_win_rate}`, color: winColor(optimalR.optimal_win_rate) },
+                    { label: 'Win',       value: optimalR.optimal_wins,   color: 'var(--green)' },
+                    { label: 'Loss',      value: optimalR.optimal_losses, color: 'var(--red)' },
+                    { label: 'Toplam',    value: optimalR.total_trades,   color: 'var(--text)' },
+                  ].map((c, i) => (
+                    <div key={i} className="stat-card">
+                      <div className="col-label" style={{ marginBottom: 4 }}>{c.label}</div>
+                      <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: c.color }}>{c.value}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="card" style={{ padding: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <div className="col-label">R sweep — her TP hedefinde toplam P/L</div>
+                    <div style={{ display: 'flex', gap: 16 }}>
+                      {optimalR.optimal_r != null && <span className="mono" style={{ fontSize: 10, color: 'var(--amber)' }}>peak: {optimalR.optimal_r}R → ${optimalR.optimal_pnl > 0 ? '+' : ''}{optimalR.optimal_pnl.toFixed(0)}</span>}
+                      {optimalR.current_avg_r != null && <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>mevcut: {optimalR.current_avg_r}R</span>}
+                    </div>
+                  </div>
+                  <div style={{ height: 180 }}>
+                    <Bar
+                      data={{
+                        labels: optimalR.sweep.map(p => `${p.r}R`),
+                        datasets: [{ label: 'P/L', data: optimalR.sweep.map(p => p.pnl),
+                          backgroundColor: optimalR.sweep.map(p => p.r === optimalR.optimal_r ? 'rgba(251,191,36,0.7)' : p.pnl > 0 ? 'rgba(74,222,128,0.3)' : 'rgba(248,113,113,0.3)'),
+                          borderColor: optimalR.sweep.map(p => p.r === optimalR.optimal_r ? '#fbbf24' : p.pnl > 0 ? '#4ade80' : '#f87171'),
+                          borderWidth: 1 }],
+                      }}
+                      options={{ ...CHART_DEFAULTS, plugins: { legend: { display: false }, tooltip: { displayColors: false, callbacks: { title: (i: any) => `TP: ${i[0].label}`,
+                        afterBody: (i: any) => { const p = optimalR.sweep[i[0].dataIndex]; return [`P/L: ${p.pnl > 0 ? '+' : ''}$${p.pnl.toFixed(0)}`, `Win: ${p.wins} / Loss: ${p.losses}`, `Win%: ${p.win_rate}`] } } } },
+                        scales: { x: { ...axisStyle, ticks: { ...axisStyle.ticks, maxTicksLimit: 14 } }, y: { ...axisStyle, ticks: { ...axisStyle.ticks, callback: (v: any) => `$${v}` } } } } as any}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── R MULTIPLE & MFE/MAE ─────────────────────────────────────── */}
+            {rmae && (rmae.r_histogram?.length > 0 || rmae.target_r_distribution?.length > 0) && (
+              <div style={{ marginBottom: 16 }}>
+                <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+                  R MULTIPLE & MFE/MAE
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                  {rmae.r_histogram?.length > 0 && (
+                    <div className="card" style={{ padding: 16 }}>
+                      <div className="col-label" style={{ marginBottom: 10 }}>R multiple dagilimi</div>
+                      <div style={{ height: 180 }}>
+                        <Bar data={{ labels: Array.from(new Set(rmae.r_histogram.map(r => r.r_bucket))).sort((a,b) => a-b).map(b => `+${b}R`),
+                          datasets: [{ label: 'TP', data: Array.from(new Set(rmae.r_histogram.map(r => r.r_bucket))).sort((a,b) => a-b).map(b => rmae.r_histogram.find(r => r.r_bucket === b)?.count ?? 0),
+                            backgroundColor: 'rgba(74,222,128,0.4)', borderColor: '#4ade80', borderWidth: 1 }] }}
+                          options={{ ...CHART_DEFAULTS, plugins: { legend: { display: false } }, scales: { x: axisStyle, y: { ...axisStyle, ticks: { ...axisStyle.ticks, stepSize: 1 } } } } as any}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {rmae.scatter?.length > 0 && (
+                    <div className="card" style={{ padding: 16 }}>
+                      <div className="col-label" style={{ marginBottom: 10 }}>MFE vs MAE — TP tradeler ($)</div>
+                      <div style={{ height: 180 }}>
+                        <Scatter
+                          data={{ datasets: [
+                            { label: 'TP', data: rmae.scatter.filter(r => r.sim_result === 'TP_HIT').map(r => ({ x: +Number(r.mae).toFixed(2), y: +Number(r.mfe).toFixed(2) })), backgroundColor: 'rgba(74,222,128,0.7)', pointRadius: 4 },
+                            { label: 'x=y', data: Array.from({length: 21}, (_, i) => ({ x: i*25/20, y: i*25/20 })), backgroundColor: 'rgba(0,0,0,0)', borderColor: 'rgba(255,255,255,0.2)', pointRadius: 1, showLine: true, borderDash: [4,4] } as any,
+                          ]}}
+                          options={{ ...CHART_DEFAULTS, plugins: { legend: { display: false }, tooltip: { displayColors: false, callbacks: { label: (c: any) => c.dataset.label === 'x=y' ? '' : `MAE: $${c.parsed.x} / MFE: $${c.parsed.y}` } } },
+                            scales: { x: { ...axisStyle, min: 0, max: 25, title: { display: true, text: 'MAE ($)', color: '#555', font: { family: 'DM Mono', size: 9 } } }, y: { ...axisStyle, min: 0, title: { display: true, text: 'MFE ($)', color: '#555', font: { family: 'DM Mono', size: 9 } } } } } as any}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {rmae.target_r_distribution?.length > 0 && (
+                  <div className="card" style={{ padding: 16 }}>
+                    <div className="col-label" style={{ marginBottom: 10 }}>Hedef R araligina gore sonuclar</div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace' }}>
+                      <thead><tr>{['Hedef R', 'n', 'Win%', 'Toplam R', 'Ort. Hedef R'].map((h, i) => (
+                        <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
+                      ))}</tr></thead>
+                      <tbody>{rmae.target_r_distribution.map((row, i) => (
+                        <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                          <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{row.bucket}</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{row.total}</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(row.win_rate)) }}>{Number(row.win_rate).toFixed(1)}%</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: Number(row.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{row.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(2)}R` : '—'}</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-2)' }}>{Number(row.avg_target_r).toFixed(2)}R</td>
+                        </tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
 
