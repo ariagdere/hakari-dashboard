@@ -46,7 +46,6 @@ interface Filters {
   date_from: string; date_to: string
   rsi_min: number; rsi_max: number
   rsi30_min: number; rsi30_max: number
-  r_min: number; r_max: number
   wp_min: number; wp_max: number
   wp_1304_min: number; wp_1304_max: number
   wp_rev_min: number; wp_rev_max: number
