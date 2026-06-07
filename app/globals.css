@@ -159,4 +159,7 @@ body {
 
   .synthesis-block { font-size: 12px; word-break: break-word; }
   .stat-card { padding: 12px 12px; }
+  .wp-model-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .rsi-grid { grid-template-columns: 1fr !important; }
+  .delta-grid { grid-template-columns: 1fr !important; }
 }
