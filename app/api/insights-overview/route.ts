@@ -22,6 +22,8 @@ export async function GET(req: NextRequest) {
       ROUND(AVG(sim_r_multiple) FILTER (WHERE sim_result = 'SL_HIT'), 2) AS avg_r_loss,
       ROUND(AVG(sim_entry_to_result_minutes) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0) AS avg_duration_mins,
       ROUND(SUM(sim_pnl_usd) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 2) AS total_pnl,
+      ROUND(SUM(sim_pnl_usd) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT') AND direction = 'LONG'), 2) AS long_total_pnl,
+      ROUND(SUM(sim_pnl_usd) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT') AND direction = 'SHORT'), 2) AS short_total_pnl,
       COUNT(*) FILTER (WHERE sequential_trade = 'TRADE' AND sim_result IN ('TP_HIT','SL_HIT')) AS seq_total,
       ROUND(
         COUNT(*) FILTER (WHERE sequential_trade = 'TRADE' AND sim_result = 'TP_HIT') * 100.0 /
