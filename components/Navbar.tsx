@@ -1,22 +1,19 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-
 const NAV_ITEMS = [
   { label: 'ANALİZ',   href: '/dashboard' },
   { label: 'MKT',      href: '/mkt' },
   { label: 'OPS',      href: '/ops' },
   { label: 'INSIGHTS', href: '/insights' },
+  { label: 'ANALYSIS', href: '/analysis' },
 ]
-
 export default function Navbar() {
   const pathname = usePathname()
-
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard' || pathname.startsWith('/dashboard/')
     return pathname === href
   }
-
   return (
     <div style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-2)', position: 'sticky', top: 0, zIndex: 20 }}>
       <div className="container" style={{ height: 48, display: 'flex', alignItems: 'center' }}>
