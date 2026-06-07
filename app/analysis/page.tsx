@@ -635,6 +635,12 @@ export default function AnalysisPage() {
                 </div>
               </div>
               <div className="stat-card">
+                <div className="col-label" style={{ marginBottom: 4 }}>Avg Win R</div>
+                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>
+                  {overview.avg_r_win != null ? `+${Number(overview.avg_r_win).toFixed(2)}R` : '—'}
+                </div>
+              </div>
+              <div className="stat-card">
                 <div className="col-label" style={{ marginBottom: 4 }}>Toplam R</div>
                 <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: Number(overview.total_pnl) >= 0 ? 'var(--green)' : 'var(--red)' }}>
                   {overview.total_pnl != null ? `${Number(overview.total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.total_pnl)).toFixed(0)}` : '—'}
@@ -667,12 +673,6 @@ export default function AnalysisPage() {
               <div className="stat-card">
                 <div className="col-label" style={{ marginBottom: 4 }}>No Entry</div>
                 <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--text-2)' }}>{overview.no_entry_count}</div>
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>Avg Win R</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>
-                  {overview.avg_r_win != null ? `+${Number(overview.avg_r_win).toFixed(2)}R` : '—'}
-                </div>
               </div>
             </div>
 
