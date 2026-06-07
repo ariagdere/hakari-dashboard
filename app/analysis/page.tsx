@@ -18,6 +18,7 @@ interface Overview {
   avg_duration_mins: number; total_pnl: number
   long_total: number; long_win_rate: number; long_tp: number; long_sl: number
   short_total: number; short_win_rate: number; short_tp: number; short_sl: number
+  long_total_pnl: number | null; short_total_pnl: number | null
 }
 interface ScoringData {
   by_rsi: any[]; by_rsi_long: any[]; by_rsi_short: any[]
@@ -521,6 +522,10 @@ export default function AnalysisPage() {
               <div className="stat-card">
                 <div className="col-label" style={{ marginBottom: 4 }}>Sim Edilen</div>
                 <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{overview.total}</div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
+                  <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:{overview.long_total}</span>
+                  <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>S:{overview.short_total}</span>
+                </div>
               </div>
               <div className="stat-card">
                 <div className="col-label" style={{ marginBottom: 4 }}>Win Rate</div>
@@ -534,6 +539,14 @@ export default function AnalysisPage() {
                 <div className="col-label" style={{ marginBottom: 4 }}>Toplam R</div>
                 <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: Number(overview.total_pnl) >= 0 ? 'var(--green)' : 'var(--red)' }}>
                   {overview.total_pnl != null ? `${Number(overview.total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.total_pnl)).toFixed(0)}` : '—'}
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
+                  <span className="mono" style={{ fontSize: 10, color: Number(overview.long_total_pnl ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                    L:{overview.long_total_pnl != null ? `${Number(overview.long_total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.long_total_pnl)).toFixed(0)}` : '—'}
+                  </span>
+                  <span className="mono" style={{ fontSize: 10, color: Number(overview.short_total_pnl ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                    S:{overview.short_total_pnl != null ? `${Number(overview.short_total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.short_total_pnl)).toFixed(0)}` : '—'}
+                  </span>
                 </div>
               </div>
               <div className="stat-card">
