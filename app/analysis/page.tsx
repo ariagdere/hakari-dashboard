@@ -347,12 +347,15 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
                 { key: 'include_weekdays' as const, label: 'Weekdays' },
                 { key: 'include_weekends' as const, label: 'Weekend' },
               ]).map(({ key, label }) => (
-                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}
+                <div
+                  key={key}
+                  style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}
                   onClick={() => {
                     const next = { ...filters, [key]: !filters[key] }
                     if (!next.include_weekdays && !next.include_weekends) return
                     onChange(next)
-                  }}>
+                  }}
+                >
                   <span style={{
                     width: 13, height: 13, borderRadius: 3, flexShrink: 0,
                     border: `1px solid ${filters[key] ? 'var(--border-3)' : 'var(--border)'}`,
