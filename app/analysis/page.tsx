@@ -79,6 +79,8 @@ interface Filters {
   m5_oi_mcap_delta_min: number; m5_oi_mcap_delta_max: number
   sent_synthesis_mtf: string; sent_synthesis_h1: string; sent_synthesis_m5: string
   sent_liquidity: string
+  wait_min: number; wait_max: number
+  trade_dur_min: number; trade_dur_max: number
 }
 
 interface Preset { name: string; filters: Filters }
@@ -117,6 +119,8 @@ const DEFAULT_FILTERS: Filters = {
   m5_oi_mcap_delta_min: -0.05, m5_oi_mcap_delta_max: 0.05,
   sent_synthesis_mtf: '', sent_synthesis_h1: '', sent_synthesis_m5: '',
   sent_liquidity: '',
+  wait_min: 0, wait_max: 4320,
+  trade_dur_min: 0, trade_dur_max: 4320,
 }
 
 function filtersToParams(f: Filters): URLSearchParams {
@@ -159,6 +163,8 @@ function filtersToParams(f: Filters): URLSearchParams {
   if (f.sent_synthesis_h1)  p.set('sent_synthesis_h1',  f.sent_synthesis_h1)
   if (f.sent_synthesis_m5)  p.set('sent_synthesis_m5',  f.sent_synthesis_m5)
   if (f.sent_liquidity)     p.set('sent_liquidity',     f.sent_liquidity)
+  p.set('wait_min', String(f.wait_min));           p.set('wait_max', String(f.wait_max))
+  p.set('trade_dur_min', String(f.trade_dur_min)); p.set('trade_dur_max', String(f.trade_dur_max))
   return p
 }
 
@@ -197,6 +203,8 @@ function activeFilterCount(f: Filters): number {
   if (f.m5_oi_mcap_delta_min > -0.05 || f.m5_oi_mcap_delta_max < 0.05) n++
   if (f.sent_synthesis_mtf) n++; if (f.sent_synthesis_h1) n++
   if (f.sent_synthesis_m5) n++; if (f.sent_liquidity) n++
+  if (f.wait_min > 0 || f.wait_max < 4320) n++
+  if (f.trade_dur_min > 0 || f.trade_dur_max < 4320) n++
   return n
 }
 
@@ -417,6 +425,13 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
         <RangeRow label="TT Accounts delta" minKey="m5_tt_accounts_delta_min" maxKey="m5_tt_accounts_delta_max" min={-1} max={1} step={0.05} filters={filters} onChange={onChange} />
         <RangeRow label="OI delta (BTC)" minKey="m5_oi_delta_min" maxKey="m5_oi_delta_max" min={-20000} max={20000} step={500} filters={filters} onChange={onChange} />
         <RangeRow label="OI/MCap delta" minKey="m5_oi_mcap_delta_min" maxKey="m5_oi_mcap_delta_max" min={-0.05} max={0.05} step={0.005} filters={filters} onChange={onChange} />
+      </div>
+
+      {sep}
+      <GL c="Zamanlama" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14 }}>
+        <RangeRow label="Giris Bekleme (dk)" minKey="wait_min" maxKey="wait_max" min={0} max={4320} step={30} filters={filters} onChange={onChange} />
+        <RangeRow label="Trade Suresi (dk)" minKey="trade_dur_min" maxKey="trade_dur_max" min={0} max={4320} step={30} filters={filters} onChange={onChange} />
       </div>
 
       {sep}
