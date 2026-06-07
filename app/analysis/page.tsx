@@ -944,9 +944,9 @@ export default function AnalysisPage() {
                 <div key={a.id} className="analysis-row" onClick={() => router.push(`/dashboard/${a.id}`)}>
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{fmtDate(a.analyzed_at)}</span>
                   <span>{dirBadge(a.direction)}</span>
-                  <span className="price" style={{ fontSize: 12 }}>${fmt(a.entry)}</span>
-                  <span className="mono" style={{ fontSize: 12, color: 'var(--green)' }}>${fmt(a.tp)}</span>
-                  <span className="mono" style={{ fontSize: 12, color: 'var(--red)' }}>${fmt(a.sl)}</span>
+                  <span className="price" style={{ fontSize: 12 }}>${Math.round(a.entry).toLocaleString('en-US')}</span>
+                  <span className="mono" style={{ fontSize: 12, color: 'var(--green)' }}>${Math.round(a.tp).toLocaleString('en-US')}</span>
+                  <span className="mono" style={{ fontSize: 12, color: 'var(--red)' }}>${Math.round(a.sl).toLocaleString('en-US')}</span>
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rr}</span>
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span>
                   {([
@@ -958,7 +958,7 @@ export default function AnalysisPage() {
                     <span key={i} className="mono" style={{ fontSize: 11, color: wpColor(wp) }}>
                       {wp != null ? `%${Number(wp).toFixed(0)}` : '—'}
                       {rev != null && (
-                        <span style={{ fontSize: 9, color: 'var(--text-3)', marginLeft: 2 }}>
+                        <span style={{ fontSize: 11, color: 'var(--text-3)', marginLeft: 2 }}>
                           ({`%${Number(rev).toFixed(0)}`})
                         </span>
                       )}
