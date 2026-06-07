@@ -1,17 +1,14 @@
 import { NextResponse, NextRequest } from 'next/server'
 import pool from '@/lib/db'
 import { buildInsightsWhere } from '@/lib/insightsFilter'
-
 export const dynamic = 'force-dynamic'
-
 export async function GET(req: NextRequest) {
   const { where, params } = buildInsightsWhere(req)
   const w = where || 'WHERE 1=1'
-
   const q = await pool.query(`
     SELECT
-      COUNT(*) FILTER (WHERE sim_result IS NOT NULL AND sim_result != 'NO_ENTRY') AS total,
-      COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT','EXPIRED')) AS total_all,
+      COUNT(*) AS total_all,
+      COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT','EXPIRED','NO_ENTRY')) AS total,
       COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS tp_count,
       COUNT(*) FILTER (WHERE sim_result = 'SL_HIT') AS sl_count,
       COUNT(*) FILTER (WHERE sim_result = 'EXPIRED') AS expired_count,
@@ -43,6 +40,5 @@ export async function GET(req: NextRequest) {
     FROM btc_analysis
     ${w}
   `, params)
-
   return NextResponse.json(q.rows[0])
 }
