@@ -37,6 +37,8 @@ interface AnalysisSummary {
   rsi_4h: number | null; rsi_30m: number | null
   win_probability: number | null; win_probability_v3: number | null
   win_probability_v4: number | null; win_probability_v5: number | null
+  win_probability_1304: number | null; win_probability_v3_1304: number | null
+  win_probability_v4_1304: number | null; win_probability_v5_1304: number | null
   win_probability_reverse: number | null; win_probability_v3_reverse: number | null
   win_probability_v4_reverse: number | null; win_probability_v5_reverse: number | null
 }
@@ -557,7 +559,7 @@ export default function AnalysisPage() {
         )}
 
         {/* ── FİLTRE PANEL ───────────────────────────────────────────────── */}
-        <div className="card" style={{ padding: 16, marginBottom: 20 }}>
+        <div className="card" style={{ padding: 16, marginBottom: 20, overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <button className="filter-btn" style={{ fontSize: 11 }} onClick={() => setFilterOpen(o => !o)}>
@@ -603,7 +605,7 @@ export default function AnalysisPage() {
               </div>
               <div style={{ borderTop: '1px solid var(--border)', marginTop: 14, paddingTop: 14, display: 'flex', gap: 8 }}>
                 <button className="filter-btn active" style={{ fontSize: 11, padding: '5px 20px' }} onClick={handleApply}>Uygula</button>
-                <button className="filter-btn" style={{ fontSize: 11, padding: '5px 14px', color: 'var(--text-3)' }} onClick={() => setDraftFilters(appliedFilters)}>Iptal</button>
+                <button className="filter-btn" style={{ fontSize: 11, padding: '5px 14px', color: 'var(--text-3)' }} onClick={() => { setDraftFilters(appliedFilters); setFilterOpen(false) }}>Iptal</button>
               </div>
             </>
           )}
@@ -924,11 +926,19 @@ export default function AnalysisPage() {
                 <span className="col-label">TP</span>
                 <span className="col-label">SL</span>
                 <span className="col-label">R/R</span>
-                <span className="col-label">RSI 4H</span>
+                <span className="col-label">RSI</span>
+                <span className="col-label">V1 1304</span>
+                <span className="col-label">V3 1304</span>
+                <span className="col-label">V4 1304</span>
+                <span className="col-label">V5 1304</span>
                 <span className="col-label">V1</span>
                 <span className="col-label">V3</span>
                 <span className="col-label">V4</span>
                 <span className="col-label">V5</span>
+                <span className="col-label">V1 Rev</span>
+                <span className="col-label">V3 Rev</span>
+                <span className="col-label">V4 Rev</span>
+                <span className="col-label">V5 Rev</span>
                 <span className="col-label">PnL</span>
                 <span className="col-label">R</span>
                 <span className="col-label">Sonuc</span>
@@ -948,17 +958,20 @@ export default function AnalysisPage() {
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rr}</span>
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span>
                   {([
-                    { wp: a.win_probability,    rev: a.win_probability_reverse,    label: 'V1' },
-                    { wp: a.win_probability_v3, rev: a.win_probability_v3_reverse, label: 'V3' },
-                    { wp: a.win_probability_v4, rev: a.win_probability_v4_reverse, label: 'V4' },
-                    { wp: a.win_probability_v5, rev: a.win_probability_v5_reverse, label: 'V5' },
-                  ]).map(({ wp, rev, label }) => (
-                    <span
-                      key={label}
-                      className="mono"
-                      style={{ fontSize: 11, color: wpColor(wp), position: 'relative', cursor: 'default' }}
-                      title={rev != null ? `${label} Rev: %${Number(rev).toFixed(0)}` : `${label} Rev: —`}
-                    >
+                    a.win_probability_1304,
+                    a.win_probability_v3_1304,
+                    a.win_probability_v4_1304,
+                    a.win_probability_v5_1304,
+                    a.win_probability,
+                    a.win_probability_v3,
+                    a.win_probability_v4,
+                    a.win_probability_v5,
+                    a.win_probability_reverse,
+                    a.win_probability_v3_reverse,
+                    a.win_probability_v4_reverse,
+                    a.win_probability_v5_reverse,
+                  ]).map((wp, i) => (
+                    <span key={i} className="mono" style={{ fontSize: 11, color: wpColor(wp) }}>
                       {wp != null ? `%${Number(wp).toFixed(0)}` : '—'}
                     </span>
                   ))}
