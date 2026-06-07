@@ -68,7 +68,7 @@ body {
 .row-item:hover { background: var(--bg-3); }
 .row-item:last-child { border-bottom: none; }
 
-.analysis-row { display: grid; grid-template-columns: 118px 58px 76px 76px 76px 52px 48px 44px 44px 44px 44px 44px 44px 44px 44px 70px 56px 54px; align-items: center; padding: 9px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; gap: 4px; }
+.analysis-row { display: grid; grid-template-columns: 118px 58px 76px 68px 68px 52px 48px 46px 46px 46px 46px 72px 56px 54px; align-items: center; padding: 9px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; gap: 4px; }
 .analysis-row:hover { background: var(--bg-3); }
 .analysis-row:last-child { border-bottom: none; }
 
