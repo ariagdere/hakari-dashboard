@@ -872,36 +872,43 @@ export default function AnalysisPage() {
                   OPTIMAL R ANALIZI
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 8, marginBottom: 12 }}>
-                  <div className="stat-card">
-                    <div className="col-label" style={{ marginBottom: 4 }}>Toplam Sonuclanan</div>
-                    <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--text)' }}>{optimalR.total_trades}</div>
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>sim edilen</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="col-label" style={{ marginBottom: 4 }}>Win%</div>
-                    <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: winColor(optimalR.optimal_win_rate) }}>%{optimalR.optimal_win_rate}</div>
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>optimal R senaryosunda</div>
-                  </div>
-                  <div className="stat-card" style={{ borderColor: 'var(--amber-border)' }}>
-                    <div className="col-label" style={{ marginBottom: 4 }}>Optimal R</div>
-                    <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--amber)' }}>{optimalR.optimal_r != null ? `${optimalR.optimal_r}R` : '—'}</div>
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>mevcut: {optimalR.current_avg_r != null ? `${optimalR.current_avg_r}R` : '—'}</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="col-label" style={{ marginBottom: 4 }}>P/L</div>
-                    <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: optimalR.optimal_pnl > 0 ? 'var(--green)' : 'var(--red)' }}>{`${optimalR.optimal_pnl > 0 ? '+' : ''}$${Math.abs(optimalR.optimal_pnl).toFixed(0)}`}</div>
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>optimal R senaryosunda</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="col-label" style={{ marginBottom: 4 }}>Win</div>
-                    <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>{optimalR.optimal_wins}</div>
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>optimal R senaryosunda</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="col-label" style={{ marginBottom: 4 }}>Loss</div>
-                    <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--red)' }}>{optimalR.optimal_losses}</div>
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>optimal R senaryosunda</div>
-                  </div>
+                  {(() => {
+                    const cur = optimalR.sweep.find(p => p.r === optimalR.current_avg_r)
+                    return (
+                      <>
+                        <div className="stat-card">
+                          <div className="col-label" style={{ marginBottom: 4 }}>Toplam Sonuclanan</div>
+                          <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--text)' }}>{optimalR.total_trades}</div>
+                          <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>sim edilen</div>
+                        </div>
+                        <div className="stat-card">
+                          <div className="col-label" style={{ marginBottom: 4 }}>Win%</div>
+                          <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: winColor(optimalR.optimal_win_rate) }}>%{optimalR.optimal_win_rate}</div>
+                          <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>mevcut: {cur ? `%${cur.win_rate}` : '—'}</div>
+                        </div>
+                        <div className="stat-card" style={{ borderColor: 'var(--amber-border)' }}>
+                          <div className="col-label" style={{ marginBottom: 4 }}>Optimal R</div>
+                          <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--amber)' }}>{optimalR.optimal_r != null ? `${optimalR.optimal_r}R` : '—'}</div>
+                          <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>mevcut: {optimalR.current_avg_r != null ? `${optimalR.current_avg_r}R` : '—'}</div>
+                        </div>
+                        <div className="stat-card">
+                          <div className="col-label" style={{ marginBottom: 4 }}>P/L</div>
+                          <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: optimalR.optimal_pnl > 0 ? 'var(--green)' : 'var(--red)' }}>{`${optimalR.optimal_pnl > 0 ? '+' : ''}$${Math.abs(optimalR.optimal_pnl).toFixed(0)}`}</div>
+                          <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>mevcut: {cur ? `${cur.pnl >= 0 ? '+' : ''}$${Math.abs(cur.pnl).toFixed(0)}` : '—'}</div>
+                        </div>
+                        <div className="stat-card">
+                          <div className="col-label" style={{ marginBottom: 4 }}>Win</div>
+                          <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>{optimalR.optimal_wins}</div>
+                          <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>mevcut: {cur ? cur.wins : '—'}</div>
+                        </div>
+                        <div className="stat-card">
+                          <div className="col-label" style={{ marginBottom: 4 }}>Loss</div>
+                          <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--red)' }}>{optimalR.optimal_losses}</div>
+                          <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>mevcut: {cur ? cur.losses : '—'}</div>
+                        </div>
+                      </>
+                    )
+                  })()}
                 </div>
                 <div className="card" style={{ padding: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
