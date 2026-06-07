@@ -28,6 +28,8 @@ interface DeltaBucket { bucket: string; sort_order: number; total: number; wins:
 interface DeltaData { [key: string]: DeltaBucket[] }
 interface CumRPoint { day: string; cumulative_r: number; daily_r: number }
 interface CumRData { series: CumRPoint[]; max_drawdown: number; final_r: number }
+interface WpBucket { bucket: string; sort_order: number; avg_predicted: number; total: number; wins: number; win_rate: number; total_r: number | null }
+interface WpAllData { [key: string]: WpBucket[] }
 interface AnalysisSummary {
   id: number; analyzed_at: string; direction: string
   entry: number; tp: number; sl: number; rr: string
@@ -46,8 +48,21 @@ interface Filters {
   rsi30_min: number; rsi30_max: number
   r_min: number; r_max: number
   wp_min: number; wp_max: number
+  wp_1304_min: number; wp_1304_max: number
+  wp_rev_min: number; wp_rev_max: number
+  wp_1304_rev_min: number; wp_1304_rev_max: number
   wp3_min: number; wp3_max: number
+  wp3_1304_min: number; wp3_1304_max: number
+  wp3_rev_min: number; wp3_rev_max: number
+  wp3_1304_rev_min: number; wp3_1304_rev_max: number
   wp4_min: number; wp4_max: number
+  wp4_1304_min: number; wp4_1304_max: number
+  wp4_rev_min: number; wp4_rev_max: number
+  wp4_1304_rev_min: number; wp4_1304_rev_max: number
+  wp5_min: number; wp5_max: number
+  wp5_1304_min: number; wp5_1304_max: number
+  wp5_rev_min: number; wp5_rev_max: number
+  wp5_1304_rev_min: number; wp5_1304_rev_max: number
   h1_ls_delta_min: number; h1_ls_delta_max: number
   h1_tt_positions_delta_min: number; h1_tt_positions_delta_max: number
   h1_tt_accounts_delta_min: number; h1_tt_accounts_delta_max: number
@@ -69,10 +84,22 @@ const DEFAULT_FILTERS: Filters = {
   date_from: '', date_to: '',
   rsi_min: 0, rsi_max: 100,
   rsi30_min: 0, rsi30_max: 100,
-  r_min: 0, r_max: 7,
   wp_min: 0, wp_max: 100,
+  wp_1304_min: 0, wp_1304_max: 100,
+  wp_rev_min: 0, wp_rev_max: 100,
+  wp_1304_rev_min: 0, wp_1304_rev_max: 100,
   wp3_min: 0, wp3_max: 100,
+  wp3_1304_min: 0, wp3_1304_max: 100,
+  wp3_rev_min: 0, wp3_rev_max: 100,
+  wp3_1304_rev_min: 0, wp3_1304_rev_max: 100,
   wp4_min: 0, wp4_max: 100,
+  wp4_1304_min: 0, wp4_1304_max: 100,
+  wp4_rev_min: 0, wp4_rev_max: 100,
+  wp4_1304_rev_min: 0, wp4_1304_rev_max: 100,
+  wp5_min: 0, wp5_max: 100,
+  wp5_1304_min: 0, wp5_1304_max: 100,
+  wp5_rev_min: 0, wp5_rev_max: 100,
+  wp5_1304_rev_min: 0, wp5_1304_rev_max: 100,
   h1_ls_delta_min: -3, h1_ls_delta_max: 3,
   h1_tt_positions_delta_min: -1, h1_tt_positions_delta_max: 1,
   h1_tt_accounts_delta_min: -1, h1_tt_accounts_delta_max: 1,
@@ -95,10 +122,22 @@ function filtersToParams(f: Filters): URLSearchParams {
   if (f.date_to)     p.set('date_to',    f.date_to)
   p.set('rsi_min', String(f.rsi_min));   p.set('rsi_max', String(f.rsi_max))
   p.set('rsi30_min', String(f.rsi30_min)); p.set('rsi30_max', String(f.rsi30_max))
-  p.set('r_min', String(f.r_min));       p.set('r_max', String(f.r_max))
-  p.set('wp_min', String(f.wp_min));     p.set('wp_max', String(f.wp_max))
-  p.set('wp3_min', String(f.wp3_min));   p.set('wp3_max', String(f.wp3_max))
-  p.set('wp4_min', String(f.wp4_min));   p.set('wp4_max', String(f.wp4_max))
+  p.set('wp_min', String(f.wp_min));         p.set('wp_max', String(f.wp_max))
+  p.set('wp_1304_min', String(f.wp_1304_min)); p.set('wp_1304_max', String(f.wp_1304_max))
+  p.set('wp_rev_min', String(f.wp_rev_min));   p.set('wp_rev_max', String(f.wp_rev_max))
+  p.set('wp_1304_rev_min', String(f.wp_1304_rev_min)); p.set('wp_1304_rev_max', String(f.wp_1304_rev_max))
+  p.set('wp3_min', String(f.wp3_min));         p.set('wp3_max', String(f.wp3_max))
+  p.set('wp3_1304_min', String(f.wp3_1304_min)); p.set('wp3_1304_max', String(f.wp3_1304_max))
+  p.set('wp3_rev_min', String(f.wp3_rev_min));   p.set('wp3_rev_max', String(f.wp3_rev_max))
+  p.set('wp3_1304_rev_min', String(f.wp3_1304_rev_min)); p.set('wp3_1304_rev_max', String(f.wp3_1304_rev_max))
+  p.set('wp4_min', String(f.wp4_min));         p.set('wp4_max', String(f.wp4_max))
+  p.set('wp4_1304_min', String(f.wp4_1304_min)); p.set('wp4_1304_max', String(f.wp4_1304_max))
+  p.set('wp4_rev_min', String(f.wp4_rev_min));   p.set('wp4_rev_max', String(f.wp4_rev_max))
+  p.set('wp4_1304_rev_min', String(f.wp4_1304_rev_min)); p.set('wp4_1304_rev_max', String(f.wp4_1304_rev_max))
+  p.set('wp5_min', String(f.wp5_min));         p.set('wp5_max', String(f.wp5_max))
+  p.set('wp5_1304_min', String(f.wp5_1304_min)); p.set('wp5_1304_max', String(f.wp5_1304_max))
+  p.set('wp5_rev_min', String(f.wp5_rev_min));   p.set('wp5_rev_max', String(f.wp5_rev_max))
+  p.set('wp5_1304_rev_min', String(f.wp5_1304_rev_min)); p.set('wp5_1304_rev_max', String(f.wp5_1304_rev_max))
   p.set('h1_ls_delta_min', String(f.h1_ls_delta_min)); p.set('h1_ls_delta_max', String(f.h1_ls_delta_max))
   p.set('h1_tt_positions_delta_min', String(f.h1_tt_positions_delta_min)); p.set('h1_tt_positions_delta_max', String(f.h1_tt_positions_delta_max))
   p.set('h1_tt_accounts_delta_min', String(f.h1_tt_accounts_delta_min)); p.set('h1_tt_accounts_delta_max', String(f.h1_tt_accounts_delta_max))
@@ -122,10 +161,22 @@ function activeFilterCount(f: Filters): number {
   if (f.date_from || f.date_to) n++
   if (f.rsi_min > 0 || f.rsi_max < 100) n++
   if (f.rsi30_min > 0 || f.rsi30_max < 100) n++
-  if (f.r_min > 0 || f.r_max < 7) n++
   if (f.wp_min > 0 || f.wp_max < 100) n++
+  if (f.wp_1304_min > 0 || f.wp_1304_max < 100) n++
+  if (f.wp_rev_min > 0 || f.wp_rev_max < 100) n++
+  if (f.wp_1304_rev_min > 0 || f.wp_1304_rev_max < 100) n++
   if (f.wp3_min > 0 || f.wp3_max < 100) n++
+  if (f.wp3_1304_min > 0 || f.wp3_1304_max < 100) n++
+  if (f.wp3_rev_min > 0 || f.wp3_rev_max < 100) n++
+  if (f.wp3_1304_rev_min > 0 || f.wp3_1304_rev_max < 100) n++
   if (f.wp4_min > 0 || f.wp4_max < 100) n++
+  if (f.wp4_1304_min > 0 || f.wp4_1304_max < 100) n++
+  if (f.wp4_rev_min > 0 || f.wp4_rev_max < 100) n++
+  if (f.wp4_1304_rev_min > 0 || f.wp4_1304_rev_max < 100) n++
+  if (f.wp5_min > 0 || f.wp5_max < 100) n++
+  if (f.wp5_1304_min > 0 || f.wp5_1304_max < 100) n++
+  if (f.wp5_rev_min > 0 || f.wp5_rev_max < 100) n++
+  if (f.wp5_1304_rev_min > 0 || f.wp5_1304_rev_max < 100) n++
   if (f.h1_ls_delta_min > -3 || f.h1_ls_delta_max < 3) n++
   if (f.h1_tt_positions_delta_min > -1 || f.h1_tt_positions_delta_max < 1) n++
   if (f.h1_tt_accounts_delta_min > -1 || f.h1_tt_accounts_delta_max < 1) n++
@@ -285,13 +336,35 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
       </div>
 
       {sep}
-      <GL c="Performans" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
-        <RangeRow label="Hedef R" minKey="r_min" maxKey="r_max" min={0} max={7} step={0.1} filters={filters} onChange={onChange} />
-        <RangeRow label="Win Prob V1 %" minKey="wp_min" maxKey="wp_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
-        <RangeRow label="Win Prob V3 %" minKey="wp3_min" maxKey="wp3_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
-        <RangeRow label="Win Prob V4 %" minKey="wp4_min" maxKey="wp4_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
-      </div>
+      <GL c="Win Probability" />
+      {([
+        { label: 'V1', keys: ['wp', 'wp_1304', 'wp_rev', 'wp_1304_rev'] as const },
+        { label: 'V3', keys: ['wp3', 'wp3_1304', 'wp3_rev', 'wp3_1304_rev'] as const },
+        { label: 'V4', keys: ['wp4', 'wp4_1304', 'wp4_rev', 'wp4_1304_rev'] as const },
+        { label: 'V5', keys: ['wp5', 'wp5_1304', 'wp5_rev', 'wp5_1304_rev'] as const },
+      ] as const).map(model => (
+        <div key={model.label} style={{ marginBottom: 14 }}>
+          <div className="col-label" style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 8 }}>{model.label}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+            {(['Latest', '1304', 'Latest Rev', '1304 Rev'] as const).map((suffix, i) => {
+              const base = model.keys[i]
+              const minKey = `${base}_min` as keyof Filters
+              const maxKey = `${base}_max` as keyof Filters
+              return (
+                <RangeRow
+                  key={suffix}
+                  label={`${model.label} ${suffix}`}
+                  minKey={minKey}
+                  maxKey={maxKey}
+                  min={0} max={100} step={5}
+                  filters={filters}
+                  onChange={onChange}
+                />
+              )
+            })}
+          </div>
+        </div>
+      ))}
 
       {sep}
       <GL c="RSI" />
@@ -302,7 +375,7 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
 
       {sep}
       <GL c="Delta — H1" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
         <RangeRow label="LS delta" minKey="h1_ls_delta_min" maxKey="h1_ls_delta_max" min={-3} max={3} step={0.1} filters={filters} onChange={onChange} />
         <RangeRow label="TT Positions delta" minKey="h1_tt_positions_delta_min" maxKey="h1_tt_positions_delta_max" min={-1} max={1} step={0.05} filters={filters} onChange={onChange} />
         <RangeRow label="TT Accounts delta" minKey="h1_tt_accounts_delta_min" maxKey="h1_tt_accounts_delta_max" min={-1} max={1} step={0.05} filters={filters} onChange={onChange} />
@@ -312,7 +385,7 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
 
       {sep}
       <GL c="Delta — M5" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
         <RangeRow label="LS delta" minKey="m5_ls_delta_min" maxKey="m5_ls_delta_max" min={-3} max={3} step={0.1} filters={filters} onChange={onChange} />
         <RangeRow label="TT Positions delta" minKey="m5_tt_positions_delta_min" maxKey="m5_tt_positions_delta_max" min={-1} max={1} step={0.05} filters={filters} onChange={onChange} />
         <RangeRow label="TT Accounts delta" minKey="m5_tt_accounts_delta_min" maxKey="m5_tt_accounts_delta_max" min={-1} max={1} step={0.05} filters={filters} onChange={onChange} />
@@ -340,6 +413,7 @@ export default function AnalysisPage() {
   const [scoring,   setScoring]   = useState<ScoringData | null>(null)
   const [deltaData, setDeltaData] = useState<DeltaData | null>(null)
   const [cumR,      setCumR]      = useState<CumRData | null>(null)
+  const [wpAll,     setWpAll]     = useState<WpAllData | null>(null)
   const [analyses,  setAnalyses]  = useState<AnalysisSummary[]>([])
   const [loading,   setLoading]   = useState(true)
   const [filterOpen, setFilterOpen] = useState(false)
@@ -387,16 +461,18 @@ export default function AnalysisPage() {
     const p = filtersToParams(f)
     const qs = p.toString() ? `?${p}` : ''
     Promise.all([
-      fetch(`/api/insights-overview${qs}`,  { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-scoring${qs}`,   { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-delta${qs}`,     { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-cumr${qs}`,      { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/analyses?${p}&page=${pg}`,{ cache: 'no-store' }).then(r => r.json()),
-    ]).then(([ov, sc, delta, cr, an]) => {
+      fetch(`/api/insights-overview${qs}`,      { cache: 'no-store' }).then(r => r.json()),
+      fetch(`/api/insights-scoring${qs}`,       { cache: 'no-store' }).then(r => r.json()),
+      fetch(`/api/insights-delta${qs}`,         { cache: 'no-store' }).then(r => r.json()),
+      fetch(`/api/insights-cumr${qs}`,          { cache: 'no-store' }).then(r => r.json()),
+      fetch(`/api/insights-winprob-all${qs}`,   { cache: 'no-store' }).then(r => r.json()),
+      fetch(`/api/analyses?${p}&page=${pg}`,    { cache: 'no-store' }).then(r => r.json()),
+    ]).then(([ov, sc, delta, cr, wpa, an]) => {
       setOverview(ov)
       setScoring(sc)
       setDeltaData(delta)
       setCumR(cr)
+      setWpAll(wpa)
       setAnalyses(an.analyses)
       setTotalPages(an.totalPages)
       setTotal(an.total)
@@ -687,6 +763,76 @@ export default function AnalysisPage() {
                     })}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* ── WIN PROBABILITY KALİBRASYON TABLOSU ─────────────────────── */}
+            {wpAll && (
+              <div style={{ marginBottom: 16 }}>
+                <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+                  WIN PROBABILITY KALİBRASYONU
+                </div>
+                {(['v1','v3','v4','v5'] as const).map(v => {
+                  const VERSIONS = [
+                    { key: `${v}`,          label: 'Latest' },
+                    { key: `${v}_1304`,     label: '1304' },
+                    { key: `${v}_rev`,      label: 'Latest Rev' },
+                    { key: `${v}_1304_rev`, label: '1304 Rev' },
+                  ]
+                  const buckets = ['0-20%','20-30%','30-40%','40-50%','50-60%','60-70%','70%+']
+                  const hasData = VERSIONS.some(ver => (wpAll[ver.key] ?? []).length > 0)
+                  if (!hasData) return null
+                  return (
+                    <div key={v} className="card" style={{ padding: 16, marginBottom: 10, overflowX: 'auto' }}>
+                      <div className="col-label" style={{ marginBottom: 10 }}>{v.toUpperCase()}</div>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace', minWidth: 600 }}>
+                        <thead>
+                          <tr>
+                            <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, width: 70 }}>Dilim</th>
+                            {VERSIONS.map(ver => (
+                              <th key={ver.key} colSpan={3} style={{ textAlign: 'center', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>
+                                {ver.label}
+                              </th>
+                            ))}
+                          </tr>
+                          <tr>
+                            <th style={{ paddingBottom: 8 }} />
+                            {VERSIONS.map(ver => (
+                              <React.Fragment key={ver.key}>
+                                <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, borderLeft: '1px solid var(--border)', paddingLeft: 6 }}>Win%</th>
+                                <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400 }}>n</th>
+                                <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400 }}>Tot.R</th>
+                              </React.Fragment>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {buckets.map(bucket => (
+                            <tr key={bucket} style={{ borderTop: '1px solid var(--border)' }}>
+                              <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{bucket}</td>
+                              {VERSIONS.map(ver => {
+                                const row = (wpAll[ver.key] ?? []).find((r: WpBucket) => r.bucket === bucket)
+                                return (
+                                  <React.Fragment key={ver.key}>
+                                    <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', borderLeft: '1px solid var(--border)', color: row ? winColor(Number(row.win_rate)) : 'var(--text-3)' }}>
+                                      {row ? `%${Number(row.win_rate).toFixed(1)}` : '—'}
+                                    </td>
+                                    <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--text-3)' }}>
+                                      {row ? row.total : '—'}
+                                    </td>
+                                    <td style={{ padding: '5px 0', textAlign: 'right', color: row?.total_r != null ? (Number(row.total_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>
+                                      {row?.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(1)}` : '—'}
+                                    </td>
+                                  </React.Fragment>
+                                )
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )
+                })}
               </div>
             )}
 
