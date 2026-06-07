@@ -5,7 +5,7 @@ import {
   Chart as ChartJS, Tooltip, LineElement, PointElement,
   LinearScale, CategoryScale, BarElement, Filler, ArcElement,
 } from 'chart.js'
-import { Bar, Line, Doughnut } from 'react-chartjs-2'
+import { Bar, Line, Chart } from 'react-chartjs-2'
 
 ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, BarElement, Filler, ArcElement)
 
@@ -556,7 +556,8 @@ export default function AnalysisPage() {
                     </div>
                   </div>
                   <div style={{ height: 160 }}>
-                    <Line
+                    <Chart
+                      type="line"
                       data={{
                         labels: cumR.series.map(p => new Date(p.day).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })),
                         datasets: [
