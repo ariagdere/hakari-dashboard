@@ -983,8 +983,6 @@ export default function AnalysisPage() {
                   </div>
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
                     {([
-                      { wp: a.win_probability,    rev: a.win_probability_reverse,    label: 'V1' },
-                      { wp: a.win_probability_v3, rev: a.win_probability_v3_reverse, label: 'V3' },
                       { wp: a.win_probability_v4, rev: a.win_probability_v4_reverse, label: 'V4' },
                       { wp: a.win_probability_v5, rev: a.win_probability_v5_reverse, label: 'V5' },
                     ]).map(({ wp, rev, label }) => (
