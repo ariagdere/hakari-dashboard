@@ -2,11 +2,10 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 const NAV_ITEMS = [
-  { label: 'ANALİZ',   href: '/dashboard' },
+  { label: 'ANALYSIS', href: '/analysis' },
   { label: 'MKT',      href: '/mkt' },
   { label: 'OPS',      href: '/ops' },
   { label: 'INSIGHTS', href: '/insights' },
-  { label: 'ANALYSIS', href: '/analysis' },
 ]
 export default function Navbar() {
   const pathname = usePathname()
