@@ -510,37 +510,48 @@ export default function AnalysisPage() {
           <>
             {/* ── SUMMARY SCORE CARDS ──────────────────────────────────────── */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 8, marginBottom: 16 }}>
-              {[
-                { label: 'Toplam Analiz', value: overview.total_all, sub: `L:${overview.long_total} S:${overview.short_total}` },
-                { label: 'Sim Edilen', value: overview.total, sub: null },
-                { label: 'Win Rate', value: `%${Number(overview.win_rate).toFixed(1)}`, color: winColor(Number(overview.win_rate)), sub: null },
-                { label: 'Toplam R', value: overview.total_pnl != null ? `${Number(overview.total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.total_pnl)).toFixed(0)}` : '—', color: Number(overview.total_pnl) >= 0 ? 'var(--green)' : 'var(--red)', sub: null },
-                { label: 'TP Hit', value: overview.tp_count, color: 'var(--green)', sub: null },
-                { label: 'SL Hit', value: overview.sl_count, color: 'var(--red)', sub: null },
-                { label: 'Expired', value: overview.expired_count, color: 'var(--amber)', sub: null },
-                { label: 'No Entry', value: overview.no_entry_count, color: 'var(--text-2)', sub: null },
-              ].map((s, i) => (
-                <div key={i} className="stat-card">
-                  <div className="col-label" style={{ marginBottom: 4 }}>{s.label}</div>
-                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: s.color ?? 'var(--text)' }}>{s.value}</div>
-                  {s.sub && (
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>{s.sub}</div>
-                  )}
+              <div className="stat-card">
+                <div className="col-label" style={{ marginBottom: 4 }}>Toplam Analiz</div>
+                <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{overview.total_all}</div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
+                  <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:{overview.long_total}</span>
+                  <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>S:{overview.short_total}</span>
                 </div>
-              ))}
-            </div>
-
-            {/* Long / Short breakdown */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
-              {[
-                { dir: 'LONG',  total: overview.long_total,  wr: overview.long_win_rate,  color: 'var(--green)', tp: overview.tp_count, sl: overview.sl_count },
-                { dir: 'SHORT', total: overview.short_total, wr: overview.short_win_rate, color: 'var(--red)',   tp: overview.tp_count, sl: overview.sl_count },
-              ].map(d => (
-                <div key={d.dir} className="card" style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span className={`badge badge-${d.dir.toLowerCase()}`}>{d.dir}</span>
-                  <div style={{ flex: 1 }}><WinBar rate={Number(d.wr)} total={Number(d.total)} /></div>
+              </div>
+              <div className="stat-card">
+                <div className="col-label" style={{ marginBottom: 4 }}>Sim Edilen</div>
+                <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{overview.total}</div>
+              </div>
+              <div className="stat-card">
+                <div className="col-label" style={{ marginBottom: 4 }}>Win Rate</div>
+                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: winColor(Number(overview.win_rate)) }}>%{Number(overview.win_rate).toFixed(1)}</div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
+                  <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:%{Number(overview.long_win_rate).toFixed(1)}</span>
+                  <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>S:%{Number(overview.short_win_rate).toFixed(1)}</span>
                 </div>
-              ))}
+              </div>
+              <div className="stat-card">
+                <div className="col-label" style={{ marginBottom: 4 }}>Toplam R</div>
+                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: Number(overview.total_pnl) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                  {overview.total_pnl != null ? `${Number(overview.total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.total_pnl)).toFixed(0)}` : '—'}
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="col-label" style={{ marginBottom: 4 }}>TP Hit</div>
+                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>{overview.tp_count}</div>
+              </div>
+              <div className="stat-card">
+                <div className="col-label" style={{ marginBottom: 4 }}>SL Hit</div>
+                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--red)' }}>{overview.sl_count}</div>
+              </div>
+              <div className="stat-card">
+                <div className="col-label" style={{ marginBottom: 4 }}>Expired</div>
+                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--amber)' }}>{overview.expired_count}</div>
+              </div>
+              <div className="stat-card">
+                <div className="col-label" style={{ marginBottom: 4 }}>No Entry</div>
+                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--text-2)' }}>{overview.no_entry_count}</div>
+              </div>
             </div>
 
             {/* ── KÜMÜLATİF R + GÜNLÜK TRADE ─────────────────────────────── */}
