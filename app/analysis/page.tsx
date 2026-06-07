@@ -37,6 +37,8 @@ interface AnalysisSummary {
   rsi_4h: number | null; rsi_30m: number | null
   win_probability: number | null; win_probability_v3: number | null
   win_probability_v4: number | null; win_probability_v5: number | null
+  win_probability_reverse: number | null; win_probability_v3_reverse: number | null
+  win_probability_v4_reverse: number | null; win_probability_v5_reverse: number | null
 }
 
 // ── Filters ────────────────────────────────────────────────────────────────
@@ -417,11 +419,11 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
 
       {sep}
       <GL c="Sentez" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 14 }}>
-        <ToggleGroup label="MTF Synthesis" field="sent_synthesis_mtf" options={so.str} filters={filters} onChange={onChange} />
-        <ToggleGroup label="H1 Synthesis"  field="sent_synthesis_h1"  options={so.str} filters={filters} onChange={onChange} />
-        <ToggleGroup label="M5 Synthesis"  field="sent_synthesis_m5"  options={so.str} filters={filters} onChange={onChange} />
-        <ToggleGroup label="Liquidity"     field="sent_liquidity"     options={so.pres} filters={filters} onChange={onChange} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
+        <ToggleGroup label="MTF Synthesis" field="sent_synthesis_mtf" options={so.str} filters={filters} onChange={onChange} nowrap />
+        <ToggleGroup label="H1 Synthesis"  field="sent_synthesis_h1"  options={so.str} filters={filters} onChange={onChange} nowrap />
+        <ToggleGroup label="M5 Synthesis"  field="sent_synthesis_m5"  options={so.str} filters={filters} onChange={onChange} nowrap />
+        <ToggleGroup label="Liquidity"     field="sent_liquidity"     options={so.pres} filters={filters} onChange={onChange} nowrap />
       </div>
     </div>
   )
@@ -596,10 +598,12 @@ export default function AnalysisPage() {
           {filterOpen && (
             <>
               <div style={{ borderTop: '1px solid var(--border)', margin: '14px 0' }} />
-              <FilterPanel filters={draftFilters} onChange={setDraftFilters} />
+              <div style={{ overflowX: 'auto' }}>
+                <FilterPanel filters={draftFilters} onChange={setDraftFilters} />
+              </div>
               <div style={{ borderTop: '1px solid var(--border)', marginTop: 14, paddingTop: 14, display: 'flex', gap: 8 }}>
                 <button className="filter-btn active" style={{ fontSize: 11, padding: '5px 20px' }} onClick={handleApply}>Uygula</button>
-                <button className="filter-btn" style={{ fontSize: 11, padding: '5px 14px', color: 'var(--text-3)' }} onClick={() => setDraftFilters(appliedFilters)}>İptal</button>
+                <button className="filter-btn" style={{ fontSize: 11, padding: '5px 14px', color: 'var(--text-3)' }} onClick={() => setDraftFilters(appliedFilters)}>Iptal</button>
               </div>
             </>
           )}
@@ -915,7 +919,10 @@ export default function AnalysisPage() {
             <div className="card">
               <div className="analysis-row" style={{ cursor: 'default' }}>
                 <span className="col-label">Tarih</span>
-                <span className="col-label">Yön</span>
+                <span className="col-label">Yon</span>
+                <span className="col-label">Giris</span>
+                <span className="col-label">TP</span>
+                <span className="col-label">SL</span>
                 <span className="col-label">R/R</span>
                 <span className="col-label">RSI 4H</span>
                 <span className="col-label">V1</span>
@@ -924,7 +931,7 @@ export default function AnalysisPage() {
                 <span className="col-label">V5</span>
                 <span className="col-label">PnL</span>
                 <span className="col-label">R</span>
-                <span className="col-label">Sonuç</span>
+                <span className="col-label">Sonuc</span>
               </div>
 
               {analyses.length === 0 && (
@@ -935,22 +942,30 @@ export default function AnalysisPage() {
                 <div key={a.id} className="analysis-row" onClick={() => router.push(`/dashboard/${a.id}`)}>
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{fmtDate(a.analyzed_at)}</span>
                   <span>{dirBadge(a.direction)}</span>
+                  <span className="price" style={{ fontSize: 12 }}>${fmt(a.entry)}</span>
+                  <span className="mono" style={{ fontSize: 12, color: 'var(--green)' }}>${fmt(a.tp)}</span>
+                  <span className="mono" style={{ fontSize: 12, color: 'var(--red)' }}>${fmt(a.sl)}</span>
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rr}</span>
-                  <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span>
+                  <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span>
                   {([
-                    { wp: a.win_probability,    label: 'V1' },
-                    { wp: a.win_probability_v3, label: 'V3' },
-                    { wp: a.win_probability_v4, label: 'V4' },
-                    { wp: a.win_probability_v5, label: 'V5' },
-                  ] as const).map(({ wp, label }) => (
-                    <span key={label} className="mono" style={{ fontSize: 12, color: wpColor(wp) }}>
+                    { wp: a.win_probability,    rev: a.win_probability_reverse,    label: 'V1' },
+                    { wp: a.win_probability_v3, rev: a.win_probability_v3_reverse, label: 'V3' },
+                    { wp: a.win_probability_v4, rev: a.win_probability_v4_reverse, label: 'V4' },
+                    { wp: a.win_probability_v5, rev: a.win_probability_v5_reverse, label: 'V5' },
+                  ]).map(({ wp, rev, label }) => (
+                    <span
+                      key={label}
+                      className="mono"
+                      style={{ fontSize: 11, color: wpColor(wp), position: 'relative', cursor: 'default' }}
+                      title={rev != null ? `${label} Rev: %${Number(rev).toFixed(0)}` : `${label} Rev: —`}
+                    >
                       {wp != null ? `%${Number(wp).toFixed(0)}` : '—'}
                     </span>
                   ))}
-                  <span className={`mono ${a.sim_pnl_usd != null ? pnlClass(Number(a.sim_pnl_usd)) : 'pnl-zero'}`} style={{ fontSize: 12 }}>
+                  <span className={`mono ${a.sim_pnl_usd != null ? pnlClass(Number(a.sim_pnl_usd)) : 'pnl-zero'}`} style={{ fontSize: 11 }}>
                     {a.sim_pnl_usd != null ? `${Number(a.sim_pnl_usd) > 0 ? '+' : ''}$${Math.abs(Number(a.sim_pnl_usd)).toFixed(2)}` : '—'}
                   </span>
-                  <span className={`mono ${a.sim_r_multiple != null ? pnlClass(a.sim_result === 'SL_HIT' ? -1 : Number(a.sim_r_multiple)) : 'pnl-zero'}`} style={{ fontSize: 12 }}>
+                  <span className={`mono ${a.sim_r_multiple != null ? pnlClass(a.sim_result === 'SL_HIT' ? -1 : Number(a.sim_r_multiple)) : 'pnl-zero'}`} style={{ fontSize: 11 }}>
                     {fmtR(a.sim_r_multiple, a.sim_result)}
                   </span>
                   <span>{resultBadge(a.sim_result)}</span>
@@ -966,22 +981,41 @@ export default function AnalysisPage() {
                     </div>
                     <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{fmtDate(a.analyzed_at)}</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
+                    <div>
+                      <div className="col-label" style={{ marginBottom: 2 }}>Giris</div>
+                      <span className="price" style={{ fontSize: 13 }}>${fmt(a.entry)}</span>
+                    </div>
+                    <div>
+                      <div className="col-label" style={{ marginBottom: 2 }}>TP</div>
+                      <span className="mono" style={{ fontSize: 13, color: 'var(--green)' }}>${fmt(a.tp)}</span>
+                    </div>
+                    <div>
+                      <div className="col-label" style={{ marginBottom: 2 }}>SL</div>
+                      <span className="mono" style={{ fontSize: 13, color: 'var(--red)' }}>${fmt(a.sl)}</span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
                     <div><span className="col-label">R/R </span><span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rr}</span></div>
                     <div><span className="col-label">RSI4H </span><span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span></div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
                     {([
-                      { wp: a.win_probability,    label: 'V1' },
-                      { wp: a.win_probability_v3, label: 'V3' },
-                      { wp: a.win_probability_v4, label: 'V4' },
-                      { wp: a.win_probability_v5, label: 'V5' },
-                    ] as const).map(({ wp, label }) => (
+                      { wp: a.win_probability,    rev: a.win_probability_reverse,    label: 'V1' },
+                      { wp: a.win_probability_v3, rev: a.win_probability_v3_reverse, label: 'V3' },
+                      { wp: a.win_probability_v4, rev: a.win_probability_v4_reverse, label: 'V4' },
+                      { wp: a.win_probability_v5, rev: a.win_probability_v5_reverse, label: 'V5' },
+                    ]).map(({ wp, rev, label }) => (
                       <div key={label}>
                         <span className="col-label">{label} </span>
                         <span className="mono" style={{ fontSize: 12, color: wpColor(wp) }}>
                           {wp != null ? `%${Number(wp).toFixed(0)}` : '—'}
                         </span>
+                        {rev != null && (
+                          <span className="mono" style={{ fontSize: 10, color: wpColor(rev), marginLeft: 2 }}>
+                            /{Number(rev).toFixed(0)}
+                          </span>
+                        )}
                       </div>
                     ))}
                   </div>
