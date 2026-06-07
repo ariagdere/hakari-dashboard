@@ -843,48 +843,68 @@ export default function AnalysisPage() {
             )}
 
             {/* ── DELTA ANALİZİ ────────────────────────────────────────────── */}
-            {deltaData && Object.keys(deltaData).length > 0 && (
-              <div style={{ marginBottom: 16 }}>
-                <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  DELTA ANALİZİ (BAŞLANGIÇ → ANLIK DEĞİŞİM)
+            {deltaData && Object.keys(deltaData).length > 0 && (() => {
+              const PAIRS = [
+                { h1: 'h1_ls_ratio',     m5: 'm5_ls_ratio' },
+                { h1: 'h1_tt_positions', m5: 'm5_tt_positions' },
+                { h1: 'h1_tt_accounts',  m5: 'm5_tt_accounts' },
+                { h1: 'h1_oi',           m5: 'm5_oi' },
+                { h1: 'h1_oi_mcap',      m5: 'm5_oi_mcap' },
+              ]
+              const DeltaTable = ({ rows }: { rows: any[] }) => (
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace' }}>
+                  <thead>
+                    <tr>
+                      {['Delta', 'Win%', 'Ort. R', 'Toplam R', 'n'].map((h, i) => (
+                        <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((r, i) => (
+                      <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                        <td style={{ padding: '4px 0', color: 'var(--text-2)' }}>{r.bucket}</td>
+                        <td style={{ padding: '4px 0', textAlign: 'right', color: winColor(Number(r.win_rate)) }}>%{Number(r.win_rate).toFixed(1)}</td>
+                        <td style={{ padding: '4px 0', textAlign: 'right', color: Number(r.avg_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                          {r.avg_r != null ? `${Number(r.avg_r) >= 0 ? '+' : ''}${Number(r.avg_r).toFixed(2)}R` : '—'}
+                        </td>
+                        <td style={{ padding: '4px 0', textAlign: 'right', color: Number(r.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                          {r.total_r != null ? `${Number(r.total_r) >= 0 ? '+' : ''}${Number(r.total_r).toFixed(2)}R` : '—'}
+                        </td>
+                        <td style={{ padding: '4px 0', textAlign: 'right', color: 'var(--text-3)' }}>{r.total}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )
+              return (
+                <div style={{ marginBottom: 16 }}>
+                  <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+                    DELTA ANALİZİ (BAŞLANGIÇ → ANLIK DEĞİŞİM)
+                  </div>
+                  <div className="delta-grid" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {PAIRS.map(({ h1, m5 }) => {
+                      const h1Rows = deltaData[h1]
+                      const m5Rows = deltaData[m5]
+                      if ((!h1Rows || h1Rows.length === 0) && (!m5Rows || m5Rows.length === 0)) return null
+                      const h1Label = h1Rows?.[0]?.label?.replace('H1 ', '') || h1
+                      return (
+                        <div key={h1} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                          <div className="card" style={{ padding: 16 }}>
+                            <div className="col-label" style={{ marginBottom: 10 }}>H1 {h1Label} delta</div>
+                            {h1Rows?.length > 0 ? <DeltaTable rows={h1Rows} /> : <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>veri yok</span>}
+                          </div>
+                          <div className="card" style={{ padding: 16 }}>
+                            <div className="col-label" style={{ marginBottom: 10 }}>M5 {h1Label} delta</div>
+                            {m5Rows?.length > 0 ? <DeltaTable rows={m5Rows} /> : <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>veri yok</span>}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
-                <div className="delta-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 12 }}>
-                  {Object.entries(deltaData).map(([key, rows]) => {
-                    if (!rows || rows.length === 0) return null
-                    const label = rows[0]?.label || key
-                    return (
-                      <div key={key} className="card" style={{ padding: 16 }}>
-                        <div className="col-label" style={{ marginBottom: 10 }}>{label} delta → win rate</div>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace' }}>
-                          <thead>
-                            <tr>
-                              {['Delta', 'Win%', 'Ort. R', 'Toplam R', 'n'].map((h, i) => (
-                                <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {rows.map((r, i) => (
-                              <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
-                                <td style={{ padding: '4px 0', color: 'var(--text-2)' }}>{r.bucket}</td>
-                                <td style={{ padding: '4px 0', textAlign: 'right', color: winColor(Number(r.win_rate)) }}>%{Number(r.win_rate).toFixed(1)}</td>
-                                <td style={{ padding: '4px 0', textAlign: 'right', color: Number(r.avg_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                                  {r.avg_r != null ? `${Number(r.avg_r) >= 0 ? '+' : ''}${Number(r.avg_r).toFixed(2)}R` : '—'}
-                                </td>
-                                <td style={{ padding: '4px 0', textAlign: 'right', color: Number(r.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                                  {r.total_r != null ? `${Number(r.total_r) >= 0 ? '+' : ''}${Number(r.total_r).toFixed(2)}R` : '—'}
-                                </td>
-                                <td style={{ padding: '4px 0', textAlign: 'right', color: 'var(--text-3)' }}>{r.total}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
+              )
+            })()}
 
             {/* ── ANALİZ LİSTESİ ───────────────────────────────────────────── */}
             <div style={{ marginBottom: 12 }}>
