@@ -927,14 +927,12 @@ export default function AnalysisPage() {
                 <span className="col-label">SL</span>
                 <span className="col-label">R/R</span>
                 <span className="col-label">RSI</span>
-                <span className="col-label" style={{ background: 'var(--bg-3)', borderRadius: 3, padding: '1px 3px' }}>V1 1304</span>
-                <span className="col-label" style={{ background: 'var(--bg-3)', borderRadius: 3, padding: '1px 3px' }}>V3 1304</span>
-                <span className="col-label" style={{ background: 'var(--bg-3)', borderRadius: 3, padding: '1px 3px' }}>V4 1304</span>
-                <span className="col-label" style={{ background: 'var(--bg-3)', borderRadius: 3, padding: '1px 3px' }}>V5 1304</span>
-                <span className="col-label" style={{ background: '#1a2a1a', borderRadius: 3, padding: '1px 3px' }}>V1</span>
-                <span className="col-label" style={{ background: '#1a2a1a', borderRadius: 3, padding: '1px 3px' }}>V3</span>
-                <span className="col-label" style={{ background: '#1a2a1a', borderRadius: 3, padding: '1px 3px' }}>V4</span>
-                <span className="col-label" style={{ background: '#1a2a1a', borderRadius: 3, padding: '1px 3px' }}>V5</span>
+                {['V1 1304','V3 1304','V4 1304','V5 1304'].map(h => (
+                  <span key={h} className="col-label" style={{ background: '#1e1e1e', marginTop: -9, marginBottom: -9, paddingTop: 9, paddingBottom: 9 }}>{h}</span>
+                ))}
+                {['V1 (Rev)','V3 (Rev)','V4 (Rev)','V5 (Rev)'].map(h => (
+                  <span key={h} className="col-label" style={{ background: '#141f14', marginTop: -9, marginBottom: -9, paddingTop: 9, paddingBottom: 9 }}>{h}</span>
+                ))}
                 <span className="col-label">PnL</span>
                 <span className="col-label">R</span>
                 <span className="col-label">Sonuc</span>
@@ -954,20 +952,20 @@ export default function AnalysisPage() {
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rr}</span>
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span>
                   {([
-                    { wp: a.win_probability_1304,    rev: null },
-                    { wp: a.win_probability_v3_1304, rev: null },
-                    { wp: a.win_probability_v4_1304, rev: null },
-                    { wp: a.win_probability_v5_1304, rev: null },
-                    { wp: a.win_probability,         rev: a.win_probability_reverse },
-                    { wp: a.win_probability_v3,      rev: a.win_probability_v3_reverse },
-                    { wp: a.win_probability_v4,      rev: a.win_probability_v4_reverse },
-                    { wp: a.win_probability_v5,      rev: a.win_probability_v5_reverse },
-                  ]).map(({ wp, rev }, i) => (
-                    <span key={i} className="mono" style={{ fontSize: 11, color: wpColor(wp), background: i >= 4 ? '#1a2a1a' : 'transparent', borderRadius: 3, padding: '1px 2px' }}>
+                    { wp: a.win_probability_1304,    rev: null,                        bg: '#1e1e1e' },
+                    { wp: a.win_probability_v3_1304, rev: null,                        bg: '#1e1e1e' },
+                    { wp: a.win_probability_v4_1304, rev: null,                        bg: '#1e1e1e' },
+                    { wp: a.win_probability_v5_1304, rev: null,                        bg: '#1e1e1e' },
+                    { wp: a.win_probability,         rev: a.win_probability_reverse,    bg: '#141f14' },
+                    { wp: a.win_probability_v3,      rev: a.win_probability_v3_reverse, bg: '#141f14' },
+                    { wp: a.win_probability_v4,      rev: a.win_probability_v4_reverse, bg: '#141f14' },
+                    { wp: a.win_probability_v5,      rev: a.win_probability_v5_reverse, bg: '#141f14' },
+                  ]).map(({ wp, rev, bg }, i) => (
+                    <span key={i} className="mono" style={{ fontSize: 11, color: wpColor(wp), background: bg, marginTop: -9, marginBottom: -9, paddingTop: 9, paddingBottom: 9 }}>
                       {wp != null ? `%${Number(wp).toFixed(0)}` : '—'}
                       {rev != null && (
                         <span style={{ fontSize: 9, color: 'var(--text-3)', marginLeft: 2 }}>
-                          ({Number(rev).toFixed(0)})
+                          ({`%${Number(rev).toFixed(0)}`})
                         </span>
                       )}
                     </span>
