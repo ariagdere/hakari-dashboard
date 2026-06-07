@@ -906,10 +906,10 @@ export default function AnalysisPage() {
                 <span className="col-label">R/R</span>
                 <span className="col-label">RSI</span>
                 {['V4 1304','V5 1304'].map(h => (
-                  <span key={h} className="col-label" style={{ background: '#1e1e1e', marginTop: -9, marginBottom: -9, paddingTop: 9, paddingBottom: 9 }}>{h}</span>
+                  <span key={h} className="col-label">{h}</span>
                 ))}
                 {['V4 (Rev)','V5 (Rev)'].map(h => (
-                  <span key={h} className="col-label" style={{ background: '#141f14', marginTop: -9, marginBottom: -9, paddingTop: 9, paddingBottom: 9 }}>{h}</span>
+                  <span key={h} className="col-label">{h}</span>
                 ))}
                 <span className="col-label">PnL</span>
                 <span className="col-label">R</span>
@@ -930,12 +930,12 @@ export default function AnalysisPage() {
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rr}</span>
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span>
                   {([
-                    { wp: a.win_probability_v4_1304, rev: null,                        bg: '#1e1e1e' },
-                    { wp: a.win_probability_v5_1304, rev: null,                        bg: '#1e1e1e' },
-                    { wp: a.win_probability_v4,      rev: a.win_probability_v4_reverse, bg: '#141f14' },
-                    { wp: a.win_probability_v5,      rev: a.win_probability_v5_reverse, bg: '#141f14' },
-                  ]).map(({ wp, rev, bg }, i) => (
-                    <span key={i} className="mono" style={{ fontSize: 11, color: wpColor(wp), background: bg, marginTop: -9, marginBottom: -9, paddingTop: 9, paddingBottom: 9 }}>
+                    { wp: a.win_probability_v4_1304, rev: null },
+                    { wp: a.win_probability_v5_1304, rev: null },
+                    { wp: a.win_probability_v4,      rev: a.win_probability_v4_reverse },
+                    { wp: a.win_probability_v5,      rev: a.win_probability_v5_reverse },
+                  ]).map(({ wp, rev }, i) => (
+                    <span key={i} className="mono" style={{ fontSize: 11, color: wpColor(wp) }}>
                       {wp != null ? `%${Number(wp).toFixed(0)}` : '—'}
                       {rev != null && (
                         <span style={{ fontSize: 9, color: 'var(--text-3)', marginLeft: 2 }}>
