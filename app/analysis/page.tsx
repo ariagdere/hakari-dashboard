@@ -213,16 +213,16 @@ const fmt = (n: number) => n?.toLocaleString('en-US', { minimumFractionDigits: 0
 const fmtDate = (s: string) => new Date(s).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 const fmtMins = (m: any) => { if (!m) return '—'; const h = Math.floor(Number(m) / 60); const min = Math.round(Number(m) % 60); return h > 0 ? `${h}h ${min}m` : `${min}m` }
 const RSI_ZONE_LABELS: Record<string, string> = {
-  'oversold':      'Oversold',
-  'lower_neutral': 'Lower Neutral',
-  'neutral':       'Neutral',
-  'upper_neutral': 'Upper Neutral',
-  'overbought':    'Overbought',
-  'aşırı satım':   'Oversold',
-  'aşırı alım':    'Overbought',
-  'alt nötr':      'Lower Neutral',
-  'nötr':          'Neutral',
-  'üst nötr':      'Upper Neutral',
+  'oversold':               'Oversold (<30)',
+  'lower_neutral':          'Lower Neutral (30-45)',
+  'neutral':                'Neutral (45-55)',
+  'upper_neutral':          'Upper Neutral (55-70)',
+  'overbought':             'Overbought (>70)',
+  'Aşırı Satım (<30)':      'Oversold (<30)',
+  'Zayıf (30-45)':          'Lower Neutral (30-45)',
+  'Nötr (45-55)':           'Neutral (45-55)',
+  'Güçlü (55-70)':          'Upper Neutral (55-70)',
+  'Aşırı Alım (>70)':       'Overbought (>70)',
 }
 const fmtZone = (z: string) => RSI_ZONE_LABELS[z] ?? z
 const fmtBucket = (b: string) => b
