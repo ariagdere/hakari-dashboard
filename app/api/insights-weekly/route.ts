@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
   const { where, params } = buildInsightsWhere(req)
-  const andOrWhere = where ? `${where} AND` : 'WHERE'
+  const base = where ? `${where} AND` : 'WHERE'
 
   const byDayQ = `
     SELECT
@@ -15,8 +15,7 @@ export async function GET(req: NextRequest) {
       ROUND(COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 / NULLIF(COUNT(*), 0), 1) AS win_rate,
       ROUND(SUM(sim_r_multiple)::numeric, 2) AS total_r
     FROM btc_analysis
-    ${where}
-      ${andOrWhere} sim_result IN ('TP_HIT','SL_HIT')
+    ${base} sim_result IN ('TP_HIT','SL_HIT')
     GROUP BY 1
     ORDER BY 1
   `
@@ -30,8 +29,7 @@ export async function GET(req: NextRequest) {
       ROUND(COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 / NULLIF(COUNT(*), 0), 1) AS win_rate,
       ROUND(SUM(sim_r_multiple)::numeric, 2) AS total_r
     FROM btc_analysis
-    ${where}
-      ${andOrWhere} sim_result IN ('TP_HIT','SL_HIT')
+    ${base} sim_result IN ('TP_HIT','SL_HIT')
     GROUP BY 1
     ORDER BY 1
   `
