@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { pool } from '@/lib/db'
+import pool from '@/lib/db'
 import { buildInsightsWhere } from '@/lib/insightsFilter'
+export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
   const { conditions, params } = buildInsightsWhere(req.nextUrl.searchParams)
