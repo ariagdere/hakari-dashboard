@@ -820,9 +820,13 @@ export default function AnalysisPage() {
               </div>
             )}
 
-            {/* ── RSI WIN RATE TABLOLARI ───────────────────────────────────── */}
+            {/* ── RSI ANALYSIS ─────────────────────────────────────────────── */}
             {scoring && (
-              <div className="rsi-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+              <div style={{ marginBottom: 16 }}>
+                <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+                  RSI ANALYSIS
+                </div>
+              <div className="rsi-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div className="card" style={{ padding: 16, overflowX: 'auto' }}>
                   <div className="col-label" style={{ marginBottom: 12 }}>RSI 4H Zone → Win Rate</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: 6, marginBottom: 6 }}>
@@ -863,6 +867,7 @@ export default function AnalysisPage() {
                     })}
                   </div>
                 )}
+              </div>
               </div>
             )}
 
