@@ -36,7 +36,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Syne', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -49,7 +49,7 @@ body {
 
 .container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; }
 
-.badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; letter-spacing: 0.06em; font-family: 'DM Mono', monospace; }
+.badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 4px; font-size: 13px; font-weight: 500; letter-spacing: 0.06em; font-family: 'DM Mono', monospace; }
 .badge-short { background: var(--red-dim); color: var(--red); border: 1px solid var(--red-border); }
 .badge-long { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); }
 .badge-wait { background: #ffffff08; color: var(--text-2); border: 1px solid var(--border); }
@@ -72,22 +72,22 @@ body {
 .analysis-row:hover { background: var(--bg-3); }
 .analysis-row:last-child { border-bottom: none; }
 
-.col-label { font-size: 10px; color: var(--text-3); font-family: 'DM Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; }
+.col-label { font-size: 12px; color: var(--text-3); font-family: 'DM Mono', monospace; letter-spacing: 0.08em; }
 
-.price { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); }
+.price { font-family: 'DM Mono', monospace; font-size: 15px; color: var(--text); }
 .pnl-pos { color: var(--green); font-family: 'DM Mono', monospace; font-weight: 500; }
 .pnl-neg { color: var(--red); font-family: 'DM Mono', monospace; font-weight: 500; }
 .pnl-zero { color: var(--text-3); font-family: 'DM Mono', monospace; }
 
-.section-title { font-size: 10px; color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase; font-family: 'DM Mono', monospace; margin-bottom: 10px; }
+.section-title { font-size: 12px; color: var(--text-3); letter-spacing: 0.1em; font-family: 'DM Mono', monospace; margin-bottom: 10px; }
 
-.synthesis-block { background: var(--bg-3); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; font-size: 13px; color: var(--text-2); line-height: 1.75; }
+.synthesis-block { background: var(--bg-3); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; font-size: 15px; color: var(--text-2); line-height: 1.75; }
 
 .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .data-item { background: var(--bg-3); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; }
 .data-item.critical { border-color: var(--amber-border); background: var(--amber-dim); }
 
-.filter-btn { padding: 4px 10px; border-radius: 4px; font-size: 11px; font-family: 'DM Mono', monospace; border: 1px solid var(--border); background: transparent; color: var(--text-3); cursor: pointer; transition: all 0.1s; white-space: nowrap; }
+.filter-btn { padding: 4px 10px; border-radius: 4px; font-size: 13px; font-family: 'DM Mono', monospace; border: 1px solid var(--border); background: transparent; color: var(--text-3); cursor: pointer; transition: all 0.1s; white-space: nowrap; }
 .filter-btn:hover { border-color: var(--border-3); color: var(--text-2); }
 .filter-btn.active { border-color: var(--border-3); color: var(--text); background: var(--bg-3); }
 
@@ -97,15 +97,15 @@ body {
 .scorecard-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 1px; background: var(--border); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); min-width: 0; }
 .scorecard-cell { background: var(--bg-3); padding: 12px 14px; }
 
-.tab-btn { padding: 8px 16px; font-size: 12px; font-family: 'DM Mono', monospace; background: transparent; border: none; color: var(--text-3); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; letter-spacing: 0.05em; }
+.tab-btn { padding: 8px 16px; font-size: 14px; font-family: 'DM Mono', monospace; background: transparent; border: none; color: var(--text-3); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; letter-spacing: 0.05em; }
 .tab-btn:hover { color: var(--text-2); }
 .tab-btn.active { color: var(--text); border-bottom-color: var(--text); }
 
-.note-textarea { width: 100%; background: var(--bg-3); border: 1px solid var(--border); border-radius: 6px; padding: 12px; color: var(--text); font-family: 'Syne', sans-serif; font-size: 13px; line-height: 1.6; resize: vertical; min-height: 72px; transition: border-color 0.15s; }
+.note-textarea { width: 100%; background: var(--bg-3); border: 1px solid var(--border); border-radius: 6px; padding: 12px; color: var(--text); font-family: 'Syne', sans-serif; font-size: 15px; line-height: 1.6; resize: vertical; min-height: 72px; transition: border-color 0.15s; }
 .note-textarea:focus { outline: none; border-color: var(--border-3); }
 .note-textarea::placeholder { color: var(--text-3); }
 
-.save-btn { padding: 6px 16px; border-radius: 4px; font-size: 12px; font-family: 'DM Mono', monospace; border: 1px solid var(--border-2); background: var(--bg-4); color: var(--text); cursor: pointer; transition: all 0.1s; }
+.save-btn { padding: 6px 16px; border-radius: 4px; font-size: 14px; font-family: 'DM Mono', monospace; border: 1px solid var(--border-2); background: var(--bg-4); color: var(--text); cursor: pointer; transition: all 0.1s; }
 .save-btn:hover { background: var(--bg-3); border-color: var(--border-3); }
 .save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -130,7 +130,7 @@ body {
 
   .scorecard-grid { grid-template-columns: repeat(3, 1fr); }
   .scorecard-cell { padding: 10px; min-width: 0; word-break: break-word; }
-  .scorecard-cell .mono { font-size: 13px !important; }
+  .scorecard-cell .mono { font-size: 15px !important; }
 
   .modal-overlay {
     padding: 0;
@@ -155,9 +155,9 @@ body {
   .reasons-3col { grid-template-columns: 1fr; }
   .charts-2col { grid-template-columns: repeat(2, 1fr); }
   .screenshot-grid { grid-template-columns: repeat(2, 1fr); }
-  .filter-btn { font-size: 10px; padding: 4px 8px; }
+  .filter-btn { font-size: 12px; padding: 4px 8px; }
 
-  .synthesis-block { font-size: 12px; word-break: break-word; }
+  .synthesis-block { font-size: 14px; word-break: break-word; }
   .stat-card { padding: 12px 12px; }
   .wp-model-grid { grid-template-columns: repeat(2, 1fr) !important; }
   .rsi-grid { grid-template-columns: 1fr !important; }
