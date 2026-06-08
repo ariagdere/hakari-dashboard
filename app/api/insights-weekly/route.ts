@@ -4,9 +4,8 @@ import { buildInsightsWhere } from '@/lib/insightsFilter'
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
-  const { conditions, params } = buildInsightsWhere(req.nextUrl.searchParams)
-  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''
-  const n = params.length
+  const { where, params } = buildInsightsWhere(req)
+  const andOrWhere = where ? `${where} AND` : 'WHERE'
 
   const byDayQ = `
     SELECT
@@ -17,7 +16,7 @@ export async function GET(req: NextRequest) {
       ROUND(SUM(sim_r_multiple)::numeric, 2) AS total_r
     FROM btc_analysis
     ${where}
-      ${conditions.length ? 'AND' : 'WHERE'} sim_result IN ('TP_HIT','SL_HIT')
+      ${andOrWhere} sim_result IN ('TP_HIT','SL_HIT')
     GROUP BY 1
     ORDER BY 1
   `
@@ -32,7 +31,7 @@ export async function GET(req: NextRequest) {
       ROUND(SUM(sim_r_multiple)::numeric, 2) AS total_r
     FROM btc_analysis
     ${where}
-      ${conditions.length ? 'AND' : 'WHERE'} sim_result IN ('TP_HIT','SL_HIT')
+      ${andOrWhere} sim_result IN ('TP_HIT','SL_HIT')
     GROUP BY 1
     ORDER BY 1
   `
@@ -45,7 +44,7 @@ export async function GET(req: NextRequest) {
   const DAY_LABELS: Record<number, string> = { 0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat' }
 
   return NextResponse.json({
-    by_day:  byDay.rows.map(r => ({ ...r, label: DAY_LABELS[r.dow] ?? r.dow })),
+    by_day:  byDay.rows.map(r => ({ ...r, label: DAY_LABELS[Number(r.dow)] ?? String(r.dow) })),
     by_type: byType.rows,
   })
 }
