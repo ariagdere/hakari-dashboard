@@ -36,6 +36,14 @@ interface RHistRow   { sim_result: string; r_bucket: number; count: number }
 interface ScatterRow { id: number; sim_result: string; mfe: number; mae: number; r_multiple: number }
 interface TargetRRow { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; total_r: number | null; avg_target_r: number }
 interface RmaeData   { r_histogram: RHistRow[]; scatter: ScatterRow[]; target_r_distribution: TargetRRow[] }
+interface EntryWaitBucket { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; total_r: number | null; avg_wait_mins: number }
+interface EntryWaitData   { buckets: EntryWaitBucket[] }
+interface DistBucket      { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; avg_r: number | null; total_r: number | null; avg_dist: number }
+interface DistanceData    { tp_buckets: DistBucket[]; sl_buckets: DistBucket[] }
+interface TradeDurBucket  { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; total_r: number | null; avg_dur_mins: number }
+interface TradeDurData    { buckets: TradeDurBucket[] }
+interface WeeklyRow       { label: string; dow?: number; total: number; wins: number; win_rate: number; total_r: number | null }
+interface WeeklyData      { by_day: WeeklyRow[]; by_type: WeeklyRow[] }
 interface AnalysisSummary {
   id: number; analyzed_at: string; direction: string
   entry: number; tp: number; sl: number; rr: string
@@ -51,7 +59,7 @@ interface AnalysisSummary {
 interface Filters {
   direction: string; sim_result: string
   date_from: string; date_to: string
-  include_weekdays: boolean; include_weekends: boolean
+  days: number[]  // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
   rsi_min: number; rsi_max: number
   rsi30_min: number; rsi30_max: number
   wp4_min: number; wp4_max: number
@@ -84,7 +92,7 @@ interface Preset { name: string; filters: Filters }
 const DEFAULT_FILTERS: Filters = {
   direction: '', sim_result: '',
   date_from: '', date_to: '',
-  include_weekdays: true, include_weekends: true,
+  days: [0,1,2,3,4,5,6],
   rsi_min: 0, rsi_max: 100,
   rsi30_min: 0, rsi30_max: 100,
   wp4_min: 0, wp4_max: 100,
@@ -118,8 +126,7 @@ function filtersToParams(f: Filters): URLSearchParams {
   if (f.sim_result)  p.set('sim_result', f.sim_result)
   if (f.date_from)   p.set('date_from',  f.date_from)
   if (f.date_to)     p.set('date_to',    f.date_to)
-  if (!f.include_weekdays) p.set('exclude_weekdays', '1')
-  if (!f.include_weekends) p.set('exclude_weekends', '1')
+  if (f.days.length < 7) p.set('days', f.days.join(','))
   p.set('rsi_min', String(f.rsi_min));   p.set('rsi_max', String(f.rsi_max))
   p.set('rsi30_min', String(f.rsi30_min)); p.set('rsi30_max', String(f.rsi30_max))
   p.set('wp4_min', String(f.wp4_min));         p.set('wp4_max', String(f.wp4_max))
@@ -154,7 +161,7 @@ function activeFilterCount(f: Filters): number {
   let n = 0
   if (f.direction) n++; if (f.sim_result) n++
   if (f.date_from || f.date_to) n++
-  if (!f.include_weekdays || !f.include_weekends) n++
+  if (f.days.length < 7) n++
   if (f.rsi_min > 0 || f.rsi_max < 100) n++
   if (f.rsi30_min > 0 || f.rsi30_max < 100) n++
   if (f.wp4_min > 0 || f.wp4_max < 100) n++
@@ -324,22 +331,27 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
             <input type="date" value={filters.date_to} onChange={e => onChange({ ...filters, date_to: e.target.value })}
               style={{ flex: 1, background: 'var(--bg-3)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)', fontSize: 10, padding: '3px 6px', fontFamily: 'DM Mono, monospace' }} />
             {([
-              { key: 'include_weekdays' as const, label: 'Weekdays' },
-              { key: 'include_weekends' as const, label: 'Weekend' },
-            ]).map(({ key, label }) => (
-              <button
-                key={key}
-                className={`filter-btn${filters[key] ? ' active' : ''}`}
-                style={{ fontSize: 10, padding: '2px 10px', flexShrink: 0 }}
-                onClick={() => {
-                  const next = { ...filters, [key]: !filters[key] }
-                  if (!next.include_weekdays && !next.include_weekends) return
-                  onChange(next)
-                }}
-              >
-                {label}
-              </button>
-            ))}
+              { dow: 1, label: 'M' }, { dow: 2, label: 'T' }, { dow: 3, label: 'W' },
+              { dow: 4, label: 'T' }, { dow: 5, label: 'F' }, { dow: 6, label: 'S' }, { dow: 0, label: 'S' },
+            ]).map(({ dow, label }) => {
+              const active = filters.days.includes(dow)
+              return (
+                <button
+                  key={dow}
+                  className={`filter-btn${active ? ' active' : ''}`}
+                  style={{ fontSize: 10, padding: '2px 7px', flexShrink: 0, minWidth: 24 }}
+                  onClick={() => {
+                    const next = active
+                      ? filters.days.filter(d => d !== dow)
+                      : [...filters.days, dow]
+                    if (next.length === 0) return
+                    onChange({ ...filters, days: next })
+                  }}
+                >
+                  {label}
+                </button>
+              )
+            })}
           </div>
         </div>
       </div>
@@ -431,6 +443,10 @@ export default function AnalysisPage() {
   const [wpAll,     setWpAll]     = useState<WpAllData | null>(null)
   const [optimalR,  setOptimalR]  = useState<OptimalRData | null>(null)
   const [rmae,      setRmae]      = useState<RmaeData | null>(null)
+  const [entryWait, setEntryWait] = useState<EntryWaitData | null>(null)
+  const [tradeDur,  setTradeDur]  = useState<TradeDurData | null>(null)
+  const [distance,  setDistance]  = useState<DistanceData | null>(null)
+  const [weekly,    setWeekly]    = useState<WeeklyData | null>(null)
   const [analyses,  setAnalyses]  = useState<AnalysisSummary[]>([])
   const [loading,   setLoading]   = useState(true)
   const [filterOpen, setFilterOpen] = useState(false)
@@ -485,8 +501,12 @@ export default function AnalysisPage() {
       fetch(`/api/insights-winprob-all${qs}`,   { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/insights-optimal-r${qs}`,     { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/insights-rmae${qs}`,          { cache: 'no-store' }).then(r => r.json()),
+      fetch(`/api/insights-entrywait${qs}`,     { cache: 'no-store' }).then(r => r.json()),
+      fetch(`/api/insights-tradedur${qs}`,      { cache: 'no-store' }).then(r => r.json()),
+      fetch(`/api/insights-distance${qs}`,      { cache: 'no-store' }).then(r => r.json()),
+      fetch(`/api/insights-weekly${qs}`,        { cache: 'no-store' }).then(r => r.json()),
       fetch(`/api/analyses?${p}&page=${pg}`,    { cache: 'no-store' }).then(r => r.json()),
-    ]).then(([ov, sc, delta, cr, wpa, optR, rm, an]) => {
+    ]).then(([ov, sc, delta, cr, wpa, optR, rm, ew, td, dist, wk, an]) => {
       setOverview(ov)
       setScoring(sc)
       setDeltaData(delta)
@@ -494,6 +514,10 @@ export default function AnalysisPage() {
       setWpAll(wpa)
       setOptimalR(optR)
       setRmae(rm)
+      setEntryWait(ew)
+      setTradeDur(td)
+      setDistance(dist)
+      setWeekly(wk)
       setAnalyses(an.analyses)
       setTotalPages(an.totalPages)
       setTotal(an.total)
@@ -749,6 +773,53 @@ export default function AnalysisPage() {
               )
             })()}
 
+            {/* ── HAFTANIN GÜNLERİ ANALİZİ ───────────────────────────────── */}
+            {weekly && (weekly.by_day?.length > 0 || weekly.by_type?.length > 0) && (
+              <div style={{ marginBottom: 16 }}>
+                <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+                  HAFTANIN GÜNLERİ ANALİZİ
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div className="card" style={{ padding: 16 }}>
+                    <div className="col-label" style={{ marginBottom: 10 }}>Güne göre</div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
+                      <thead><tr>{['Gün', 'n', 'Win%', 'Toplam R'].map((h, i) => (
+                        <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
+                      ))}</tr></thead>
+                      <tbody>{weekly.by_day.map((row, i) => (
+                        <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                          <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{row.label}</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{row.total}</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(row.win_rate)) }}>{Number(row.win_rate).toFixed(1)}%</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: Number(row.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                            {row.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(2)}R` : '—'}
+                          </td>
+                        </tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+                  <div className="card" style={{ padding: 16 }}>
+                    <div className="col-label" style={{ marginBottom: 10 }}>Weekdays vs Weekend</div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
+                      <thead><tr>{['Tip', 'n', 'Win%', 'Toplam R'].map((h, i) => (
+                        <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
+                      ))}</tr></thead>
+                      <tbody>{weekly.by_type.map((row, i) => (
+                        <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                          <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{row.label}</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{row.total}</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(row.win_rate)) }}>{Number(row.win_rate).toFixed(1)}%</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: Number(row.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                            {row.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(2)}R` : '—'}
+                          </td>
+                        </tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* ── RSI WIN RATE TABLOLARI ───────────────────────────────────── */}
             {scoring && (
               <div className="rsi-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
@@ -862,6 +933,96 @@ export default function AnalysisPage() {
                     </div>
                   )
                 })}
+              </div>
+            )}
+
+            {/* ── HEDEF MESAFE ANALİZİ ─────────────────────────────────────── */}
+            {distance && (distance.tp_buckets?.length > 0 || distance.sl_buckets?.length > 0) && (
+              <div style={{ marginBottom: 16 }}>
+                <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+                  HEDEF MESAFE ANALİZİ
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div className="card" style={{ padding: 16 }}>
+                    <div className="col-label" style={{ marginBottom: 10 }}>TP mesafesi</div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
+                      <thead><tr>{['Mesafe', 'n', 'Win%', 'Toplam R'].map((h, i) => (
+                        <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
+                      ))}</tr></thead>
+                      <tbody>{distance.tp_buckets.map((b, i) => (
+                        <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                          <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(b.win_rate)) }}>{Number(b.win_rate).toFixed(1)}%</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: Number(b.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{b.total_r != null ? `${Number(b.total_r) >= 0 ? '+' : ''}${Number(b.total_r).toFixed(2)}R` : '—'}</td>
+                        </tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+                  <div className="card" style={{ padding: 16 }}>
+                    <div className="col-label" style={{ marginBottom: 10 }}>SL mesafesi</div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
+                      <thead><tr>{['Mesafe', 'n', 'Win%', 'Toplam R'].map((h, i) => (
+                        <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
+                      ))}</tr></thead>
+                      <tbody>{distance.sl_buckets.map((b, i) => (
+                        <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                          <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(b.win_rate)) }}>{Number(b.win_rate).toFixed(1)}%</td>
+                          <td style={{ padding: '5px 0', textAlign: 'right', color: Number(b.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{b.total_r != null ? `${Number(b.total_r) >= 0 ? '+' : ''}${Number(b.total_r).toFixed(2)}R` : '—'}</td>
+                        </tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── ENTRY & TRADE SÜRESİ ANALİZİ ────────────────────────────── */}
+            {(entryWait?.buckets?.length > 0 || tradeDur?.buckets?.length > 0) && (
+              <div style={{ marginBottom: 16 }}>
+                <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+                  ENTRY & TRADE SÜRESİ ANALİZİ
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  {entryWait?.buckets?.length > 0 && (
+                    <div className="card" style={{ padding: 16 }}>
+                      <div className="col-label" style={{ marginBottom: 10 }}>Entry bekleme süresi</div>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
+                        <thead><tr>{['Süre', 'n', 'Win%', 'Toplam R'].map((h, i) => (
+                          <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
+                        ))}</tr></thead>
+                        <tbody>{entryWait.buckets.map((b, i) => (
+                          <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                            <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
+                            <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
+                            <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(b.win_rate)) }}>{Number(b.win_rate).toFixed(1)}%</td>
+                            <td style={{ padding: '5px 0', textAlign: 'right', color: Number(b.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{b.total_r != null ? `${Number(b.total_r) >= 0 ? '+' : ''}${Number(b.total_r).toFixed(2)}R` : '—'}</td>
+                          </tr>
+                        ))}</tbody>
+                      </table>
+                    </div>
+                  )}
+                  {tradeDur?.buckets?.length > 0 && (
+                    <div className="card" style={{ padding: 16 }}>
+                      <div className="col-label" style={{ marginBottom: 10 }}>Trade süresi</div>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
+                        <thead><tr>{['Süre', 'n', 'Win%', 'Toplam R'].map((h, i) => (
+                          <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
+                        ))}</tr></thead>
+                        <tbody>{tradeDur.buckets.map((b, i) => (
+                          <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                            <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
+                            <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
+                            <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(b.win_rate)) }}>{Number(b.win_rate).toFixed(1)}%</td>
+                            <td style={{ padding: '5px 0', textAlign: 'right', color: Number(b.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{b.total_r != null ? `${Number(b.total_r) >= 0 ? '+' : ''}${Number(b.total_r).toFixed(2)}R` : '—'}</td>
+                          </tr>
+                        ))}</tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
