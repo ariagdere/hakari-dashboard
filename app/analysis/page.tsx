@@ -845,17 +845,22 @@ export default function AnalysisPage() {
                 </div>
               <div className="rsi-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div className="card" style={{ padding: 16, overflowX: 'auto' }}>
-                  <div className="col-label" style={{ marginBottom: 12 }}>RSI 4H Zone</div>
+                  <div className="col-label" style={{ marginBottom: 10 }}>RSI 4H Zone</div>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'DM Mono, monospace' }}>
                     <thead>
                       <tr>
+                        <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 4, fontWeight: 400 }} />
+                        <th colSpan={3} style={{ textAlign: 'center', color: 'var(--green)', paddingBottom: 4, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>LONG</th>
+                        <th colSpan={3} style={{ textAlign: 'center', color: 'var(--red)', paddingBottom: 4, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>SHORT</th>
+                      </tr>
+                      <tr>
                         <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Zone</th>
-                        <th style={{ textAlign: 'right', color: 'var(--green)', paddingBottom: 6, fontWeight: 400 }}>L n</th>
-                        <th style={{ textAlign: 'right', color: 'var(--green)', paddingBottom: 6, fontWeight: 400 }}>L Win%</th>
-                        <th style={{ textAlign: 'right', color: 'var(--green)', paddingBottom: 6, fontWeight: 400 }}>L Total R</th>
-                        <th style={{ textAlign: 'right', color: 'var(--red)', paddingBottom: 6, fontWeight: 400 }}>S n</th>
-                        <th style={{ textAlign: 'right', color: 'var(--red)', paddingBottom: 6, fontWeight: 400 }}>S Win%</th>
-                        <th style={{ textAlign: 'right', color: 'var(--red)', paddingBottom: 6, fontWeight: 400 }}>S Total R</th>
+                        <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)', paddingLeft: 6 }}>Win%</th>
+                        <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>n</th>
+                        <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, paddingRight: 8 }}>Tot.R</th>
+                        <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)', paddingLeft: 6 }}>Win%</th>
+                        <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>n</th>
+                        <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Tot.R</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -865,12 +870,12 @@ export default function AnalysisPage() {
                         return (
                           <tr key={row.rsi_zone} style={{ borderTop: '1px solid var(--border)' }}>
                             <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{fmtZone(String(row.rsi_zone))}</td>
-                            <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{long?.total ?? '—'}</td>
-                            <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(long ? Number(long.win_rate) : null) }}>{long ? `${Number(long.win_rate).toFixed(1)}%` : '—'}</td>
-                            <td style={{ padding: '5px 0', textAlign: 'right', color: Number(long?.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{long?.total_r != null ? `${Number(long.total_r) >= 0 ? '+' : ''}${Number(long.total_r).toFixed(1)}R` : '—'}</td>
-                            <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{short?.total ?? '—'}</td>
-                            <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(short ? Number(short.win_rate) : null) }}>{short ? `${Number(short.win_rate).toFixed(1)}%` : '—'}</td>
-                            <td style={{ padding: '5px 0', textAlign: 'right', color: Number(short?.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{short?.total_r != null ? `${Number(short.total_r) >= 0 ? '+' : ''}${Number(short.total_r).toFixed(1)}R` : '—'}</td>
+                            <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', borderLeft: '1px solid var(--border)', color: winColor(long ? Number(long.win_rate) : null) }}>{long ? `${Number(long.win_rate).toFixed(1)}%` : '—'}</td>
+                            <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{long?.total ?? '—'}</td>
+                            <td style={{ padding: '5px 8px 5px 0', textAlign: 'right', color: long?.total_r != null ? (Number(long.total_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>{long?.total_r != null ? `${Number(long.total_r) >= 0 ? '+' : ''}${Number(long.total_r).toFixed(1)}` : '—'}</td>
+                            <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', borderLeft: '1px solid var(--border)', color: winColor(short ? Number(short.win_rate) : null) }}>{short ? `${Number(short.win_rate).toFixed(1)}%` : '—'}</td>
+                            <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{short?.total ?? '—'}</td>
+                            <td style={{ padding: '5px 0', textAlign: 'right', color: short?.total_r != null ? (Number(short.total_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>{short?.total_r != null ? `${Number(short.total_r) >= 0 ? '+' : ''}${Number(short.total_r).toFixed(1)}` : '—'}</td>
                           </tr>
                         )
                       })}
@@ -879,17 +884,22 @@ export default function AnalysisPage() {
                 </div>
                 {scoring.by_rsi30?.length > 0 && (
                   <div className="card" style={{ padding: 16 }}>
-                    <div className="col-label" style={{ marginBottom: 12 }}>RSI 30M Zone</div>
+                    <div className="col-label" style={{ marginBottom: 10 }}>RSI 30M Zone</div>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'DM Mono, monospace' }}>
                       <thead>
                         <tr>
+                          <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 4, fontWeight: 400 }} />
+                          <th colSpan={3} style={{ textAlign: 'center', color: 'var(--green)', paddingBottom: 4, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>LONG</th>
+                          <th colSpan={3} style={{ textAlign: 'center', color: 'var(--red)', paddingBottom: 4, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>SHORT</th>
+                        </tr>
+                        <tr>
                           <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Zone</th>
-                          <th style={{ textAlign: 'right', color: 'var(--green)', paddingBottom: 6, fontWeight: 400 }}>L n</th>
-                          <th style={{ textAlign: 'right', color: 'var(--green)', paddingBottom: 6, fontWeight: 400 }}>L Win%</th>
-                          <th style={{ textAlign: 'right', color: 'var(--green)', paddingBottom: 6, fontWeight: 400 }}>L Total R</th>
-                          <th style={{ textAlign: 'right', color: 'var(--red)', paddingBottom: 6, fontWeight: 400 }}>S n</th>
-                          <th style={{ textAlign: 'right', color: 'var(--red)', paddingBottom: 6, fontWeight: 400 }}>S Win%</th>
-                          <th style={{ textAlign: 'right', color: 'var(--red)', paddingBottom: 6, fontWeight: 400 }}>S Total R</th>
+                          <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)', paddingLeft: 6 }}>Win%</th>
+                          <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>n</th>
+                          <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, paddingRight: 8 }}>Tot.R</th>
+                          <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)', paddingLeft: 6 }}>Win%</th>
+                          <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>n</th>
+                          <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Tot.R</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -899,12 +909,12 @@ export default function AnalysisPage() {
                           return (
                             <tr key={row.rsi_zone} style={{ borderTop: '1px solid var(--border)' }}>
                               <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{fmtZone(String(row.rsi_zone))}</td>
-                              <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{long?.total ?? '—'}</td>
-                              <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(long ? Number(long.win_rate) : null) }}>{long ? `${Number(long.win_rate).toFixed(1)}%` : '—'}</td>
-                              <td style={{ padding: '5px 0', textAlign: 'right', color: Number(long?.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{long?.total_r != null ? `${Number(long.total_r) >= 0 ? '+' : ''}${Number(long.total_r).toFixed(1)}R` : '—'}</td>
-                              <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{short?.total ?? '—'}</td>
-                              <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(short ? Number(short.win_rate) : null) }}>{short ? `${Number(short.win_rate).toFixed(1)}%` : '—'}</td>
-                              <td style={{ padding: '5px 0', textAlign: 'right', color: Number(short?.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{short?.total_r != null ? `${Number(short.total_r) >= 0 ? '+' : ''}${Number(short.total_r).toFixed(1)}R` : '—'}</td>
+                              <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', borderLeft: '1px solid var(--border)', color: winColor(long ? Number(long.win_rate) : null) }}>{long ? `${Number(long.win_rate).toFixed(1)}%` : '—'}</td>
+                              <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{long?.total ?? '—'}</td>
+                              <td style={{ padding: '5px 8px 5px 0', textAlign: 'right', color: long?.total_r != null ? (Number(long.total_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>{long?.total_r != null ? `${Number(long.total_r) >= 0 ? '+' : ''}${Number(long.total_r).toFixed(1)}` : '—'}</td>
+                              <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', borderLeft: '1px solid var(--border)', color: winColor(short ? Number(short.win_rate) : null) }}>{short ? `${Number(short.win_rate).toFixed(1)}%` : '—'}</td>
+                              <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{short?.total ?? '—'}</td>
+                              <td style={{ padding: '5px 0', textAlign: 'right', color: short?.total_r != null ? (Number(short.total_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>{short?.total_r != null ? `${Number(short.total_r) >= 0 ? '+' : ''}${Number(short.total_r).toFixed(1)}` : '—'}</td>
                             </tr>
                           )
                         })}
