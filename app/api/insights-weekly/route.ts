@@ -41,10 +41,12 @@ export async function GET(req: NextRequest) {
     pool.query(byTypeQ, params),
   ])
 
-  const DAY_LABELS: Record<number, string> = { 0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat' }
+  const DAY_LABELS: Record<number, string> = { 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat', 0: 'Sun' }
+  const DAY_ORDER: Record<number, number> = { 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 0: 6 }
 
   return NextResponse.json({
-    by_day:  byDay.rows.map(r => ({ ...r, label: DAY_LABELS[Number(r.dow)] ?? String(r.dow) })),
+    by_day:  byDay.rows.map(r => ({ ...r, label: DAY_LABELS[Number(r.dow)] ?? String(r.dow) }))
+                       .sort((a, b) => DAY_ORDER[Number(a.dow)] - DAY_ORDER[Number(b.dow)]),
     by_type: byType.rows,
   })
 }
