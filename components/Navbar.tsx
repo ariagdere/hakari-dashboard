@@ -8,13 +8,13 @@ const NAV_ITEMS = [
 export default function Navbar() {
   const pathname = usePathname()
   const isActive = (href: string) => {
-    if (href === '/dashboard') return pathname === '/dashboard' || pathname.startsWith('/dashboard/')
+    if (href === '/analysis') return pathname === '/analysis' || pathname.startsWith('/analysis/')
     return pathname === href
   }
   return (
     <div style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-2)', position: 'sticky', top: 0, zIndex: 20 }}>
       <div className="container" style={{ height: 48, display: 'flex', alignItems: 'center' }}>
-        <Link href="/dashboard" style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--text)', marginRight: 14, textDecoration: 'none' }}>
+        <Link href="/analysis" style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--text)', marginRight: 14, textDecoration: 'none' }}>
           HAKARI
         </Link>
         {NAV_ITEMS.map(item => (
