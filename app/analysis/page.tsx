@@ -980,7 +980,7 @@ export default function AnalysisPage() {
             )}
 
             {/* ── ENTRY & TRADE SÜRESİ ANALİZİ ────────────────────────────── */}
-            {(entryWait?.buckets?.length > 0 || tradeDur?.buckets?.length > 0) && (
+            {((entryWait?.buckets?.length ?? 0) > 0 || (tradeDur?.buckets?.length ?? 0) > 0) && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   ENTRY & TRADE SÜRESİ ANALİZİ
