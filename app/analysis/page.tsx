@@ -227,8 +227,8 @@ function WinBar({ rate, total }: { rate: number | null; total: number }) {
       <div style={{ flex: 1, height: 3, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
         <div style={{ width: `${Math.min(val, 100)}%`, height: '100%', background: winColor(rate), borderRadius: 2 }} />
       </div>
-      <span className="mono" style={{ fontSize: 13, color: winColor(rate), minWidth: 40, textAlign: 'right' }}>{val.toFixed(1)}%</span>
-      <span className="mono" style={{ fontSize: 12, color: 'var(--text-3)', minWidth: 32, textAlign: 'right' }}>n={total}</span>
+      <span className="mono" style={{ fontSize: 13, color: winColor(rate), minWidth: 36, textAlign: 'right' }}>{val.toFixed(1)}%</span>
+      <span className="mono" style={{ fontSize: 12, color: 'var(--text-3)', minWidth: 28, textAlign: 'right' }}>n={total}</span>
     </div>
   )
 }
@@ -415,8 +415,8 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
       {sep}
       <GL c="Trade Dynamics" />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
-        <RangeRow label="Entry wait (min)" minKey="wait_min" maxKey="wait_max" min={0} max={4320} step={30} filters={filters} onChange={onChange} />
-        <RangeRow label="Trade duration (min)" minKey="trade_dur_min" maxKey="trade_dur_max" min={0} max={4320} step={30} filters={filters} onChange={onChange} />
+        <RangeRow label="Entry Wait (min)" minKey="wait_min" maxKey="wait_max" min={0} max={4320} step={30} filters={filters} onChange={onChange} />
+        <RangeRow label="Trade Duration (min)" minKey="trade_dur_min" maxKey="trade_dur_max" min={0} max={4320} step={30} filters={filters} onChange={onChange} />
         <RangeRow label="Target R" minKey="r_min" maxKey="r_max" min={0} max={10} step={0.5} filters={filters} onChange={onChange} />
       </div>
 
@@ -654,8 +654,8 @@ export default function AnalysisPage() {
                 <div className="col-label" style={{ marginBottom: 4 }}>WIN RATE</div>
                 <div className="mono" style={{ fontSize: 20, fontWeight: 500, color: winColor(Number(overview.win_rate)) }}>%{Number(overview.win_rate).toFixed(1)}</div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
-                  <span className="mono" style={{ fontSize: 12, color: 'var(--green)' }}>L:%{Number(overview.long_win_rate).toFixed(1)}</span>
-                  <span className="mono" style={{ fontSize: 12, color: 'var(--red)' }}>S:%{Number(overview.short_win_rate).toFixed(1)}</span>
+                  <span className="mono" style={{ fontSize: 12, color: 'var(--green)' }}>L:{Number(overview.long_win_rate).toFixed(0)}%</span>
+                  <span className="mono" style={{ fontSize: 12, color: 'var(--red)' }}>S:{Number(overview.short_win_rate).toFixed(0)}%</span>
                 </div>
               </div>
               <div className="stat-card">
@@ -781,7 +781,7 @@ export default function AnalysisPage() {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div className="card" style={{ padding: 16 }}>
-                    <div className="col-label" style={{ marginBottom: 10 }}>By day</div>
+                    <div className="col-label" style={{ marginBottom: 10 }}>By Day</div>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'DM Mono, monospace' }}>
                       <thead><tr>{['Day', 'n', 'Win%', 'Total R'].map((h, i) => (
                         <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
@@ -829,7 +829,7 @@ export default function AnalysisPage() {
               <div className="rsi-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div className="card" style={{ padding: 16, overflowX: 'auto' }}>
                   <div className="col-label" style={{ marginBottom: 12 }}>RSI 4H Zone → Win Rate</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: 6, marginBottom: 6 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '90px 1fr 1fr', gap: 6, marginBottom: 6 }}>
                     <div />
                     <span className="mono" style={{ fontSize: 11, color: 'var(--green)', textAlign: 'center' }}>LONG</span>
                     <span className="mono" style={{ fontSize: 11, color: 'var(--red)', textAlign: 'center' }}>SHORT</span>
@@ -838,7 +838,7 @@ export default function AnalysisPage() {
                     const long  = scoring.by_rsi_long.find((r: any) => r.rsi_zone === row.rsi_zone)
                     const short = scoring.by_rsi_short.find((r: any) => r.rsi_zone === row.rsi_zone)
                     return (
-                      <div key={row.rsi_zone} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: 6, alignItems: 'center', marginBottom: 8 }}>
+                      <div key={row.rsi_zone} style={{ display: 'grid', gridTemplateColumns: '90px 1fr 1fr', gap: 6, alignItems: 'center', marginBottom: 8 }}>
                         <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{row.rsi_zone}</span>
                         <WinBar rate={long ? Number(long.win_rate) : null} total={long ? Number(long.total) : 0} />
                         <WinBar rate={short ? Number(short.win_rate) : null} total={short ? Number(short.total) : 0} />
@@ -849,7 +849,7 @@ export default function AnalysisPage() {
                 {scoring.by_rsi30?.length > 0 && (
                   <div className="card" style={{ padding: 16 }}>
                     <div className="col-label" style={{ marginBottom: 12 }}>RSI 30M Zone → Win Rate</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: 6, marginBottom: 6 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '90px 1fr 1fr', gap: 6, marginBottom: 6 }}>
                       <div />
                       <span className="mono" style={{ fontSize: 11, color: 'var(--green)', textAlign: 'center' }}>LONG</span>
                       <span className="mono" style={{ fontSize: 11, color: 'var(--red)', textAlign: 'center' }}>SHORT</span>
@@ -858,7 +858,7 @@ export default function AnalysisPage() {
                       const long  = scoring.by_rsi30_long?.find((r: any) => r.rsi_zone === row.rsi_zone)
                       const short = scoring.by_rsi30_short?.find((r: any) => r.rsi_zone === row.rsi_zone)
                       return (
-                        <div key={row.rsi_zone} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: 6, alignItems: 'center', marginBottom: 8 }}>
+                        <div key={row.rsi_zone} style={{ display: 'grid', gridTemplateColumns: '90px 1fr 1fr', gap: 6, alignItems: 'center', marginBottom: 8 }}>
                           <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{row.rsi_zone}</span>
                           <WinBar rate={long ? Number(long.win_rate) : null} total={long ? Number(long.total) : 0} />
                           <WinBar rate={short ? Number(short.win_rate) : null} total={short ? Number(short.total) : 0} />
@@ -949,7 +949,7 @@ export default function AnalysisPage() {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div className="card" style={{ padding: 16 }}>
-                    <div className="col-label" style={{ marginBottom: 10 }}>TP distance</div>
+                    <div className="col-label" style={{ marginBottom: 10 }}>TP Distance</div>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'DM Mono, monospace' }}>
                       <thead><tr>{['Distance', 'n', 'Win%', 'Total R'].map((h, i) => (
                         <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
@@ -965,7 +965,7 @@ export default function AnalysisPage() {
                     </table>
                   </div>
                   <div className="card" style={{ padding: 16 }}>
-                    <div className="col-label" style={{ marginBottom: 10 }}>SL distance</div>
+                    <div className="col-label" style={{ marginBottom: 10 }}>SL Distance</div>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'DM Mono, monospace' }}>
                       <thead><tr>{['Distance', 'n', 'Win%', 'Total R'].map((h, i) => (
                         <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
@@ -993,7 +993,7 @@ export default function AnalysisPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   {(entryWait?.buckets?.length ?? 0) > 0 && (
                     <div className="card" style={{ padding: 16 }}>
-                      <div className="col-label" style={{ marginBottom: 10 }}>Entry wait time</div>
+                      <div className="col-label" style={{ marginBottom: 10 }}>Entry Wait Time</div>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'DM Mono, monospace' }}>
                         <thead><tr>{['Duration', 'n', 'Win%', 'Total R'].map((h, i) => (
                           <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
@@ -1011,7 +1011,7 @@ export default function AnalysisPage() {
                   )}
                   {(tradeDur?.buckets?.length ?? 0) > 0 && (
                     <div className="card" style={{ padding: 16 }}>
-                      <div className="col-label" style={{ marginBottom: 10 }}>Trade duration</div>
+                      <div className="col-label" style={{ marginBottom: 10 }}>Trade Duration</div>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'DM Mono, monospace' }}>
                         <thead><tr>{['Duration', 'n', 'Win%', 'Total R'].map((h, i) => (
                           <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
@@ -1073,7 +1073,7 @@ export default function AnalysisPage() {
                 </div>
                 <div className="card" style={{ padding: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <div className="col-label">R sweep — total P/L at each TP target</div>
+                    <div className="col-label">R Sweep — Total P/L at Each TP Target</div>
                     <div style={{ display: 'flex', gap: 16 }}>
                       {optimalR.optimal_r != null && <span className="mono" style={{ fontSize: 12, color: 'var(--amber)' }}>peak: {optimalR.optimal_r}R → ${optimalR.optimal_pnl > 0 ? '+' : ''}{optimalR.optimal_pnl.toFixed(0)}</span>}
                       {optimalR.current_avg_r != null && <span className="mono" style={{ fontSize: 12, color: 'var(--text-3)' }}>current: {optimalR.current_avg_r}R</span>}
@@ -1106,7 +1106,7 @@ export default function AnalysisPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                   {rmae.r_histogram?.length > 0 && (
                     <div className="card" style={{ padding: 16 }}>
-                      <div className="col-label" style={{ marginBottom: 10 }}>R multiple dagilimi</div>
+                      <div className="col-label" style={{ marginBottom: 10 }}>R Multiple Distribution</div>
                       <div style={{ height: 180 }}>
                         <Bar data={{ labels: Array.from(new Set(rmae.r_histogram.map(r => r.r_bucket))).sort((a,b) => a-b).map(b => `+${b}R`),
                           datasets: [{ label: 'TP', data: Array.from(new Set(rmae.r_histogram.map(r => r.r_bucket))).sort((a,b) => a-b).map(b => rmae.r_histogram.find(r => r.r_bucket === b)?.count ?? 0),
@@ -1118,7 +1118,7 @@ export default function AnalysisPage() {
                   )}
                   {rmae.scatter?.length > 0 && (
                     <div className="card" style={{ padding: 16 }}>
-                      <div className="col-label" style={{ marginBottom: 10 }}>MFE vs MAE — TP tradeler ($)</div>
+                      <div className="col-label" style={{ marginBottom: 10 }}>MFE vs MAE — TP Trades ($)</div>
                       <div style={{ height: 180 }}>
                         <Scatter
                           data={{ datasets: [
@@ -1134,7 +1134,7 @@ export default function AnalysisPage() {
                 </div>
                 {rmae.target_r_distribution?.length > 0 && (
                   <div className="card" style={{ padding: 16 }}>
-                    <div className="col-label" style={{ marginBottom: 10 }}>Hedef R araligina gore sonuclar</div>
+                    <div className="col-label" style={{ marginBottom: 10 }}>Results by Target R Range</div>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'DM Mono, monospace' }}>
                       <thead><tr>{['Target R', 'n', 'Win%', 'Total R', 'Avg Target R'].map((h, i) => (
                         <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
