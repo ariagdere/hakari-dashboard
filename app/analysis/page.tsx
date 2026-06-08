@@ -1218,7 +1218,18 @@ export default function AnalysisPage() {
               <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                 ANALİZ LİSTESİ
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <button
+                  className="filter-btn"
+                  style={{ fontSize: 10, padding: '3px 12px' }}
+                  onClick={() => {
+                    const p = filtersToParams(appliedFilters)
+                    const qs = p.toString() ? `?${p}` : ''
+                    window.location.href = `/api/analyses-export${qs}`
+                  }}
+                >
+                  ↓ CSV
+                </button>
                 <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{total} kayıt</span>
               </div>
             </div>
