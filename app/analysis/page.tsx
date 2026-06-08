@@ -16,8 +16,8 @@ interface Overview {
   expired_count: number; no_entry_count: number; pending_count: number
   win_rate: number; avg_r_win: number; avg_r_loss: number
   avg_duration_mins: number; total_pnl: number
-  long_total: number; long_win_rate: number; long_tp: number; long_sl: number
-  short_total: number; short_win_rate: number; short_tp: number; short_sl: number
+  long_total: number; long_win_rate: number; long_tp: number; long_sl: number; long_sim: number
+  short_total: number; short_win_rate: number; short_tp: number; short_sl: number; short_sim: number
   long_total_pnl: number | null; short_total_pnl: number | null
 }
 interface ScoringData {
@@ -663,8 +663,8 @@ export default function AnalysisPage() {
                 <div className="col-label" style={{ marginBottom: 4 }}>SIMULATED</div>
                 <div className="mono" style={{ fontSize: 20, fontWeight: 500 }}>{overview.total}</div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
-                  <span className="mono" style={{ fontSize: 12, color: 'var(--green)' }}>L:{overview.long_total}</span>
-                  <span className="mono" style={{ fontSize: 12, color: 'var(--red)' }}>S:{overview.short_total}</span>
+                  <span className="mono" style={{ fontSize: 12, color: 'var(--green)' }}>L:{overview.long_sim}</span>
+                  <span className="mono" style={{ fontSize: 12, color: 'var(--red)' }}>S:{overview.short_sim}</span>
                 </div>
               </div>
               <div className="stat-card">
