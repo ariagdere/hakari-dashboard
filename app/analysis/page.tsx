@@ -296,7 +296,7 @@ function ToggleGroup({ label, field, options, filters, onChange, nowrap }: {
     <div>
       <div className="col-label" style={{ marginBottom: 5, fontSize: 10 }}>{label}</div>
       <div style={{ display: 'flex', gap: 4, flexWrap: nowrap ? 'nowrap' : 'wrap' }}>
-        <button className={`filter-btn${!filters[field] ? ' active' : ''}`} style={{ fontSize: 10, padding: '2px 8px' }} onClick={() => set(field, '')}>TÜM</button>
+        <button className={`filter-btn${!filters[field] ? ' active' : ''}`} style={{ fontSize: 10, padding: '2px 8px' }} onClick={() => set(field, '')}>ALL</button>
         {options.map(o => (
           <button key={o} className={`filter-btn${filters[field] === o ? ' active' : ''}`}
             style={{ fontSize: 10, padding: '2px 6px' }}
@@ -318,12 +318,12 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0, minWidth: 600 }}>
-      <GL c="Temel Filtreler" />
+      <GL c="FILTERS" />
       <div style={{ display: 'grid', gridTemplateColumns: 'auto auto 1fr', gap: 14 }}>
         <ToggleGroup label="Direction" field="direction" options={['LONG','SHORT','WAIT']} filters={filters} onChange={onChange} />
-        <ToggleGroup label="Sonuç" field="sim_result" options={['TP_HIT','SL_HIT','EXPIRED','NO_ENTRY']} filters={filters} onChange={onChange} nowrap />
+        <ToggleGroup label="RESULT" field="sim_result" options={['TP_HIT','SL_HIT','EXPIRED','NO_ENTRY']} filters={filters} onChange={onChange} nowrap />
         <div>
-          <div className="col-label" style={{ marginBottom: 5, fontSize: 10 }}>Tarih aralığı</div>
+          <div className="col-label" style={{ marginBottom: 5, fontSize: 10 }}>DATE RANGE</div>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <input type="date" value={filters.date_from} onChange={e => onChange({ ...filters, date_from: e.target.value })}
               style={{ flex: 1, background: 'var(--bg-3)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)', fontSize: 10, padding: '3px 6px', fontFamily: 'DM Mono, monospace' }} />
@@ -415,13 +415,13 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
       {sep}
       <GL c="Trade Dynamics" />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
-        <RangeRow label="Giris Bekleme (dk)" minKey="wait_min" maxKey="wait_max" min={0} max={4320} step={30} filters={filters} onChange={onChange} />
-        <RangeRow label="Trade Suresi (dk)" minKey="trade_dur_min" maxKey="trade_dur_max" min={0} max={4320} step={30} filters={filters} onChange={onChange} />
-        <RangeRow label="Hedef R" minKey="r_min" maxKey="r_max" min={0} max={10} step={0.5} filters={filters} onChange={onChange} />
+        <RangeRow label="Entry wait (min)" minKey="wait_min" maxKey="wait_max" min={0} max={4320} step={30} filters={filters} onChange={onChange} />
+        <RangeRow label="Trade duration (min)" minKey="trade_dur_min" maxKey="trade_dur_max" min={0} max={4320} step={30} filters={filters} onChange={onChange} />
+        <RangeRow label="Target R" minKey="r_min" maxKey="r_max" min={0} max={10} step={0.5} filters={filters} onChange={onChange} />
       </div>
 
       {sep}
-      <GL c="Sentez" />
+      <GL c="SYNTHESIS" />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
         <ToggleGroup label="MTF Synthesis" field="sent_synthesis_mtf" options={so.str} filters={filters} onChange={onChange} nowrap />
         <ToggleGroup label="H1 Synthesis"  field="sent_synthesis_h1"  options={so.str} filters={filters} onChange={onChange} nowrap />
@@ -577,39 +577,39 @@ export default function AnalysisPage() {
           </div>
         )}
 
-        {/* ── FİLTRE PANEL ───────────────────────────────────────────────── */}
+        {/* ── FILTER PANEL ───────────────────────────────────────────────── */}
         <div className="card" style={{ padding: 16, marginBottom: 20, overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <button className="filter-btn" style={{ fontSize: 11 }} onClick={() => setFilterOpen(o => !o)}>
-                {filterOpen ? '▲ Kapat' : '▼ Filtrele'}
+                {filterOpen ? '▲ Close' : '▼ Filter'}
               </button>
               {activeCount > 0 && (
-                <span className="mono" style={{ fontSize: 10, color: 'var(--amber)' }}>{activeCount} aktif</span>
+                <span className="mono" style={{ fontSize: 10, color: 'var(--amber)' }}>{activeCount} active</span>
               )}
               {activeCount > 0 && (
-                <button className="filter-btn" style={{ fontSize: 10, padding: '2px 10px' }} onClick={handleReset}>Sıfırla</button>
+                <button className="filter-btn" style={{ fontSize: 10, padding: '2px 10px' }} onClick={handleReset}>Reset</button>
               )}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {loading && <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>yükleniyor...</span>}
+              {loading && <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>loading...</span>}
               {savingPreset ? (
                 <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                   <input
                     value={presetName}
                     onChange={e => setPresetName(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && savePreset()}
-                    placeholder="preset adı..."
+                    placeholder="preset name..."
                     style={{ background: 'var(--bg-3)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)', fontSize: 10, padding: '3px 8px', fontFamily: 'DM Mono, monospace', width: 120 }}
                     autoFocus
                   />
                   <button className="filter-btn active" style={{ fontSize: 10, padding: '2px 10px' }} onClick={savePreset}>Kaydet</button>
-                  <button className="filter-btn" style={{ fontSize: 10, padding: '2px 8px' }} onClick={() => { setSavingPreset(false); setPresetName('') }}>İptal</button>
+                  <button className="filter-btn" style={{ fontSize: 10, padding: '2px 8px' }} onClick={() => { setSavingPreset(false); setPresetName('') }}>Cancel</button>
                 </div>
               ) : (
                 activeCount > 0 && (
                   <button className="filter-btn" style={{ fontSize: 10, padding: '2px 10px' }} onClick={() => setSavingPreset(true)}>
-                    + Preset Kaydet
+                    + Save preset
                   </button>
                 )
               )}
@@ -623,7 +623,7 @@ export default function AnalysisPage() {
                 <FilterPanel filters={draftFilters} onChange={setDraftFilters} />
               </div>
               <div style={{ borderTop: '1px solid var(--border)', marginTop: 14, paddingTop: 14, display: 'flex', gap: 8 }}>
-                <button className="filter-btn active" style={{ fontSize: 11, padding: '5px 20px' }} onClick={handleApply}>Uygula</button>
+                <button className="filter-btn active" style={{ fontSize: 11, padding: '5px 20px' }} onClick={handleApply}>Apply</button>
                 <button className="filter-btn" style={{ fontSize: 11, padding: '5px 14px', color: 'var(--text-3)' }} onClick={() => { setDraftFilters(appliedFilters); setFilterOpen(false) }}>Iptal</button>
               </div>
             </>
@@ -635,7 +635,7 @@ export default function AnalysisPage() {
             {/* ── SUMMARY SCORE CARDS ──────────────────────────────────────── */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9, minmax(0, 1fr))', gap: 8, marginBottom: 16 }}>
               <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>Toplam Analiz</div>
+                <div className="col-label" style={{ marginBottom: 4 }}>TOTAL</div>
                 <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{overview.total_all}</div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
                   <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:{overview.long_total}</span>
@@ -643,7 +643,7 @@ export default function AnalysisPage() {
                 </div>
               </div>
               <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>Sim Edilen</div>
+                <div className="col-label" style={{ marginBottom: 4 }}>SIMULATED</div>
                 <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{overview.total}</div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
                   <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:{overview.long_total}</span>
@@ -651,7 +651,7 @@ export default function AnalysisPage() {
                 </div>
               </div>
               <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>Win Rate</div>
+                <div className="col-label" style={{ marginBottom: 4 }}>WIN RATE</div>
                 <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: winColor(Number(overview.win_rate)) }}>%{Number(overview.win_rate).toFixed(1)}</div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
                   <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:%{Number(overview.long_win_rate).toFixed(1)}</span>
@@ -659,13 +659,13 @@ export default function AnalysisPage() {
                 </div>
               </div>
               <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>Avg Win R</div>
+                <div className="col-label" style={{ marginBottom: 4 }}>AVG WIN R</div>
                 <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>
                   {overview.avg_r_win != null ? `+${Number(overview.avg_r_win).toFixed(2)}R` : '—'}
                 </div>
               </div>
               <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>Toplam R</div>
+                <div className="col-label" style={{ marginBottom: 4 }}>TOTAL R</div>
                 <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: Number(overview.total_pnl) >= 0 ? 'var(--green)' : 'var(--red)' }}>
                   {overview.total_pnl != null ? `${Number(overview.total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.total_pnl)).toFixed(0)}` : '—'}
                 </div>
@@ -683,30 +683,30 @@ export default function AnalysisPage() {
                 </div>
               </div>
               <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>TP Hit</div>
+                <div className="col-label" style={{ marginBottom: 4 }}>TP HIT</div>
                 <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>{overview.tp_count}</div>
               </div>
               <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>SL Hit</div>
+                <div className="col-label" style={{ marginBottom: 4 }}>SL HIT</div>
                 <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--red)' }}>{overview.sl_count}</div>
               </div>
               <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>Expired</div>
+                <div className="col-label" style={{ marginBottom: 4 }}>EXPIRED</div>
                 <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--amber)' }}>{overview.expired_count}</div>
               </div>
               <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>No Entry</div>
+                <div className="col-label" style={{ marginBottom: 4 }}>NO ENTRY</div>
                 <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--text-2)' }}>{overview.no_entry_count}</div>
               </div>
             </div>
 
-            {/* ── KÜMÜLATİF R + GÜNLÜK TRADE ─────────────────────────────── */}
+            {/* ── CUMULATIVE R + DAILY TRADES ─────────────────────────────── */}
             {cumR && cumR.series.length > 0 && (() => {
               const lineColor = cumR.final_r >= 0 ? '#4ade80' : '#f87171'
               return (
                 <div className="card" style={{ padding: 16, marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <div className="col-label">Kümülatif R</div>
+                    <div className="col-label">Cumulative R</div>
                     <div style={{ display: 'flex', gap: 16 }}>
                       <span className="mono" style={{ fontSize: 11, color: 'var(--red)' }}>Max DD: {cumR.max_drawdown.toFixed(2)}R</span>
                       <span className="mono" style={{ fontSize: 11, color: lineColor, fontWeight: 600 }}>{cumR.final_r >= 0 ? '+' : ''}{cumR.final_r.toFixed(2)}R</span>
@@ -747,7 +747,7 @@ export default function AnalysisPage() {
                           tooltip: { displayColors: false, callbacks: { label: (ctx: any) => {
                             const p = cumR.series[ctx.dataIndex]
                             return ctx.datasetIndex === 0
-                              ? `Küm: ${p.cumulative_r >= 0 ? '+' : ''}${p.cumulative_r.toFixed(2)}R`
+                              ? `Cum: ${p.cumulative_r >= 0 ? '+' : ''}${p.cumulative_r.toFixed(2)}R`
                               : `Trade: ${(p as any).trade_count ?? 0}`
                           }}},
                         },
@@ -762,28 +762,28 @@ export default function AnalysisPage() {
                   <div style={{ display: 'flex', gap: 16, marginTop: 8, justifyContent: 'flex-end' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <span style={{ width: 12, height: 2, background: lineColor, display: 'inline-block', borderRadius: 1 }} />
-                      <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>Kümülatif R</span>
+                      <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>Cumulative R</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <span style={{ width: 12, height: 8, background: 'rgba(96,165,250,0.4)', display: 'inline-block', borderRadius: 1 }} />
-                      <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>Günlük Trade</span>
+                      <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>Daily Trades</span>
                     </div>
                   </div>
                 </div>
               )
             })()}
 
-            {/* ── HAFTANIN GÜNLERİ ANALİZİ ───────────────────────────────── */}
+            {/* ── DAY OF WEEK ANALYSIS ───────────────────────────────── */}
             {weekly && (weekly.by_day?.length > 0 || weekly.by_type?.length > 0) && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  HAFTANIN GÜNLERİ ANALİZİ
+                  DAY OF WEEK ANALYSIS
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div className="card" style={{ padding: 16 }}>
-                    <div className="col-label" style={{ marginBottom: 10 }}>Güne göre</div>
+                    <div className="col-label" style={{ marginBottom: 10 }}>By day</div>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
-                      <thead><tr>{['Gün', 'n', 'Win%', 'Toplam R'].map((h, i) => (
+                      <thead><tr>{['Day', 'n', 'Win%', 'Total R'].map((h, i) => (
                         <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
                       ))}</tr></thead>
                       <tbody>{weekly.by_day.map((row, i) => (
@@ -801,7 +801,7 @@ export default function AnalysisPage() {
                   <div className="card" style={{ padding: 16 }}>
                     <div className="col-label" style={{ marginBottom: 10 }}>Weekdays vs Weekend</div>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
-                      <thead><tr>{['Tip', 'n', 'Win%', 'Toplam R'].map((h, i) => (
+                      <thead><tr>{['Type', 'n', 'Win%', 'Total R'].map((h, i) => (
                         <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
                       ))}</tr></thead>
                       <tbody>{weekly.by_type.map((row, i) => (
@@ -824,7 +824,7 @@ export default function AnalysisPage() {
             {scoring && (
               <div className="rsi-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
                 <div className="card" style={{ padding: 16, overflowX: 'auto' }}>
-                  <div className="col-label" style={{ marginBottom: 12 }}>RSI 4H Zonu → Win Rate</div>
+                  <div className="col-label" style={{ marginBottom: 12 }}>RSI 4H Zone → Win Rate</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: 6, marginBottom: 6 }}>
                     <div />
                     <span className="mono" style={{ fontSize: 9, color: 'var(--green)', textAlign: 'center' }}>LONG</span>
@@ -844,7 +844,7 @@ export default function AnalysisPage() {
                 </div>
                 {scoring.by_rsi30?.length > 0 && (
                   <div className="card" style={{ padding: 16 }}>
-                    <div className="col-label" style={{ marginBottom: 12 }}>RSI 30M Zonu → Win Rate</div>
+                    <div className="col-label" style={{ marginBottom: 12 }}>RSI 30M Zone → Win Rate</div>
                     <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: 6, marginBottom: 6 }}>
                       <div />
                       <span className="mono" style={{ fontSize: 9, color: 'var(--green)', textAlign: 'center' }}>LONG</span>
@@ -866,11 +866,11 @@ export default function AnalysisPage() {
               </div>
             )}
 
-            {/* ── WIN PROBABILITY KALİBRASYON TABLOSU ─────────────────────── */}
+            {/* ── WIN PROBABILITY CALIBRATION TABLE ─────────────────────── */}
             {wpAll && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  WIN PROBABILITY KALİBRASYONU
+                  WIN PROBABILITY CALIBRATION
                 </div>
                 {(['v4','v5'] as const).map(v => {
                   const VERSIONS = [
@@ -888,7 +888,7 @@ export default function AnalysisPage() {
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace', minWidth: 600 }}>
                         <thead>
                           <tr>
-                            <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, width: 70 }}>Dilim</th>
+                            <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, width: 70 }}>Bucket</th>
                             {VERSIONS.map(ver => (
                               <th key={ver.key} colSpan={3} style={{ textAlign: 'center', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>
                                 {ver.label}
@@ -936,17 +936,17 @@ export default function AnalysisPage() {
               </div>
             )}
 
-            {/* ── HEDEF MESAFE ANALİZİ ─────────────────────────────────────── */}
+            {/* ── TARGET DISTANCE ANALYSIS ─────────────────────────────────────── */}
             {distance && (distance.tp_buckets?.length > 0 || distance.sl_buckets?.length > 0) && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  HEDEF MESAFE ANALİZİ
+                  TARGET DISTANCE ANALYSIS
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div className="card" style={{ padding: 16 }}>
-                    <div className="col-label" style={{ marginBottom: 10 }}>TP mesafesi</div>
+                    <div className="col-label" style={{ marginBottom: 10 }}>TP distance</div>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
-                      <thead><tr>{['Mesafe', 'n', 'Win%', 'Toplam R'].map((h, i) => (
+                      <thead><tr>{['Distance', 'n', 'Win%', 'Total R'].map((h, i) => (
                         <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
                       ))}</tr></thead>
                       <tbody>{distance.tp_buckets.map((b, i) => (
@@ -960,9 +960,9 @@ export default function AnalysisPage() {
                     </table>
                   </div>
                   <div className="card" style={{ padding: 16 }}>
-                    <div className="col-label" style={{ marginBottom: 10 }}>SL mesafesi</div>
+                    <div className="col-label" style={{ marginBottom: 10 }}>SL distance</div>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
-                      <thead><tr>{['Mesafe', 'n', 'Win%', 'Toplam R'].map((h, i) => (
+                      <thead><tr>{['Distance', 'n', 'Win%', 'Total R'].map((h, i) => (
                         <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
                       ))}</tr></thead>
                       <tbody>{distance.sl_buckets.map((b, i) => (
@@ -979,18 +979,18 @@ export default function AnalysisPage() {
               </div>
             )}
 
-            {/* ── ENTRY & TRADE SÜRESİ ANALİZİ ────────────────────────────── */}
+            {/* ── ENTRY & TRADE DURATION ────────────────────────────── */}
             {((entryWait?.buckets?.length ?? 0) > 0 || (tradeDur?.buckets?.length ?? 0) > 0) && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  ENTRY & TRADE SÜRESİ ANALİZİ
+                  ENTRY & TRADE DURATION
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   {(entryWait?.buckets?.length ?? 0) > 0 && (
                     <div className="card" style={{ padding: 16 }}>
-                      <div className="col-label" style={{ marginBottom: 10 }}>Entry bekleme süresi</div>
+                      <div className="col-label" style={{ marginBottom: 10 }}>Entry wait time</div>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
-                        <thead><tr>{['Süre', 'n', 'Win%', 'Toplam R'].map((h, i) => (
+                        <thead><tr>{['Duration', 'n', 'Win%', 'Total R'].map((h, i) => (
                           <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
                         ))}</tr></thead>
                         <tbody>{entryWait!.buckets!.map((b, i) => (
@@ -1006,9 +1006,9 @@ export default function AnalysisPage() {
                   )}
                   {(tradeDur?.buckets?.length ?? 0) > 0 && (
                     <div className="card" style={{ padding: 16 }}>
-                      <div className="col-label" style={{ marginBottom: 10 }}>Trade süresi</div>
+                      <div className="col-label" style={{ marginBottom: 10 }}>Trade duration</div>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
-                        <thead><tr>{['Süre', 'n', 'Win%', 'Toplam R'].map((h, i) => (
+                        <thead><tr>{['Duration', 'n', 'Win%', 'Total R'].map((h, i) => (
                           <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
                         ))}</tr></thead>
                         <tbody>{tradeDur!.buckets!.map((b, i) => (
@@ -1030,48 +1030,48 @@ export default function AnalysisPage() {
             {optimalR && optimalR.sweep.length > 0 && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  OPTIMAL R ANALIZI
+                  OPTIMAL R ANALYSIS
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 8, marginBottom: 12 }}>
                   <div className="stat-card">
-                    <div className="col-label" style={{ marginBottom: 4 }}>Toplam Sonuclanan</div>
+                    <div className="col-label" style={{ marginBottom: 4 }}>Total Closed</div>
                     <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--text)' }}>{optimalR.total_trades}</div>
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>sim edilen</div>
+                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>simulated</div>
                   </div>
                   <div className="stat-card">
                     <div className="col-label" style={{ marginBottom: 4 }}>Win%</div>
                     <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: winColor(optimalR.optimal_win_rate) }}>%{optimalR.optimal_win_rate}</div>
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>mevcut: %{Number(overview.win_rate).toFixed(1)}</div>
+                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>current: %{Number(overview.win_rate).toFixed(1)}</div>
                   </div>
                   <div className="stat-card" style={{ borderColor: 'var(--amber-border)' }}>
                     <div className="col-label" style={{ marginBottom: 4 }}>Optimal R</div>
                     <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--amber)' }}>{optimalR.optimal_r != null ? `${optimalR.optimal_r}R` : '—'}</div>
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>mevcut: {optimalR.current_avg_r != null ? `${optimalR.current_avg_r}R` : '—'}</div>
+                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>current: {optimalR.current_avg_r != null ? `${optimalR.current_avg_r}R` : '—'}</div>
                   </div>
                   <div className="stat-card">
                     <div className="col-label" style={{ marginBottom: 4 }}>P/L</div>
                     <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: optimalR.optimal_pnl > 0 ? 'var(--green)' : 'var(--red)' }}>{`${optimalR.optimal_pnl > 0 ? '+' : ''}$${Math.abs(optimalR.optimal_pnl).toFixed(0)}`}</div>
                     <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>
-                      mevcut: {overview.total_pnl != null ? `${Number(overview.total_pnl) >= 0 ? '+' : ''}$${Math.abs(Number(overview.total_pnl)).toFixed(0)}` : '—'}
+                      current: {overview.total_pnl != null ? `${Number(overview.total_pnl) >= 0 ? '+' : ''}$${Math.abs(Number(overview.total_pnl)).toFixed(0)}` : '—'}
                     </div>
                   </div>
                   <div className="stat-card">
                     <div className="col-label" style={{ marginBottom: 4 }}>Win</div>
                     <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>{optimalR.optimal_wins}</div>
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>mevcut: {overview.tp_count}</div>
+                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>current: {overview.tp_count}</div>
                   </div>
                   <div className="stat-card">
                     <div className="col-label" style={{ marginBottom: 4 }}>Loss</div>
                     <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--red)' }}>{optimalR.optimal_losses}</div>
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>mevcut: {overview.sl_count}</div>
+                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>current: {overview.sl_count}</div>
                   </div>
                 </div>
                 <div className="card" style={{ padding: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <div className="col-label">R sweep — her TP hedefinde toplam P/L</div>
+                    <div className="col-label">R sweep — total P/L at each TP target</div>
                     <div style={{ display: 'flex', gap: 16 }}>
                       {optimalR.optimal_r != null && <span className="mono" style={{ fontSize: 10, color: 'var(--amber)' }}>peak: {optimalR.optimal_r}R → ${optimalR.optimal_pnl > 0 ? '+' : ''}{optimalR.optimal_pnl.toFixed(0)}</span>}
-                      {optimalR.current_avg_r != null && <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>mevcut: {optimalR.current_avg_r}R</span>}
+                      {optimalR.current_avg_r != null && <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>current: {optimalR.current_avg_r}R</span>}
                     </div>
                   </div>
                   <div style={{ height: 180 }}>
@@ -1131,7 +1131,7 @@ export default function AnalysisPage() {
                   <div className="card" style={{ padding: 16 }}>
                     <div className="col-label" style={{ marginBottom: 10 }}>Hedef R araligina gore sonuclar</div>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace' }}>
-                      <thead><tr>{['Hedef R', 'n', 'Win%', 'Toplam R', 'Ort. Hedef R'].map((h, i) => (
+                      <thead><tr>{['Target R', 'n', 'Win%', 'Total R', 'Avg Target R'].map((h, i) => (
                         <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
                       ))}</tr></thead>
                       <tbody>{rmae.target_r_distribution.map((row, i) => (
@@ -1149,7 +1149,7 @@ export default function AnalysisPage() {
               </div>
             )}
 
-            {/* ── DELTA ANALİZİ ────────────────────────────────────────────── */}
+            {/* ── DELTA ANALYSIS ────────────────────────────────────────────── */}
             {deltaData && Object.keys(deltaData).length > 0 && (() => {
               const PAIRS = [
                 { h1: 'h1_ls_ratio',     m5: 'm5_ls_ratio' },
@@ -1162,7 +1162,7 @@ export default function AnalysisPage() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace' }}>
                   <thead>
                     <tr>
-                      {['Delta', 'Win%', 'Ort. R', 'Toplam R', 'n'].map((h, i) => (
+                      {['Delta', 'Win%', 'Avg R', 'Total R', 'n'].map((h, i) => (
                         <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
                       ))}
                     </tr>
@@ -1187,7 +1187,7 @@ export default function AnalysisPage() {
               return (
                 <div style={{ marginBottom: 16 }}>
                   <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                    DELTA ANALİZİ (BAŞLANGIÇ → ANLIK DEĞİŞİM)
+                    DELTA ANALYSIS (START → CURRENT)
                   </div>
                   <div className="delta-grid" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {PAIRS.map(({ h1, m5 }) => {
@@ -1213,10 +1213,10 @@ export default function AnalysisPage() {
               )
             })()}
 
-            {/* ── ANALİZ LİSTESİ ───────────────────────────────────────────── */}
+            {/* ── ANALYSIS LIST ───────────────────────────────────────────── */}
             <div style={{ marginBottom: 12 }}>
               <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                ANALİZ LİSTESİ
+                ANALYSIS LIST
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <button
@@ -1230,15 +1230,15 @@ export default function AnalysisPage() {
                 >
                   ↓ CSV
                 </button>
-                <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{total} kayıt</span>
+                <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{total} records</span>
               </div>
             </div>
 
             <div className="card">
               <div className="analysis-row" style={{ cursor: 'default' }}>
-                <span className="col-label">Tarih</span>
-                <span className="col-label">Yon</span>
-                <span className="col-label">Giris</span>
+                <span className="col-label">Date</span>
+                <span className="col-label">Dir</span>
+                <span className="col-label">Entry</span>
                 <span className="col-label">TP</span>
                 <span className="col-label">SL</span>
                 <span className="col-label">R/R</span>
@@ -1251,11 +1251,11 @@ export default function AnalysisPage() {
                 ))}
                 <span className="col-label">PnL</span>
                 <span className="col-label">R</span>
-                <span className="col-label">Sonuc</span>
+                <span className="col-label">Result</span>
               </div>
 
               {analyses.length === 0 && (
-                <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }} className="mono">kayıt bulunamadı</div>
+                <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }} className="mono">no records found</div>
               )}
 
               {analyses.map(a => (
@@ -1303,7 +1303,7 @@ export default function AnalysisPage() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
                     <div>
-                      <div className="col-label" style={{ marginBottom: 2 }}>Giris</div>
+                      <div className="col-label" style={{ marginBottom: 2 }}>Entry</div>
                       <span className="price" style={{ fontSize: 13 }}>${fmt(a.entry)}</span>
                     </div>
                     <div>
@@ -1353,9 +1353,9 @@ export default function AnalysisPage() {
 
             {totalPages > 1 && (
               <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
-                <button className="filter-btn" onClick={() => handlePage(Math.max(1, page - 1))} disabled={page === 1}>← Önceki</button>
+                <button className="filter-btn" onClick={() => handlePage(Math.max(1, page - 1))} disabled={page === 1}>← Prev</button>
                 <span className="mono" style={{ fontSize: 11, color: 'var(--text-3)', padding: '4px 12px' }}>{page} / {totalPages}</span>
-                <button className="filter-btn" onClick={() => handlePage(Math.min(totalPages, page + 1))} disabled={page === totalPages}>Sonraki →</button>
+                <button className="filter-btn" onClick={() => handlePage(Math.min(totalPages, page + 1))} disabled={page === totalPages}>Next →</button>
               </div>
             )}
           </>
@@ -1363,7 +1363,7 @@ export default function AnalysisPage() {
 
         {loading && (
           <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}>
-            <span className="mono" style={{ fontSize: 12, color: 'var(--text-3)' }}>yükleniyor...</span>
+            <span className="mono" style={{ fontSize: 12, color: 'var(--text-3)' }}>loading...</span>
           </div>
         )}
       </div>
