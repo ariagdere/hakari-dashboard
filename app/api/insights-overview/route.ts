@@ -29,12 +29,12 @@ export async function GET(req: NextRequest) {
         COUNT(*) FILTER (WHERE sequential_trade = 'TRADE' AND sim_result = 'TP_HIT') * 100.0 /
         NULLIF(COUNT(*) FILTER (WHERE sequential_trade = 'TRADE' AND sim_result IN ('TP_HIT','SL_HIT')), 0), 1
       ) AS seq_win_rate,
-      COUNT(*) FILTER (WHERE direction = 'LONG' AND sim_result IN ('TP_HIT','SL_HIT')) AS long_total,
+      COUNT(*) FILTER (WHERE direction = 'LONG') AS long_total,
       ROUND(
         COUNT(*) FILTER (WHERE direction = 'LONG' AND sim_result = 'TP_HIT') * 100.0 /
         NULLIF(COUNT(*) FILTER (WHERE direction = 'LONG' AND sim_result IN ('TP_HIT','SL_HIT')), 0), 1
       ) AS long_win_rate,
-      COUNT(*) FILTER (WHERE direction = 'SHORT' AND sim_result IN ('TP_HIT','SL_HIT')) AS short_total,
+      COUNT(*) FILTER (WHERE direction = 'SHORT') AS short_total,
       ROUND(
         COUNT(*) FILTER (WHERE direction = 'SHORT' AND sim_result = 'TP_HIT') * 100.0 /
         NULLIF(COUNT(*) FILTER (WHERE direction = 'SHORT' AND sim_result IN ('TP_HIT','SL_HIT')), 0), 1
