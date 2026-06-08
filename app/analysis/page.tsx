@@ -986,7 +986,7 @@ export default function AnalysisPage() {
                   ENTRY & TRADE SÜRESİ ANALİZİ
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  {entryWait?.buckets?.length > 0 && (
+                  {(entryWait?.buckets?.length ?? 0) > 0 && (
                     <div className="card" style={{ padding: 16 }}>
                       <div className="col-label" style={{ marginBottom: 10 }}>Entry bekleme süresi</div>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
@@ -1004,7 +1004,7 @@ export default function AnalysisPage() {
                       </table>
                     </div>
                   )}
-                  {tradeDur?.buckets?.length > 0 && (
+                  {(tradeDur?.buckets?.length ?? 0) > 0 && (
                     <div className="card" style={{ padding: 16 }}>
                       <div className="col-label" style={{ marginBottom: 10 }}>Trade süresi</div>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
