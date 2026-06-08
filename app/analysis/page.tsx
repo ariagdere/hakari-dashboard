@@ -993,7 +993,7 @@ export default function AnalysisPage() {
                         <thead><tr>{['Süre', 'n', 'Win%', 'Toplam R'].map((h, i) => (
                           <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
                         ))}</tr></thead>
-                        <tbody>{entryWait.buckets.map((b, i) => (
+                        <tbody>{entryWait!.buckets!.map((b, i) => (
                           <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
                             <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
                             <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
@@ -1011,7 +1011,7 @@ export default function AnalysisPage() {
                         <thead><tr>{['Süre', 'n', 'Win%', 'Toplam R'].map((h, i) => (
                           <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
                         ))}</tr></thead>
-                        <tbody>{tradeDur.buckets.map((b, i) => (
+                        <tbody>{tradeDur!.buckets!.map((b, i) => (
                           <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
                             <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
                             <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
