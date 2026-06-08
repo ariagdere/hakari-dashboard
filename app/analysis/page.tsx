@@ -211,7 +211,24 @@ const wpColor = (v: number | null) => {
 const pnlClass = (v: number) => v > 0 ? 'pnl-pos' : v < 0 ? 'pnl-neg' : 'pnl-zero'
 const fmt = (n: number) => n?.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) ?? '—'
 const fmtDate = (s: string) => new Date(s).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
-const fmtMins = (m: any) => { if (!m) return '—'; const h = Math.floor(Number(m) / 60); const min = Math.round(Number(m) % 60); return h > 0 ? `${h}s ${min}dk` : `${min}dk` }
+const fmtMins = (m: any) => { if (!m) return '—'; const h = Math.floor(Number(m) / 60); const min = Math.round(Number(m) % 60); return h > 0 ? `${h}h ${min}m` : `${min}m` }
+const RSI_ZONE_LABELS: Record<string, string> = {
+  'oversold':      'Oversold',
+  'lower_neutral': 'Lower Neutral',
+  'neutral':       'Neutral',
+  'upper_neutral': 'Upper Neutral',
+  'overbought':    'Overbought',
+  'aşırı satım':   'Oversold',
+  'aşırı alım':    'Overbought',
+  'alt nötr':      'Lower Neutral',
+  'nötr':          'Neutral',
+  'üst nötr':      'Upper Neutral',
+}
+const fmtZone = (z: string) => RSI_ZONE_LABELS[z] ?? z
+const fmtBucket = (b: string) => b
+  .replace(/dk/g, 'm').replace(/sa/g, 'h').replace(/gün/g, 'd')
+  .replace(/saat/g, 'h').replace(/dakika/g, 'm').replace(/günden fazla/g, 'd+')
+
 const fmtR = (v: number | null, result?: string) => {
   if (v == null) return '—'
   const n = Number(v)
@@ -239,7 +256,7 @@ const dirBadge = (d: string) => {
   return <span className="badge badge-wait">WAIT</span>
 }
 const resultBadge = (r: string) => {
-  if (!r)              return <span className="badge badge-pend">BEKL.</span>
+  if (!r)              return <span className="badge badge-pend">PENDING</span>
   if (r === 'TP_HIT')  return <span className="badge badge-tp">TP</span>
   if (r === 'SL_HIT')  return <span className="badge badge-sl">SL</span>
   if (r === 'EXPIRED') return <span className="badge badge-exp">EXP</span>
@@ -828,43 +845,71 @@ export default function AnalysisPage() {
                 </div>
               <div className="rsi-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div className="card" style={{ padding: 16, overflowX: 'auto' }}>
-                  <div className="col-label" style={{ marginBottom: 12 }}>RSI 4H Zone → Win Rate</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '90px 1fr 1fr', gap: 6, marginBottom: 6 }}>
-                    <div />
-                    <span className="mono" style={{ fontSize: 11, color: 'var(--green)', textAlign: 'center' }}>LONG</span>
-                    <span className="mono" style={{ fontSize: 11, color: 'var(--red)', textAlign: 'center' }}>SHORT</span>
-                  </div>
-                  {scoring.by_rsi.map(row => {
-                    const long  = scoring.by_rsi_long.find((r: any) => r.rsi_zone === row.rsi_zone)
-                    const short = scoring.by_rsi_short.find((r: any) => r.rsi_zone === row.rsi_zone)
-                    return (
-                      <div key={row.rsi_zone} style={{ display: 'grid', gridTemplateColumns: '90px 1fr 1fr', gap: 6, alignItems: 'center', marginBottom: 8 }}>
-                        <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{row.rsi_zone}</span>
-                        <WinBar rate={long ? Number(long.win_rate) : null} total={long ? Number(long.total) : 0} />
-                        <WinBar rate={short ? Number(short.win_rate) : null} total={short ? Number(short.total) : 0} />
-                      </div>
-                    )
-                  })}
+                  <div className="col-label" style={{ marginBottom: 12 }}>RSI 4H Zone</div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'DM Mono, monospace' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Zone</th>
+                        <th style={{ textAlign: 'right', color: 'var(--green)', paddingBottom: 6, fontWeight: 400 }}>L n</th>
+                        <th style={{ textAlign: 'right', color: 'var(--green)', paddingBottom: 6, fontWeight: 400 }}>L Win%</th>
+                        <th style={{ textAlign: 'right', color: 'var(--green)', paddingBottom: 6, fontWeight: 400 }}>L Total R</th>
+                        <th style={{ textAlign: 'right', color: 'var(--red)', paddingBottom: 6, fontWeight: 400 }}>S n</th>
+                        <th style={{ textAlign: 'right', color: 'var(--red)', paddingBottom: 6, fontWeight: 400 }}>S Win%</th>
+                        <th style={{ textAlign: 'right', color: 'var(--red)', paddingBottom: 6, fontWeight: 400 }}>S Total R</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {scoring.by_rsi.map(row => {
+                        const long  = scoring.by_rsi_long.find((r: any) => r.rsi_zone === row.rsi_zone)
+                        const short = scoring.by_rsi_short.find((r: any) => r.rsi_zone === row.rsi_zone)
+                        return (
+                          <tr key={row.rsi_zone} style={{ borderTop: '1px solid var(--border)' }}>
+                            <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{fmtZone(String(row.rsi_zone))}</td>
+                            <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{long?.total ?? '—'}</td>
+                            <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(long ? Number(long.win_rate) : null) }}>{long ? `${Number(long.win_rate).toFixed(1)}%` : '—'}</td>
+                            <td style={{ padding: '5px 0', textAlign: 'right', color: Number(long?.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{long?.total_r != null ? `${Number(long.total_r) >= 0 ? '+' : ''}${Number(long.total_r).toFixed(1)}R` : '—'}</td>
+                            <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{short?.total ?? '—'}</td>
+                            <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(short ? Number(short.win_rate) : null) }}>{short ? `${Number(short.win_rate).toFixed(1)}%` : '—'}</td>
+                            <td style={{ padding: '5px 0', textAlign: 'right', color: Number(short?.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{short?.total_r != null ? `${Number(short.total_r) >= 0 ? '+' : ''}${Number(short.total_r).toFixed(1)}R` : '—'}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
                 </div>
                 {scoring.by_rsi30?.length > 0 && (
                   <div className="card" style={{ padding: 16 }}>
-                    <div className="col-label" style={{ marginBottom: 12 }}>RSI 30M Zone → Win Rate</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '90px 1fr 1fr', gap: 6, marginBottom: 6 }}>
-                      <div />
-                      <span className="mono" style={{ fontSize: 11, color: 'var(--green)', textAlign: 'center' }}>LONG</span>
-                      <span className="mono" style={{ fontSize: 11, color: 'var(--red)', textAlign: 'center' }}>SHORT</span>
-                    </div>
-                    {scoring.by_rsi30.map((row: any) => {
-                      const long  = scoring.by_rsi30_long?.find((r: any) => r.rsi_zone === row.rsi_zone)
-                      const short = scoring.by_rsi30_short?.find((r: any) => r.rsi_zone === row.rsi_zone)
-                      return (
-                        <div key={row.rsi_zone} style={{ display: 'grid', gridTemplateColumns: '90px 1fr 1fr', gap: 6, alignItems: 'center', marginBottom: 8 }}>
-                          <span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{row.rsi_zone}</span>
-                          <WinBar rate={long ? Number(long.win_rate) : null} total={long ? Number(long.total) : 0} />
-                          <WinBar rate={short ? Number(short.win_rate) : null} total={short ? Number(short.total) : 0} />
-                        </div>
-                      )
-                    })}
+                    <div className="col-label" style={{ marginBottom: 12 }}>RSI 30M Zone</div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'DM Mono, monospace' }}>
+                      <thead>
+                        <tr>
+                          <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Zone</th>
+                          <th style={{ textAlign: 'right', color: 'var(--green)', paddingBottom: 6, fontWeight: 400 }}>L n</th>
+                          <th style={{ textAlign: 'right', color: 'var(--green)', paddingBottom: 6, fontWeight: 400 }}>L Win%</th>
+                          <th style={{ textAlign: 'right', color: 'var(--green)', paddingBottom: 6, fontWeight: 400 }}>L Total R</th>
+                          <th style={{ textAlign: 'right', color: 'var(--red)', paddingBottom: 6, fontWeight: 400 }}>S n</th>
+                          <th style={{ textAlign: 'right', color: 'var(--red)', paddingBottom: 6, fontWeight: 400 }}>S Win%</th>
+                          <th style={{ textAlign: 'right', color: 'var(--red)', paddingBottom: 6, fontWeight: 400 }}>S Total R</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {scoring.by_rsi30.map((row: any) => {
+                          const long  = scoring.by_rsi30_long?.find((r: any) => r.rsi_zone === row.rsi_zone)
+                          const short = scoring.by_rsi30_short?.find((r: any) => r.rsi_zone === row.rsi_zone)
+                          return (
+                            <tr key={row.rsi_zone} style={{ borderTop: '1px solid var(--border)' }}>
+                              <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{fmtZone(String(row.rsi_zone))}</td>
+                              <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{long?.total ?? '—'}</td>
+                              <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(long ? Number(long.win_rate) : null) }}>{long ? `${Number(long.win_rate).toFixed(1)}%` : '—'}</td>
+                              <td style={{ padding: '5px 0', textAlign: 'right', color: Number(long?.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{long?.total_r != null ? `${Number(long.total_r) >= 0 ? '+' : ''}${Number(long.total_r).toFixed(1)}R` : '—'}</td>
+                              <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{short?.total ?? '—'}</td>
+                              <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(short ? Number(short.win_rate) : null) }}>{short ? `${Number(short.win_rate).toFixed(1)}%` : '—'}</td>
+                              <td style={{ padding: '5px 0', textAlign: 'right', color: Number(short?.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{short?.total_r != null ? `${Number(short.total_r) >= 0 ? '+' : ''}${Number(short.total_r).toFixed(1)}R` : '—'}</td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>
@@ -1000,7 +1045,7 @@ export default function AnalysisPage() {
                         ))}</tr></thead>
                         <tbody>{entryWait!.buckets!.map((b, i) => (
                           <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
-                            <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
+                            <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{fmtBucket(b.bucket)}</td>
                             <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
                             <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(b.win_rate)) }}>{Number(b.win_rate).toFixed(1)}%</td>
                             <td style={{ padding: '5px 0', textAlign: 'right', color: Number(b.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{b.total_r != null ? `${Number(b.total_r) >= 0 ? '+' : ''}${Number(b.total_r).toFixed(2)}R` : '—'}</td>
@@ -1018,7 +1063,7 @@ export default function AnalysisPage() {
                         ))}</tr></thead>
                         <tbody>{tradeDur!.buckets!.map((b, i) => (
                           <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
-                            <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
+                            <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{fmtBucket(b.bucket)}</td>
                             <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
                             <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(b.win_rate)) }}>{Number(b.win_rate).toFixed(1)}%</td>
                             <td style={{ padding: '5px 0', textAlign: 'right', color: Number(b.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{b.total_r != null ? `${Number(b.total_r) >= 0 ? '+' : ''}${Number(b.total_r).toFixed(2)}R` : '—'}</td>
