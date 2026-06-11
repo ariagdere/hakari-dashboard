@@ -28,7 +28,7 @@ interface DeltaBucket { bucket: string; sort_order: number; total: number; wins:
 interface DeltaData { [key: string]: DeltaBucket[] }
 interface CumRPoint { day: string; cumulative_r: number; daily_r: number }
 interface CumRData { series: CumRPoint[]; max_drawdown: number; final_r: number }
-interface WpBucket { bucket: string; sort_order: number; avg_predicted: number; total: number; wins: number; win_rate: number; total_r: number | null }
+interface WpBucket { bucket: string; sort_order: number; avg_predicted: number; total: number; wins: number; win_rate: number; total_r: number | null; dir_accuracy: number | null }
 interface WpAllData { [key: string]: WpBucket[] }
 interface SweepPoint { r: number; pnl: number; wins: number; losses: number; win_rate: number }
 interface OptimalRData { sweep: SweepPoint[]; optimal_r: number | null; optimal_pnl: number; optimal_wins: number; optimal_losses: number; optimal_win_rate: number; current_avg_r: number | null; total_trades: number }
