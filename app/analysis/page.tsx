@@ -743,6 +743,7 @@ export default function AnalysisPage() {
                             borderColor: lineColor,
                             borderWidth: 1.5,
                             pointRadius: 0,
+                            pointHitRadius: 20,
                             fill: true,
                             backgroundColor: cumR.final_r >= 0 ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)',
                             tension: 0.3,
@@ -761,6 +762,10 @@ export default function AnalysisPage() {
                       options={{
                         responsive: true,
                         maintainAspectRatio: false,
+                        interaction: {
+                          mode: 'index',
+                          intersect: false,
+                        },
                         plugins: {
                           legend: { display: false },
                           tooltip: { displayColors: false, callbacks: { label: (ctx: any) => {
