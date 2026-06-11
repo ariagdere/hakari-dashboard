@@ -43,6 +43,10 @@ const MODELS = [
   { key: 'v5_1304',     col: 'win_probability_v5_1304' },
   { key: 'v5_rev',      col: 'win_probability_v5_reverse' },
   { key: 'v5_1304_rev', col: 'win_probability_v5_1304_reverse' },
+  { key: 'v6',          col: 'win_probability_v6' },
+  { key: 'v6_1304',     col: 'win_probability_v6_1304' },
+  { key: 'v6_rev',      col: 'win_probability_v6_reverse' },
+  { key: 'v6_1304_rev', col: 'win_probability_v6_1304_reverse' },
 ]
 
 export async function GET(req: NextRequest) {
