@@ -53,14 +53,13 @@ export async function GET(req: NextRequest) {
   const { where, params } = buildInsightsWhere(req)
   const base = where ? `${where} AND` : 'WHERE'
 
-  // Her model için ayrı sorgu — bucket bazında win rate
   const results: Record<string, any[]> = {}
 
   await Promise.all(MODELS.map(async ({ key, col }) => {
     const { rows } = await pool.query(`
       SELECT
         ${bucketLabel(col)} AS bucket,
-        ${bucketCase(col)} AS sort_order,
+        ${bucketCase(col)}  AS sort_order,
         ROUND(AVG(${col}), 1) AS avg_predicted,
         COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')) AS total,
         COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS wins,
@@ -68,7 +67,13 @@ export async function GET(req: NextRequest) {
           COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
           NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1
         ) AS win_rate,
-        ROUND(SUM(sim_r_multiple) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 2) AS total_r
+        ROUND(SUM(sim_r_multiple) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 2) AS total_r,
+        COUNT(*) FILTER (WHERE sim_direction IS NOT NULL) AS dir_total,
+        COUNT(*) FILTER (WHERE sim_direction = direction) AS dir_correct,
+        ROUND(
+          COUNT(*) FILTER (WHERE sim_direction = direction) * 100.0 /
+          NULLIF(COUNT(*) FILTER (WHERE sim_direction IS NOT NULL), 0), 1
+        ) AS dir_accuracy
       FROM btc_analysis
       ${base} ${col} IS NOT NULL
         AND sim_result IN ('TP_HIT','SL_HIT')
