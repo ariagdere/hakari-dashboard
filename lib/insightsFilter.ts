@@ -64,6 +64,12 @@ export function buildInsightsWhere(req: NextRequest): { where: string; params: a
   range('win_probability_v5_reverse',      s.get('wp5_rev_min'),      s.get('wp5_rev_max'),      0, 100)
   range('win_probability_v5_1304_reverse', s.get('wp5_1304_rev_min'), s.get('wp5_1304_rev_max'), 0, 100)
 
+  // Win Probability — V6
+  range('win_probability_v6',              s.get('wp6_min'),          s.get('wp6_max'),          0, 100)
+  range('win_probability_v6_1304',         s.get('wp6_1304_min'),     s.get('wp6_1304_max'),     0, 100)
+  range('win_probability_v6_reverse',      s.get('wp6_rev_min'),      s.get('wp6_rev_max'),      0, 100)
+  range('win_probability_v6_1304_reverse', s.get('wp6_1304_rev_min'), s.get('wp6_1304_rev_max'), 0, 100)
+
   // Delta filtreleri — H1
   const h1LsDMin    = s.get('h1_ls_delta_min');           const h1LsDMax    = s.get('h1_ls_delta_max')
   const h1TtPosDMin = s.get('h1_tt_positions_delta_min'); const h1TtPosDMax = s.get('h1_tt_positions_delta_max')
