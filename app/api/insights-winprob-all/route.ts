@@ -27,26 +27,26 @@ const bucketLabel = (col: string) => `
 `
 
 const MODELS = [
-  { key: 'v1',          col: 'win_probability' },
-  { key: 'v1_1304',     col: 'win_probability_1304' },
-  { key: 'v1_rev',      col: 'win_probability_reverse' },
-  { key: 'v1_1304_rev', col: 'win_probability_1304_reverse' },
-  { key: 'v3',          col: 'win_probability_v3' },
-  { key: 'v3_1304',     col: 'win_probability_v3_1304' },
-  { key: 'v3_rev',      col: 'win_probability_v3_reverse' },
-  { key: 'v3_1304_rev', col: 'win_probability_v3_1304_reverse' },
-  { key: 'v4',          col: 'win_probability_v4' },
-  { key: 'v4_1304',     col: 'win_probability_v4_1304' },
-  { key: 'v4_rev',      col: 'win_probability_v4_reverse' },
-  { key: 'v4_1304_rev', col: 'win_probability_v4_1304_reverse' },
-  { key: 'v5',          col: 'win_probability_v5' },
-  { key: 'v5_1304',     col: 'win_probability_v5_1304' },
-  { key: 'v5_rev',      col: 'win_probability_v5_reverse' },
-  { key: 'v5_1304_rev', col: 'win_probability_v5_1304_reverse' },
-  { key: 'v6',          col: 'win_probability_v6' },
-  { key: 'v6_1304',     col: 'win_probability_v6_1304' },
-  { key: 'v6_rev',      col: 'win_probability_v6_reverse' },
-  { key: 'v6_1304_rev', col: 'win_probability_v6_1304_reverse' },
+  { key: 'v1',          col: 'win_probability',              rev: false },
+  { key: 'v1_1304',     col: 'win_probability_1304',         rev: false },
+  { key: 'v1_rev',      col: 'win_probability_reverse',      rev: true  },
+  { key: 'v1_1304_rev', col: 'win_probability_1304_reverse', rev: true  },
+  { key: 'v3',          col: 'win_probability_v3',           rev: false },
+  { key: 'v3_1304',     col: 'win_probability_v3_1304',      rev: false },
+  { key: 'v3_rev',      col: 'win_probability_v3_reverse',   rev: true  },
+  { key: 'v3_1304_rev', col: 'win_probability_v3_1304_reverse', rev: true },
+  { key: 'v4',          col: 'win_probability_v4',           rev: false },
+  { key: 'v4_1304',     col: 'win_probability_v4_1304',      rev: false },
+  { key: 'v4_rev',      col: 'win_probability_v4_reverse',   rev: true  },
+  { key: 'v4_1304_rev', col: 'win_probability_v4_1304_reverse', rev: true },
+  { key: 'v5',          col: 'win_probability_v5',           rev: false },
+  { key: 'v5_1304',     col: 'win_probability_v5_1304',      rev: false },
+  { key: 'v5_rev',      col: 'win_probability_v5_reverse',   rev: true  },
+  { key: 'v5_1304_rev', col: 'win_probability_v5_1304_reverse', rev: true },
+  { key: 'v6',          col: 'win_probability_v6',           rev: false },
+  { key: 'v6_1304',     col: 'win_probability_v6_1304',      rev: false },
+  { key: 'v6_rev',      col: 'win_probability_v6_reverse',   rev: true  },
+  { key: 'v6_1304_rev', col: 'win_probability_v6_1304_reverse', rev: true },
 ]
 
 export async function GET(req: NextRequest) {
@@ -55,7 +55,14 @@ export async function GET(req: NextRequest) {
 
   const results: Record<string, any[]> = {}
 
-  await Promise.all(MODELS.map(async ({ key, col }) => {
+  await Promise.all(MODELS.map(async ({ key, col, rev }) => {
+    // Rev: LONG analiz → sim_direction SHORT doğru, SHORT analiz → sim_direction LONG doğru
+    // Normal: sim_direction = direction doğru
+    // Her ikisinde de FLAT hariç
+    const dirCorrect = rev
+      ? `COUNT(*) FILTER (WHERE sim_direction IS NOT NULL AND sim_direction != 'FLAT' AND sim_direction != direction)`
+      : `COUNT(*) FILTER (WHERE sim_direction = direction)`
+
     const { rows } = await pool.query(`
       SELECT
         ${bucketLabel(col)} AS bucket,
@@ -68,11 +75,9 @@ export async function GET(req: NextRequest) {
           NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1
         ) AS win_rate,
         ROUND(SUM(sim_r_multiple) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 2) AS total_r,
-        COUNT(*) FILTER (WHERE sim_direction IS NOT NULL) AS dir_total,
-        COUNT(*) FILTER (WHERE sim_direction = direction) AS dir_correct,
         ROUND(
-          COUNT(*) FILTER (WHERE sim_direction = direction) * 100.0 /
-          NULLIF(COUNT(*) FILTER (WHERE sim_direction IS NOT NULL), 0), 1
+          ${dirCorrect} * 100.0 /
+          NULLIF(COUNT(*) FILTER (WHERE sim_direction IS NOT NULL AND sim_direction != 'FLAT'), 0), 1
         ) AS dir_accuracy
       FROM btc_analysis
       ${base} ${col} IS NOT NULL
