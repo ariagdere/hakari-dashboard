@@ -914,7 +914,7 @@ export default function AnalysisPage() {
                           <tr>
                             <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, width: 70 }}>Bucket</th>
                             {VERSIONS.map(ver => (
-                              <th key={ver.key} colSpan={3} style={{ textAlign: 'center', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>
+                              <th key={ver.key} colSpan={4} style={{ textAlign: 'center', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>
                                 {ver.label}
                               </th>
                             ))}
@@ -925,7 +925,8 @@ export default function AnalysisPage() {
                               <React.Fragment key={ver.key}>
                                 <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, borderLeft: '1px solid var(--border)', paddingLeft: 6 }}>Win%</th>
                                 <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400 }}>n</th>
-                                <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, paddingRight: 8 }}>Tot.R</th>
+                                <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400 }}>Tot.R</th>
+                                <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, paddingRight: 8 }}>Dir%</th>
                               </React.Fragment>
                             ))}
                           </tr>
@@ -944,8 +945,11 @@ export default function AnalysisPage() {
                                     <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--text-3)' }}>
                                       {row ? row.total : '—'}
                                     </td>
-                                    <td style={{ padding: '5px 8px 5px 0', textAlign: 'right', color: row?.total_r != null ? (Number(row.total_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>
+                                    <td style={{ padding: '5px 4px', textAlign: 'right', color: row?.total_r != null ? (Number(row.total_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>
                                       {row?.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(1)}` : '—'}
+                                    </td>
+                                    <td style={{ padding: '5px 8px 5px 0', textAlign: 'right', color: row?.dir_accuracy != null ? winColor(Number(row.dir_accuracy)) : 'var(--text-3)' }}>
+                                      {row?.dir_accuracy != null ? `%${Number(row.dir_accuracy).toFixed(1)}` : '—'}
                                     </td>
                                   </React.Fragment>
                                 )
