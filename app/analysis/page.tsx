@@ -52,6 +52,8 @@ interface AnalysisSummary {
   win_probability_v4: number | null; win_probability_v5: number | null
   win_probability_v4_1304: number | null; win_probability_v5_1304: number | null
   win_probability_v4_reverse: number | null; win_probability_v5_reverse: number | null
+  win_probability_v6: number | null; win_probability_v6_1304: number | null
+  win_probability_v6_reverse: number | null; win_probability_v6_1304_reverse: number | null
 }
 
 // ── Filters ────────────────────────────────────────────────────────────────
@@ -70,6 +72,10 @@ interface Filters {
   wp5_1304_min: number; wp5_1304_max: number
   wp5_rev_min: number; wp5_rev_max: number
   wp5_1304_rev_min: number; wp5_1304_rev_max: number
+  wp6_min: number; wp6_max: number
+  wp6_1304_min: number; wp6_1304_max: number
+  wp6_rev_min: number; wp6_rev_max: number
+  wp6_1304_rev_min: number; wp6_1304_rev_max: number
   h1_ls_delta_min: number; h1_ls_delta_max: number
   h1_tt_positions_delta_min: number; h1_tt_positions_delta_max: number
   h1_tt_accounts_delta_min: number; h1_tt_accounts_delta_max: number
@@ -103,6 +109,10 @@ const DEFAULT_FILTERS: Filters = {
   wp5_1304_min: 0, wp5_1304_max: 100,
   wp5_rev_min: 0, wp5_rev_max: 100,
   wp5_1304_rev_min: 0, wp5_1304_rev_max: 100,
+  wp6_min: 0, wp6_max: 100,
+  wp6_1304_min: 0, wp6_1304_max: 100,
+  wp6_rev_min: 0, wp6_rev_max: 100,
+  wp6_1304_rev_min: 0, wp6_1304_rev_max: 100,
   h1_ls_delta_min: -3, h1_ls_delta_max: 3,
   h1_tt_positions_delta_min: -1, h1_tt_positions_delta_max: 1,
   h1_tt_accounts_delta_min: -1, h1_tt_accounts_delta_max: 1,
@@ -137,6 +147,10 @@ function filtersToParams(f: Filters): URLSearchParams {
   p.set('wp5_1304_min', String(f.wp5_1304_min)); p.set('wp5_1304_max', String(f.wp5_1304_max))
   p.set('wp5_rev_min', String(f.wp5_rev_min));   p.set('wp5_rev_max', String(f.wp5_rev_max))
   p.set('wp5_1304_rev_min', String(f.wp5_1304_rev_min)); p.set('wp5_1304_rev_max', String(f.wp5_1304_rev_max))
+  p.set('wp6_min', String(f.wp6_min));         p.set('wp6_max', String(f.wp6_max))
+  p.set('wp6_1304_min', String(f.wp6_1304_min)); p.set('wp6_1304_max', String(f.wp6_1304_max))
+  p.set('wp6_rev_min', String(f.wp6_rev_min));   p.set('wp6_rev_max', String(f.wp6_rev_max))
+  p.set('wp6_1304_rev_min', String(f.wp6_1304_rev_min)); p.set('wp6_1304_rev_max', String(f.wp6_1304_rev_max))
   p.set('h1_ls_delta_min', String(f.h1_ls_delta_min)); p.set('h1_ls_delta_max', String(f.h1_ls_delta_max))
   p.set('h1_tt_positions_delta_min', String(f.h1_tt_positions_delta_min)); p.set('h1_tt_positions_delta_max', String(f.h1_tt_positions_delta_max))
   p.set('h1_tt_accounts_delta_min', String(f.h1_tt_accounts_delta_min)); p.set('h1_tt_accounts_delta_max', String(f.h1_tt_accounts_delta_max))
@@ -172,6 +186,10 @@ function activeFilterCount(f: Filters): number {
   if (f.wp5_1304_min > 0 || f.wp5_1304_max < 100) n++
   if (f.wp5_rev_min > 0 || f.wp5_rev_max < 100) n++
   if (f.wp5_1304_rev_min > 0 || f.wp5_1304_rev_max < 100) n++
+  if (f.wp6_min > 0 || f.wp6_max < 100) n++
+  if (f.wp6_1304_min > 0 || f.wp6_1304_max < 100) n++
+  if (f.wp6_rev_min > 0 || f.wp6_rev_max < 100) n++
+  if (f.wp6_1304_rev_min > 0 || f.wp6_1304_rev_max < 100) n++
   if (f.h1_ls_delta_min > -3 || f.h1_ls_delta_max < 3) n++
   if (f.h1_tt_positions_delta_min > -1 || f.h1_tt_positions_delta_max < 1) n++
   if (f.h1_tt_accounts_delta_min > -1 || f.h1_tt_accounts_delta_max < 1) n++
@@ -361,6 +379,7 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
       {([
         { label: 'V4', keys: ['wp4', 'wp4_1304', 'wp4_rev', 'wp4_1304_rev'] as const },
         { label: 'V5', keys: ['wp5', 'wp5_1304', 'wp5_rev', 'wp5_1304_rev'] as const },
+        { label: 'V6', keys: ['wp6', 'wp6_1304', 'wp6_rev', 'wp6_1304_rev'] as const },
       ] as const).map(model => (
         <div key={model.label} style={{ marginBottom: 14 }}>
           <div className="col-label" style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 8 }}>{model.label}</div>
@@ -877,7 +896,7 @@ export default function AnalysisPage() {
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   WIN PROBABILITY CALIBRATION
                 </div>
-                {(['v4','v5'] as const).map(v => {
+                {(['v4','v5','v6'] as const).map(v => {
                   const VERSIONS = [
                     { key: `${v}`,          label: 'Latest' },
                     { key: `${v}_1304`,     label: '1304' },
@@ -1248,10 +1267,10 @@ export default function AnalysisPage() {
                 <span className="col-label">SL</span>
                 <span className="col-label">R/R</span>
                 <span className="col-label">RSI</span>
-                {['V4 1304','V5 1304'].map(h => (
+                {['V4 1304','V5 1304','V6 1304'].map(h => (
                   <span key={h} className="col-label">{h}</span>
                 ))}
-                {['V4 (Rev)','V5 (Rev)'].map(h => (
+                {['V4 (Rev)','V5 (Rev)','V6 (Rev)'].map(h => (
                   <span key={h} className="col-label">{h}</span>
                 ))}
                 <span className="col-label">PnL</span>
@@ -1275,8 +1294,10 @@ export default function AnalysisPage() {
                   {([
                     { wp: a.win_probability_v4_1304, rev: null },
                     { wp: a.win_probability_v5_1304, rev: null },
+                    { wp: a.win_probability_v6_1304, rev: null },
                     { wp: a.win_probability_v4,      rev: a.win_probability_v4_reverse },
                     { wp: a.win_probability_v5,      rev: a.win_probability_v5_reverse },
+                    { wp: a.win_probability_v6,      rev: a.win_probability_v6_reverse },
                   ]).map(({ wp, rev }, i) => (
                     <span key={i} className="mono" style={{ fontSize: 11, color: wpColor(wp) }}>
                       {wp != null ? `%${Number(wp).toFixed(0)}` : '—'}
@@ -1328,6 +1349,7 @@ export default function AnalysisPage() {
                     {([
                       { wp: a.win_probability_v4, rev: a.win_probability_v4_reverse, label: 'V4' },
                       { wp: a.win_probability_v5, rev: a.win_probability_v5_reverse, label: 'V5' },
+                      { wp: a.win_probability_v6, rev: a.win_probability_v6_reverse, label: 'V6' },
                     ]).map(({ wp, rev, label }) => (
                       <div key={label}>
                         <span className="col-label">{label} </span>
