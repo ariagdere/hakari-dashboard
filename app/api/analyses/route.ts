@@ -33,10 +33,14 @@ export async function GET(request: NextRequest) {
       win_probability_v4_1304,
       win_probability_v5,
       win_probability_v5_1304,
+      win_probability_v6,
+      win_probability_v6_1304,
       win_probability_reverse,
       win_probability_v3_reverse,
       win_probability_v4_reverse,
       win_probability_v5_reverse,
+      win_probability_v6_reverse,
+      win_probability_v6_1304_reverse,
       risk_usd, position_size_btc
     FROM btc_analysis
     ${w}
