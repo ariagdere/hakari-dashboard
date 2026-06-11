@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
         ROUND(SUM(sim_r_multiple) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 2) AS total_r,
         ROUND(
           ${dirCorrect} * 100.0 /
-          NULLIF(COUNT(*) FILTER (WHERE sim_direction IS NOT NULL AND sim_direction != 'FLAT'), 0), 1
+          NULLIF(COUNT(*) FILTER (WHERE sim_direction IS NOT NULL), 0), 1
         ) AS dir_accuracy
       FROM btc_analysis
       ${base} ${col} IS NOT NULL
