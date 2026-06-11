@@ -128,8 +128,8 @@ export function buildInsightsWhere(req: NextRequest): { where: string; params: a
   }
 
   const rMin = s.get('r_min'); const rMax = s.get('r_max')
-  if (rMin && Number(rMin) > 0)   { conditions.push(`SPLIT_PART(rr, ':', 1)::numeric >= $${i++}`); params.push(Number(rMin)) }
-  if (rMax && Number(rMax) < 10)  { conditions.push(`SPLIT_PART(rr, ':', 1)::numeric <= $${i++}`); params.push(Number(rMax)) }
+  if (rMin && Number(rMin) > 0)   { conditions.push(`SPLIT_PART(rr, ':', 2)::numeric >= $${i++}`); params.push(Number(rMin)) }
+  if (rMax && Number(rMax) < 10)  { conditions.push(`SPLIT_PART(rr, ':', 2)::numeric <= $${i++}`); params.push(Number(rMax)) }
 
   const sentFields = [
     'sent_synthesis_mtf','sent_synthesis_h1','sent_synthesis_m5',
