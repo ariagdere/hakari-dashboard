@@ -1,10 +1,5 @@
-import { Pool } from 'pg';
+import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
 
 export async function GET() {
   try {
