@@ -384,7 +384,7 @@ export default function LivePositionsPage() {
               color={moneyColor(stats.total_pnl)}
               sub={
                 totalUnrealized != null
-                  ? `inc. open: ${(stats.total_pnl + totalUnrealized) >= 0 ? '+' : ''}$${(stats.total_pnl + totalUnrealized).toFixed(2)}`
+                  ? `${(stats.total_pnl + totalUnrealized) >= 0 ? '+' : ''}$${(stats.total_pnl + totalUnrealized).toFixed(2)}`
                   : undefined
               }
               subColor={totalUnrealized != null ? moneyColor(stats.total_pnl + totalUnrealized) : undefined}
