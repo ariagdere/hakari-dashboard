@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
-import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickSeries, LineStyle } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, ISeriesApi, LineStyle } from 'lightweight-charts'
 
 interface Order {
   id: number
@@ -109,7 +109,7 @@ function LiveChart({ candles, selectedOrders }: { candles: Candle[]; selectedOrd
       height: 320,
       autoSize: true,
     })
-    const series = chart.addSeries(CandlestickSeries, {
+    const series = chart.addCandlestickSeries({
       upColor: '#4ade80', downColor: '#f87171',
       borderUpColor: '#4ade80', borderDownColor: '#f87171',
       wickUpColor: '#4ade80', wickDownColor: '#f87171',
