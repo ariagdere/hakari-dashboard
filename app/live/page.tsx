@@ -138,7 +138,13 @@ function LiveChart({ candles, selectedOrders }: { candles: Candle[]; selectedOrd
   useEffect(() => {
     if (seriesRef.current && candles.length > 0) {
       seriesRef.current.setData(candles as any)
-      chartRef.current?.timeScale().fitContent()
+      // Tum mumlari sigdirmak yerine son ~150 mumu goster; kullanici geriye kaydirabilir
+      const visibleCount = 150
+      const total = candles.length
+      chartRef.current?.timeScale().setVisibleLogicalRange({
+        from: Math.max(0, total - visibleCount),
+        to: total,
+      })
     }
   }, [candles])
 
@@ -270,17 +276,15 @@ export default function LivePositionsPage() {
             <div className="col-label">
               BTCUSDT — 15m
               {selectedOrders.length > 0 && (
-                <span style={{ color: 'var(--blue)', marginLeft: 8 }}>· {selectedOrders.length} pozisyon seçili</span>
+                <span style={{ color: 'var(--blue)', marginLeft: 8 }}>· {selectedOrders.length} selected</span>
               )}
             </div>
             {price && <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{((price.bid + price.ask) / 2).toFixed(2)}</span>}
           </div>
           <LiveChart candles={candles} selectedOrders={selectedOrders} />
-          {selectedOrders.length === 0 && orders.length > 0 && (
-            <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8 }}>
-              Bölgeleri görmek için aşağıdaki tablodan pozisyon seçin
-            </div>
-          )}
+          <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8 }}>
+            Select a position from the table below to view its zones
+          </div>
         </div>
 
         {/* Table */}
