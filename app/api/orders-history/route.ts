@@ -1,6 +1,9 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const SIZE_MULTIPLIER = 2.5;
 
 export async function GET() {
