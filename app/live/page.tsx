@@ -404,8 +404,8 @@ export default function LivePositionsPage() {
                   <thead>
                     <tr>
                       <th style={{ width: 28, paddingBottom: 8 }} />
-                      {['Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Volume (Norm 50$)', 'Entry', 'Exit', 'SL', 'TP', 'RR', 'WP V6', 'PnL ($)'].map((h, i) => (
-                        <th key={h} style={{ textAlign: i <= 2 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
+                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Volume (Norm 50$)', 'Entry', 'Exit', 'SL', 'TP', 'RR', 'WP V6', 'PnL ($)'].map((h, i) => (
+                        <th key={h} style={{ textAlign: i <= 3 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -414,11 +414,11 @@ export default function LivePositionsPage() {
                       const selected = selectedIds.has(order.id)
                       const displayVolume = order.display_volume ?? getDisplayVolume(order)
                       const pnl = rowPnl(order)
-                      const entryDate = order.opened_at ?? order.created_at
                       return (
                         <tr key={order.id} onClick={() => toggleSelect(order.id)} style={{ borderTop: '1px solid var(--border)', cursor: 'pointer', background: selected ? 'var(--bg-3)' : 'transparent' }}>
                           <td style={{ padding: '6px 0', textAlign: 'center' }}><SelectDot selected={selected} /></td>
-                          <td style={{ padding: '6px 0', color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{fmtDate(entryDate)}</td>
+                          <td style={{ padding: '6px 0', color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{fmtDate(order.created_at)}</td>
+                          <td style={{ padding: '6px 0', color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{fmtDate(order.opened_at)}</td>
                           <td style={{ padding: '6px 0', color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{fmtDate(order.closed_at)}</td>
                           <td style={{ padding: '6px 0', color: 'var(--text-2)' }}>{order.strategy_label}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right' }}>{rowBadge(order)}</td>
@@ -444,7 +444,6 @@ export default function LivePositionsPage() {
                   const selected = selectedIds.has(order.id)
                   const displayVolume = order.display_volume ?? getDisplayVolume(order)
                   const pnl = rowPnl(order)
-                  const entryDate = order.opened_at ?? order.created_at
                   return (
                     <div key={order.id} className={`live-mcard${selected ? ' selected' : ''}`} onClick={() => toggleSelect(order.id)}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -466,7 +465,8 @@ export default function LivePositionsPage() {
                         <div><span className="col-label">TP </span><span style={{ color: 'var(--green)' }}>{fmtPrice(order.tp)}</span></div>
                         <div><span className="col-label">RR </span><span style={{ color: 'var(--text-2)' }}>{order.analysis_rr ?? order.rr ?? '—'}</span></div>
                         <div><span className="col-label">WP6 </span><span style={{ color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</span></div>
-                        <div><span className="col-label">Entry D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(entryDate)}</span></div>
+                        <div><span className="col-label">Order D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.created_at)}</span></div>
+                        <div><span className="col-label">Entry D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.opened_at)}</span></div>
                         <div><span className="col-label">Close D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.closed_at)}</span></div>
                       </div>
                     </div>
