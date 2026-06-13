@@ -124,6 +124,7 @@ function LiveChart({ candles, selectedOrders }: { candles: Candle[]; selectedOrd
       upColor: '#4ade80', downColor: '#f87171',
       borderUpColor: '#4ade80', borderDownColor: '#f87171',
       wickUpColor: '#4ade80', wickDownColor: '#f87171',
+      priceFormat: { type: 'custom', minMove: 1, formatter: (p: number) => Math.round(p).toString() },
     })
     chartRef.current = chart
     seriesRef.current = series
@@ -213,6 +214,7 @@ export default function LivePositionsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'OPEN' | 'CLOSED' | 'CANCELED'>('ALL')
 
   const toggleSelect = (id: number) => {
     setSelectedIds((prev) => {
@@ -270,10 +272,57 @@ export default function LivePositionsPage() {
   }, [])
 
   const midPrice = price ? (price.bid + price.ask) / 2 : null
-  const allSelectable = [...orders, ...history]
-  const selectedOrders = allSelectable.filter((o) => selectedIds.has(o.id))
   const fmtMoney = (v: number) => `${v > 0 ? '+' : ''}$${Math.abs(v).toFixed(0)}`
   const moneyColor = (v: number) => (v >= 0 ? 'var(--green)' : 'var(--red)')
+
+  // Tek liste: open/pending + closed/canceled birlestir
+  const allRows = [...orders, ...history]
+  const selectedOrders = allRows.filter((o) => selectedIds.has(o.id))
+
+  // Durum filtresi
+  const filtered = allRows.filter((o) => {
+    if (statusFilter === 'ALL') return true
+    if (statusFilter === 'CANCELED') return o.status === 'CANCELED'
+    return o.status === statusFilter
+  })
+
+  // Siralama: aktif olanlar (PENDING/OPEN) once, sonra kapanma tarihine gore
+  const sorted = [...filtered].sort((a, b) => {
+    const aActive = a.status === 'OPEN' || a.status === 'PENDING'
+    const bActive = b.status === 'OPEN' || b.status === 'PENDING'
+    if (aActive !== bActive) return aActive ? -1 : 1
+    const aT = a.closed_at ? new Date(a.closed_at).getTime() : new Date(a.created_at).getTime()
+    const bT = b.closed_at ? new Date(b.closed_at).getTime() : new Date(b.created_at).getTime()
+    return bT - aT
+  })
+
+  const FILTERS: Array<{ key: typeof statusFilter; label: string }> = [
+    { key: 'ALL', label: 'ALL' },
+    { key: 'PENDING', label: 'PENDING' },
+    { key: 'OPEN', label: 'OPEN' },
+    { key: 'CLOSED', label: 'CLOSED' },
+    { key: 'CANCELED', label: 'CANCELED' },
+  ]
+
+  // Satirin durum/sonuc rozeti
+  const rowBadge = (o: Order) => {
+    if (o.status === 'OPEN') return <span className="badge badge-tp">OPEN</span>
+    if (o.status === 'PENDING') return <span className="badge badge-pend">PENDING</span>
+    return exitBadge(o)
+  }
+
+  // Satirin PnL gosterimi (acik -> anlik, kapali -> gerceklesmis normalize, pending/canceled -> —)
+  const rowPnl = (o: Order): { text: string; cls: string } => {
+    if (o.status === 'OPEN' && midPrice !== null) {
+      const v = calcPnL(o, midPrice, getDisplayVolume(o))
+      return { text: `${v > 0 ? '+' : ''}${v.toFixed(2)}`, cls: pnlClass(v) }
+    }
+    if (o.status === 'CLOSED' && o.normalized_pnl != null) {
+      const v = o.normalized_pnl
+      return { text: `${v > 0 ? '+' : ''}${v.toFixed(2)}`, cls: pnlClass(v) }
+    }
+    return { text: '—', cls: 'pnl-zero' }
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 64 }}>
@@ -320,52 +369,68 @@ export default function LivePositionsPage() {
               BTCUSDT — 15m
               {selectedOrders.length > 0 && <span style={{ color: 'var(--blue)', marginLeft: 8 }}>· {selectedOrders.length} selected</span>}
             </div>
-            {price && <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{((price.bid + price.ask) / 2).toFixed(2)}</span>}
+            {price && <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{Math.round((price.bid + price.ask) / 2)}</span>}
           </div>
           <LiveChart candles={candles} selectedOrders={selectedOrders} />
           <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8 }}>
-            Select a position from the tables below to view its zones and entry/exit markers
+            Select a position from the table below to view its zones and entry/exit markers
           </div>
         </div>
 
-        {/* OPEN / PENDING */}
-        <div className="live-section-title">OPEN / PENDING</div>
-        <div className="card" style={{ padding: 16, marginBottom: 24 }}>
-          {loading && <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', padding: 20, textAlign: 'center' }}>loading...</div>}
-          {!loading && orders.length === 0 && <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', padding: 20, textAlign: 'center' }}>no open or pending positions</div>}
+        {/* Status filter toggles */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+          {FILTERS.map((f) => (
+            <button
+              key={f.key}
+              className={`filter-btn${statusFilter === f.key ? ' active' : ''}`}
+              style={{ fontSize: 11 }}
+              onClick={() => setStatusFilter(f.key)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
 
-          {orders.length > 0 && (
+        {/* Unified table */}
+        <div className="card" style={{ padding: 16 }}>
+          {loading && <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', padding: 20, textAlign: 'center' }}>loading...</div>}
+          {!loading && sorted.length === 0 && <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', padding: 20, textAlign: 'center' }}>no positions</div>}
+
+          {sorted.length > 0 && (
             <>
               {/* Desktop table */}
               <div className="live-table-wrap">
-                <table className="live-table" style={{ minWidth: 980 }}>
+                <table className="live-table" style={{ minWidth: 1080 }}>
                   <thead>
                     <tr>
                       <th style={{ width: 28, paddingBottom: 8 }} />
-                      {['Analysis Date', 'Strategy', 'Status', 'Dir', 'Volume (Norm 50$)', 'Entry', 'SL', 'TP', 'RR', 'WP V6', 'PnL ($)'].map((h, i) => (
-                        <th key={h} style={{ textAlign: i === 0 || i === 1 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
+                      {['Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Volume (Norm 50$)', 'Entry', 'Exit', 'SL', 'TP', 'RR', 'WP V6', 'PnL ($)'].map((h, i) => (
+                        <th key={h} style={{ textAlign: i <= 2 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.map((order) => {
-                      const displayVolume = getDisplayVolume(order)
-                      const pnl = order.status === 'OPEN' && midPrice !== null ? calcPnL(order, midPrice, displayVolume) : null
+                    {sorted.map((order) => {
                       const selected = selectedIds.has(order.id)
+                      const displayVolume = order.display_volume ?? getDisplayVolume(order)
+                      const pnl = rowPnl(order)
+                      const entryDate = order.opened_at ?? order.created_at
                       return (
                         <tr key={order.id} onClick={() => toggleSelect(order.id)} style={{ borderTop: '1px solid var(--border)', cursor: 'pointer', background: selected ? 'var(--bg-3)' : 'transparent' }}>
                           <td style={{ padding: '6px 0', textAlign: 'center' }}><SelectDot selected={selected} /></td>
-                          <td style={{ padding: '6px 0', color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{fmtDate(order.analyzed_at)}</td>
+                          <td style={{ padding: '6px 0', color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{fmtDate(entryDate)}</td>
+                          <td style={{ padding: '6px 0', color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{fmtDate(order.closed_at)}</td>
                           <td style={{ padding: '6px 0', color: 'var(--text-2)' }}>{order.strategy_label}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right' }}>{statusBadge(order.status)}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right' }}>{rowBadge(order)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right' }}>{dirBadge(order.direction)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{displayVolume}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtPrice(order.entry_price)}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtPrice(order.close_price)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--red)' }}>{fmtPrice(order.sl)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--green)' }}>{fmtPrice(order.tp)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{order.analysis_rr ?? order.rr ?? '—'}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</td>
-                          <td className={`mono ${pnl !== null ? pnlClass(pnl) : 'pnl-zero'}`} style={{ padding: '6px 0', textAlign: 'right' }}>{pnl !== null ? `${pnl > 0 ? '+' : ''}${pnl.toFixed(2)}` : '—'}</td>
+                          <td className={`mono ${pnl.cls}`} style={{ padding: '6px 0', textAlign: 'right' }}>{pnl.text}</td>
                         </tr>
                       )
                     })}
@@ -375,111 +440,34 @@ export default function LivePositionsPage() {
 
               {/* Mobile cards */}
               <div className="live-mobile-cards">
-                {orders.map((order) => {
-                  const displayVolume = getDisplayVolume(order)
-                  const pnl = order.status === 'OPEN' && midPrice !== null ? calcPnL(order, midPrice, displayVolume) : null
+                {sorted.map((order) => {
                   const selected = selectedIds.has(order.id)
+                  const displayVolume = order.display_volume ?? getDisplayVolume(order)
+                  const pnl = rowPnl(order)
+                  const entryDate = order.opened_at ?? order.created_at
                   return (
                     <div key={order.id} className={`live-mcard${selected ? ' selected' : ''}`} onClick={() => toggleSelect(order.id)}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                           <SelectDot selected={selected} />
                           {dirBadge(order.direction)}
-                          {statusBadge(order.status)}
+                          {rowBadge(order)}
                         </div>
-                        <span className={`mono ${pnl !== null ? pnlClass(pnl) : 'pnl-zero'}`} style={{ fontSize: 13, fontWeight: 600 }}>
-                          {pnl !== null ? `${pnl > 0 ? '+' : ''}$${pnl.toFixed(2)}` : '—'}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: 11, color: 'var(--text-2)', fontFamily: 'DM Mono, monospace', marginBottom: 6 }}>{order.strategy_label}</div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, fontFamily: 'DM Mono, monospace', fontSize: 11 }}>
-                        <div><span className="col-label">Entry </span><span style={{ color: 'var(--text-2)' }}>{fmtPrice(order.entry_price)}</span></div>
-                        <div><span className="col-label">SL </span><span style={{ color: 'var(--red)' }}>{fmtPrice(order.sl)}</span></div>
-                        <div><span className="col-label">TP </span><span style={{ color: 'var(--green)' }}>{fmtPrice(order.tp)}</span></div>
-                        <div><span className="col-label">Vol </span><span style={{ color: 'var(--text-2)' }}>{displayVolume}</span></div>
-                        <div><span className="col-label">RR </span><span style={{ color: 'var(--text-2)' }}>{order.analysis_rr ?? order.rr ?? '—'}</span></div>
-                        <div><span className="col-label">WP6 </span><span style={{ color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</span></div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* CLOSED / CANCELED */}
-        <div className="live-section-title">CLOSED / CANCELED</div>
-        <div className="card" style={{ padding: 16 }}>
-          {history.length === 0 && <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', padding: 20, textAlign: 'center' }}>no closed positions yet</div>}
-
-          {history.length > 0 && (
-            <>
-              {/* Desktop table */}
-              <div className="live-table-wrap">
-                <table className="live-table" style={{ minWidth: 1040 }}>
-                  <thead>
-                    <tr>
-                      <th style={{ width: 28, paddingBottom: 8 }} />
-                      {['Analysis Date', 'Closed', 'Strategy', 'Dir', 'Result', 'Volume (Norm 50$)', 'Entry', 'Exit', 'RR', 'WP V6', 'PnL ($)'].map((h, i) => (
-                        <th key={h} style={{ textAlign: i === 0 || i === 1 || i === 2 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {history.map((order) => {
-                      const selected = selectedIds.has(order.id)
-                      const npnl = order.normalized_pnl ?? null
-                      const isCanceled = order.status === 'CANCELED'
-                      return (
-                        <tr key={order.id} onClick={() => toggleSelect(order.id)} style={{ borderTop: '1px solid var(--border)', cursor: 'pointer', background: selected ? 'var(--bg-3)' : 'transparent' }}>
-                          <td style={{ padding: '6px 0', textAlign: 'center' }}><SelectDot selected={selected} /></td>
-                          <td style={{ padding: '6px 0', color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{fmtDate(order.analyzed_at)}</td>
-                          <td style={{ padding: '6px 0', color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{fmtDate(order.closed_at)}</td>
-                          <td style={{ padding: '6px 0', color: 'var(--text-2)' }}>{order.strategy_label}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right' }}>{dirBadge(order.direction)}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right' }}>{exitBadge(order)}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{order.display_volume ?? order.volume}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtPrice(order.entry_price)}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtPrice(order.close_price)}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{order.analysis_rr ?? order.rr ?? '—'}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right', color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</td>
-                          <td className={`mono ${npnl != null ? pnlClass(npnl) : 'pnl-zero'}`} style={{ padding: '6px 0', textAlign: 'right' }}>
-                            {isCanceled ? '—' : npnl != null ? `${npnl > 0 ? '+' : ''}${npnl.toFixed(2)}` : '—'}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile cards */}
-              <div className="live-mobile-cards">
-                {history.map((order) => {
-                  const selected = selectedIds.has(order.id)
-                  const npnl = order.normalized_pnl ?? null
-                  const isCanceled = order.status === 'CANCELED'
-                  return (
-                    <div key={order.id} className={`live-mcard${selected ? ' selected' : ''}`} onClick={() => toggleSelect(order.id)}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                          <SelectDot selected={selected} />
-                          {dirBadge(order.direction)}
-                          {exitBadge(order)}
-                        </div>
-                        <span className={`mono ${npnl != null && !isCanceled ? pnlClass(npnl) : 'pnl-zero'}`} style={{ fontSize: 13, fontWeight: 600 }}>
-                          {isCanceled ? '—' : npnl != null ? `${npnl > 0 ? '+' : ''}$${npnl.toFixed(2)}` : '—'}
+                        <span className={`mono ${pnl.cls}`} style={{ fontSize: 13, fontWeight: 600 }}>
+                          {pnl.text === '—' ? '—' : `${pnl.text.startsWith('-') ? '-' : '+'}$${pnl.text.replace(/^[+-]/, '')}`}
                         </span>
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--text-2)', fontFamily: 'DM Mono, monospace', marginBottom: 6 }}>{order.strategy_label}</div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, fontFamily: 'DM Mono, monospace', fontSize: 11 }}>
                         <div><span className="col-label">Entry </span><span style={{ color: 'var(--text-2)' }}>{fmtPrice(order.entry_price)}</span></div>
                         <div><span className="col-label">Exit </span><span style={{ color: 'var(--text-2)' }}>{fmtPrice(order.close_price)}</span></div>
-                        <div><span className="col-label">Vol </span><span style={{ color: 'var(--text-2)' }}>{order.display_volume ?? order.volume}</span></div>
+                        <div><span className="col-label">Vol </span><span style={{ color: 'var(--text-2)' }}>{displayVolume}</span></div>
+                        <div><span className="col-label">SL </span><span style={{ color: 'var(--red)' }}>{fmtPrice(order.sl)}</span></div>
+                        <div><span className="col-label">TP </span><span style={{ color: 'var(--green)' }}>{fmtPrice(order.tp)}</span></div>
                         <div><span className="col-label">RR </span><span style={{ color: 'var(--text-2)' }}>{order.analysis_rr ?? order.rr ?? '—'}</span></div>
                         <div><span className="col-label">WP6 </span><span style={{ color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</span></div>
-                        <div><span className="col-label">Closed </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.closed_at)}</span></div>
+                        <div><span className="col-label">Entry D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(entryDate)}</span></div>
+                        <div><span className="col-label">Close D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.closed_at)}</span></div>
                       </div>
                     </div>
                   )
