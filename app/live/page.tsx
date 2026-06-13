@@ -49,14 +49,22 @@ function getDisplayVolume(order: Order): number {
   if (order.position_size_btc == null) return order.volume
   return Math.round(order.position_size_btc * SIZE_MULTIPLIER * 100) / 100
 }
-function calcPnL(order: Order, midPrice: number, volume: number): number {
-  const diff = order.direction === 'BUY' ? midPrice - order.entry_price : order.entry_price - midPrice
-  return diff * volume
+function isLong(direction: string): boolean {
+  return direction === 'BUY' || direction === 'LONG'
+}
+
+function calcPnL(order: Order, bid: number, ask: number, volume: number): number {
+  const entry = order.fill_price ?? order.entry_price
+  // LONG/BUY: bid'den kapanir; SHORT/SELL: ask'tan kapanir
+  if (isLong(order.direction)) {
+    return (bid - entry) * volume
+  }
+  return (entry - ask) * volume
 }
 const pnlClass = (v: number) => (v > 0 ? 'pnl-pos' : v < 0 ? 'pnl-neg' : 'pnl-zero')
 const dirBadge = (d: string) => {
-  if (d === 'SELL') return <span className="badge badge-short">SELL</span>
-  if (d === 'BUY') return <span className="badge badge-long">BUY</span>
+  if (d === 'SELL' || d === 'SHORT') return <span className="badge badge-short">{d}</span>
+  if (d === 'BUY' || d === 'LONG') return <span className="badge badge-long">{d}</span>
   return <span className="badge badge-wait">{d}</span>
 }
 const statusBadge = (s: string) => {
@@ -84,11 +92,10 @@ const fmtDate = (s: string | null | undefined) => {
   if (!s) return '—'
   return new Date(s).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
-// Fiyat: tam sayiysa decimal yok, kusuratliysa 2 haneye kadar (gereksiz .00 atilir)
+// Fiyat: tam sayiya yuvarla, decimal gosterme
 const fmtPrice = (v: number | null | undefined) => {
   if (v == null) return '—'
-  const n = Number(v)
-  return Number.isInteger(n) ? n.toString() : n.toFixed(2).replace(/\.?0+$/, '')
+  return Math.round(Number(v)).toString()
 }
 
 function ScoreCard({ label, value, color }: { label: string; value: React.ReactNode; color?: string }) {
@@ -164,7 +171,7 @@ function LiveChart({ candles, selectedOrders }: { candles: Candle[]; selectedOrd
     priceLinesRef.current = []
 
     selectedOrders.forEach((o) => {
-      const tag = o.direction === 'SELL' ? 'S' : 'B'
+      const tag = isLong(o.direction) ? 'B' : 'S'
       const lines = [
         { price: o.entry_price, color: '#60a5fa', title: `Entry ${tag} #${o.id}`, style: o.status === 'PENDING' ? LineStyle.Dashed : LineStyle.Solid },
         { price: o.tp, color: '#4ade80', title: `TP ${tag} #${o.id}`, style: LineStyle.Dotted },
@@ -183,7 +190,7 @@ function LiveChart({ candles, selectedOrders }: { candles: Candle[]; selectedOrd
     }
     const markers: any[] = []
     selectedOrders.forEach((o) => {
-      const isBuy = o.direction === 'BUY'
+      const isBuy = isLong(o.direction)
       if (o.opened_at) {
         markers.push({ time: roundToCandle(o.opened_at), position: isBuy ? 'belowBar' : 'aboveBar', color: '#60a5fa', shape: isBuy ? 'arrowUp' : 'arrowDown', text: `In #${o.id}` })
       }
@@ -313,8 +320,8 @@ export default function LivePositionsPage() {
 
   // Satirin PnL gosterimi (acik -> anlik, kapali -> gerceklesmis normalize, pending/canceled -> —)
   const rowPnl = (o: Order): { text: string; cls: string } => {
-    if (o.status === 'OPEN' && midPrice !== null) {
-      const v = calcPnL(o, midPrice, getDisplayVolume(o))
+    if (o.status === 'OPEN' && price !== null) {
+      const v = calcPnL(o, price.bid, price.ask, getDisplayVolume(o))
       return { text: `${v > 0 ? '+' : ''}${v.toFixed(2)}`, cls: pnlClass(v) }
     }
     if (o.status === 'CLOSED' && o.normalized_pnl != null) {
