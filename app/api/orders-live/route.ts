@@ -14,7 +14,20 @@ export async function GET() {
       WHERE o.status IN ('PENDING', 'OPEN')
       ORDER BY o.created_at DESC
     `);
-    return NextResponse.json(rows);
+    const numericFields = [
+      'volume', 'entry_price', 'fill_price', 'sl', 'tp', 'rr', 'position_size_btc',
+    ] as const;
+
+    const result = rows.map((row) => {
+      const converted: Record<string, unknown> = { ...row };
+      for (const field of numericFields) {
+        const value = row[field];
+        converted[field] = value === null || value === undefined ? null : Number(value);
+      }
+      return converted;
+    });
+
+    return NextResponse.json(result);
   } catch (err) {
     console.error('orders-live error:', err);
     return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
