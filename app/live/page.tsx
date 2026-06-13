@@ -98,11 +98,12 @@ const fmtPrice = (v: number | null | undefined) => {
   return Math.round(Number(v)).toString()
 }
 
-function ScoreCard({ label, value, color }: { label: string; value: React.ReactNode; color?: string }) {
+function ScoreCard({ label, value, color, sub, subColor }: { label: string; value: React.ReactNode; color?: string; sub?: React.ReactNode; subColor?: string }) {
   return (
     <div className="stat-card">
       <div className="col-label" style={{ marginBottom: 4 }}>{label}</div>
       <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: color ?? 'var(--text)' }}>{value}</div>
+      {sub != null && <div className="mono" style={{ fontSize: 10, marginTop: 4, color: subColor ?? 'var(--text-3)' }}>{sub}</div>}
     </div>
   )
 }
@@ -282,6 +283,14 @@ export default function LivePositionsPage() {
   const fmtMoney = (v: number) => `${v > 0 ? '+' : ''}$${Math.abs(v).toFixed(0)}`
   const moneyColor = (v: number) => (v >= 0 ? 'var(--green)' : 'var(--red)')
 
+  // Acik pozisyonlarin toplam unrealized PnL'i (normalize 50$ volume ile)
+  const totalUnrealized =
+    price !== null
+      ? orders
+          .filter((o) => o.status === 'OPEN')
+          .reduce((sum, o) => sum + calcPnL(o, price.bid, price.ask, getDisplayVolume(o)), 0)
+      : null
+
   // Tek liste: open/pending + closed/canceled birlestir
   const allRows = [...orders, ...history]
   const selectedOrders = allRows.filter((o) => selectedIds.has(o.id))
@@ -356,7 +365,13 @@ export default function LivePositionsPage() {
           <div className="live-scorecards">
             <ScoreCard label="TOTAL" value={stats.total_orders} />
             <ScoreCard label="PENDING" value={stats.pending} color="var(--amber)" />
-            <ScoreCard label="OPEN" value={stats.open} color="var(--green)" />
+            <ScoreCard
+              label="OPEN"
+              value={stats.open}
+              color="var(--green)"
+              sub={totalUnrealized != null && stats.open > 0 ? `${totalUnrealized >= 0 ? '+' : ''}$${totalUnrealized.toFixed(2)}` : undefined}
+              subColor={totalUnrealized != null ? moneyColor(totalUnrealized) : undefined}
+            />
             <ScoreCard label="EXPIRED" value={stats.expired} color="var(--text-2)" />
             <ScoreCard label="WIN RATE" value={`%${stats.win_rate.toFixed(1)}`} color={wpColor(stats.win_rate)} />
             <ScoreCard label="TP HIT" value={stats.tp_count} color="var(--green)" />
