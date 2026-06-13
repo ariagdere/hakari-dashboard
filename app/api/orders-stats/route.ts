@@ -1,6 +1,9 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // PnL normalize: gerçek MT5 volume sabit 0.1 ama arayüzde 50$ risk hedefine
 // göre normalize ediyoruz. position_size_btc * 2.5 = ideal volume.
 // realized_pnl gerçek volume (0.1) ile geldiği için, ideal/gerçek oranıyla ölçekliyoruz.
