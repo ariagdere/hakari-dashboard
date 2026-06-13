@@ -378,7 +378,17 @@ export default function LivePositionsPage() {
             <ScoreCard label="SL HIT" value={stats.sl_count} color="var(--red)" />
             <ScoreCard label="AVG WIN R" value={stats.avg_win_r != null ? `+${stats.avg_win_r.toFixed(2)}R` : '—'} color="var(--green)" />
             <ScoreCard label="TOTAL R" value={`${stats.total_r >= 0 ? '+' : ''}${stats.total_r.toFixed(2)}R`} color={moneyColor(stats.total_r)} />
-            <ScoreCard label="TOTAL P&L" value={fmtMoney(stats.total_pnl)} color={moneyColor(stats.total_pnl)} />
+            <ScoreCard
+              label="TOTAL P&L"
+              value={fmtMoney(stats.total_pnl)}
+              color={moneyColor(stats.total_pnl)}
+              sub={
+                totalUnrealized != null
+                  ? `inc. open: ${(stats.total_pnl + totalUnrealized) >= 0 ? '+' : ''}$${(stats.total_pnl + totalUnrealized).toFixed(2)}`
+                  : undefined
+              }
+              subColor={totalUnrealized != null ? moneyColor(stats.total_pnl + totalUnrealized) : undefined}
+            />
           </div>
         )}
 
