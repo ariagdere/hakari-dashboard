@@ -84,6 +84,12 @@ const fmtDate = (s: string | null | undefined) => {
   if (!s) return '—'
   return new Date(s).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
+// Fiyat: tam sayiysa decimal yok, kusuratliysa 2 haneye kadar (gereksiz .00 atilir)
+const fmtPrice = (v: number | null | undefined) => {
+  if (v == null) return '—'
+  const n = Number(v)
+  return Number.isInteger(n) ? n.toString() : n.toFixed(2).replace(/\.?0+$/, '')
+}
 
 function ScoreCard({ label, value, color }: { label: string; value: React.ReactNode; color?: string }) {
   return (
@@ -112,7 +118,7 @@ function LiveChart({ candles, selectedOrders }: { candles: Candle[]; selectedOrd
       rightPriceScale: { borderColor: '#242424' },
       crosshair: { mode: 0 },
       width: container.clientWidth || 600,
-      height: isMobile ? 240 : 320,
+      height: isMobile ? 240 : 420,
     })
     const series = chart.addCandlestickSeries({
       upColor: '#4ade80', downColor: '#f87171',
@@ -354,9 +360,9 @@ export default function LivePositionsPage() {
                           <td style={{ padding: '6px 0', textAlign: 'right' }}>{statusBadge(order.status)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right' }}>{dirBadge(order.direction)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{displayVolume}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{order.entry_price.toFixed(2)}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--red)' }}>{order.sl.toFixed(2)}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--green)' }}>{order.tp.toFixed(2)}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtPrice(order.entry_price)}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--red)' }}>{fmtPrice(order.sl)}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--green)' }}>{fmtPrice(order.tp)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{order.analysis_rr ?? order.rr ?? '—'}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</td>
                           <td className={`mono ${pnl !== null ? pnlClass(pnl) : 'pnl-zero'}`} style={{ padding: '6px 0', textAlign: 'right' }}>{pnl !== null ? `${pnl > 0 ? '+' : ''}${pnl.toFixed(2)}` : '—'}</td>
@@ -387,9 +393,9 @@ export default function LivePositionsPage() {
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--text-2)', fontFamily: 'DM Mono, monospace', marginBottom: 6 }}>{order.strategy_label}</div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, fontFamily: 'DM Mono, monospace', fontSize: 11 }}>
-                        <div><span className="col-label">Entry </span><span style={{ color: 'var(--text-2)' }}>{order.entry_price.toFixed(2)}</span></div>
-                        <div><span className="col-label">SL </span><span style={{ color: 'var(--red)' }}>{order.sl.toFixed(2)}</span></div>
-                        <div><span className="col-label">TP </span><span style={{ color: 'var(--green)' }}>{order.tp.toFixed(2)}</span></div>
+                        <div><span className="col-label">Entry </span><span style={{ color: 'var(--text-2)' }}>{fmtPrice(order.entry_price)}</span></div>
+                        <div><span className="col-label">SL </span><span style={{ color: 'var(--red)' }}>{fmtPrice(order.sl)}</span></div>
+                        <div><span className="col-label">TP </span><span style={{ color: 'var(--green)' }}>{fmtPrice(order.tp)}</span></div>
                         <div><span className="col-label">Vol </span><span style={{ color: 'var(--text-2)' }}>{displayVolume}</span></div>
                         <div><span className="col-label">RR </span><span style={{ color: 'var(--text-2)' }}>{order.analysis_rr ?? order.rr ?? '—'}</span></div>
                         <div><span className="col-label">WP6 </span><span style={{ color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</span></div>
@@ -434,8 +440,8 @@ export default function LivePositionsPage() {
                           <td style={{ padding: '6px 0', textAlign: 'right' }}>{dirBadge(order.direction)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right' }}>{exitBadge(order)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{order.display_volume ?? order.volume}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{order.entry_price.toFixed(2)}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{order.close_price != null ? Number(order.close_price).toFixed(2) : '—'}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtPrice(order.entry_price)}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtPrice(order.close_price)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{order.analysis_rr ?? order.rr ?? '—'}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</td>
                           <td className={`mono ${npnl != null ? pnlClass(npnl) : 'pnl-zero'}`} style={{ padding: '6px 0', textAlign: 'right' }}>
@@ -468,8 +474,8 @@ export default function LivePositionsPage() {
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--text-2)', fontFamily: 'DM Mono, monospace', marginBottom: 6 }}>{order.strategy_label}</div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, fontFamily: 'DM Mono, monospace', fontSize: 11 }}>
-                        <div><span className="col-label">Entry </span><span style={{ color: 'var(--text-2)' }}>{order.entry_price.toFixed(2)}</span></div>
-                        <div><span className="col-label">Exit </span><span style={{ color: 'var(--text-2)' }}>{order.close_price != null ? Number(order.close_price).toFixed(2) : '—'}</span></div>
+                        <div><span className="col-label">Entry </span><span style={{ color: 'var(--text-2)' }}>{fmtPrice(order.entry_price)}</span></div>
+                        <div><span className="col-label">Exit </span><span style={{ color: 'var(--text-2)' }}>{fmtPrice(order.close_price)}</span></div>
                         <div><span className="col-label">Vol </span><span style={{ color: 'var(--text-2)' }}>{order.display_volume ?? order.volume}</span></div>
                         <div><span className="col-label">RR </span><span style={{ color: 'var(--text-2)' }}>{order.analysis_rr ?? order.rr ?? '—'}</span></div>
                         <div><span className="col-label">WP6 </span><span style={{ color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</span></div>
