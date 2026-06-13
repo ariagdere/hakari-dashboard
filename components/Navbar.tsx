@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 const NAV_ITEMS = [
   { label: 'ANALYSIS', href: '/analysis' },
   { label: 'MKT',      href: '/mkt' },
+  { label: 'LIVE',      href: '/live' },
 ]
 export default function Navbar() {
   const pathname = usePathname()
