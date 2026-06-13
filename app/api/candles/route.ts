@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   try {
     const url =
-      'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=15m&limit=100';
+      'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=15m&limit=1000';
 
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) {
