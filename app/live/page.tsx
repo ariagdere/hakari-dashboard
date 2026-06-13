@@ -100,14 +100,15 @@ function LiveChart({ candles, selectedOrders }: { candles: Candle[]; selectedOrd
 
   useEffect(() => {
     if (!containerRef.current) return
-    const chart = createChart(containerRef.current, {
+    const container = containerRef.current
+    const chart = createChart(container, {
       layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: '#a0a0a0', fontFamily: 'DM Mono, monospace', fontSize: 10 },
       grid: { vertLines: { color: '#1a1a1a' }, horzLines: { color: '#1a1a1a' } },
       timeScale: { borderColor: '#242424', timeVisible: true, secondsVisible: false },
       rightPriceScale: { borderColor: '#242424' },
       crosshair: { mode: 0 },
+      width: container.clientWidth || 600,
       height: 320,
-      autoSize: true,
     })
     const series = chart.addCandlestickSeries({
       upColor: '#4ade80', downColor: '#f87171',
@@ -116,12 +117,28 @@ function LiveChart({ candles, selectedOrders }: { candles: Candle[]; selectedOrd
     })
     chartRef.current = chart
     seriesRef.current = series
-    return () => { chart.remove(); chartRef.current = null; seriesRef.current = null }
+
+    const handleResize = () => {
+      if (containerRef.current && chartRef.current) {
+        chartRef.current.applyOptions({ width: containerRef.current.clientWidth })
+      }
+    }
+    window.addEventListener('resize', handleResize)
+    // İlk ölçümün doğru olması için bir sonraki frame'de tekrar boyutla
+    requestAnimationFrame(handleResize)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      chart.remove()
+      chartRef.current = null
+      seriesRef.current = null
+    }
   }, [])
 
   useEffect(() => {
     if (seriesRef.current && candles.length > 0) {
       seriesRef.current.setData(candles as any)
+      chartRef.current?.timeScale().fitContent()
     }
   }, [candles])
 
