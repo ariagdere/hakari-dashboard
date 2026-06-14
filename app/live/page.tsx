@@ -192,9 +192,15 @@ function LiveChart({ candles, selectedOrders }: { candles: Candle[]; selectedOrd
     const markers: any[] = []
     selectedOrders.forEach((o) => {
       const isBuy = isLong(o.direction)
+      // Order olusturma (created_at = order'in gonderildigi/PENDING oldugu mum)
+      if (o.created_at) {
+        markers.push({ time: roundToCandle(o.created_at), position: 'aboveBar', color: '#fbbf24', shape: 'square', text: `Order #${o.id}` })
+      }
+      // Giris (opened_at = fill mumu)
       if (o.opened_at) {
         markers.push({ time: roundToCandle(o.opened_at), position: isBuy ? 'belowBar' : 'aboveBar', color: '#60a5fa', shape: isBuy ? 'arrowUp' : 'arrowDown', text: `In #${o.id}` })
       }
+      // Cikis (closed_at)
       if (o.status === 'CLOSED' && o.closed_at) {
         const exitColor = o.exit_reason === 'TP' ? '#4ade80' : o.exit_reason === 'SL' ? '#f87171' : '#a0a0a0'
         markers.push({ time: roundToCandle(o.closed_at), position: isBuy ? 'aboveBar' : 'belowBar', color: exitColor, shape: 'circle', text: `Out #${o.id} ${o.exit_reason ?? ''}` })
