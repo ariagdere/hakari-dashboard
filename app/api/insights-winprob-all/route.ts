@@ -26,27 +26,21 @@ const bucketLabel = (col: string) => `
   END
 `
 
+const LIQ_BUCKET = `
+  CASE
+    WHEN cluster_liq_ratio < 0.3  THEN '1_dn_very_dominant'
+    WHEN cluster_liq_ratio < 0.7  THEN '2_dn_dominant'
+    WHEN cluster_liq_ratio < 0.9  THEN '3_dn_slight'
+    WHEN cluster_liq_ratio < 1.1  THEN '4_neutral'
+    WHEN cluster_liq_ratio < 1.5  THEN '5_up_slight'
+    WHEN cluster_liq_ratio < 3.0  THEN '6_up_dominant'
+    ELSE '7_up_very_dominant'
+  END
+`
+
 const MODELS = [
-  { key: 'v1',          col: 'win_probability',              rev: false },
-  { key: 'v1_1304',     col: 'win_probability_1304',         rev: false },
-  { key: 'v1_rev',      col: 'win_probability_reverse',      rev: true  },
-  { key: 'v1_1304_rev', col: 'win_probability_1304_reverse', rev: true  },
-  { key: 'v3',          col: 'win_probability_v3',           rev: false },
-  { key: 'v3_1304',     col: 'win_probability_v3_1304',      rev: false },
-  { key: 'v3_rev',      col: 'win_probability_v3_reverse',   rev: true  },
-  { key: 'v3_1304_rev', col: 'win_probability_v3_1304_reverse', rev: true },
-  { key: 'v4',          col: 'win_probability_v4',           rev: false },
-  { key: 'v4_1304',     col: 'win_probability_v4_1304',      rev: false },
-  { key: 'v4_rev',      col: 'win_probability_v4_reverse',   rev: true  },
-  { key: 'v4_1304_rev', col: 'win_probability_v4_1304_reverse', rev: true },
-  { key: 'v5',          col: 'win_probability_v5',           rev: false },
-  { key: 'v5_1304',     col: 'win_probability_v5_1304',      rev: false },
-  { key: 'v5_rev',      col: 'win_probability_v5_reverse',   rev: true  },
-  { key: 'v5_1304_rev', col: 'win_probability_v5_1304_reverse', rev: true },
-  { key: 'v6',          col: 'win_probability_v6',           rev: false },
-  { key: 'v6_1304',     col: 'win_probability_v6_1304',      rev: false },
-  { key: 'v6_rev',      col: 'win_probability_v6_reverse',   rev: true  },
-  { key: 'v6_1304_rev', col: 'win_probability_v6_1304_reverse', rev: true },
+  { key: 'v6',      col: 'win_probability_v6',         rev: false },
+  { key: 'v6_rev',  col: 'win_probability_v6_reverse',  rev: true  },
 ]
 
 export async function GET(req: NextRequest) {
@@ -55,10 +49,8 @@ export async function GET(req: NextRequest) {
 
   const results: Record<string, any[]> = {}
 
+  // WP kalibrasyon tablosu
   await Promise.all(MODELS.map(async ({ key, col, rev }) => {
-    // Rev: LONG analiz → sim_direction SHORT doğru, SHORT analiz → sim_direction LONG doğru
-    // Normal: sim_direction = direction doğru
-    // Her ikisinde de FLAT hariç
     const dirCorrect = rev
       ? `COUNT(*) FILTER (WHERE sim_direction IS NOT NULL AND sim_direction != 'FLAT' AND sim_direction != direction)`
       : `COUNT(*) FILTER (WHERE sim_direction = direction)`
@@ -87,6 +79,46 @@ export async function GET(req: NextRequest) {
     `, params)
     results[key] = rows
   }))
+
+  // Liq zone breakdown — genel, long, short
+  const liqRows = await pool.query(`
+    SELECT
+      ${LIQ_BUCKET} AS liq_bucket,
+      COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')) AS total,
+      COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') AS wins,
+      ROUND(COUNT(*) FILTER (WHERE sim_result = 'TP_HIT') * 100.0 /
+        NULLIF(COUNT(*) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate,
+      ROUND(SUM(sim_r_multiple) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 2) AS total_r,
+      -- LONG
+      COUNT(*) FILTER (WHERE direction='LONG' AND sim_result IN ('TP_HIT','SL_HIT')) AS long_total,
+      COUNT(*) FILTER (WHERE direction='LONG' AND sim_result = 'TP_HIT') AS long_wins,
+      ROUND(COUNT(*) FILTER (WHERE direction='LONG' AND sim_result = 'TP_HIT') * 100.0 /
+        NULLIF(COUNT(*) FILTER (WHERE direction='LONG' AND sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS long_win_rate,
+      ROUND(SUM(sim_r_multiple) FILTER (WHERE direction='LONG' AND sim_result IN ('TP_HIT','SL_HIT')), 2) AS long_total_r,
+      -- SHORT
+      COUNT(*) FILTER (WHERE direction='SHORT' AND sim_result IN ('TP_HIT','SL_HIT')) AS short_total,
+      COUNT(*) FILTER (WHERE direction='SHORT' AND sim_result = 'TP_HIT') AS short_wins,
+      ROUND(COUNT(*) FILTER (WHERE direction='SHORT' AND sim_result = 'TP_HIT') * 100.0 /
+        NULLIF(COUNT(*) FILTER (WHERE direction='SHORT' AND sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS short_win_rate,
+      ROUND(SUM(sim_r_multiple) FILTER (WHERE direction='SHORT' AND sim_result IN ('TP_HIT','SL_HIT')), 2) AS short_total_r,
+      -- up_hit reach >=75 filtreli
+      COUNT(*) FILTER (WHERE cluster_up_hit = true AND cluster_up_reach_pct >= 75 AND sim_result IN ('TP_HIT','SL_HIT')) AS up_hit_total,
+      COUNT(*) FILTER (WHERE cluster_up_hit = true AND cluster_up_reach_pct >= 75 AND sim_result = 'TP_HIT') AS up_hit_wins,
+      ROUND(COUNT(*) FILTER (WHERE cluster_up_hit = true AND cluster_up_reach_pct >= 75 AND sim_result = 'TP_HIT') * 100.0 /
+        NULLIF(COUNT(*) FILTER (WHERE cluster_up_hit = true AND cluster_up_reach_pct >= 75 AND sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS up_hit_win_rate,
+      -- dn_hit reach >=75 filtreli
+      COUNT(*) FILTER (WHERE cluster_dn_hit = true AND cluster_dn_reach_pct >= 75 AND sim_result IN ('TP_HIT','SL_HIT')) AS dn_hit_total,
+      COUNT(*) FILTER (WHERE cluster_dn_hit = true AND cluster_dn_reach_pct >= 75 AND sim_result = 'TP_HIT') AS dn_hit_wins,
+      ROUND(COUNT(*) FILTER (WHERE cluster_dn_hit = true AND cluster_dn_reach_pct >= 75 AND sim_result = 'TP_HIT') * 100.0 /
+        NULLIF(COUNT(*) FILTER (WHERE cluster_dn_hit = true AND cluster_dn_reach_pct >= 75 AND sim_result IN ('TP_HIT','SL_HIT')), 0), 1) AS dn_hit_win_rate
+    FROM btc_analysis
+    ${where || 'WHERE 1=1'} AND cluster_liq_ratio IS NOT NULL
+      AND sim_result IN ('TP_HIT','SL_HIT')
+    GROUP BY liq_bucket
+    ORDER BY liq_bucket
+  `, params)
+
+  results['liq_zone'] = liqRows.rows
 
   return NextResponse.json(results)
 }
