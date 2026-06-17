@@ -48,12 +48,15 @@ interface AnalysisSummary {
   id: number; analyzed_at: string; direction: string
   entry: number; tp: number; sl: number; rr: string
   sim_result: string; sim_pnl_usd: number; sim_r_multiple: number
+  sim_direction: string | null
   rsi_4h: number | null; rsi_30m: number | null
-  win_probability_v4: number | null; win_probability_v5: number | null
-  win_probability_v4_1304: number | null; win_probability_v5_1304: number | null
-  win_probability_v4_reverse: number | null; win_probability_v5_reverse: number | null
-  win_probability_v6: number | null; win_probability_v6_1304: number | null
-  win_probability_v6_reverse: number | null; win_probability_v6_1304_reverse: number | null
+  win_probability_v6: number | null
+  win_probability_v6_reverse: number | null
+  cluster_liq_ratio: number | null
+  cluster_up_hit: boolean | null; cluster_dn_hit: boolean | null
+  cluster_up_reach_pct: number | null; cluster_dn_reach_pct: number | null
+  cluster_up_dist_pct: number | null; cluster_dn_dist_pct: number | null
+  cluster_first_closer: string | null
 }
 
 // ── Filters ────────────────────────────────────────────────────────────────
@@ -61,21 +64,13 @@ interface AnalysisSummary {
 interface Filters {
   direction: string; sim_result: string
   date_from: string; date_to: string
-  days: number[]  // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
+  days: number[]
   rsi_min: number; rsi_max: number
   rsi30_min: number; rsi30_max: number
-  wp4_min: number; wp4_max: number
-  wp4_1304_min: number; wp4_1304_max: number
-  wp4_rev_min: number; wp4_rev_max: number
-  wp4_1304_rev_min: number; wp4_1304_rev_max: number
-  wp5_min: number; wp5_max: number
-  wp5_1304_min: number; wp5_1304_max: number
-  wp5_rev_min: number; wp5_rev_max: number
-  wp5_1304_rev_min: number; wp5_1304_rev_max: number
   wp6_min: number; wp6_max: number
-  wp6_1304_min: number; wp6_1304_max: number
   wp6_rev_min: number; wp6_rev_max: number
-  wp6_1304_rev_min: number; wp6_1304_rev_max: number
+  liq_ratio_min: number; liq_ratio_max: number
+  cluster_up_hit: string; cluster_dn_hit: string
   h1_ls_delta_min: number; h1_ls_delta_max: number
   h1_tt_positions_delta_min: number; h1_tt_positions_delta_max: number
   h1_tt_accounts_delta_min: number; h1_tt_accounts_delta_max: number
@@ -101,18 +96,10 @@ const DEFAULT_FILTERS: Filters = {
   days: [0,1,2,3,4,5,6],
   rsi_min: 0, rsi_max: 100,
   rsi30_min: 0, rsi30_max: 100,
-  wp4_min: 0, wp4_max: 100,
-  wp4_1304_min: 0, wp4_1304_max: 100,
-  wp4_rev_min: 0, wp4_rev_max: 100,
-  wp4_1304_rev_min: 0, wp4_1304_rev_max: 100,
-  wp5_min: 0, wp5_max: 100,
-  wp5_1304_min: 0, wp5_1304_max: 100,
-  wp5_rev_min: 0, wp5_rev_max: 100,
-  wp5_1304_rev_min: 0, wp5_1304_rev_max: 100,
   wp6_min: 0, wp6_max: 100,
-  wp6_1304_min: 0, wp6_1304_max: 100,
   wp6_rev_min: 0, wp6_rev_max: 100,
-  wp6_1304_rev_min: 0, wp6_1304_rev_max: 100,
+  liq_ratio_min: 0, liq_ratio_max: 10,
+  cluster_up_hit: '', cluster_dn_hit: '',
   h1_ls_delta_min: -3, h1_ls_delta_max: 3,
   h1_tt_positions_delta_min: -1, h1_tt_positions_delta_max: 1,
   h1_tt_accounts_delta_min: -1, h1_tt_accounts_delta_max: 1,
@@ -137,20 +124,13 @@ function filtersToParams(f: Filters): URLSearchParams {
   if (f.date_from)   p.set('date_from',  f.date_from)
   if (f.date_to)     p.set('date_to',    f.date_to)
   if (f.days.length < 7) p.set('days', f.days.join(','))
-  p.set('rsi_min', String(f.rsi_min));   p.set('rsi_max', String(f.rsi_max))
+  p.set('rsi_min', String(f.rsi_min));     p.set('rsi_max', String(f.rsi_max))
   p.set('rsi30_min', String(f.rsi30_min)); p.set('rsi30_max', String(f.rsi30_max))
-  p.set('wp4_min', String(f.wp4_min));         p.set('wp4_max', String(f.wp4_max))
-  p.set('wp4_1304_min', String(f.wp4_1304_min)); p.set('wp4_1304_max', String(f.wp4_1304_max))
-  p.set('wp4_rev_min', String(f.wp4_rev_min));   p.set('wp4_rev_max', String(f.wp4_rev_max))
-  p.set('wp4_1304_rev_min', String(f.wp4_1304_rev_min)); p.set('wp4_1304_rev_max', String(f.wp4_1304_rev_max))
-  p.set('wp5_min', String(f.wp5_min));         p.set('wp5_max', String(f.wp5_max))
-  p.set('wp5_1304_min', String(f.wp5_1304_min)); p.set('wp5_1304_max', String(f.wp5_1304_max))
-  p.set('wp5_rev_min', String(f.wp5_rev_min));   p.set('wp5_rev_max', String(f.wp5_rev_max))
-  p.set('wp5_1304_rev_min', String(f.wp5_1304_rev_min)); p.set('wp5_1304_rev_max', String(f.wp5_1304_rev_max))
   p.set('wp6_min', String(f.wp6_min));         p.set('wp6_max', String(f.wp6_max))
-  p.set('wp6_1304_min', String(f.wp6_1304_min)); p.set('wp6_1304_max', String(f.wp6_1304_max))
-  p.set('wp6_rev_min', String(f.wp6_rev_min));   p.set('wp6_rev_max', String(f.wp6_rev_max))
-  p.set('wp6_1304_rev_min', String(f.wp6_1304_rev_min)); p.set('wp6_1304_rev_max', String(f.wp6_1304_rev_max))
+  p.set('wp6_rev_min', String(f.wp6_rev_min)); p.set('wp6_rev_max', String(f.wp6_rev_max))
+  p.set('liq_ratio_min', String(f.liq_ratio_min)); p.set('liq_ratio_max', String(f.liq_ratio_max))
+  if (f.cluster_up_hit) p.set('cluster_up_hit', f.cluster_up_hit)
+  if (f.cluster_dn_hit) p.set('cluster_dn_hit', f.cluster_dn_hit)
   p.set('h1_ls_delta_min', String(f.h1_ls_delta_min)); p.set('h1_ls_delta_max', String(f.h1_ls_delta_max))
   p.set('h1_tt_positions_delta_min', String(f.h1_tt_positions_delta_min)); p.set('h1_tt_positions_delta_max', String(f.h1_tt_positions_delta_max))
   p.set('h1_tt_accounts_delta_min', String(f.h1_tt_accounts_delta_min)); p.set('h1_tt_accounts_delta_max', String(f.h1_tt_accounts_delta_max))
@@ -178,18 +158,11 @@ function activeFilterCount(f: Filters): number {
   if (f.days.length < 7) n++
   if (f.rsi_min > 0 || f.rsi_max < 100) n++
   if (f.rsi30_min > 0 || f.rsi30_max < 100) n++
-  if (f.wp4_min > 0 || f.wp4_max < 100) n++
-  if (f.wp4_1304_min > 0 || f.wp4_1304_max < 100) n++
-  if (f.wp4_rev_min > 0 || f.wp4_rev_max < 100) n++
-  if (f.wp4_1304_rev_min > 0 || f.wp4_1304_rev_max < 100) n++
-  if (f.wp5_min > 0 || f.wp5_max < 100) n++
-  if (f.wp5_1304_min > 0 || f.wp5_1304_max < 100) n++
-  if (f.wp5_rev_min > 0 || f.wp5_rev_max < 100) n++
-  if (f.wp5_1304_rev_min > 0 || f.wp5_1304_rev_max < 100) n++
   if (f.wp6_min > 0 || f.wp6_max < 100) n++
-  if (f.wp6_1304_min > 0 || f.wp6_1304_max < 100) n++
   if (f.wp6_rev_min > 0 || f.wp6_rev_max < 100) n++
-  if (f.wp6_1304_rev_min > 0 || f.wp6_1304_rev_max < 100) n++
+  if (f.liq_ratio_min > 0 || f.liq_ratio_max < 10) n++
+  if (f.cluster_up_hit) n++
+  if (f.cluster_dn_hit) n++
   if (f.h1_ls_delta_min > -3 || f.h1_ls_delta_max < 3) n++
   if (f.h1_tt_positions_delta_min > -1 || f.h1_tt_positions_delta_max < 1) n++
   if (f.h1_tt_accounts_delta_min > -1 || f.h1_tt_accounts_delta_max < 1) n++
@@ -375,34 +348,19 @@ function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Fi
       </div>
 
       {sep}
-      <GL c="Win Probability" />
-      {([
-        { label: 'V4', keys: ['wp4', 'wp4_1304', 'wp4_rev', 'wp4_1304_rev'] as const },
-        { label: 'V5', keys: ['wp5', 'wp5_1304', 'wp5_rev', 'wp5_1304_rev'] as const },
-        { label: 'V6', keys: ['wp6', 'wp6_1304', 'wp6_rev', 'wp6_1304_rev'] as const },
-      ] as const).map(model => (
-        <div key={model.label} style={{ marginBottom: 14 }}>
-          <div className="col-label" style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 8 }}>{model.label}</div>
-          <div className="wp-model-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-            {(['Latest', '1304', 'Latest Rev', '1304 Rev'] as const).map((suffix, i) => {
-              const base = model.keys[i]
-              const minKey = `${base}_min` as keyof Filters
-              const maxKey = `${base}_max` as keyof Filters
-              return (
-                <RangeRow
-                  key={suffix}
-                  label={`${model.label} ${suffix}`}
-                  minKey={minKey}
-                  maxKey={maxKey}
-                  min={0} max={100} step={5}
-                  filters={filters}
-                  onChange={onChange}
-                />
-              )
-            })}
-          </div>
-        </div>
-      ))}
+      <GL c="Win Probability — V6" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+        <RangeRow label="V6" minKey="wp6_min" maxKey="wp6_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
+        <RangeRow label="V6 Rev" minKey="wp6_rev_min" maxKey="wp6_rev_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
+      </div>
+
+      {sep}
+      <GL c="Liquidity Cluster" />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 14, alignItems: 'start' }}>
+        <RangeRow label="Liq Ratio" minKey="liq_ratio_min" maxKey="liq_ratio_max" min={0} max={10} step={0.1} filters={filters} onChange={onChange} />
+        <ToggleGroup label="Up Hit" field="cluster_up_hit" options={['true','false']} filters={filters} onChange={onChange} />
+        <ToggleGroup label="Dn Hit" field="cluster_dn_hit" options={['true','false']} filters={filters} onChange={onChange} />
+      </div>
 
       {sep}
       <GL c="RSI" />
@@ -899,73 +857,100 @@ export default function AnalysisPage() {
             {wpAll && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  WIN PROBABILITY CALIBRATION
+                  WIN PROBABILITY CALIBRATION — V6
                 </div>
-                {(['v4','v5','v6'] as const).map(v => {
-                  const VERSIONS = [
-                    { key: `${v}`,          label: 'Latest' },
-                    { key: `${v}_1304`,     label: '1304' },
-                    { key: `${v}_rev`,      label: 'Latest Rev' },
-                    { key: `${v}_1304_rev`, label: '1304 Rev' },
-                  ]
+                {([
+                  { key: 'v6',     label: 'V6' },
+                  { key: 'v6_rev', label: 'V6 Rev' },
+                ] as const).map(ver => {
+                  const rows = wpAll[ver.key] ?? []
+                  if (rows.length === 0) return null
                   const buckets = ['0-20%','20-30%','30-40%','40-50%','50-60%','60-70%','70%+']
-                  const hasData = VERSIONS.some(ver => (wpAll[ver.key] ?? []).length > 0)
-                  if (!hasData) return null
                   return (
-                    <div key={v} className="card" style={{ padding: 16, marginBottom: 10, overflowX: 'auto' }}>
-                      <div className="col-label" style={{ marginBottom: 10 }}>{v.toUpperCase()}</div>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace', minWidth: 600 }}>
+                    <div key={ver.key} className="card" style={{ padding: 16, marginBottom: 10, overflowX: 'auto' }}>
+                      <div className="col-label" style={{ marginBottom: 10 }}>{ver.label}</div>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace', minWidth: 400 }}>
                         <thead>
                           <tr>
                             <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, width: 70 }}>Bucket</th>
-                            {VERSIONS.map(ver => (
-                              <th key={ver.key} colSpan={4} style={{ textAlign: 'center', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>
-                                {ver.label}
-                              </th>
-                            ))}
-                          </tr>
-                          <tr>
-                            <th style={{ paddingBottom: 8 }} />
-                            {VERSIONS.map(ver => (
-                              <React.Fragment key={ver.key}>
-                                <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, borderLeft: '1px solid var(--border)', paddingLeft: 6 }}>Win%</th>
-                                <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400 }}>n</th>
-                                <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400 }}>Tot.R</th>
-                                <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, paddingRight: 8 }}>Dir%</th>
-                              </React.Fragment>
-                            ))}
+                            <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, paddingLeft: 6 }}>Win%</th>
+                            <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>n</th>
+                            <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Tot.R</th>
+                            <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, paddingRight: 8 }}>Dir%</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {buckets.map(bucket => (
-                            <tr key={bucket} style={{ borderTop: '1px solid var(--border)' }}>
-                              <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{bucket}</td>
-                              {VERSIONS.map(ver => {
-                                const row = (wpAll[ver.key] ?? []).find((r: WpBucket) => r.bucket === bucket)
-                                return (
-                                  <React.Fragment key={ver.key}>
-                                    <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', borderLeft: '1px solid var(--border)', color: row ? winColor(Number(row.win_rate)) : 'var(--text-3)' }}>
-                                      {row ? `%${Number(row.win_rate).toFixed(1)}` : '—'}
-                                    </td>
-                                    <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--text-3)' }}>
-                                      {row ? row.total : '—'}
-                                    </td>
-                                    <td style={{ padding: '5px 4px', textAlign: 'right', color: row?.total_r != null ? (Number(row.total_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>
-                                      {row?.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(1)}` : '—'}
-                                    </td>
-                                    <td style={{ padding: '5px 8px 5px 0', textAlign: 'right', color: row?.dir_accuracy != null ? winColor(Number(row.dir_accuracy)) : 'var(--text-3)' }}>
-                                      {row?.dir_accuracy != null ? `%${Number(row.dir_accuracy).toFixed(1)}` : '—'}
-                                    </td>
-                                  </React.Fragment>
-                                )
-                              })}
-                            </tr>
-                          ))}
+                          {buckets.map(bucket => {
+                            const row = rows.find((r: WpBucket) => r.bucket === bucket)
+                            return (
+                              <tr key={bucket} style={{ borderTop: '1px solid var(--border)' }}>
+                                <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{bucket}</td>
+                                <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', color: row ? winColor(Number(row.win_rate)) : 'var(--text-3)' }}>
+                                  {row ? `%${Number(row.win_rate).toFixed(1)}` : '—'}
+                                </td>
+                                <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{row ? row.total : '—'}</td>
+                                <td style={{ padding: '5px 4px', textAlign: 'right', color: row?.total_r != null ? (Number(row.total_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>
+                                  {row?.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(1)}` : '—'}
+                                </td>
+                                <td style={{ padding: '5px 8px 5px 0', textAlign: 'right', color: row?.dir_accuracy != null ? winColor(Number(row.dir_accuracy)) : 'var(--text-3)' }}>
+                                  {row?.dir_accuracy != null ? `%${Number(row.dir_accuracy).toFixed(1)}` : '—'}
+                                </td>
+                              </tr>
+                            )
+                          })}
                         </tbody>
                       </table>
                     </div>
                   )
                 })}
+
+                {/* Liq Zone Breakdown */}
+                {(wpAll['liq_zone'] ?? []).length > 0 && (
+                  <div className="card" style={{ padding: 16, marginTop: 10, overflowX: 'auto' }}>
+                    <div className="col-label" style={{ marginBottom: 10 }}>LIQUIDITY ZONE BREAKDOWN</div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace', minWidth: 700 }}>
+                      <thead>
+                        <tr>
+                          <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, width: 120 }}>Zone</th>
+                          <th colSpan={3} style={{ textAlign: 'center', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>All</th>
+                          <th colSpan={3} style={{ textAlign: 'center', color: 'var(--green)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>LONG</th>
+                          <th colSpan={3} style={{ textAlign: 'center', color: 'var(--red)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>SHORT</th>
+                          <th colSpan={2} style={{ textAlign: 'center', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>Up Hit ≥75%</th>
+                          <th colSpan={2} style={{ textAlign: 'center', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>Dn Hit ≥75%</th>
+                        </tr>
+                        <tr>
+                          <th style={{ paddingBottom: 8 }} />
+                          {['n','Win%','Tot.R','n','Win%','Tot.R','n','Win%','Tot.R','n','Win%','n','Win%'].map((h, i) => (
+                            <th key={i} style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, borderLeft: i === 0 || i === 3 || i === 6 || i === 9 || i === 11 ? '1px solid var(--border)' : undefined, paddingLeft: i === 0 || i === 3 || i === 6 || i === 9 || i === 11 ? 6 : undefined }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(wpAll['liq_zone'] as any[]).map((row: any) => {
+                          const label = row.liq_bucket?.replace(/^\d_/, '') ?? '—'
+                          return (
+                            <tr key={row.liq_bucket} style={{ borderTop: '1px solid var(--border)' }}>
+                              <td style={{ padding: '5px 0', color: 'var(--text-2)', fontSize: 9 }}>{label}</td>
+                              <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', color: 'var(--text-3)', borderLeft: '1px solid var(--border)' }}>{row.total}</td>
+                              <td style={{ padding: '5px 4px', textAlign: 'right', color: winColor(Number(row.win_rate)) }}>{row.win_rate != null ? `%${Number(row.win_rate).toFixed(1)}` : '—'}</td>
+                              <td style={{ padding: '5px 4px', textAlign: 'right', color: Number(row.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{row.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(1)}` : '—'}</td>
+                              <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', color: 'var(--text-3)', borderLeft: '1px solid var(--border)' }}>{row.long_total}</td>
+                              <td style={{ padding: '5px 4px', textAlign: 'right', color: winColor(Number(row.long_win_rate)) }}>{row.long_win_rate != null ? `%${Number(row.long_win_rate).toFixed(1)}` : '—'}</td>
+                              <td style={{ padding: '5px 4px', textAlign: 'right', color: Number(row.long_total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{row.long_total_r != null ? `${Number(row.long_total_r) >= 0 ? '+' : ''}${Number(row.long_total_r).toFixed(1)}` : '—'}</td>
+                              <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', color: 'var(--text-3)', borderLeft: '1px solid var(--border)' }}>{row.short_total}</td>
+                              <td style={{ padding: '5px 4px', textAlign: 'right', color: winColor(Number(row.short_win_rate)) }}>{row.short_win_rate != null ? `%${Number(row.short_win_rate).toFixed(1)}` : '—'}</td>
+                              <td style={{ padding: '5px 4px', textAlign: 'right', color: Number(row.short_total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{row.short_total_r != null ? `${Number(row.short_total_r) >= 0 ? '+' : ''}${Number(row.short_total_r).toFixed(1)}` : '—'}</td>
+                              <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', color: 'var(--text-3)', borderLeft: '1px solid var(--border)' }}>{row.up_hit_total}</td>
+                              <td style={{ padding: '5px 4px', textAlign: 'right', color: winColor(Number(row.up_hit_win_rate)) }}>{row.up_hit_win_rate != null ? `%${Number(row.up_hit_win_rate).toFixed(1)}` : '—'}</td>
+                              <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', color: 'var(--text-3)', borderLeft: '1px solid var(--border)' }}>{row.dn_hit_total}</td>
+                              <td style={{ padding: '5px 4px', textAlign: 'right', color: winColor(Number(row.dn_hit_win_rate)) }}>{row.dn_hit_win_rate != null ? `%${Number(row.dn_hit_win_rate).toFixed(1)}` : '—'}</td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1276,10 +1261,10 @@ export default function AnalysisPage() {
                 <span className="col-label">SL</span>
                 <span className="col-label">R/R</span>
                 <span className="col-label">RSI</span>
-                {['V4 1304','V5 1304','V6 1304'].map(h => (
+                {['V6','V6 (Rev)'].map(h => (
                   <span key={h} className="col-label">{h}</span>
                 ))}
-                {['V4 (Rev)','V5 (Rev)','V6 (Rev)'].map(h => (
+                {['Liq Ratio','Up Hit','Dn Hit','Up Reach','Dn Reach'].map(h => (
                   <span key={h} className="col-label">{h}</span>
                 ))}
                 <span className="col-label">PnL</span>
@@ -1301,22 +1286,28 @@ export default function AnalysisPage() {
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rr}</span>
                   <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span>
                   {([
-                    { wp: a.win_probability_v4_1304, rev: null },
-                    { wp: a.win_probability_v5_1304, rev: null },
-                    { wp: a.win_probability_v6_1304, rev: null },
-                    { wp: a.win_probability_v4,      rev: a.win_probability_v4_reverse },
-                    { wp: a.win_probability_v5,      rev: a.win_probability_v5_reverse },
-                    { wp: a.win_probability_v6,      rev: a.win_probability_v6_reverse },
-                  ]).map(({ wp, rev }, i) => (
+                    { wp: a.win_probability_v6,         rev: null },
+                    { wp: a.win_probability_v6_reverse, rev: null },
+                  ]).map(({ wp }, i) => (
                     <span key={i} className="mono" style={{ fontSize: 11, color: wpColor(wp) }}>
                       {wp != null ? `%${Number(wp).toFixed(0)}` : '—'}
-                      {rev != null && (
-                        <span style={{ fontSize: 11, color: 'var(--text-3)', marginLeft: 2 }}>
-                          ({`%${Number(rev).toFixed(0)}`})
-                        </span>
-                      )}
                     </span>
                   ))}
+                  <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>
+                    {a.cluster_liq_ratio != null ? Number(a.cluster_liq_ratio).toFixed(2) : '—'}
+                  </span>
+                  <span className="mono" style={{ fontSize: 11, color: a.cluster_up_hit ? 'var(--green)' : a.cluster_up_hit === false ? 'var(--text-3)' : 'var(--text-3)' }}>
+                    {a.cluster_up_hit != null ? (a.cluster_up_hit ? '✓' : '—') : '—'}
+                  </span>
+                  <span className="mono" style={{ fontSize: 11, color: a.cluster_dn_hit ? 'var(--green)' : a.cluster_dn_hit === false ? 'var(--text-3)' : 'var(--text-3)' }}>
+                    {a.cluster_dn_hit != null ? (a.cluster_dn_hit ? '✓' : '—') : '—'}
+                  </span>
+                  <span className="mono" style={{ fontSize: 11, color: a.cluster_up_reach_pct != null && Number(a.cluster_up_reach_pct) >= 75 ? 'var(--green)' : 'var(--text-2)' }}>
+                    {a.cluster_up_reach_pct != null ? `%${Number(a.cluster_up_reach_pct).toFixed(0)}` : '—'}
+                  </span>
+                  <span className="mono" style={{ fontSize: 11, color: a.cluster_dn_reach_pct != null && Number(a.cluster_dn_reach_pct) >= 75 ? 'var(--green)' : 'var(--text-2)' }}>
+                    {a.cluster_dn_reach_pct != null ? `%${Number(a.cluster_dn_reach_pct).toFixed(0)}` : '—'}
+                  </span>
                   <span className={`mono ${a.sim_pnl_usd != null ? pnlClass(Number(a.sim_pnl_usd)) : 'pnl-zero'}`} style={{ fontSize: 11 }}>
                     {a.sim_pnl_usd != null ? `${Number(a.sim_pnl_usd) > 0 ? '+' : ''}$${Math.abs(Number(a.sim_pnl_usd)).toFixed(2)}` : '—'}
                   </span>
@@ -1356,8 +1347,6 @@ export default function AnalysisPage() {
                   </div>
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
                     {([
-                      { wp: a.win_probability_v4, rev: a.win_probability_v4_reverse, label: 'V4' },
-                      { wp: a.win_probability_v5, rev: a.win_probability_v5_reverse, label: 'V5' },
                       { wp: a.win_probability_v6, rev: a.win_probability_v6_reverse, label: 'V6' },
                     ]).map(({ wp, rev, label }) => (
                       <div key={label}>
