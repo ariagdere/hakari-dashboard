@@ -124,6 +124,11 @@ const fmtDuration = (mins: number) => {
   return h > 0 ? `${h}s ${m}dk` : `${m}dk`
 }
 
+// lightweight-charts UTC gosterir; tarayicinin yerel offsetini ekleyerek
+// eksen ve markerlari yerel saate hizalariz (tablo tr-TR ile tutarli olur).
+const TZ_OFFSET_SEC = -new Date().getTimezoneOffset() * 60 // İstanbul icin +10800
+const toLocalTime = (unixSec: number) => unixSec + TZ_OFFSET_SEC
+
 function ScoreCard({ label, value, color, sub, subColor }: { label: string; value: React.ReactNode; color?: string; sub?: React.ReactNode; subColor?: string }) {
   return (
     <div className="stat-card">
@@ -181,10 +186,11 @@ function LiveChart({ candles, selectedOrders }: { candles: Candle[]; selectedOrd
 
   useEffect(() => {
     if (seriesRef.current && candles.length > 0) {
-      seriesRef.current.setData(candles as any)
+      const localCandles = candles.map((c) => ({ ...c, time: toLocalTime(c.time) }))
+      seriesRef.current.setData(localCandles as any)
       if (!didInitialZoom.current) {
         const visibleCount = typeof window !== 'undefined' && window.innerWidth <= 768 ? 80 : 150
-        const total = candles.length
+        const total = localCandles.length
         chartRef.current?.timeScale().setVisibleLogicalRange({ from: Math.max(0, total - visibleCount), to: total })
         didInitialZoom.current = true
       }
@@ -213,7 +219,8 @@ function LiveChart({ candles, selectedOrders }: { candles: Candle[]; selectedOrd
     const CANDLE_SEC = 15 * 60
     const roundToCandle = (iso: string) => {
       const ts = Math.floor(new Date(iso).getTime() / 1000)
-      return Math.floor(ts / CANDLE_SEC) * CANDLE_SEC
+      const rounded = Math.floor(ts / CANDLE_SEC) * CANDLE_SEC
+      return toLocalTime(rounded) // candle'lar local'e kaydirildi, markerlar da
     }
     const markers: any[] = []
     selectedOrders.forEach((o) => {
