@@ -49,12 +49,24 @@ export async function GET(req: NextRequest) {
 
   const results: Record<string, any[]> = {}
 
+  function calcMaxDD(rValues: number[]): number {
+    let cum = 0, peak = 0, maxDD = 0
+    for (const r of rValues) {
+      cum += r
+      if (cum > peak) peak = cum
+      const dd = cum - peak
+      if (dd < maxDD) maxDD = dd
+    }
+    return parseFloat(maxDD.toFixed(2))
+  }
+
   // WP kalibrasyon tablosu
   await Promise.all(MODELS.map(async ({ key, col, rev }) => {
     const dirCorrect = rev
       ? `COUNT(*) FILTER (WHERE sim_direction IS NOT NULL AND sim_direction != 'FLAT' AND sim_direction != direction)`
       : `COUNT(*) FILTER (WHERE sim_direction = direction)`
 
+    // Bucket bazında aggregate
     const { rows } = await pool.query(`
       SELECT
         ${bucketLabel(col)} AS bucket,
@@ -77,7 +89,30 @@ export async function GET(req: NextRequest) {
       GROUP BY bucket, sort_order
       ORDER BY sort_order
     `, params)
-    results[key] = rows
+
+    // Her bucket için max DD hesapla
+    const { rows: rRows } = await pool.query(`
+      SELECT
+        ${bucketLabel(col)} AS bucket,
+        sim_r_multiple,
+        analyzed_at
+      FROM btc_analysis
+      ${base} ${col} IS NOT NULL
+        AND sim_result IN ('TP_HIT','SL_HIT')
+        AND sim_r_multiple IS NOT NULL
+      ORDER BY bucket, analyzed_at ASC
+    `, params)
+
+    const bucketRMap: Record<string, number[]> = {}
+    for (const r of rRows) {
+      if (!bucketRMap[r.bucket]) bucketRMap[r.bucket] = []
+      bucketRMap[r.bucket].push(parseFloat(r.sim_r_multiple))
+    }
+
+    results[key] = rows.map((row: any) => ({
+      ...row,
+      max_dd: calcMaxDD(bucketRMap[row.bucket] ?? [])
+    }))
   }))
 
   // Liq zone breakdown — genel, long, short
