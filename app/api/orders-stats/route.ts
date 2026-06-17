@@ -9,15 +9,26 @@ export const revalidate = 0;
 // realized_pnl gerçek volume (0.1) ile geldiği için, ideal/gerçek oranıyla ölçekliyoruz.
 const SIZE_MULTIPLIER = 2.5;
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const strategy = searchParams.get('strategy'); // null = tum stratejiler
+
+    const params: any[] = [];
+    let where = '';
+    if (strategy && strategy !== 'ALL') {
+      params.push(strategy);
+      where = `WHERE o.strategy_label = $1`;
+    }
+
     const { rows } = await pool.query(`
       SELECT
         o.status, o.exit_reason, o.is_manual, o.realized_pnl, o.volume,
         a.position_size_btc, a.rr AS analysis_rr
       FROM orders o
       LEFT JOIN btc_analysis a ON a.id = o.analysis_id
-    `);
+      ${where}
+    `, params);
 
     let totalOrders = 0;
     let pending = 0;
