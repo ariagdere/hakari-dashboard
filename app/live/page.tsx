@@ -42,6 +42,26 @@ interface Stats {
 }
 interface Candle { time: number; open: number; high: number; low: number; close: number }
 
+interface StrategyRow {
+  magic: number
+  strategy_label: string
+  total: number
+  open: number
+  pending: number
+  expired: number
+  closed: number
+  tp_count: number
+  sl_count: number
+  win_rate: number | null
+  avg_win_r: number | null
+  total_r: number
+  total_pnl: number
+  avg_duration_min: number | null
+  max_drawdown_r: number
+  avg_wp_v6: number | null
+  calibration_gap: number | null
+}
+
 const POLL_INTERVAL_MS = 5000
 const SIZE_MULTIPLIER = 2.5
 
@@ -96,6 +116,12 @@ const fmtDate = (s: string | null | undefined) => {
 const fmtPrice = (v: number | null | undefined) => {
   if (v == null) return '—'
   return Math.round(Number(v)).toString()
+}
+// Dakikayi "2s 15dk" formatina cevir
+const fmtDuration = (mins: number) => {
+  const h = Math.floor(mins / 60)
+  const m = Math.round(mins % 60)
+  return h > 0 ? `${h}s ${m}dk` : `${m}dk`
 }
 
 function ScoreCard({ label, value, color, sub, subColor }: { label: string; value: React.ReactNode; color?: string; sub?: React.ReactNode; subColor?: string }) {
@@ -229,6 +255,8 @@ export default function LivePositionsPage() {
   const [error, setError] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'OPEN' | 'CLOSED' | 'CANCELED'>('ALL')
+  const [strategyFilter, setStrategyFilter] = useState<string>('ALL')
+  const [comparison, setComparison] = useState<StrategyRow[]>([])
 
   const toggleSelect = (id: number) => {
     setSelectedIds((prev) => {
@@ -242,19 +270,24 @@ export default function LivePositionsPage() {
     let active = true
     async function fetchData() {
       try {
-        const [ordersRes, priceRes, statsRes, historyRes] = await Promise.all([
+        const statsUrl = strategyFilter && strategyFilter !== 'ALL'
+          ? `/api/orders-stats?strategy=${encodeURIComponent(strategyFilter)}`
+          : '/api/orders-stats'
+        const [ordersRes, priceRes, statsRes, historyRes, compRes] = await Promise.all([
           fetch('/api/orders-live', { cache: 'no-store' }),
           fetch('/api/live-price', { cache: 'no-store' }),
-          fetch('/api/orders-stats', { cache: 'no-store' }),
+          fetch(statsUrl, { cache: 'no-store' }),
           fetch('/api/orders-history', { cache: 'no-store' }),
+          fetch('/api/strategy-comparison', { cache: 'no-store' }),
         ])
         if (!ordersRes.ok || !priceRes.ok) throw new Error('fetch failed')
         const ordersData: Order[] = await ordersRes.json()
         const priceData: Price = await priceRes.json()
         const statsData: Stats = statsRes.ok ? await statsRes.json() : null
         const historyData: Order[] = historyRes.ok ? await historyRes.json() : []
+        const compData: StrategyRow[] = compRes.ok ? await compRes.json() : []
         if (active) {
-          setOrders(ordersData); setPrice(priceData); setStats(statsData); setHistory(historyData)
+          setOrders(ordersData); setPrice(priceData); setStats(statsData); setHistory(historyData); setComparison(compData)
           setSelectedIds((prev) => {
             const validIds = new Set([...ordersData, ...historyData].map((o) => o.id))
             const next = new Set<number>()
@@ -270,7 +303,7 @@ export default function LivePositionsPage() {
     fetchData()
     const interval = setInterval(fetchData, POLL_INTERVAL_MS)
     return () => { active = false; clearInterval(interval) }
-  }, [])
+  }, [strategyFilter])
 
   useEffect(() => {
     let active = true
@@ -289,20 +322,22 @@ export default function LivePositionsPage() {
   const fmtMoney = (v: number) => `${v > 0 ? '+' : ''}$${Math.abs(v).toFixed(0)}`
   const moneyColor = (v: number) => (v >= 0 ? 'var(--green)' : 'var(--red)')
 
-  // Acik pozisyonlarin toplam unrealized PnL'i (normalize 50$ volume ile)
+  // Acik pozisyonlarin toplam unrealized PnL'i (strateji filtresine uyar, normalize 50$)
   const totalUnrealized =
     price !== null
       ? orders
-          .filter((o) => o.status === 'OPEN')
+          .filter((o) => o.status === 'OPEN' && (strategyFilter === 'ALL' || o.strategy_label === strategyFilter))
           .reduce((sum, o) => sum + calcPnL(o, price.bid, price.ask, getDisplayVolume(o)), 0)
       : null
 
-  // Tek liste: open/pending + closed/canceled birlestir
-  const allRows = [...orders, ...history]
-  const selectedOrders = allRows.filter((o) => selectedIds.has(o.id))
+  // Strateji filtresi once tum satirlara uygulanir (skorkart stats route'tan filtreli geliyor)
+  const stratRows = [...orders, ...history].filter((o) =>
+    strategyFilter === 'ALL' ? true : o.strategy_label === strategyFilter
+  )
+  const selectedOrders = stratRows.filter((o) => selectedIds.has(o.id))
 
-  // Durum filtresi
-  const filtered = allRows.filter((o) => {
+  // Durum filtresi (strateji filtreli satirlar uzerinde)
+  const filtered = stratRows.filter((o) => {
     if (statusFilter === 'ALL') return true
     if (statusFilter === 'CANCELED') return o.status === 'CANCELED'
     return o.status === statusFilter
@@ -366,6 +401,30 @@ export default function LivePositionsPage() {
       <div className="container" style={{ paddingTop: 24 }}>
         <div className="live-section-title">LIVE POSITIONS</div>
 
+        {/* Strategy toggle bar */}
+        {comparison.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span className="col-label" style={{ fontSize: 9, marginRight: 2 }}>STRATEGY</span>
+            <button
+              className={`filter-btn${strategyFilter === 'ALL' ? ' active' : ''}`}
+              style={{ fontSize: 11 }}
+              onClick={() => setStrategyFilter('ALL')}
+            >
+              ALL
+            </button>
+            {comparison.map((s) => (
+              <button
+                key={s.strategy_label}
+                className={`filter-btn${strategyFilter === s.strategy_label ? ' active' : ''}`}
+                style={{ fontSize: 11 }}
+                onClick={() => setStrategyFilter(s.strategy_label)}
+              >
+                {s.strategy_label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Score cards */}
         {stats && (
           <div className="live-scorecards">
@@ -414,6 +473,58 @@ export default function LivePositionsPage() {
             Select a position from the table below to view its zones and entry/exit markers
           </div>
         </div>
+
+        {/* Strategy comparison */}
+        {comparison.length > 0 && (
+          <>
+            <div className="live-section-title">STRATEGY COMPARISON</div>
+            <div className="card" style={{ padding: 16, marginBottom: 24, overflowX: 'auto' }}>
+              <table className="live-table" style={{ minWidth: 1100 }}>
+                <thead>
+                  <tr>
+                    {['Strategy', 'Total', 'Open', 'Pend', 'Exp', 'Closed', 'TP', 'SL', 'Win%', 'Avg Win R', 'Total R', 'Total P&L', 'Avg Dur', 'Max DD', 'WP V6', 'Calib'].map((h, i) => (
+                      <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {comparison.map((s) => {
+                    const active = strategyFilter === s.strategy_label
+                    return (
+                      <tr
+                        key={s.strategy_label}
+                        onClick={() => setStrategyFilter(active ? 'ALL' : s.strategy_label)}
+                        style={{ borderTop: '1px solid var(--border)', cursor: 'pointer', background: active ? 'var(--bg-3)' : 'transparent' }}
+                      >
+                        <td style={{ padding: '6px 0', color: 'var(--text-2)' }}>{s.strategy_label}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{s.total}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--green)' }}>{s.open}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--amber)' }}>{s.pending}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-3)' }}>{s.expired}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{s.closed}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--green)' }}>{s.tp_count}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--red)' }}>{s.sl_count}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: wpColor(s.win_rate) }}>{s.win_rate != null ? `%${s.win_rate.toFixed(1)}` : '—'}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--green)' }}>{s.avg_win_r != null ? `+${s.avg_win_r.toFixed(2)}R` : '—'}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: moneyColor(s.total_r) }}>{`${s.total_r >= 0 ? '+' : ''}${s.total_r.toFixed(2)}R`}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: moneyColor(s.total_pnl) }}>{`${s.total_pnl >= 0 ? '+' : ''}$${Math.abs(s.total_pnl).toFixed(0)}`}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-3)' }}>{s.avg_duration_min != null ? fmtDuration(s.avg_duration_min) : '—'}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--red)' }}>{`-${s.max_drawdown_r.toFixed(2)}R`}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-3)' }}>{s.avg_wp_v6 != null ? `%${s.avg_wp_v6.toFixed(0)}` : '—'}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: s.calibration_gap == null ? 'var(--text-3)' : s.calibration_gap >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                          {s.calibration_gap != null ? `${s.calibration_gap >= 0 ? '+' : ''}${s.calibration_gap.toFixed(1)}` : '—'}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+              <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8 }}>
+                Click a row to filter the whole page by that strategy · Calib = actual win rate − predicted WP
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Status filter toggles */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
