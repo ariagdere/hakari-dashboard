@@ -29,7 +29,7 @@ interface DeltaData { [key: string]: DeltaBucket[] }
 interface CumRPoint { day: string; cumulative_r: number; daily_r: number; daily_pnl: number | null; trade_count: number }
 interface CumRPeriod { series: CumRPoint[]; max_drawdown: number; final_r: number }
 interface CumRData { daily: CumRPeriod; weekly: CumRPeriod; monthly: CumRPeriod }
-interface WpBucket { bucket: string; sort_order: number; avg_predicted: number; total: number; wins: number; win_rate: number; total_r: number | null; dir_accuracy: number | null }
+interface WpBucket { bucket: string; sort_order: number; avg_predicted: number; total: number; wins: number; win_rate: number; total_r: number | null; dir_accuracy: number | null; max_dd: number | null }
 interface WpAllData { [key: string]: WpBucket[] }
 interface SweepPoint { r: number; pnl: number; wins: number; losses: number; win_rate: number }
 interface OptimalRData { sweep: SweepPoint[]; optimal_r: number | null; optimal_pnl: number; optimal_wins: number; optimal_losses: number; optimal_win_rate: number; current_avg_r: number | null; total_trades: number }
@@ -901,6 +901,7 @@ export default function AnalysisPage() {
                               <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Win%</th>
                               <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>n</th>
                               <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Tot.R</th>
+                              <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Max DD</th>
                               <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Dir%</th>
                             </tr>
                           </thead>
@@ -916,6 +917,9 @@ export default function AnalysisPage() {
                                   <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{row ? row.total : '—'}</td>
                                   <td style={{ padding: '5px 4px', textAlign: 'right', color: row?.total_r != null ? (Number(row.total_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>
                                     {row?.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(1)}` : '—'}
+                                  </td>
+                                  <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--red)' }}>
+                                    {row?.max_dd != null ? `${Number(row.max_dd).toFixed(2)}` : '—'}
                                   </td>
                                   <td style={{ padding: '5px 4px', textAlign: 'right', color: row?.dir_accuracy != null ? winColor(Number(row.dir_accuracy)) : 'var(--text-3)' }}>
                                     {row?.dir_accuracy != null ? `%${Number(row.dir_accuracy).toFixed(1)}` : '—'}
