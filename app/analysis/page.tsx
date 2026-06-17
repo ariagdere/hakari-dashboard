@@ -750,7 +750,7 @@ export default function AnalysisPage() {
                             if (ctx.datasetIndex === 0) return [
                               `Cum: ${p.cumulative_r >= 0 ? '+' : ''}${p.cumulative_r.toFixed(2)}R`,
                               `Period R: ${p.daily_r >= 0 ? '+' : ''}${p.daily_r.toFixed(2)}R`,
-                              p.daily_pnl != null ? `PnL: ${p.daily_pnl >= 0 ? '+' : ''}$${Math.abs(p.daily_pnl).toFixed(0)}` : '',
+                              p.daily_pnl != null ? `PnL: ${p.daily_pnl >= 0 ? '+' : '-'}$${Math.abs(p.daily_pnl).toFixed(0)}` : '',
                             ].filter(Boolean)
                             return `Trades: ${p.trade_count ?? 0}`
                           }}},
