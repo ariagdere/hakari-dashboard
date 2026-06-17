@@ -38,7 +38,7 @@ function parseRR(rrStr: string | null): number | null {
 
 function maxDrawdown(series: Array<{ t: number; r: number }>): number {
   // kronolojik sirala, kumulatif R egrisinde tepe-dip farki
-  const sorted = [...series].sort((a, b) => a.t - b.t);
+  const sorted = series.slice().sort((a, b) => a.t - b.t);
   let cum = 0;
   let peak = 0;
   let maxDD = 0;
