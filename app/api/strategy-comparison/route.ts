@@ -126,7 +126,7 @@ export async function GET() {
       }
     }
 
-    const result = [...map.values()].map((a) => {
+    const result = Array.from(map.values()).map((a) => {
       const decided = a.tp + a.sl;
       const winRate = decided > 0 ? (a.tp / decided) * 100 : null;
       const avgWinR = a.winCount > 0 ? a.winRSum / a.winCount : null;
