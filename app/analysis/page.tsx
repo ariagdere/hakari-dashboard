@@ -26,8 +26,9 @@ interface ScoringData {
 }
 interface DeltaBucket { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; avg_r: number | null; total_r: number | null; avg_delta: number; label: string }
 interface DeltaData { [key: string]: DeltaBucket[] }
-interface CumRPoint { day: string; cumulative_r: number; daily_r: number }
-interface CumRData { series: CumRPoint[]; max_drawdown: number; final_r: number }
+interface CumRPoint { day: string; cumulative_r: number; daily_r: number; daily_pnl: number | null; trade_count: number }
+interface CumRPeriod { series: CumRPoint[]; max_drawdown: number; final_r: number }
+interface CumRData { daily: CumRPeriod; weekly: CumRPeriod; monthly: CumRPeriod }
 interface WpBucket { bucket: string; sort_order: number; avg_predicted: number; total: number; wins: number; win_rate: number; total_r: number | null; dir_accuracy: number | null }
 interface WpAllData { [key: string]: WpBucket[] }
 interface SweepPoint { r: number; pnl: number; wins: number; losses: number; win_rate: number }
@@ -417,6 +418,7 @@ export default function AnalysisPage() {
   const [scoring,   setScoring]   = useState<ScoringData | null>(null)
   const [deltaData, setDeltaData] = useState<DeltaData | null>(null)
   const [cumR,      setCumR]      = useState<CumRData | null>(null)
+  const [cumRPeriod, setCumRPeriod] = useState<'daily'|'weekly'|'monthly'>('daily')
   const [wpAll,     setWpAll]     = useState<WpAllData | null>(null)
   const [optimalR,  setOptimalR]  = useState<OptimalRData | null>(null)
   const [rmae,      setRmae]      = useState<RmaeData | null>(null)
@@ -678,38 +680,58 @@ export default function AnalysisPage() {
             </div>
 
             {/* ── CUMULATIVE R + DAILY TRADES ─────────────────────────────── */}
-            {cumR && cumR.series.length > 0 && (() => {
-              const lineColor = cumR.final_r >= 0 ? '#4ade80' : '#f87171'
+            {cumR && cumR[cumRPeriod].series.length > 0 && (() => {
+              const activePeriod = cumR[cumRPeriod]
+              const lineColor = activePeriod.final_r >= 0 ? '#4ade80' : '#f87171'
+              const periodLabel = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' }
               return (
                 <div className="card" style={{ padding: 16, marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <div className="col-label">Cumulative R</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div className="col-label">Cumulative R</div>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        {(['daily','weekly','monthly'] as const).map(period => (
+                          <button
+                            key={period}
+                            className={`filter-btn${cumRPeriod === period ? ' active' : ''}`}
+                            style={{ fontSize: 9, padding: '2px 8px' }}
+                            onClick={() => setCumRPeriod(period)}
+                          >
+                            {periodLabel[period]}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <div style={{ display: 'flex', gap: 16 }}>
-                      <span className="mono" style={{ fontSize: 11, color: 'var(--red)' }}>Max DD: {cumR.max_drawdown.toFixed(2)}R</span>
-                      <span className="mono" style={{ fontSize: 11, color: lineColor, fontWeight: 600 }}>{cumR.final_r >= 0 ? '+' : ''}{cumR.final_r.toFixed(2)}R</span>
+                      <span className="mono" style={{ fontSize: 11, color: 'var(--red)' }}>Max DD: {activePeriod.max_drawdown.toFixed(2)}R</span>
+                      <span className="mono" style={{ fontSize: 11, color: lineColor, fontWeight: 600 }}>{activePeriod.final_r >= 0 ? '+' : ''}{activePeriod.final_r.toFixed(2)}R</span>
                     </div>
                   </div>
                   <div style={{ height: 160 }}>
                     <Chart
                       type="line"
                       data={{
-                        labels: cumR.series.map(p => new Date(p.day).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })),
+                        labels: activePeriod.series.map(p => {
+                          const d = new Date(p.day)
+                          if (cumRPeriod === 'monthly') return d.toLocaleDateString('tr-TR', { month: 'short', year: '2-digit' })
+                          return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })
+                        }),
                         datasets: [
                           {
                             type: 'line' as const,
-                            data: cumR.series.map(p => p.cumulative_r),
+                            data: activePeriod.series.map(p => p.cumulative_r),
                             borderColor: lineColor,
                             borderWidth: 1.5,
                             pointRadius: 0,
                             pointHitRadius: 20,
                             fill: true,
-                            backgroundColor: cumR.final_r >= 0 ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)',
+                            backgroundColor: activePeriod.final_r >= 0 ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)',
                             tension: 0.3,
                             yAxisID: 'yR',
                           },
                           {
                             type: 'bar' as const,
-                            data: cumR.series.map(p => (p as any).trade_count ?? 0),
+                            data: activePeriod.series.map(p => p.trade_count ?? 0),
                             backgroundColor: 'rgba(96,165,250,0.25)',
                             borderColor: 'rgba(96,165,250,0.5)',
                             borderWidth: 1,
@@ -720,17 +742,17 @@ export default function AnalysisPage() {
                       options={{
                         responsive: true,
                         maintainAspectRatio: false,
-                        interaction: {
-                          mode: 'index',
-                          intersect: false,
-                        },
+                        interaction: { mode: 'index', intersect: false },
                         plugins: {
                           legend: { display: false },
                           tooltip: { displayColors: false, callbacks: { label: (ctx: any) => {
-                            const p = cumR.series[ctx.dataIndex]
-                            return ctx.datasetIndex === 0
-                              ? `Cum: ${p.cumulative_r >= 0 ? '+' : ''}${p.cumulative_r.toFixed(2)}R`
-                              : `Trade: ${(p as any).trade_count ?? 0}`
+                            const p = activePeriod.series[ctx.dataIndex]
+                            if (ctx.datasetIndex === 0) return [
+                              `Cum: ${p.cumulative_r >= 0 ? '+' : ''}${p.cumulative_r.toFixed(2)}R`,
+                              `Period R: ${p.daily_r >= 0 ? '+' : ''}${p.daily_r.toFixed(2)}R`,
+                              p.daily_pnl != null ? `PnL: ${p.daily_pnl >= 0 ? '+' : ''}$${Math.abs(p.daily_pnl).toFixed(0)}` : '',
+                            ].filter(Boolean)
+                            return `Trades: ${p.trade_count ?? 0}`
                           }}},
                         },
                         scales: {
@@ -748,7 +770,7 @@ export default function AnalysisPage() {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <span style={{ width: 12, height: 8, background: 'rgba(96,165,250,0.4)', display: 'inline-block', borderRadius: 1 }} />
-                      <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>Daily Trades</span>
+                      <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>Trades</span>
                     </div>
                   </div>
                 </div>
@@ -859,42 +881,88 @@ export default function AnalysisPage() {
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   WIN PROBABILITY CALIBRATION — V6
                 </div>
-                {([
-                  { key: 'v6',     label: 'V6' },
-                  { key: 'v6_rev', label: 'V6 Rev' },
-                ] as const).map(ver => {
-                  const rows = wpAll[ver.key] ?? []
-                  if (rows.length === 0) return null
-                  const buckets = ['0-20%','20-30%','30-40%','40-50%','50-60%','60-70%','70%+']
-                  return (
-                    <div key={ver.key} className="card" style={{ padding: 16, marginBottom: 10, overflowX: 'auto' }}>
-                      <div className="col-label" style={{ marginBottom: 10 }}>{ver.label}</div>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace', minWidth: 400 }}>
+
+                {/* V6 ve V6 Rev yan yana */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                  {([
+                    { key: 'v6',     label: 'V6' },
+                    { key: 'v6_rev', label: 'V6 Rev' },
+                  ] as const).map(ver => {
+                    const rows = wpAll[ver.key] ?? []
+                    if (rows.length === 0) return null
+                    const buckets = ['0-20%','20-30%','30-40%','40-50%','50-60%','60-70%','70%+']
+                    return (
+                      <div key={ver.key} className="card" style={{ padding: 16, overflowX: 'auto' }}>
+                        <div className="col-label" style={{ marginBottom: 10 }}>{ver.label}</div>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace' }}>
+                          <thead>
+                            <tr>
+                              <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, width: 60 }}>Bucket</th>
+                              <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Win%</th>
+                              <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>n</th>
+                              <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Tot.R</th>
+                              <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Dir%</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {buckets.map(bucket => {
+                              const row = rows.find((r: WpBucket) => r.bucket === bucket)
+                              return (
+                                <tr key={bucket} style={{ borderTop: '1px solid var(--border)' }}>
+                                  <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{bucket}</td>
+                                  <td style={{ padding: '5px 4px', textAlign: 'right', color: row ? winColor(Number(row.win_rate)) : 'var(--text-3)' }}>
+                                    {row ? `%${Number(row.win_rate).toFixed(1)}` : '—'}
+                                  </td>
+                                  <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{row ? row.total : '—'}</td>
+                                  <td style={{ padding: '5px 4px', textAlign: 'right', color: row?.total_r != null ? (Number(row.total_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>
+                                    {row?.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(1)}` : '—'}
+                                  </td>
+                                  <td style={{ padding: '5px 4px', textAlign: 'right', color: row?.dir_accuracy != null ? winColor(Number(row.dir_accuracy)) : 'var(--text-3)' }}>
+                                    {row?.dir_accuracy != null ? `%${Number(row.dir_accuracy).toFixed(1)}` : '—'}
+                                  </td>
+                                </tr>
+                              )
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Liq Zone Analysis — 3 ayrı tablo */}
+                {(wpAll['liq_zone'] ?? []).length > 0 && (() => {
+                  const liqRows = wpAll['liq_zone'] as any[]
+                  const LiqTable = ({ title, nKey, wrKey, rKey, upKey, dnKey, color }: {
+                    title: string; nKey: string; wrKey: string; rKey: string
+                    upKey: string; dnKey: string; color?: string
+                  }) => (
+                    <div className="card" style={{ padding: 16 }}>
+                      <div className="col-label" style={{ marginBottom: 10, color: color ?? 'var(--text-3)' }}>{title}</div>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace' }}>
                         <thead>
                           <tr>
-                            <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, width: 70 }}>Bucket</th>
-                            <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, paddingLeft: 6 }}>Win%</th>
+                            <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Zone</th>
                             <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>n</th>
+                            <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Win%</th>
                             <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Tot.R</th>
-                            <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, paddingRight: 8 }}>Dir%</th>
+                            <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Up Hit</th>
+                            <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Dn Hit</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {buckets.map(bucket => {
-                            const row = rows.find((r: WpBucket) => r.bucket === bucket)
+                          {liqRows.map((row: any) => {
+                            const label = row.liq_bucket?.replace(/^\d_/, '') ?? '—'
+                            const n = row[nKey]; const wr = row[wrKey]; const r = row[rKey]
+                            const upWr = row[upKey]; const dnWr = row[dnKey]
                             return (
-                              <tr key={bucket} style={{ borderTop: '1px solid var(--border)' }}>
-                                <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{bucket}</td>
-                                <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', color: row ? winColor(Number(row.win_rate)) : 'var(--text-3)' }}>
-                                  {row ? `%${Number(row.win_rate).toFixed(1)}` : '—'}
-                                </td>
-                                <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{row ? row.total : '—'}</td>
-                                <td style={{ padding: '5px 4px', textAlign: 'right', color: row?.total_r != null ? (Number(row.total_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>
-                                  {row?.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(1)}` : '—'}
-                                </td>
-                                <td style={{ padding: '5px 8px 5px 0', textAlign: 'right', color: row?.dir_accuracy != null ? winColor(Number(row.dir_accuracy)) : 'var(--text-3)' }}>
-                                  {row?.dir_accuracy != null ? `%${Number(row.dir_accuracy).toFixed(1)}` : '—'}
-                                </td>
+                              <tr key={row.liq_bucket} style={{ borderTop: '1px solid var(--border)' }}>
+                                <td style={{ padding: '5px 0', color: 'var(--text-2)', fontSize: 9 }}>{label}</td>
+                                <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{n ?? '—'}</td>
+                                <td style={{ padding: '5px 4px', textAlign: 'right', color: winColor(Number(wr)) }}>{wr != null ? `%${Number(wr).toFixed(1)}` : '—'}</td>
+                                <td style={{ padding: '5px 4px', textAlign: 'right', color: Number(r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{r != null ? `${Number(r) >= 0 ? '+' : ''}${Number(r).toFixed(1)}` : '—'}</td>
+                                <td style={{ padding: '5px 4px', textAlign: 'right', color: winColor(Number(upWr)) }}>{upWr != null ? `%${Number(upWr).toFixed(1)}` : '—'}</td>
+                                <td style={{ padding: '5px 4px', textAlign: 'right', color: winColor(Number(dnWr)) }}>{dnWr != null ? `%${Number(dnWr).toFixed(1)}` : '—'}</td>
                               </tr>
                             )
                           })}
@@ -902,55 +970,19 @@ export default function AnalysisPage() {
                       </table>
                     </div>
                   )
-                })}
-
-                {/* Liq Zone Breakdown */}
-                {(wpAll['liq_zone'] ?? []).length > 0 && (
-                  <div className="card" style={{ padding: 16, marginTop: 10, overflowX: 'auto' }}>
-                    <div className="col-label" style={{ marginBottom: 10 }}>LIQUIDITY ZONE BREAKDOWN</div>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace', minWidth: 700 }}>
-                      <thead>
-                        <tr>
-                          <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, width: 120 }}>Zone</th>
-                          <th colSpan={3} style={{ textAlign: 'center', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>All</th>
-                          <th colSpan={3} style={{ textAlign: 'center', color: 'var(--green)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>LONG</th>
-                          <th colSpan={3} style={{ textAlign: 'center', color: 'var(--red)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>SHORT</th>
-                          <th colSpan={2} style={{ textAlign: 'center', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>Up Hit ≥75%</th>
-                          <th colSpan={2} style={{ textAlign: 'center', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, borderLeft: '1px solid var(--border)' }}>Dn Hit ≥75%</th>
-                        </tr>
-                        <tr>
-                          <th style={{ paddingBottom: 8 }} />
-                          {['n','Win%','Tot.R','n','Win%','Tot.R','n','Win%','Tot.R','n','Win%','n','Win%'].map((h, i) => (
-                            <th key={i} style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, borderLeft: i === 0 || i === 3 || i === 6 || i === 9 || i === 11 ? '1px solid var(--border)' : undefined, paddingLeft: i === 0 || i === 3 || i === 6 || i === 9 || i === 11 ? 6 : undefined }}>{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {(wpAll['liq_zone'] as any[]).map((row: any) => {
-                          const label = row.liq_bucket?.replace(/^\d_/, '') ?? '—'
-                          return (
-                            <tr key={row.liq_bucket} style={{ borderTop: '1px solid var(--border)' }}>
-                              <td style={{ padding: '5px 0', color: 'var(--text-2)', fontSize: 9 }}>{label}</td>
-                              <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', color: 'var(--text-3)', borderLeft: '1px solid var(--border)' }}>{row.total}</td>
-                              <td style={{ padding: '5px 4px', textAlign: 'right', color: winColor(Number(row.win_rate)) }}>{row.win_rate != null ? `%${Number(row.win_rate).toFixed(1)}` : '—'}</td>
-                              <td style={{ padding: '5px 4px', textAlign: 'right', color: Number(row.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{row.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(1)}` : '—'}</td>
-                              <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', color: 'var(--text-3)', borderLeft: '1px solid var(--border)' }}>{row.long_total}</td>
-                              <td style={{ padding: '5px 4px', textAlign: 'right', color: winColor(Number(row.long_win_rate)) }}>{row.long_win_rate != null ? `%${Number(row.long_win_rate).toFixed(1)}` : '—'}</td>
-                              <td style={{ padding: '5px 4px', textAlign: 'right', color: Number(row.long_total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{row.long_total_r != null ? `${Number(row.long_total_r) >= 0 ? '+' : ''}${Number(row.long_total_r).toFixed(1)}` : '—'}</td>
-                              <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', color: 'var(--text-3)', borderLeft: '1px solid var(--border)' }}>{row.short_total}</td>
-                              <td style={{ padding: '5px 4px', textAlign: 'right', color: winColor(Number(row.short_win_rate)) }}>{row.short_win_rate != null ? `%${Number(row.short_win_rate).toFixed(1)}` : '—'}</td>
-                              <td style={{ padding: '5px 4px', textAlign: 'right', color: Number(row.short_total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{row.short_total_r != null ? `${Number(row.short_total_r) >= 0 ? '+' : ''}${Number(row.short_total_r).toFixed(1)}` : '—'}</td>
-                              <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', color: 'var(--text-3)', borderLeft: '1px solid var(--border)' }}>{row.up_hit_total}</td>
-                              <td style={{ padding: '5px 4px', textAlign: 'right', color: winColor(Number(row.up_hit_win_rate)) }}>{row.up_hit_win_rate != null ? `%${Number(row.up_hit_win_rate).toFixed(1)}` : '—'}</td>
-                              <td style={{ padding: '5px 0 5px 6px', textAlign: 'right', color: 'var(--text-3)', borderLeft: '1px solid var(--border)' }}>{row.dn_hit_total}</td>
-                              <td style={{ padding: '5px 4px', textAlign: 'right', color: winColor(Number(row.dn_hit_win_rate)) }}>{row.dn_hit_win_rate != null ? `%${Number(row.dn_hit_win_rate).toFixed(1)}` : '—'}</td>
-                            </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                  return (
+                    <div style={{ marginTop: 10 }}>
+                      <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+                        LIQUIDITY ZONE ANALYSIS
+                      </div>
+                      <LiqTable title="ALL" nKey="total" wrKey="win_rate" rKey="total_r" upKey="up_hit_win_rate" dnKey="dn_hit_win_rate" />
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
+                        <LiqTable title="LONG" nKey="long_total" wrKey="long_win_rate" rKey="long_total_r" upKey="up_hit_win_rate" dnKey="dn_hit_win_rate" color="var(--green)" />
+                        <LiqTable title="SHORT" nKey="short_total" wrKey="short_win_rate" rKey="short_total_r" upKey="up_hit_win_rate" dnKey="dn_hit_win_rate" color="var(--red)" />
+                      </div>
+                    </div>
+                  )
+                })()}
               </div>
             )}
 
