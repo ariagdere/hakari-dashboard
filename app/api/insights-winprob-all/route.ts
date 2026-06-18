@@ -11,7 +11,9 @@ const bucketCase = (col: string) => `
     WHEN ${col} < 50 THEN 4
     WHEN ${col} < 60 THEN 5
     WHEN ${col} < 70 THEN 6
-    ELSE 7
+    WHEN ${col} < 80 THEN 7
+    WHEN ${col} < 90 THEN 8
+    ELSE 9
   END
 `
 const bucketLabel = (col: string) => `
@@ -22,7 +24,9 @@ const bucketLabel = (col: string) => `
     WHEN ${col} < 50 THEN '40-50%'
     WHEN ${col} < 60 THEN '50-60%'
     WHEN ${col} < 70 THEN '60-70%'
-    ELSE '70%+'
+    WHEN ${col} < 80 THEN '70-80%'
+    WHEN ${col} < 90 THEN '80-90%'
+    ELSE '90%+'
   END
 `
 
