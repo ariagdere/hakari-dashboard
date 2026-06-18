@@ -1,197 +1,105 @@
 'use client'
-import React, { useEffect, useState, useCallback, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import {
-  Chart as ChartJS, Tooltip, LineElement, PointElement,
-  LinearScale, CategoryScale, BarElement, Filler, ArcElement,
-} from 'chart.js'
-import { Bar, Line, Chart, Scatter } from 'react-chartjs-2'
 
-ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, BarElement, Filler, ArcElement)
+import React, { useEffect, useRef, useState } from 'react'
+import { createChart, ColorType, IChartApi, ISeriesApi, LineStyle } from 'lightweight-charts'
 
-// ── Types ──────────────────────────────────────────────────────────────────
-
-interface Overview {
-  total: number; total_all: number; tp_count: number; sl_count: number
-  expired_count: number; no_entry_count: number; pending_count: number
-  win_rate: number; avg_r_win: number; avg_r_loss: number
-  avg_duration_mins: number; total_pnl: number
-  long_total: number; long_win_rate: number; long_tp: number; long_sl: number
-  short_total: number; short_win_rate: number; short_tp: number; short_sl: number
-  long_total_pnl: number | null; short_total_pnl: number | null
-}
-interface ScoringData {
-  by_rsi: any[]; by_rsi_long: any[]; by_rsi_short: any[]
-  by_rsi30: any[]; by_rsi30_long: any[]; by_rsi30_short: any[]
-}
-interface DeltaBucket { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; avg_r: number | null; total_r: number | null; avg_delta: number; label: string }
-interface DeltaData { [key: string]: DeltaBucket[] }
-interface CumRPoint { day: string; cumulative_r: number; daily_r: number; daily_pnl: number | null; trade_count: number }
-interface CumRPeriod { series: CumRPoint[]; max_drawdown: number; final_r: number }
-interface CumRData { daily: CumRPeriod; weekly: CumRPeriod; monthly: CumRPeriod }
-interface WpBucket { bucket: string; sort_order: number; avg_predicted: number; total: number; wins: number; win_rate: number; total_r: number | null; dir_accuracy: number | null; max_dd: number | null }
-interface WpAllData { [key: string]: WpBucket[] }
-interface SweepPoint { r: number; pnl: number; wins: number; losses: number; win_rate: number }
-interface OptimalRData { sweep: SweepPoint[]; optimal_r: number | null; optimal_pnl: number; optimal_wins: number; optimal_losses: number; optimal_win_rate: number; current_avg_r: number | null; total_trades: number }
-interface RHistRow   { sim_result: string; r_bucket: number; count: number }
-interface ScatterRow { id: number; sim_result: string; mfe: number; mae: number; r_multiple: number }
-interface TargetRRow { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; total_r: number | null; avg_target_r: number }
-interface RmaeData   { r_histogram: RHistRow[]; scatter: ScatterRow[]; target_r_distribution: TargetRRow[] }
-interface EntryWaitBucket { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; total_r: number | null; avg_wait_mins: number }
-interface EntryWaitData   { buckets: EntryWaitBucket[] }
-interface DistBucket      { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; avg_r: number | null; total_r: number | null; avg_dist: number }
-interface DistanceData    { tp_buckets: DistBucket[]; sl_buckets: DistBucket[] }
-interface TradeDurBucket  { bucket: string; sort_order: number; total: number; wins: number; win_rate: number; total_r: number | null; avg_dur_mins: number }
-interface TradeDurData    { buckets: TradeDurBucket[] }
-interface WeeklyRow       { label: string; dow?: number; total: number; wins: number; win_rate: number; total_r: number | null }
-interface WeeklyData      { by_day: WeeklyRow[]; by_type: WeeklyRow[] }
-interface AnalysisSummary {
-  id: number; analyzed_at: string; direction: string
-  entry: number; tp: number; sl: number; rr: string
-  sim_result: string; sim_pnl_usd: number; sim_r_multiple: number
-  sim_direction: string | null
-  rsi_4h: number | null; rsi_30m: number | null
+interface Order {
+  id: number
+  analysis_id: number | null
+  mt5_order_id: string
+  mt5_position_id: string | null
+  magic: number
+  strategy_label: string
+  symbol: string
+  direction: string
+  volume: number
+  entry_price: number
+  fill_price: number | null
+  sl: number
+  tp: number
+  rr: number | null
+  status: 'PENDING' | 'OPEN' | 'CLOSED' | 'CANCELED'
+  created_at: string
+  opened_at: string | null
+  closed_at?: string | null
+  close_price?: number | null
+  realized_pnl?: number | null
+  exit_reason?: string | null
+  is_manual?: boolean
+  normalized_pnl?: number | null
+  display_volume?: number | null
+  position_size_btc: number | null
   win_probability_v6: number | null
-  win_probability_v6_reverse: number | null
-  cluster_liq_ratio: number | null
-  cluster_up_hit: boolean | null; cluster_dn_hit: boolean | null
-  cluster_up_reach_pct: number | null; cluster_dn_reach_pct: number | null
-  cluster_up_dist_pct: number | null; cluster_dn_dist_pct: number | null
-  cluster_first_closer: string | null
+  analyzed_at: string | null
+  analysis_rr: string | null
 }
 
-// ── Filters ────────────────────────────────────────────────────────────────
+interface Price { bid: number; ask: number; time: string }
+interface Stats {
+  total_orders: number; pending: number; open: number; expired: number
+  win_rate: number; tp_count: number; sl_count: number
+  avg_win_r: number | null; total_r: number; total_pnl: number
+}
+interface Candle { time: number; open: number; high: number; low: number; close: number }
 
-interface Filters {
-  direction: string; sim_result: string
-  date_from: string; date_to: string
-  days: number[]
-  rsi_min: number; rsi_max: number
-  rsi30_min: number; rsi30_max: number
-  wp6_min: number; wp6_max: number
-  wp6_rev_min: number; wp6_rev_max: number
-  liq_ratio_min: number; liq_ratio_max: number
-  cluster_up_hit: string; cluster_dn_hit: string
-  h1_ls_delta_min: number; h1_ls_delta_max: number
-  h1_tt_positions_delta_min: number; h1_tt_positions_delta_max: number
-  h1_tt_accounts_delta_min: number; h1_tt_accounts_delta_max: number
-  h1_oi_delta_min: number; h1_oi_delta_max: number
-  h1_oi_mcap_delta_min: number; h1_oi_mcap_delta_max: number
-  m5_ls_delta_min: number; m5_ls_delta_max: number
-  m5_tt_positions_delta_min: number; m5_tt_positions_delta_max: number
-  m5_tt_accounts_delta_min: number; m5_tt_accounts_delta_max: number
-  m5_oi_delta_min: number; m5_oi_delta_max: number
-  m5_oi_mcap_delta_min: number; m5_oi_mcap_delta_max: number
-  sent_synthesis_mtf: string; sent_synthesis_h1: string; sent_synthesis_m5: string
-  sent_liquidity: string
-  wait_min: number; wait_max: number
-  trade_dur_min: number; trade_dur_max: number
-  r_min: number; r_max: number
+interface StrategyRow {
+  magic: number
+  strategy_label: string
+  total: number
+  open: number
+  pending: number
+  expired: number
+  closed: number
+  tp_count: number
+  sl_count: number
+  win_rate: number | null
+  avg_win_r: number | null
+  total_r: number
+  total_pnl: number
+  avg_duration_min: number | null
+  max_drawdown_r: number
+  avg_wp_v6: number | null
+  calibration_gap: number | null
 }
 
-interface Preset { name: string; filters: Filters }
+const POLL_INTERVAL_MS = 5000
+const SIZE_MULTIPLIER = 2.5
 
-const DEFAULT_FILTERS: Filters = {
-  direction: '', sim_result: '',
-  date_from: '', date_to: '',
-  days: [0,1,2,3,4,5,6],
-  rsi_min: 0, rsi_max: 100,
-  rsi30_min: 0, rsi30_max: 100,
-  wp6_min: 0, wp6_max: 100,
-  wp6_rev_min: 0, wp6_rev_max: 100,
-  liq_ratio_min: 0, liq_ratio_max: 10,
-  cluster_up_hit: '', cluster_dn_hit: '',
-  h1_ls_delta_min: -3, h1_ls_delta_max: 3,
-  h1_tt_positions_delta_min: -1, h1_tt_positions_delta_max: 1,
-  h1_tt_accounts_delta_min: -1, h1_tt_accounts_delta_max: 1,
-  h1_oi_delta_min: -20000, h1_oi_delta_max: 20000,
-  h1_oi_mcap_delta_min: -0.05, h1_oi_mcap_delta_max: 0.05,
-  m5_ls_delta_min: -3, m5_ls_delta_max: 3,
-  m5_tt_positions_delta_min: -1, m5_tt_positions_delta_max: 1,
-  m5_tt_accounts_delta_min: -1, m5_tt_accounts_delta_max: 1,
-  m5_oi_delta_min: -20000, m5_oi_delta_max: 20000,
-  m5_oi_mcap_delta_min: -0.05, m5_oi_mcap_delta_max: 0.05,
-  sent_synthesis_mtf: '', sent_synthesis_h1: '', sent_synthesis_m5: '',
-  sent_liquidity: '',
-  wait_min: 0, wait_max: 4320,
-  trade_dur_min: 0, trade_dur_max: 4320,
-  r_min: 0, r_max: 10,
+function getDisplayVolume(order: Order): number {
+  if (order.position_size_btc == null) return order.volume
+  return Math.round(order.position_size_btc * SIZE_MULTIPLIER * 100) / 100
+}
+function isLong(direction: string): boolean {
+  return direction === 'BUY' || direction === 'LONG'
 }
 
-function filtersToParams(f: Filters): URLSearchParams {
-  const p = new URLSearchParams()
-  if (f.direction)   p.set('direction',  f.direction)
-  if (f.sim_result)  p.set('sim_result', f.sim_result)
-  if (f.date_from)   p.set('date_from',  f.date_from)
-  if (f.date_to)     p.set('date_to',    f.date_to)
-  if (f.days.length < 7) p.set('days', f.days.join(','))
-  p.set('rsi_min', String(f.rsi_min));     p.set('rsi_max', String(f.rsi_max))
-  p.set('rsi30_min', String(f.rsi30_min)); p.set('rsi30_max', String(f.rsi30_max))
-  p.set('wp6_min', String(f.wp6_min));         p.set('wp6_max', String(f.wp6_max))
-  p.set('wp6_rev_min', String(f.wp6_rev_min)); p.set('wp6_rev_max', String(f.wp6_rev_max))
-  p.set('liq_ratio_min', String(f.liq_ratio_min)); p.set('liq_ratio_max', String(f.liq_ratio_max))
-  if (f.cluster_up_hit) p.set('cluster_up_hit', f.cluster_up_hit)
-  if (f.cluster_dn_hit) p.set('cluster_dn_hit', f.cluster_dn_hit)
-  p.set('h1_ls_delta_min', String(f.h1_ls_delta_min)); p.set('h1_ls_delta_max', String(f.h1_ls_delta_max))
-  p.set('h1_tt_positions_delta_min', String(f.h1_tt_positions_delta_min)); p.set('h1_tt_positions_delta_max', String(f.h1_tt_positions_delta_max))
-  p.set('h1_tt_accounts_delta_min', String(f.h1_tt_accounts_delta_min)); p.set('h1_tt_accounts_delta_max', String(f.h1_tt_accounts_delta_max))
-  p.set('h1_oi_delta_min', String(f.h1_oi_delta_min)); p.set('h1_oi_delta_max', String(f.h1_oi_delta_max))
-  p.set('h1_oi_mcap_delta_min', String(f.h1_oi_mcap_delta_min)); p.set('h1_oi_mcap_delta_max', String(f.h1_oi_mcap_delta_max))
-  p.set('m5_ls_delta_min', String(f.m5_ls_delta_min)); p.set('m5_ls_delta_max', String(f.m5_ls_delta_max))
-  p.set('m5_tt_positions_delta_min', String(f.m5_tt_positions_delta_min)); p.set('m5_tt_positions_delta_max', String(f.m5_tt_positions_delta_max))
-  p.set('m5_tt_accounts_delta_min', String(f.m5_tt_accounts_delta_min)); p.set('m5_tt_accounts_delta_max', String(f.m5_tt_accounts_delta_max))
-  p.set('m5_oi_delta_min', String(f.m5_oi_delta_min)); p.set('m5_oi_delta_max', String(f.m5_oi_delta_max))
-  p.set('m5_oi_mcap_delta_min', String(f.m5_oi_mcap_delta_min)); p.set('m5_oi_mcap_delta_max', String(f.m5_oi_mcap_delta_max))
-  if (f.sent_synthesis_mtf) p.set('sent_synthesis_mtf', f.sent_synthesis_mtf)
-  if (f.sent_synthesis_h1)  p.set('sent_synthesis_h1',  f.sent_synthesis_h1)
-  if (f.sent_synthesis_m5)  p.set('sent_synthesis_m5',  f.sent_synthesis_m5)
-  if (f.sent_liquidity)     p.set('sent_liquidity',     f.sent_liquidity)
-  p.set('wait_min', String(f.wait_min));           p.set('wait_max', String(f.wait_max))
-  p.set('trade_dur_min', String(f.trade_dur_min)); p.set('trade_dur_max', String(f.trade_dur_max))
-  p.set('r_min', String(f.r_min));                 p.set('r_max', String(f.r_max))
-  return p
+function calcPnL(order: Order, bid: number, ask: number, volume: number): number {
+  const entry = order.fill_price ?? order.entry_price
+  // LONG/BUY: bid'den kapanir; SHORT/SELL: ask'tan kapanir
+  if (isLong(order.direction)) {
+    return (bid - entry) * volume
+  }
+  return (entry - ask) * volume
 }
-
-function activeFilterCount(f: Filters): number {
-  let n = 0
-  if (f.direction) n++; if (f.sim_result) n++
-  if (f.date_from || f.date_to) n++
-  if (f.days.length < 7) n++
-  if (f.rsi_min > 0 || f.rsi_max < 100) n++
-  if (f.rsi30_min > 0 || f.rsi30_max < 100) n++
-  if (f.wp6_min > 0 || f.wp6_max < 100) n++
-  if (f.wp6_rev_min > 0 || f.wp6_rev_max < 100) n++
-  if (f.liq_ratio_min > 0 || f.liq_ratio_max < 10) n++
-  if (f.cluster_up_hit) n++
-  if (f.cluster_dn_hit) n++
-  if (f.h1_ls_delta_min > -3 || f.h1_ls_delta_max < 3) n++
-  if (f.h1_tt_positions_delta_min > -1 || f.h1_tt_positions_delta_max < 1) n++
-  if (f.h1_tt_accounts_delta_min > -1 || f.h1_tt_accounts_delta_max < 1) n++
-  if (f.h1_oi_delta_min > -20000 || f.h1_oi_delta_max < 20000) n++
-  if (f.h1_oi_mcap_delta_min > -0.05 || f.h1_oi_mcap_delta_max < 0.05) n++
-  if (f.m5_ls_delta_min > -3 || f.m5_ls_delta_max < 3) n++
-  if (f.m5_tt_positions_delta_min > -1 || f.m5_tt_positions_delta_max < 1) n++
-  if (f.m5_tt_accounts_delta_min > -1 || f.m5_tt_accounts_delta_max < 1) n++
-  if (f.m5_oi_delta_min > -20000 || f.m5_oi_delta_max < 20000) n++
-  if (f.m5_oi_mcap_delta_min > -0.05 || f.m5_oi_mcap_delta_max < 0.05) n++
-  if (f.sent_synthesis_mtf) n++; if (f.sent_synthesis_h1) n++
-  if (f.sent_synthesis_m5) n++; if (f.sent_liquidity) n++
-  if (f.wait_min > 0 || f.wait_max < 4320) n++
-  if (f.trade_dur_min > 0 || f.trade_dur_max < 4320) n++
-  if (f.r_min > 0 || f.r_max < 10) n++
-  return n
+const pnlClass = (v: number) => (v > 0 ? 'pnl-pos' : v < 0 ? 'pnl-neg' : 'pnl-zero')
+const dirBadge = (d: string) => {
+  if (d === 'SELL' || d === 'SHORT') return <span className="badge badge-short">{d}</span>
+  if (d === 'BUY' || d === 'LONG') return <span className="badge badge-long">{d}</span>
+  return <span className="badge badge-wait">{d}</span>
 }
-
-// ── Helpers ────────────────────────────────────────────────────────────────
-
-const CHART_DEFAULTS = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-const axisStyle = { grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 10 } }, border: { color: '#242424' } }
-
-const winColor = (v: number | null) => {
-  if (v == null) return 'var(--text-3)'
-  if (v >= 50) return 'var(--green)'
-  if (v >= 40) return 'var(--amber)'
-  return 'var(--red)'
+const statusBadge = (s: string) => {
+  if (s === 'OPEN') return <span className="badge badge-tp">OPEN</span>
+  return <span className="badge badge-pend">PENDING</span>
+}
+const exitBadge = (o: Order) => {
+  if (o.status === 'CANCELED') {
+    if (o.exit_reason === 'EXPIRED') return <span className="badge badge-exp">EXPIRED</span>
+    return <span className="badge badge-pend">CANCELED</span>
+  }
+  const manual = o.is_manual ? ' ✋' : ''
+  if (o.exit_reason === 'TP') return <span className="badge badge-tp">TP{manual}</span>
+  if (o.exit_reason === 'SL') return <span className="badge badge-sl">SL{manual}</span>
+  return <span className="badge badge-ne">CLOSED</span>
 }
 const wpColor = (v: number | null) => {
   if (v == null) return 'var(--text-3)'
@@ -200,1233 +108,536 @@ const wpColor = (v: number | null) => {
   if (n >= 50) return 'var(--amber)'
   return 'var(--red)'
 }
-const pnlClass = (v: number) => v > 0 ? 'pnl-pos' : v < 0 ? 'pnl-neg' : 'pnl-zero'
-const fmt = (n: number) => n?.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) ?? '—'
-const fmtDate = (s: string) => new Date(s).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
-const fmtMins = (m: any) => { if (!m) return '—'; const h = Math.floor(Number(m) / 60); const min = Math.round(Number(m) % 60); return h > 0 ? `${h}s ${min}dk` : `${min}dk` }
-const fmtR = (v: number | null, result?: string) => {
+const fmtDate = (s: string | null | undefined) => {
+  if (!s) return '—'
+  return new Date(s).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+}
+// Fiyat: tam sayiya yuvarla, decimal gosterme
+const fmtPrice = (v: number | null | undefined) => {
   if (v == null) return '—'
-  const n = Number(v)
-  if (isNaN(n)) return '—'
-  const signed = result === 'SL_HIT' ? -Math.abs(n) : result === 'TP_HIT' ? Math.abs(n) : n
-  return (signed > 0 ? '+' : '') + signed.toFixed(2) + 'R'
+  return Math.round(Number(v)).toString()
+}
+// Dakikayi "2s 15dk" formatina cevir
+const fmtDuration = (mins: number) => {
+  const h = Math.floor(mins / 60)
+  const m = Math.round(mins % 60)
+  return h > 0 ? `${h}s ${m}dk` : `${m}dk`
 }
 
-function WinBar({ rate, total }: { rate: number | null; total: number }) {
-  const val = rate ?? 0
+// lightweight-charts UTC gosterir; tarayicinin yerel offsetini ekleyerek
+// eksen ve markerlari yerel saate hizalariz (tablo tr-TR ile tutarli olur).
+const TZ_OFFSET_SEC = -new Date().getTimezoneOffset() * 60 // İstanbul icin +10800
+const toLocalTime = (unixSec: number) => unixSec + TZ_OFFSET_SEC
+
+function ScoreCard({ label, value, color, sub, subColor }: { label: string; value: React.ReactNode; color?: string; sub?: React.ReactNode; subColor?: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <div style={{ flex: 1, height: 3, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
-        <div style={{ width: `${Math.min(val, 100)}%`, height: '100%', background: winColor(rate), borderRadius: 2 }} />
-      </div>
-      <span className="mono" style={{ fontSize: 11, color: winColor(rate), minWidth: 40, textAlign: 'right' }}>{val.toFixed(1)}%</span>
-      <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)', minWidth: 32, textAlign: 'right' }}>n={total}</span>
+    <div className="stat-card">
+      <div className="col-label" style={{ marginBottom: 4 }}>{label}</div>
+      <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: color ?? 'var(--text)' }}>{value}</div>
+      {sub != null && <div className="mono" style={{ fontSize: 10, marginTop: 4, color: subColor ?? 'var(--text-3)' }}>{sub}</div>}
     </div>
   )
 }
 
-const dirBadge = (d: string) => {
-  if (d === 'SHORT') return <span className="badge badge-short">SHORT</span>
-  if (d === 'LONG')  return <span className="badge badge-long">LONG</span>
-  return <span className="badge badge-wait">WAIT</span>
-}
-const resultBadge = (r: string) => {
-  if (!r)              return <span className="badge badge-pend">BEKL.</span>
-  if (r === 'TP_HIT')  return <span className="badge badge-tp">TP</span>
-  if (r === 'SL_HIT')  return <span className="badge badge-sl">SL</span>
-  if (r === 'EXPIRED') return <span className="badge badge-exp">EXP</span>
-  return <span className="badge badge-ne">N/E</span>
-}
+function LiveChart({ candles, selectedOrders }: { candles: Candle[]; selectedOrders: Order[] }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const chartRef = useRef<IChartApi | null>(null)
+  const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
+  const priceLinesRef = useRef<any[]>([])
+  const didInitialZoom = useRef(false)
 
-// ── Filter Panel ───────────────────────────────────────────────────────────
-
-function RangeRow({ label, minKey, maxKey, min, max, step = 1, filters, onChange }: {
-  label: string; minKey: keyof Filters; maxKey: keyof Filters
-  min: number; max: number; step?: number
-  filters: Filters; onChange: (f: Filters) => void
-}) {
-  const [localMin, setLocalMin] = React.useState<number>(filters[minKey] as number)
-  const [localMax, setLocalMax] = React.useState<number>(filters[maxKey] as number)
-  React.useEffect(() => { setLocalMin(filters[minKey] as number) }, [filters[minKey]])
-  React.useEffect(() => { setLocalMax(filters[maxKey] as number) }, [filters[maxKey]])
-  const set = (k: keyof Filters, v: any) => onChange({ ...filters, [k]: v })
-  return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span className="col-label" style={{ fontSize: 10 }}>{label}</span>
-        <span className="mono" style={{ fontSize: 10, color: 'var(--text)' }}>{localMin} – {localMax}</span>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', width: 20 }}>min</span>
-        <input type="range" min={min} max={max} step={step} value={localMin}
-          onChange={e => setLocalMin(Number(e.target.value))}
-          onMouseUp={e => set(minKey, Number((e.target as HTMLInputElement).value))}
-          onTouchEnd={e => set(minKey, Number((e.target as HTMLInputElement).value))}
-          style={{ flex: 1, cursor: 'pointer' }} />
-        <span className="mono" style={{ fontSize: 10, color: 'var(--text-2)', width: 32, textAlign: 'right' }}>{localMin}</span>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', width: 20 }}>max</span>
-        <input type="range" min={min} max={max} step={step} value={localMax}
-          onChange={e => setLocalMax(Number(e.target.value))}
-          onMouseUp={e => set(maxKey, Number((e.target as HTMLInputElement).value))}
-          onTouchEnd={e => set(maxKey, Number((e.target as HTMLInputElement).value))}
-          style={{ flex: 1, cursor: 'pointer' }} />
-        <span className="mono" style={{ fontSize: 10, color: 'var(--text-2)', width: 32, textAlign: 'right' }}>{localMax}</span>
-      </div>
-    </div>
-  )
-}
-
-function ToggleGroup({ label, field, options, filters, onChange, nowrap }: {
-  label: string; field: keyof Filters; options: string[]
-  filters: Filters; onChange: (f: Filters) => void
-  nowrap?: boolean
-}) {
-  const set = (k: keyof Filters, v: any) => onChange({ ...filters, [k]: v })
-  return (
-    <div>
-      <div className="col-label" style={{ marginBottom: 5, fontSize: 10 }}>{label}</div>
-      <div style={{ display: 'flex', gap: 4, flexWrap: nowrap ? 'nowrap' : 'wrap' }}>
-        <button className={`filter-btn${!filters[field] ? ' active' : ''}`} style={{ fontSize: 10, padding: '2px 8px' }} onClick={() => set(field, '')}>ALL</button>
-        {options.map(o => (
-          <button key={o} className={`filter-btn${filters[field] === o ? ' active' : ''}`}
-            style={{ fontSize: 10, padding: '2px 6px' }}
-            onClick={() => set(field, filters[field] === o ? '' : o)}>
-            {o.replace('_pressure', '').replace('_HIT', '').replace('NO_ENTRY', 'N/E')}
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Filters) => void }) {
-  const sep = <div style={{ borderTop: '1px solid var(--border)', margin: '14px 0' }} />
-  const GL = ({ c }: { c: string }) => (
-    <div className="col-label" style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 8 }}>{c}</div>
-  )
-  const so = { str: ['strong', 'mixed', 'weak'], pres: ['buying_pressure', 'selling_pressure', 'neutral'] }
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 0, minWidth: 600 }}>
-      <GL c="FILTERS" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'auto auto 1fr', gap: 14 }}>
-        <ToggleGroup label="Direction" field="direction" options={['LONG','SHORT','WAIT']} filters={filters} onChange={onChange} />
-        <ToggleGroup label="RESULT" field="sim_result" options={['TP_HIT','SL_HIT','EXPIRED','NO_ENTRY']} filters={filters} onChange={onChange} nowrap />
-        <div>
-          <div className="col-label" style={{ marginBottom: 5, fontSize: 10 }}>DATE RANGE</div>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <input type="date" value={filters.date_from} onChange={e => onChange({ ...filters, date_from: e.target.value })}
-              style={{ flex: 1, background: 'var(--bg-3)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)', fontSize: 10, padding: '3px 6px', fontFamily: 'DM Mono, monospace' }} />
-            <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>–</span>
-            <input type="date" value={filters.date_to} onChange={e => onChange({ ...filters, date_to: e.target.value })}
-              style={{ flex: 1, background: 'var(--bg-3)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)', fontSize: 10, padding: '3px 6px', fontFamily: 'DM Mono, monospace' }} />
-            {([
-              { dow: 1, label: 'M' }, { dow: 2, label: 'T' }, { dow: 3, label: 'W' },
-              { dow: 4, label: 'T' }, { dow: 5, label: 'F' }, { dow: 6, label: 'S' }, { dow: 0, label: 'S' },
-            ]).map(({ dow, label }) => {
-              const active = filters.days.includes(dow)
-              return (
-                <button
-                  key={dow}
-                  className={`filter-btn${active ? ' active' : ''}`}
-                  style={{ fontSize: 10, padding: '2px 7px', flexShrink: 0, minWidth: 24 }}
-                  onClick={() => {
-                    const next = active
-                      ? filters.days.filter(d => d !== dow)
-                      : [...filters.days, dow]
-                    if (next.length === 0) return
-                    onChange({ ...filters, days: next })
-                  }}
-                >
-                  {label}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      </div>
-
-      {sep}
-      <GL c="Win Probability — V6" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
-        <RangeRow label="V6" minKey="wp6_min" maxKey="wp6_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
-        <RangeRow label="V6 Rev" minKey="wp6_rev_min" maxKey="wp6_rev_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
-      </div>
-
-      {sep}
-      <GL c="Liquidity Cluster" />
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 14, alignItems: 'start' }}>
-        <RangeRow label="Liq Ratio" minKey="liq_ratio_min" maxKey="liq_ratio_max" min={0} max={10} step={0.1} filters={filters} onChange={onChange} />
-        <ToggleGroup label="Up Hit" field="cluster_up_hit" options={['true','false']} filters={filters} onChange={onChange} />
-        <ToggleGroup label="Dn Hit" field="cluster_dn_hit" options={['true','false']} filters={filters} onChange={onChange} />
-      </div>
-
-      {sep}
-      <GL c="RSI" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
-        <RangeRow label="RSI 4H" minKey="rsi_min" maxKey="rsi_max" min={0} max={100} filters={filters} onChange={onChange} />
-        <RangeRow label="RSI 30M" minKey="rsi30_min" maxKey="rsi30_max" min={0} max={100} filters={filters} onChange={onChange} />
-      </div>
-
-      {sep}
-      <GL c="Delta — H1" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
-        <RangeRow label="LS delta" minKey="h1_ls_delta_min" maxKey="h1_ls_delta_max" min={-3} max={3} step={0.1} filters={filters} onChange={onChange} />
-        <RangeRow label="TT Positions delta" minKey="h1_tt_positions_delta_min" maxKey="h1_tt_positions_delta_max" min={-1} max={1} step={0.05} filters={filters} onChange={onChange} />
-        <RangeRow label="TT Accounts delta" minKey="h1_tt_accounts_delta_min" maxKey="h1_tt_accounts_delta_max" min={-1} max={1} step={0.05} filters={filters} onChange={onChange} />
-        <RangeRow label="OI delta (BTC)" minKey="h1_oi_delta_min" maxKey="h1_oi_delta_max" min={-20000} max={20000} step={500} filters={filters} onChange={onChange} />
-        <RangeRow label="OI/MCap delta" minKey="h1_oi_mcap_delta_min" maxKey="h1_oi_mcap_delta_max" min={-0.05} max={0.05} step={0.005} filters={filters} onChange={onChange} />
-      </div>
-
-      {sep}
-      <GL c="Delta — M5" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
-        <RangeRow label="LS delta" minKey="m5_ls_delta_min" maxKey="m5_ls_delta_max" min={-3} max={3} step={0.1} filters={filters} onChange={onChange} />
-        <RangeRow label="TT Positions delta" minKey="m5_tt_positions_delta_min" maxKey="m5_tt_positions_delta_max" min={-1} max={1} step={0.05} filters={filters} onChange={onChange} />
-        <RangeRow label="TT Accounts delta" minKey="m5_tt_accounts_delta_min" maxKey="m5_tt_accounts_delta_max" min={-1} max={1} step={0.05} filters={filters} onChange={onChange} />
-        <RangeRow label="OI delta (BTC)" minKey="m5_oi_delta_min" maxKey="m5_oi_delta_max" min={-20000} max={20000} step={500} filters={filters} onChange={onChange} />
-        <RangeRow label="OI/MCap delta" minKey="m5_oi_mcap_delta_min" maxKey="m5_oi_mcap_delta_max" min={-0.05} max={0.05} step={0.005} filters={filters} onChange={onChange} />
-      </div>
-
-      {sep}
-      <GL c="Trade Dynamics" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
-        <RangeRow label="Entry wait (min)" minKey="wait_min" maxKey="wait_max" min={0} max={4320} step={30} filters={filters} onChange={onChange} />
-        <RangeRow label="Trade duration (min)" minKey="trade_dur_min" maxKey="trade_dur_max" min={0} max={4320} step={30} filters={filters} onChange={onChange} />
-        <RangeRow label="Target R" minKey="r_min" maxKey="r_max" min={0} max={10} step={0.5} filters={filters} onChange={onChange} />
-      </div>
-
-      {sep}
-      <GL c="SYNTHESIS" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 14 }}>
-        <ToggleGroup label="MTF Synthesis" field="sent_synthesis_mtf" options={so.str} filters={filters} onChange={onChange} nowrap />
-        <ToggleGroup label="H1 Synthesis"  field="sent_synthesis_h1"  options={so.str} filters={filters} onChange={onChange} nowrap />
-        <ToggleGroup label="M5 Synthesis"  field="sent_synthesis_m5"  options={so.str} filters={filters} onChange={onChange} nowrap />
-        <ToggleGroup label="Liquidity"     field="sent_liquidity"     options={so.pres} filters={filters} onChange={onChange} nowrap />
-      </div>
-    </div>
-  )
-}
-
-// ── Main Page ──────────────────────────────────────────────────────────────
-
-export default function AnalysisPage() {
-  const router = useRouter()
-  const [overview,  setOverview]  = useState<Overview | null>(null)
-  const [scoring,   setScoring]   = useState<ScoringData | null>(null)
-  const [deltaData, setDeltaData] = useState<DeltaData | null>(null)
-  const [cumR,      setCumR]      = useState<CumRData | null>(null)
-  const [cumRPeriod, setCumRPeriod] = useState<'daily'|'weekly'|'monthly'>('daily')
-  const [wpAll,     setWpAll]     = useState<WpAllData | null>(null)
-  const [optimalR,  setOptimalR]  = useState<OptimalRData | null>(null)
-  const [rmae,      setRmae]      = useState<RmaeData | null>(null)
-  const [entryWait, setEntryWait] = useState<EntryWaitData | null>(null)
-  const [tradeDur,  setTradeDur]  = useState<TradeDurData | null>(null)
-  const [distance,  setDistance]  = useState<DistanceData | null>(null)
-  const [weekly,    setWeekly]    = useState<WeeklyData | null>(null)
-  const [analyses,  setAnalyses]  = useState<AnalysisSummary[]>([])
-  const [loading,   setLoading]   = useState(true)
-  const [filterOpen, setFilterOpen] = useState(false)
-  const [draftFilters,   setDraftFilters]   = useState<Filters>(DEFAULT_FILTERS)
-  const [appliedFilters, setAppliedFilters] = useState<Filters>(DEFAULT_FILTERS)
-  const [presets,   setPresets]   = useState<Preset[]>([])
-  const [presetName, setPresetName] = useState('')
-  const [savingPreset, setSavingPreset] = useState(false)
-  const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [total, setTotal] = useState(0)
-
-  // Load presets from localStorage
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('analysis_presets')
-      if (saved) setPresets(JSON.parse(saved))
-    } catch {}
-  }, [])
-
-  const savePreset = () => {
-    if (!presetName.trim()) return
-    const newPreset: Preset = { name: presetName.trim(), filters: { ...appliedFilters } }
-    const updated = [...presets.filter(p => p.name !== newPreset.name), newPreset]
-    setPresets(updated)
-    try { localStorage.setItem('analysis_presets', JSON.stringify(updated)) } catch {}
-    setPresetName('')
-    setSavingPreset(false)
-  }
-
-  const deletePreset = (name: string) => {
-    const updated = presets.filter(p => p.name !== name)
-    setPresets(updated)
-    try { localStorage.setItem('analysis_presets', JSON.stringify(updated)) } catch {}
-  }
-
-  const applyPreset = (p: Preset) => {
-    setDraftFilters(p.filters)
-    setAppliedFilters(p.filters)
-    fetchAll(p.filters)
-  }
-
-  const fetchAll = useCallback((f: Filters, pg = 1) => {
-    setLoading(true)
-    const p = filtersToParams(f)
-    const qs = p.toString() ? `?${p}` : ''
-    Promise.all([
-      fetch(`/api/insights-overview${qs}`,      { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-scoring${qs}`,       { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-delta${qs}`,         { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-cumr${qs}`,          { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-winprob-all${qs}`,   { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-optimal-r${qs}`,     { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-rmae${qs}`,          { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-entrywait${qs}`,     { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-tradedur${qs}`,      { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-distance${qs}`,      { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-weekly${qs}`,        { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/analyses?${p}&page=${pg}`,    { cache: 'no-store' }).then(r => r.json()),
-    ]).then(([ov, sc, delta, cr, wpa, optR, rm, ew, td, dist, wk, an]) => {
-      setOverview(ov)
-      setScoring(sc)
-      setDeltaData(delta)
-      setCumR(cr)
-      setWpAll(wpa)
-      setOptimalR(optR)
-      setRmae(rm)
-      setEntryWait(ew)
-      setTradeDur(td)
-      setDistance(dist)
-      setWeekly(wk)
-      setAnalyses(an.analyses)
-      setTotalPages(an.totalPages)
-      setTotal(an.total)
-      setLoading(false)
+    if (!containerRef.current) return
+    const container = containerRef.current
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
+    const chart = createChart(container, {
+      layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: '#a0a0a0', fontFamily: 'DM Mono, monospace', fontSize: 10 },
+      grid: { vertLines: { color: '#1a1a1a' }, horzLines: { color: '#1a1a1a' } },
+      timeScale: { borderColor: '#242424', timeVisible: true, secondsVisible: false },
+      rightPriceScale: { borderColor: '#242424' },
+      crosshair: { mode: 0 },
+      width: container.clientWidth || 600,
+      height: isMobile ? 240 : 420,
     })
+    const series = chart.addCandlestickSeries({
+      upColor: '#4ade80', downColor: '#f87171',
+      borderUpColor: '#4ade80', borderDownColor: '#f87171',
+      wickUpColor: '#4ade80', wickDownColor: '#f87171',
+      priceFormat: { type: 'custom', minMove: 1, formatter: (p: number) => Math.round(p).toString() },
+    })
+    chartRef.current = chart
+    seriesRef.current = series
+
+    const handleResize = () => {
+      if (containerRef.current && chartRef.current) {
+        chartRef.current.applyOptions({ width: containerRef.current.clientWidth })
+      }
+    }
+    window.addEventListener('resize', handleResize)
+    requestAnimationFrame(handleResize)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      chart.remove()
+      chartRef.current = null
+      seriesRef.current = null
+    }
   }, [])
 
-  const handleApply = () => {
-    setAppliedFilters(draftFilters)
-    setFilterOpen(false)
-    setPage(1)
-    fetchAll(draftFilters, 1)
-  }
-
-  const handleReset = () => {
-    setDraftFilters(DEFAULT_FILTERS)
-    setAppliedFilters(DEFAULT_FILTERS)
-    setPage(1)
-    fetchAll(DEFAULT_FILTERS, 1)
-  }
-
-  const handlePage = (pg: number) => {
-    setPage(pg)
-    fetchAll(appliedFilters, pg)
-  }
-
-  useEffect(() => { fetchAll(DEFAULT_FILTERS) }, [fetchAll])
   useEffect(() => {
-    const onVisible = () => { if (!document.hidden) fetchAll(appliedFilters, page) }
-    document.addEventListener('visibilitychange', onVisible)
-    return () => document.removeEventListener('visibilitychange', onVisible)
-  }, [fetchAll, appliedFilters, page])
+    if (seriesRef.current && candles.length > 0) {
+      const localCandles = candles.map((c) => ({ ...c, time: toLocalTime(c.time) }))
+      seriesRef.current.setData(localCandles as any)
+      if (!didInitialZoom.current) {
+        const visibleCount = typeof window !== 'undefined' && window.innerWidth <= 768 ? 80 : 150
+        const total = localCandles.length
+        chartRef.current?.timeScale().setVisibleLogicalRange({ from: Math.max(0, total - visibleCount), to: total })
+        didInitialZoom.current = true
+      }
+    }
+  }, [candles])
 
-  const activeCount = activeFilterCount(appliedFilters)
+  useEffect(() => {
+    const series = seriesRef.current
+    if (!series) return
+    priceLinesRef.current.forEach((pl) => series.removePriceLine(pl))
+    priceLinesRef.current = []
+
+    selectedOrders.forEach((o) => {
+      const tag = isLong(o.direction) ? 'B' : 'S'
+      const lines = [
+        { price: o.entry_price, color: '#60a5fa', title: `Entry ${tag} #${o.id}`, style: o.status === 'PENDING' ? LineStyle.Dashed : LineStyle.Solid },
+        { price: o.tp, color: '#4ade80', title: `TP ${tag} #${o.id}`, style: LineStyle.Dotted },
+        { price: o.sl, color: '#f87171', title: `SL ${tag} #${o.id}`, style: LineStyle.Dotted },
+      ]
+      lines.forEach((l) => {
+        const pl = series.createPriceLine({ price: l.price, color: l.color, lineWidth: 1, lineStyle: l.style, axisLabelVisible: true, title: l.title })
+        priceLinesRef.current.push(pl)
+      })
+    })
+
+    const CANDLE_SEC = 15 * 60
+    const roundToCandle = (iso: string) => {
+      const ts = Math.floor(new Date(iso).getTime() / 1000)
+      const rounded = Math.floor(ts / CANDLE_SEC) * CANDLE_SEC
+      return toLocalTime(rounded) // candle'lar local'e kaydirildi, markerlar da
+    }
+    const markers: any[] = []
+    selectedOrders.forEach((o) => {
+      const isBuy = isLong(o.direction)
+      // Order olusturma (created_at = order'in gonderildigi/PENDING oldugu mum)
+      if (o.created_at) {
+        markers.push({ time: roundToCandle(o.created_at), position: 'aboveBar', color: '#fbbf24', shape: 'square', text: `Order #${o.id}` })
+      }
+      // Giris (opened_at = fill mumu)
+      if (o.opened_at) {
+        markers.push({ time: roundToCandle(o.opened_at), position: isBuy ? 'belowBar' : 'aboveBar', color: '#60a5fa', shape: isBuy ? 'arrowUp' : 'arrowDown', text: `In #${o.id}` })
+      }
+      // Cikis (closed_at)
+      if (o.status === 'CLOSED' && o.closed_at) {
+        const exitColor = o.exit_reason === 'TP' ? '#4ade80' : o.exit_reason === 'SL' ? '#f87171' : '#a0a0a0'
+        markers.push({ time: roundToCandle(o.closed_at), position: isBuy ? 'aboveBar' : 'belowBar', color: exitColor, shape: 'circle', text: `Out #${o.id} ${o.exit_reason ?? ''}` })
+      }
+    })
+    markers.sort((a, b) => (a.time as number) - (b.time as number))
+    series.setMarkers(markers)
+  }, [selectedOrders, candles])
+
+  return <div ref={containerRef} style={{ width: '100%' }} />
+}
+
+function SelectDot({ selected }: { selected: boolean }) {
+  return (
+    <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, border: '1px solid var(--border-3)', background: selected ? 'var(--blue)' : 'transparent' }} />
+  )
+}
+
+export default function LivePositionsPage() {
+  const [orders, setOrders] = useState<Order[]>([])
+  const [history, setHistory] = useState<Order[]>([])
+  const [price, setPrice] = useState<Price | null>(null)
+  const [stats, setStats] = useState<Stats | null>(null)
+  const [candles, setCandles] = useState<Candle[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'OPEN' | 'CLOSED' | 'CANCELED'>('ALL')
+  const [strategyFilter, setStrategyFilter] = useState<string>('ALL')
+  const [comparison, setComparison] = useState<StrategyRow[]>([])
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  useEffect(() => {
+    let active = true
+    async function fetchData() {
+      try {
+        const statsUrl = strategyFilter && strategyFilter !== 'ALL'
+          ? `/api/orders-stats?strategy=${encodeURIComponent(strategyFilter)}`
+          : '/api/orders-stats'
+        const [ordersRes, priceRes, statsRes, historyRes, compRes] = await Promise.all([
+          fetch('/api/orders-live', { cache: 'no-store' }),
+          fetch('/api/live-price', { cache: 'no-store' }),
+          fetch(statsUrl, { cache: 'no-store' }),
+          fetch('/api/orders-history', { cache: 'no-store' }),
+          fetch('/api/strategy-comparison', { cache: 'no-store' }),
+        ])
+        if (!ordersRes.ok || !priceRes.ok) throw new Error('fetch failed')
+        const ordersData: Order[] = await ordersRes.json()
+        const priceData: Price = await priceRes.json()
+        const statsData: Stats = statsRes.ok ? await statsRes.json() : null
+        const historyData: Order[] = historyRes.ok ? await historyRes.json() : []
+        const compData: StrategyRow[] = compRes.ok ? await compRes.json() : []
+        if (active) {
+          setOrders(ordersData); setPrice(priceData); setStats(statsData); setHistory(historyData); setComparison(compData)
+          setSelectedIds((prev) => {
+            const validIds = new Set([...ordersData, ...historyData].map((o) => o.id))
+            const next = new Set<number>()
+            prev.forEach((id) => { if (validIds.has(id)) next.add(id) })
+            return next
+          })
+          setError(null); setLoading(false)
+        }
+      } catch {
+        if (active) { setError('Failed to load live data'); setLoading(false) }
+      }
+    }
+    fetchData()
+    const interval = setInterval(fetchData, POLL_INTERVAL_MS)
+    return () => { active = false; clearInterval(interval) }
+  }, [strategyFilter])
+
+  useEffect(() => {
+    let active = true
+    async function fetchCandles() {
+      try {
+        const res = await fetch('/api/candles', { cache: 'no-store' })
+        if (res.ok && active) setCandles(await res.json())
+      } catch {}
+    }
+    fetchCandles()
+    const interval = setInterval(fetchCandles, 30000)
+    return () => { active = false; clearInterval(interval) }
+  }, [])
+
+  const midPrice = price ? (price.bid + price.ask) / 2 : null
+  const fmtMoney = (v: number) => `${v > 0 ? '+' : ''}$${Math.abs(v).toFixed(0)}`
+  const moneyColor = (v: number) => (v >= 0 ? 'var(--green)' : 'var(--red)')
+
+  // Acik pozisyonlarin toplam unrealized PnL'i (strateji filtresine uyar, normalize 50$)
+  const totalUnrealized =
+    price !== null
+      ? orders
+          .filter((o) => o.status === 'OPEN' && (strategyFilter === 'ALL' || o.strategy_label === strategyFilter))
+          .reduce((sum, o) => sum + calcPnL(o, price.bid, price.ask, getDisplayVolume(o)), 0)
+      : null
+
+  // Strateji filtresi once tum satirlara uygulanir (skorkart stats route'tan filtreli geliyor)
+  const stratRows = [...orders, ...history].filter((o) =>
+    strategyFilter === 'ALL' ? true : o.strategy_label === strategyFilter
+  )
+  const selectedOrders = stratRows.filter((o) => selectedIds.has(o.id))
+
+  // Durum filtresi (strateji filtreli satirlar uzerinde)
+  const filtered = stratRows.filter((o) => {
+    if (statusFilter === 'ALL') return true
+    if (statusFilter === 'CANCELED') return o.status === 'CANCELED'
+    return o.status === statusFilter
+  })
+
+  // Siralama: aktif olanlar (PENDING/OPEN) once, sonra kapanma tarihine gore
+  const sorted = [...filtered].sort((a, b) => {
+    const aActive = a.status === 'OPEN' || a.status === 'PENDING'
+    const bActive = b.status === 'OPEN' || b.status === 'PENDING'
+    if (aActive !== bActive) return aActive ? -1 : 1
+    const aT = a.closed_at ? new Date(a.closed_at).getTime() : new Date(a.created_at).getTime()
+    const bT = b.closed_at ? new Date(b.closed_at).getTime() : new Date(b.created_at).getTime()
+    return bT - aT
+  })
+
+  const FILTERS: Array<{ key: typeof statusFilter; label: string }> = [
+    { key: 'ALL', label: 'ALL' },
+    { key: 'PENDING', label: 'PENDING' },
+    { key: 'OPEN', label: 'OPEN' },
+    { key: 'CLOSED', label: 'CLOSED' },
+    { key: 'CANCELED', label: 'CANCELED' },
+  ]
+
+  // Satirin durum/sonuc rozeti
+  const rowBadge = (o: Order) => {
+    if (o.status === 'OPEN') return <span className="badge badge-tp">OPEN</span>
+    if (o.status === 'PENDING') return <span className="badge badge-pend">PENDING</span>
+    return exitBadge(o)
+  }
+
+  // Satirin PnL gosterimi (acik -> anlik, kapali -> gerceklesmis normalize, pending/canceled -> —)
+  const rowPnl = (o: Order): { text: string; cls: string } => {
+    if (o.status === 'OPEN' && price !== null) {
+      const v = calcPnL(o, price.bid, price.ask, getDisplayVolume(o))
+      return { text: `${v > 0 ? '+' : ''}${v.toFixed(2)}`, cls: pnlClass(v) }
+    }
+    if (o.status === 'CLOSED' && o.normalized_pnl != null) {
+      const v = o.normalized_pnl
+      return { text: `${v > 0 ? '+' : ''}${v.toFixed(2)}`, cls: pnlClass(v) }
+    }
+    return { text: '—', cls: 'pnl-zero' }
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 64 }}>
-      <div className="container" style={{ paddingTop: 24 }}>
+      <style>{`
+        .live-scorecards { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+        .live-section-title { font-size: 11px; color: var(--text-3); letter-spacing: 0.08em; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-family: 'DM Mono', monospace; }
+        .live-table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: 'DM Mono', monospace; }
+        .live-table-wrap { overflow-x: auto; }
+        .live-mobile-cards { display: none; }
+        @media (max-width: 768px) {
+          .live-scorecards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+          .live-table-wrap { display: none; }
+          .live-mobile-cards { display: flex; flex-direction: column; gap: 6px; }
+          .live-mcard { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; cursor: pointer; }
+          .live-mcard.selected { border-color: var(--blue); background: var(--bg-3); }
+        }
+      `}</style>
 
-        {/* ── PRESET BAR ─────────────────────────────────────────────────── */}
-        {presets.length > 0 && (
-          <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-            <span className="col-label" style={{ fontSize: 9 }}>PRESET</span>
-            {presets.map(p => (
-              <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-                <button
-                  className="filter-btn"
-                  style={{ fontSize: 10, padding: '2px 10px', borderRadius: '4px 0 0 4px' }}
-                  onClick={() => applyPreset(p)}
-                >{p.name}</button>
-                <button
-                  onClick={() => deletePreset(p.name)}
-                  style={{ padding: '2px 6px', fontSize: 10, fontFamily: 'DM Mono, monospace', background: 'transparent', border: '1px solid var(--border)', borderLeft: 'none', borderRadius: '0 4px 4px 0', color: 'var(--text-3)', cursor: 'pointer' }}
-                >×</button>
-              </div>
+      <div className="container" style={{ paddingTop: 24 }}>
+        <div className="live-section-title">LIVE POSITIONS</div>
+
+        {/* Strategy toggle bar */}
+        {comparison.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span className="col-label" style={{ fontSize: 9, marginRight: 2 }}>STRATEGY</span>
+            <button
+              className={`filter-btn${strategyFilter === 'ALL' ? ' active' : ''}`}
+              style={{ fontSize: 11 }}
+              onClick={() => setStrategyFilter('ALL')}
+            >
+              ALL
+            </button>
+            {comparison.map((s) => (
+              <button
+                key={s.strategy_label}
+                className={`filter-btn${strategyFilter === s.strategy_label ? ' active' : ''}`}
+                style={{ fontSize: 11 }}
+                onClick={() => setStrategyFilter(s.strategy_label)}
+              >
+                {s.strategy_label}
+              </button>
             ))}
           </div>
         )}
 
-        {/* ── FILTER PANEL ───────────────────────────────────────────────── */}
-        <div className="card" style={{ padding: 16, marginBottom: 20, overflow: 'hidden' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <button className="filter-btn" style={{ fontSize: 11 }} onClick={() => setFilterOpen(o => !o)}>
-                {filterOpen ? '▲ Close' : '▼ Filter'}
-              </button>
-              {activeCount > 0 && (
-                <span className="mono" style={{ fontSize: 10, color: 'var(--amber)' }}>{activeCount} active</span>
-              )}
-              {activeCount > 0 && (
-                <button className="filter-btn" style={{ fontSize: 10, padding: '2px 10px' }} onClick={handleReset}>Reset</button>
-              )}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {loading && <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>loading...</span>}
-              {savingPreset ? (
-                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                  <input
-                    value={presetName}
-                    onChange={e => setPresetName(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && savePreset()}
-                    placeholder="preset name..."
-                    style={{ background: 'var(--bg-3)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)', fontSize: 10, padding: '3px 8px', fontFamily: 'DM Mono, monospace', width: 120 }}
-                    autoFocus
-                  />
-                  <button className="filter-btn active" style={{ fontSize: 10, padding: '2px 10px' }} onClick={savePreset}>Save</button>
-                  <button className="filter-btn" style={{ fontSize: 10, padding: '2px 8px' }} onClick={() => { setSavingPreset(false); setPresetName('') }}>Cancel</button>
-                </div>
-              ) : (
-                activeCount > 0 && (
-                  <button className="filter-btn" style={{ fontSize: 10, padding: '2px 10px' }} onClick={() => setSavingPreset(true)}>
-                    + Save preset
-                  </button>
-                )
-              )}
-            </div>
+        {/* Score cards */}
+        {stats && (
+          <div className="live-scorecards">
+            <ScoreCard label="TOTAL" value={stats.total_orders} />
+            <ScoreCard label="PENDING" value={stats.pending} color="var(--amber)" />
+            <ScoreCard
+              label="OPEN"
+              value={stats.open}
+              color="var(--green)"
+              sub={totalUnrealized != null && stats.open > 0 ? `${totalUnrealized >= 0 ? '+' : ''}$${totalUnrealized.toFixed(2)}` : undefined}
+              subColor={totalUnrealized != null ? moneyColor(totalUnrealized) : undefined}
+            />
+            <ScoreCard label="EXPIRED" value={stats.expired} color="var(--text-2)" />
+            <ScoreCard label="WIN RATE" value={`%${stats.win_rate.toFixed(1)}`} color={wpColor(stats.win_rate)} />
+            <ScoreCard label="TP HIT" value={stats.tp_count} color="var(--green)" />
+            <ScoreCard label="SL HIT" value={stats.sl_count} color="var(--red)" />
+            <ScoreCard label="AVG WIN R" value={stats.avg_win_r != null ? `+${stats.avg_win_r.toFixed(2)}R` : '—'} color="var(--green)" />
+            <ScoreCard label="TOTAL R" value={`${stats.total_r >= 0 ? '+' : ''}${stats.total_r.toFixed(2)}R`} color={moneyColor(stats.total_r)} />
+            <ScoreCard
+              label="TOTAL P&L"
+              value={fmtMoney(stats.total_pnl)}
+              color={moneyColor(stats.total_pnl)}
+              sub={
+                totalUnrealized != null
+                  ? `${(stats.total_pnl + totalUnrealized) >= 0 ? '+' : ''}$${(stats.total_pnl + totalUnrealized).toFixed(2)}`
+                  : undefined
+              }
+              subColor={totalUnrealized != null ? moneyColor(stats.total_pnl + totalUnrealized) : undefined}
+            />
           </div>
+        )}
 
-          {filterOpen && (
-            <>
-              <div style={{ borderTop: '1px solid var(--border)', margin: '14px 0' }} />
-              <div style={{ overflowX: 'auto' }}>
-                <FilterPanel filters={draftFilters} onChange={setDraftFilters} />
+        {error && <div className="mono" style={{ color: 'var(--red)', fontSize: 11, marginBottom: 12 }}>{error}</div>}
+
+        {/* Chart */}
+        <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <div className="col-label">
+              BTCUSDT — 15m
+              {selectedOrders.length > 0 && <span style={{ color: 'var(--blue)', marginLeft: 8 }}>· {selectedOrders.length} selected</span>}
+            </div>
+            {price && <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{Math.round((price.bid + price.ask) / 2)}</span>}
+          </div>
+          <LiveChart candles={candles} selectedOrders={selectedOrders} />
+          <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8 }}>
+            Select a position from the table below to view its zones and entry/exit markers
+          </div>
+        </div>
+
+        {/* Strategy comparison */}
+        {comparison.length > 0 && (
+          <>
+            <div className="live-section-title">STRATEGY COMPARISON</div>
+            <div className="card" style={{ padding: 16, marginBottom: 24, overflowX: 'auto' }}>
+              <table className="live-table" style={{ minWidth: 1100 }}>
+                <thead>
+                  <tr>
+                    {['Strategy', 'Total', 'Open', 'Pend', 'Exp', 'Closed', 'TP', 'SL', 'Win%', 'Avg Win R', 'Total R', 'Total P&L', 'Avg Dur', 'Max DD', 'WP V6', 'Calib'].map((h, i) => (
+                      <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {comparison.map((s) => {
+                    const active = strategyFilter === s.strategy_label
+                    return (
+                      <tr
+                        key={s.strategy_label}
+                        onClick={() => setStrategyFilter(active ? 'ALL' : s.strategy_label)}
+                        style={{ borderTop: '1px solid var(--border)', cursor: 'pointer', background: active ? 'var(--bg-3)' : 'transparent' }}
+                      >
+                        <td style={{ padding: '6px 0', color: 'var(--text-2)' }}>{s.strategy_label}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{s.total}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--green)' }}>{s.open}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--amber)' }}>{s.pending}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-3)' }}>{s.expired}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{s.closed}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--green)' }}>{s.tp_count}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--red)' }}>{s.sl_count}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: wpColor(s.win_rate) }}>{s.win_rate != null ? `%${s.win_rate.toFixed(1)}` : '—'}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--green)' }}>{s.avg_win_r != null ? `+${s.avg_win_r.toFixed(2)}R` : '—'}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: moneyColor(s.total_r) }}>{`${s.total_r >= 0 ? '+' : ''}${s.total_r.toFixed(2)}R`}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: moneyColor(s.total_pnl) }}>{`${s.total_pnl >= 0 ? '+' : ''}$${Math.abs(s.total_pnl).toFixed(0)}`}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-3)' }}>{s.avg_duration_min != null ? fmtDuration(s.avg_duration_min) : '—'}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--red)' }}>{`-${s.max_drawdown_r.toFixed(2)}R`}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-3)' }}>{s.avg_wp_v6 != null ? `%${s.avg_wp_v6.toFixed(0)}` : '—'}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: s.calibration_gap == null ? 'var(--text-3)' : s.calibration_gap >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                          {s.calibration_gap != null ? `${s.calibration_gap >= 0 ? '+' : ''}${s.calibration_gap.toFixed(1)}` : '—'}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+              <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8 }}>
+                Click a row to filter the whole page by that strategy · Calib = actual win rate − predicted WP
               </div>
-              <div style={{ borderTop: '1px solid var(--border)', marginTop: 14, paddingTop: 14, display: 'flex', gap: 8 }}>
-                <button className="filter-btn active" style={{ fontSize: 11, padding: '5px 20px' }} onClick={handleApply}>Apply</button>
-                <button className="filter-btn" style={{ fontSize: 11, padding: '5px 14px', color: 'var(--text-3)' }} onClick={() => { setDraftFilters(appliedFilters); setFilterOpen(false) }}>Cancel</button>
+            </div>
+          </>
+        )}
+
+        {/* Status filter toggles */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+          {FILTERS.map((f) => (
+            <button
+              key={f.key}
+              className={`filter-btn${statusFilter === f.key ? ' active' : ''}`}
+              style={{ fontSize: 11 }}
+              onClick={() => setStatusFilter(f.key)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Unified table */}
+        <div className="card" style={{ padding: 16 }}>
+          {loading && <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', padding: 20, textAlign: 'center' }}>loading...</div>}
+          {!loading && sorted.length === 0 && <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', padding: 20, textAlign: 'center' }}>no positions</div>}
+
+          {sorted.length > 0 && (
+            <>
+              {/* Desktop table */}
+              <div className="live-table-wrap">
+                <table className="live-table" style={{ minWidth: 1080 }}>
+                  <thead>
+                    <tr>
+                      <th style={{ width: 28, paddingBottom: 8 }} />
+                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Volume (Norm 50$)', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'RR', 'WP V6', 'PnL ($)'].map((h, i) => (
+                        <th key={h} style={{ textAlign: i <= 3 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sorted.map((order) => {
+                      const selected = selectedIds.has(order.id)
+                      const displayVolume = order.display_volume ?? getDisplayVolume(order)
+                      const pnl = rowPnl(order)
+                      return (
+                        <tr key={order.id} onClick={() => toggleSelect(order.id)} style={{ borderTop: '1px solid var(--border)', cursor: 'pointer', background: selected ? 'var(--bg-3)' : 'transparent' }}>
+                          <td style={{ padding: '6px 0', textAlign: 'center' }}><SelectDot selected={selected} /></td>
+                          <td style={{ padding: '6px 0', color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{fmtDate(order.created_at)}</td>
+                          <td style={{ padding: '6px 0', color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{fmtDate(order.opened_at)}</td>
+                          <td style={{ padding: '6px 0', color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{fmtDate(order.closed_at)}</td>
+                          <td style={{ padding: '6px 0', color: 'var(--text-2)' }}>{order.strategy_label}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right' }}>{rowBadge(order)}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right' }}>{dirBadge(order.direction)}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{displayVolume}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtPrice(order.entry_price)}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-3)' }}>{fmtPrice(order.fill_price)}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtPrice(order.close_price)}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--red)' }}>{fmtPrice(order.sl)}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--green)' }}>{fmtPrice(order.tp)}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{order.analysis_rr ?? order.rr ?? '—'}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</td>
+                          <td className={`mono ${pnl.cls}`} style={{ padding: '6px 0', textAlign: 'right' }}>{pnl.text}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="live-mobile-cards">
+                {sorted.map((order) => {
+                  const selected = selectedIds.has(order.id)
+                  const displayVolume = order.display_volume ?? getDisplayVolume(order)
+                  const pnl = rowPnl(order)
+                  return (
+                    <div key={order.id} className={`live-mcard${selected ? ' selected' : ''}`} onClick={() => toggleSelect(order.id)}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <SelectDot selected={selected} />
+                          {dirBadge(order.direction)}
+                          {rowBadge(order)}
+                        </div>
+                        <span className={`mono ${pnl.cls}`} style={{ fontSize: 13, fontWeight: 600 }}>
+                          {pnl.text === '—' ? '—' : `${pnl.text.startsWith('-') ? '-' : '+'}$${pnl.text.replace(/^[+-]/, '')}`}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--text-2)', fontFamily: 'DM Mono, monospace', marginBottom: 6 }}>{order.strategy_label}</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, fontFamily: 'DM Mono, monospace', fontSize: 11 }}>
+                        <div><span className="col-label">Entry </span><span style={{ color: 'var(--text-2)' }}>{fmtPrice(order.entry_price)}</span></div>
+                        <div><span className="col-label">Fill </span><span style={{ color: 'var(--text-3)' }}>{fmtPrice(order.fill_price)}</span></div>
+                        <div><span className="col-label">Exit </span><span style={{ color: 'var(--text-2)' }}>{fmtPrice(order.close_price)}</span></div>
+                        <div><span className="col-label">Vol </span><span style={{ color: 'var(--text-2)' }}>{displayVolume}</span></div>
+                        <div><span className="col-label">SL </span><span style={{ color: 'var(--red)' }}>{fmtPrice(order.sl)}</span></div>
+                        <div><span className="col-label">TP </span><span style={{ color: 'var(--green)' }}>{fmtPrice(order.tp)}</span></div>
+                        <div><span className="col-label">RR </span><span style={{ color: 'var(--text-2)' }}>{order.analysis_rr ?? order.rr ?? '—'}</span></div>
+                        <div><span className="col-label">WP6 </span><span style={{ color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</span></div>
+                        <div><span className="col-label">Order D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.created_at)}</span></div>
+                        <div><span className="col-label">Entry D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.opened_at)}</span></div>
+                        <div><span className="col-label">Close D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.closed_at)}</span></div>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </>
           )}
         </div>
 
-        {!loading && overview && (
-          <>
-            {/* ── SUMMARY SCORE CARDS ──────────────────────────────────────── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9, minmax(0, 1fr))', gap: 8, marginBottom: 16 }}>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>TOTAL</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{overview.total_all}</div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:{overview.long_total}</span>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>S:{overview.short_total}</span>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>SIMULATED</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{overview.total}</div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:{overview.long_total}</span>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>S:{overview.short_total}</span>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>WIN RATE</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: winColor(Number(overview.win_rate)) }}>%{Number(overview.win_rate).toFixed(1)}</div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:%{Number(overview.long_win_rate).toFixed(1)}</span>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>S:%{Number(overview.short_win_rate).toFixed(1)}</span>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>AVG WIN R</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>
-                  {overview.avg_r_win != null ? `+${Number(overview.avg_r_win).toFixed(2)}R` : '—'}
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>TOTAL R</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: Number(overview.total_pnl) >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                  {overview.total_pnl != null ? `${Number(overview.total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.total_pnl)).toFixed(0)}` : '—'}
-                </div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>
-                    L:<span style={{ color: Number(overview.long_total_pnl ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                      {overview.long_total_pnl != null ? `${Number(overview.long_total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.long_total_pnl)).toFixed(0)}` : '—'}
-                    </span>
-                  </span>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>
-                    S:<span style={{ color: Number(overview.short_total_pnl ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                      {overview.short_total_pnl != null ? `${Number(overview.short_total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.short_total_pnl)).toFixed(0)}` : '—'}
-                    </span>
-                  </span>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>TP HIT</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>{overview.tp_count}</div>
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>SL HIT</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--red)' }}>{overview.sl_count}</div>
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>EXPIRED</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--amber)' }}>{overview.expired_count}</div>
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>NO ENTRY</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--text-2)' }}>{overview.no_entry_count}</div>
-              </div>
-            </div>
-
-            {/* ── CUMULATIVE R + DAILY TRADES ─────────────────────────────── */}
-            {cumR && cumR[cumRPeriod].series.length > 0 && (() => {
-              const activePeriod = cumR[cumRPeriod]
-              const lineColor = activePeriod.final_r >= 0 ? '#4ade80' : '#f87171'
-              const periodLabel = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' }
-              return (
-                <div className="card" style={{ padding: 16, marginBottom: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div className="col-label">Cumulative R</div>
-                      <div style={{ display: 'flex', gap: 4 }}>
-                        {(['daily','weekly','monthly'] as const).map(period => (
-                          <button
-                            key={period}
-                            className={`filter-btn${cumRPeriod === period ? ' active' : ''}`}
-                            style={{ fontSize: 9, padding: '2px 8px' }}
-                            onClick={() => setCumRPeriod(period)}
-                          >
-                            {periodLabel[period]}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 16 }}>
-                      <span className="mono" style={{ fontSize: 11, color: 'var(--red)' }}>Max DD: {activePeriod.max_drawdown.toFixed(2)}R</span>
-                      <span className="mono" style={{ fontSize: 11, color: lineColor, fontWeight: 600 }}>{activePeriod.final_r >= 0 ? '+' : ''}{activePeriod.final_r.toFixed(2)}R</span>
-                    </div>
-                  </div>
-                  <div style={{ height: 160 }}>
-                    <Chart
-                      type="line"
-                      data={{
-                        labels: activePeriod.series.map(p => {
-                          const d = new Date(p.day)
-                          if (cumRPeriod === 'monthly') return d.toLocaleDateString('tr-TR', { month: 'short', year: '2-digit' })
-                          return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })
-                        }),
-                        datasets: [
-                          {
-                            type: 'line' as const,
-                            data: activePeriod.series.map(p => p.cumulative_r),
-                            borderColor: lineColor,
-                            borderWidth: 1.5,
-                            pointRadius: 0,
-                            pointHitRadius: 20,
-                            fill: true,
-                            backgroundColor: activePeriod.final_r >= 0 ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)',
-                            tension: 0.3,
-                            yAxisID: 'yR',
-                          },
-                          {
-                            type: 'bar' as const,
-                            data: activePeriod.series.map(p => p.trade_count ?? 0),
-                            backgroundColor: 'rgba(96,165,250,0.25)',
-                            borderColor: 'rgba(96,165,250,0.5)',
-                            borderWidth: 1,
-                            yAxisID: 'yCount',
-                          },
-                        ],
-                      }}
-                      options={{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: { mode: 'index', intersect: false },
-                        plugins: {
-                          legend: { display: false },
-                          tooltip: { displayColors: false, callbacks: { label: (ctx: any) => {
-                            const p = activePeriod.series[ctx.dataIndex]
-                            if (ctx.datasetIndex === 0) return [
-                              `Cum: ${p.cumulative_r >= 0 ? '+' : ''}${p.cumulative_r.toFixed(2)}R`,
-                              `Period R: ${p.daily_r >= 0 ? '+' : ''}${p.daily_r.toFixed(2)}R`,
-                              p.daily_pnl != null ? `PnL: ${p.daily_pnl >= 0 ? '+' : '-'}$${Math.abs(p.daily_pnl).toFixed(0)}` : '',
-                            ].filter(Boolean)
-                            return `Trades: ${p.trade_count ?? 0}`
-                          }}},
-                        },
-                        scales: {
-                          x: { ...axisStyle, ticks: { ...axisStyle.ticks, maxTicksLimit: 12 } },
-                          yR: { ...axisStyle, position: 'left', ticks: { ...axisStyle.ticks, callback: (v: any) => `${v}R` } },
-                          yCount: { ...axisStyle, position: 'right', grid: { drawOnChartArea: false }, ticks: { ...axisStyle.ticks, stepSize: 1, callback: (v: any) => `${v}` } },
-                        },
-                      } as any}
-                    />
-                  </div>
-                  <div style={{ display: 'flex', gap: 16, marginTop: 8, justifyContent: 'flex-end' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <span style={{ width: 12, height: 2, background: lineColor, display: 'inline-block', borderRadius: 1 }} />
-                      <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>Cumulative R</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <span style={{ width: 12, height: 8, background: 'rgba(96,165,250,0.4)', display: 'inline-block', borderRadius: 1 }} />
-                      <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>Trades</span>
-                    </div>
-                  </div>
-                </div>
-              )
-            })()}
-
-            {/* ── DAY OF WEEK ANALYSIS ───────────────────────────────── */}
-            {weekly && (weekly.by_day?.length > 0 || weekly.by_type?.length > 0) && (
-              <div style={{ marginBottom: 16 }}>
-                <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  DAY OF WEEK ANALYSIS
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div className="card" style={{ padding: 16 }}>
-                    <div className="col-label" style={{ marginBottom: 10 }}>By day</div>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
-                      <thead><tr>{['Day', 'n', 'Win%', 'Total R'].map((h, i) => (
-                        <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
-                      ))}</tr></thead>
-                      <tbody>{weekly.by_day.map((row, i) => (
-                        <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
-                          <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{row.label}</td>
-                          <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{row.total}</td>
-                          <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(row.win_rate)) }}>{Number(row.win_rate).toFixed(1)}%</td>
-                          <td style={{ padding: '5px 0', textAlign: 'right', color: Number(row.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                            {row.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(2)}R` : '—'}
-                          </td>
-                        </tr>
-                      ))}</tbody>
-                    </table>
-                  </div>
-                  <div className="card" style={{ padding: 16 }}>
-                    <div className="col-label" style={{ marginBottom: 10 }}>Weekdays vs Weekend</div>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
-                      <thead><tr>{['Type', 'n', 'Win%', 'Total R'].map((h, i) => (
-                        <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
-                      ))}</tr></thead>
-                      <tbody>{weekly.by_type.map((row, i) => (
-                        <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
-                          <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{row.label}</td>
-                          <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{row.total}</td>
-                          <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(row.win_rate)) }}>{Number(row.win_rate).toFixed(1)}%</td>
-                          <td style={{ padding: '5px 0', textAlign: 'right', color: Number(row.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                            {row.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(2)}R` : '—'}
-                          </td>
-                        </tr>
-                      ))}</tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ── RSI ANALYSIS ─────────────────────────────────────────────── */}
-            {scoring && (
-              <div style={{ marginBottom: 16 }}>
-                <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  RSI ANALYSIS
-                </div>
-              <div className="rsi-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div className="card" style={{ padding: 16, overflowX: 'auto' }}>
-                  <div className="col-label" style={{ marginBottom: 12 }}>RSI 4H Zone → Win Rate</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: 6, marginBottom: 6 }}>
-                    <div />
-                    <span className="mono" style={{ fontSize: 9, color: 'var(--green)', textAlign: 'center' }}>LONG</span>
-                    <span className="mono" style={{ fontSize: 9, color: 'var(--red)', textAlign: 'center' }}>SHORT</span>
-                  </div>
-                  {scoring.by_rsi.map(row => {
-                    const long  = scoring.by_rsi_long.find((r: any) => r.rsi_zone === row.rsi_zone)
-                    const short = scoring.by_rsi_short.find((r: any) => r.rsi_zone === row.rsi_zone)
-                    return (
-                      <div key={row.rsi_zone} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: 6, alignItems: 'center', marginBottom: 8 }}>
-                        <span className="mono" style={{ fontSize: 10, color: 'var(--text-2)' }}>{row.rsi_zone}</span>
-                        <WinBar rate={long ? Number(long.win_rate) : null} total={long ? Number(long.total) : 0} />
-                        <WinBar rate={short ? Number(short.win_rate) : null} total={short ? Number(short.total) : 0} />
-                      </div>
-                    )
-                  })}
-                </div>
-                {scoring.by_rsi30?.length > 0 && (
-                  <div className="card" style={{ padding: 16 }}>
-                    <div className="col-label" style={{ marginBottom: 12 }}>RSI 30M Zone → Win Rate</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: 6, marginBottom: 6 }}>
-                      <div />
-                      <span className="mono" style={{ fontSize: 9, color: 'var(--green)', textAlign: 'center' }}>LONG</span>
-                      <span className="mono" style={{ fontSize: 9, color: 'var(--red)', textAlign: 'center' }}>SHORT</span>
-                    </div>
-                    {scoring.by_rsi30.map((row: any) => {
-                      const long  = scoring.by_rsi30_long?.find((r: any) => r.rsi_zone === row.rsi_zone)
-                      const short = scoring.by_rsi30_short?.find((r: any) => r.rsi_zone === row.rsi_zone)
-                      return (
-                        <div key={row.rsi_zone} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: 6, alignItems: 'center', marginBottom: 8 }}>
-                          <span className="mono" style={{ fontSize: 10, color: 'var(--text-2)' }}>{row.rsi_zone}</span>
-                          <WinBar rate={long ? Number(long.win_rate) : null} total={long ? Number(long.total) : 0} />
-                          <WinBar rate={short ? Number(short.win_rate) : null} total={short ? Number(short.total) : 0} />
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-              </div>
-            )}
-
-            {/* ── WIN PROBABILITY CALIBRATION TABLE ─────────────────────── */}
-            {wpAll && (
-              <div style={{ marginBottom: 16 }}>
-                <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  WIN PROBABILITY CALIBRATION — V6
-                </div>
-
-                {/* V6 ve V6 Rev yan yana */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-                  {([
-                    { key: 'v6',     label: 'V6' },
-                    { key: 'v6_rev', label: 'V6 Rev' },
-                  ] as const).map(ver => {
-                    const rows = wpAll[ver.key] ?? []
-                    if (rows.length === 0) return null
-                    const buckets = ['0-20%','20-30%','30-40%','40-50%','50-60%','60-70%','70-80%','80-90%','90%+']
-                    return (
-                      <div key={ver.key} className="card" style={{ padding: 16, overflowX: 'auto' }}>
-                        <div className="col-label" style={{ marginBottom: 10 }}>{ver.label}</div>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace' }}>
-                          <thead>
-                            <tr>
-                              <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, width: 60 }}>Bucket</th>
-                              <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Win%</th>
-                              <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>n</th>
-                              <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Tot.R</th>
-                              <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Max DD</th>
-                              <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Dir%</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {buckets.map(bucket => {
-                              const row = rows.find((r: WpBucket) => r.bucket === bucket)
-                              return (
-                                <tr key={bucket} style={{ borderTop: '1px solid var(--border)' }}>
-                                  <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{bucket}</td>
-                                  <td style={{ padding: '5px 4px', textAlign: 'right', color: row ? winColor(Number(row.win_rate)) : 'var(--text-3)' }}>
-                                    {row ? `%${Number(row.win_rate).toFixed(1)}` : '—'}
-                                  </td>
-                                  <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{row ? row.total : '—'}</td>
-                                  <td style={{ padding: '5px 4px', textAlign: 'right', color: row?.total_r != null ? (Number(row.total_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>
-                                    {row?.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(1)}` : '—'}
-                                  </td>
-                                  <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--red)' }}>
-                                    {row?.max_dd != null ? `${Number(row.max_dd).toFixed(2)}` : '—'}
-                                  </td>
-                                  <td style={{ padding: '5px 4px', textAlign: 'right', color: row?.dir_accuracy != null ? winColor(Number(row.dir_accuracy)) : 'var(--text-3)' }}>
-                                    {row?.dir_accuracy != null ? `%${Number(row.dir_accuracy).toFixed(1)}` : '—'}
-                                  </td>
-                                </tr>
-                              )
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                {/* Liq Zone Analysis — 3 ayrı tablo */}
-                {(wpAll['liq_zone'] ?? []).length > 0 && (() => {
-                  const liqRows = wpAll['liq_zone'] as any[]
-                  const LiqTable = ({ title, nKey, wrKey, rKey, upKey, dnKey, color }: {
-                    title: string; nKey: string; wrKey: string; rKey: string
-                    upKey: string; dnKey: string; color?: string
-                  }) => (
-                    <div className="card" style={{ padding: 16 }}>
-                      <div className="col-label" style={{ marginBottom: 10, color: color ?? 'var(--text-3)' }}>{title}</div>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace' }}>
-                        <thead>
-                          <tr>
-                            <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Zone</th>
-                            <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>n</th>
-                            <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Win%</th>
-                            <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Tot.R</th>
-                            <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Up Hit</th>
-                            <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Dn Hit</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {liqRows.map((row: any) => {
-                            const label = row.liq_bucket?.replace(/^\d_/, '') ?? '—'
-                            const n = row[nKey]; const wr = row[wrKey]; const r = row[rKey]
-                            const upWr = row[upKey]; const dnWr = row[dnKey]
-                            return (
-                              <tr key={row.liq_bucket} style={{ borderTop: '1px solid var(--border)' }}>
-                                <td style={{ padding: '5px 0', color: 'var(--text-2)', fontSize: 9 }}>{label}</td>
-                                <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{n ?? '—'}</td>
-                                <td style={{ padding: '5px 4px', textAlign: 'right', color: winColor(Number(wr)) }}>{wr != null ? `%${Number(wr).toFixed(1)}` : '—'}</td>
-                                <td style={{ padding: '5px 4px', textAlign: 'right', color: Number(r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{r != null ? `${Number(r) >= 0 ? '+' : ''}${Number(r).toFixed(1)}` : '—'}</td>
-                                <td style={{ padding: '5px 4px', textAlign: 'right', color: winColor(Number(upWr)) }}>{upWr != null ? `%${Number(upWr).toFixed(1)}` : '—'}</td>
-                                <td style={{ padding: '5px 4px', textAlign: 'right', color: winColor(Number(dnWr)) }}>{dnWr != null ? `%${Number(dnWr).toFixed(1)}` : '—'}</td>
-                              </tr>
-                            )
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  )
-                  return (
-                    <div style={{ marginTop: 10 }}>
-                      <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                        LIQUIDITY ZONE ANALYSIS
-                      </div>
-                      <LiqTable title="ALL" nKey="total" wrKey="win_rate" rKey="total_r" upKey="up_hit_win_rate" dnKey="dn_hit_win_rate" />
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
-                        <LiqTable title="LONG" nKey="long_total" wrKey="long_win_rate" rKey="long_total_r" upKey="up_hit_win_rate" dnKey="dn_hit_win_rate" color="var(--green)" />
-                        <LiqTable title="SHORT" nKey="short_total" wrKey="short_win_rate" rKey="short_total_r" upKey="up_hit_win_rate" dnKey="dn_hit_win_rate" color="var(--red)" />
-                      </div>
-                    </div>
-                  )
-                })()}
-              </div>
-            )}
-
-            {/* ── TARGET DISTANCE ANALYSIS ─────────────────────────────────────── */}
-            {distance && (distance.tp_buckets?.length > 0 || distance.sl_buckets?.length > 0) && (
-              <div style={{ marginBottom: 16 }}>
-                <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  TARGET DISTANCE ANALYSIS
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div className="card" style={{ padding: 16 }}>
-                    <div className="col-label" style={{ marginBottom: 10 }}>TP distance</div>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
-                      <thead><tr>{['Distance', 'n', 'Win%', 'Total R'].map((h, i) => (
-                        <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
-                      ))}</tr></thead>
-                      <tbody>{distance.tp_buckets.map((b, i) => (
-                        <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
-                          <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
-                          <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
-                          <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(b.win_rate)) }}>{Number(b.win_rate).toFixed(1)}%</td>
-                          <td style={{ padding: '5px 0', textAlign: 'right', color: Number(b.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{b.total_r != null ? `${Number(b.total_r) >= 0 ? '+' : ''}${Number(b.total_r).toFixed(2)}R` : '—'}</td>
-                        </tr>
-                      ))}</tbody>
-                    </table>
-                  </div>
-                  <div className="card" style={{ padding: 16 }}>
-                    <div className="col-label" style={{ marginBottom: 10 }}>SL distance</div>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
-                      <thead><tr>{['Distance', 'n', 'Win%', 'Total R'].map((h, i) => (
-                        <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
-                      ))}</tr></thead>
-                      <tbody>{distance.sl_buckets.map((b, i) => (
-                        <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
-                          <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
-                          <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
-                          <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(b.win_rate)) }}>{Number(b.win_rate).toFixed(1)}%</td>
-                          <td style={{ padding: '5px 0', textAlign: 'right', color: Number(b.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{b.total_r != null ? `${Number(b.total_r) >= 0 ? '+' : ''}${Number(b.total_r).toFixed(2)}R` : '—'}</td>
-                        </tr>
-                      ))}</tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ── ENTRY & TRADE DURATION ────────────────────────────── */}
-            {((entryWait?.buckets?.length ?? 0) > 0 || (tradeDur?.buckets?.length ?? 0) > 0) && (
-              <div style={{ marginBottom: 16 }}>
-                <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  ENTRY & TRADE DURATION
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  {(entryWait?.buckets?.length ?? 0) > 0 && (
-                    <div className="card" style={{ padding: 16 }}>
-                      <div className="col-label" style={{ marginBottom: 10 }}>Entry wait time</div>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
-                        <thead><tr>{['Duration', 'n', 'Win%', 'Total R'].map((h, i) => (
-                          <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
-                        ))}</tr></thead>
-                        <tbody>{entryWait!.buckets!.map((b, i) => (
-                          <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
-                            <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
-                            <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
-                            <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(b.win_rate)) }}>{Number(b.win_rate).toFixed(1)}%</td>
-                            <td style={{ padding: '5px 0', textAlign: 'right', color: Number(b.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{b.total_r != null ? `${Number(b.total_r) >= 0 ? '+' : ''}${Number(b.total_r).toFixed(2)}R` : '—'}</td>
-                          </tr>
-                        ))}</tbody>
-                      </table>
-                    </div>
-                  )}
-                  {(tradeDur?.buckets?.length ?? 0) > 0 && (
-                    <div className="card" style={{ padding: 16 }}>
-                      <div className="col-label" style={{ marginBottom: 10 }}>Trade duration</div>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
-                        <thead><tr>{['Duration', 'n', 'Win%', 'Total R'].map((h, i) => (
-                          <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
-                        ))}</tr></thead>
-                        <tbody>{tradeDur!.buckets!.map((b, i) => (
-                          <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
-                            <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
-                            <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
-                            <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(b.win_rate)) }}>{Number(b.win_rate).toFixed(1)}%</td>
-                            <td style={{ padding: '5px 0', textAlign: 'right', color: Number(b.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{b.total_r != null ? `${Number(b.total_r) >= 0 ? '+' : ''}${Number(b.total_r).toFixed(2)}R` : '—'}</td>
-                          </tr>
-                        ))}</tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* ── OPTIMAL R ────────────────────────────────────────────────── */}
-            {optimalR && optimalR.sweep.length > 0 && (
-              <div style={{ marginBottom: 16 }}>
-                <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  OPTIMAL R ANALYSIS
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 8, marginBottom: 12 }}>
-                  <div className="stat-card">
-                    <div className="col-label" style={{ marginBottom: 4 }}>Total Closed</div>
-                    <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--text)' }}>{optimalR.total_trades}</div>
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>simulated</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="col-label" style={{ marginBottom: 4 }}>Win%</div>
-                    <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: winColor(optimalR.optimal_win_rate) }}>%{optimalR.optimal_win_rate}</div>
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>current: %{Number(overview.win_rate).toFixed(1)}</div>
-                  </div>
-                  <div className="stat-card" style={{ borderColor: 'var(--amber-border)' }}>
-                    <div className="col-label" style={{ marginBottom: 4 }}>Optimal R</div>
-                    <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--amber)' }}>{optimalR.optimal_r != null ? `${optimalR.optimal_r}R` : '—'}</div>
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>current: {optimalR.current_avg_r != null ? `${optimalR.current_avg_r}R` : '—'}</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="col-label" style={{ marginBottom: 4 }}>P/L</div>
-                    <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: optimalR.optimal_pnl > 0 ? 'var(--green)' : 'var(--red)' }}>{`${optimalR.optimal_pnl > 0 ? '+' : ''}$${Math.abs(optimalR.optimal_pnl).toFixed(0)}`}</div>
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>
-                      current: {overview.total_pnl != null ? `${Number(overview.total_pnl) >= 0 ? '+' : ''}$${Math.abs(Number(overview.total_pnl)).toFixed(0)}` : '—'}
-                    </div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="col-label" style={{ marginBottom: 4 }}>Win</div>
-                    <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>{optimalR.optimal_wins}</div>
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>current: {overview.tp_count}</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="col-label" style={{ marginBottom: 4 }}>Loss</div>
-                    <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--red)' }}>{optimalR.optimal_losses}</div>
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 4 }}>current: {overview.sl_count}</div>
-                  </div>
-                </div>
-                <div className="card" style={{ padding: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <div className="col-label">R sweep — total P/L at each TP target</div>
-                    <div style={{ display: 'flex', gap: 16 }}>
-                      {optimalR.optimal_r != null && <span className="mono" style={{ fontSize: 10, color: 'var(--amber)' }}>peak: {optimalR.optimal_r}R → ${optimalR.optimal_pnl > 0 ? '+' : ''}{optimalR.optimal_pnl.toFixed(0)}</span>}
-                      {optimalR.current_avg_r != null && <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>current: {optimalR.current_avg_r}R</span>}
-                    </div>
-                  </div>
-                  <div style={{ height: 180 }}>
-                    <Bar
-                      data={{
-                        labels: optimalR.sweep.map(p => `${p.r}R`),
-                        datasets: [{ label: 'P/L', data: optimalR.sweep.map(p => p.pnl),
-                          backgroundColor: optimalR.sweep.map(p => p.r === optimalR.optimal_r ? 'rgba(251,191,36,0.7)' : p.pnl > 0 ? 'rgba(74,222,128,0.3)' : 'rgba(248,113,113,0.3)'),
-                          borderColor: optimalR.sweep.map(p => p.r === optimalR.optimal_r ? '#fbbf24' : p.pnl > 0 ? '#4ade80' : '#f87171'),
-                          borderWidth: 1 }],
-                      }}
-                      options={{ ...CHART_DEFAULTS, plugins: { legend: { display: false }, tooltip: { displayColors: false, callbacks: { title: (i: any) => `TP: ${i[0].label}`,
-                        afterBody: (i: any) => { const p = optimalR.sweep[i[0].dataIndex]; return [`P/L: ${p.pnl > 0 ? '+' : ''}$${p.pnl.toFixed(0)}`, `Win: ${p.wins} / Loss: ${p.losses}`, `Win%: ${p.win_rate}`] } } } },
-                        scales: { x: { ...axisStyle, ticks: { ...axisStyle.ticks, maxTicksLimit: 14 } }, y: { ...axisStyle, ticks: { ...axisStyle.ticks, callback: (v: any) => `$${v}` } } } } as any}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ── R MULTIPLE & MFE/MAE ─────────────────────────────────────── */}
-            {rmae && (rmae.r_histogram?.length > 0 || rmae.target_r_distribution?.length > 0) && (
-              <div style={{ marginBottom: 16 }}>
-                <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  R MULTIPLE & MFE/MAE
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-                  {rmae.r_histogram?.length > 0 && (
-                    <div className="card" style={{ padding: 16 }}>
-                      <div className="col-label" style={{ marginBottom: 10 }}>R multiple dagilimi</div>
-                      <div style={{ height: 180 }}>
-                        <Bar data={{ labels: Array.from(new Set(rmae.r_histogram.map(r => r.r_bucket))).sort((a,b) => a-b).map(b => `+${b}R`),
-                          datasets: [{ label: 'TP', data: Array.from(new Set(rmae.r_histogram.map(r => r.r_bucket))).sort((a,b) => a-b).map(b => rmae.r_histogram.find(r => r.r_bucket === b)?.count ?? 0),
-                            backgroundColor: 'rgba(74,222,128,0.4)', borderColor: '#4ade80', borderWidth: 1 }] }}
-                          options={{ ...CHART_DEFAULTS, plugins: { legend: { display: false } }, scales: { x: axisStyle, y: { ...axisStyle, ticks: { ...axisStyle.ticks, stepSize: 1 } } } } as any}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  {rmae.scatter?.length > 0 && (
-                    <div className="card" style={{ padding: 16 }}>
-                      <div className="col-label" style={{ marginBottom: 10 }}>MFE vs MAE — TP tradeler ($)</div>
-                      <div style={{ height: 180 }}>
-                        <Scatter
-                          data={{ datasets: [
-                            { label: 'TP', data: rmae.scatter.filter(r => r.sim_result === 'TP_HIT').map(r => ({ x: +Number(r.mae).toFixed(2), y: +Number(r.mfe).toFixed(2) })), backgroundColor: 'rgba(74,222,128,0.7)', pointRadius: 4 },
-                            { label: 'x=y', data: Array.from({length: 21}, (_, i) => ({ x: i*25/20, y: i*25/20 })), backgroundColor: 'rgba(0,0,0,0)', borderColor: 'rgba(255,255,255,0.2)', pointRadius: 1, showLine: true, borderDash: [4,4] } as any,
-                          ]}}
-                          options={{ ...CHART_DEFAULTS, plugins: { legend: { display: false }, tooltip: { displayColors: false, callbacks: { label: (c: any) => c.dataset.label === 'x=y' ? '' : `MAE: $${c.parsed.x} / MFE: $${c.parsed.y}` } } },
-                            scales: { x: { ...axisStyle, min: 0, max: 25, title: { display: true, text: 'MAE ($)', color: '#555', font: { family: 'DM Mono', size: 9 } } }, y: { ...axisStyle, min: 0, title: { display: true, text: 'MFE ($)', color: '#555', font: { family: 'DM Mono', size: 9 } } } } } as any}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-                {rmae.target_r_distribution?.length > 0 && (
-                  <div className="card" style={{ padding: 16 }}>
-                    <div className="col-label" style={{ marginBottom: 10 }}>Hedef R araligina gore sonuclar</div>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace' }}>
-                      <thead><tr>{['Target R', 'n', 'Win%', 'Total R', 'Avg Target R'].map((h, i) => (
-                        <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
-                      ))}</tr></thead>
-                      <tbody>{rmae.target_r_distribution.map((row, i) => (
-                        <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
-                          <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{row.bucket}</td>
-                          <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{row.total}</td>
-                          <td style={{ padding: '5px 0', textAlign: 'right', color: winColor(Number(row.win_rate)) }}>{Number(row.win_rate).toFixed(1)}%</td>
-                          <td style={{ padding: '5px 0', textAlign: 'right', color: Number(row.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>{row.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(2)}R` : '—'}</td>
-                          <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-2)' }}>{Number(row.avg_target_r).toFixed(2)}R</td>
-                        </tr>
-                      ))}</tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ── DELTA ANALYSIS ────────────────────────────────────────────── */}
-            {deltaData && Object.keys(deltaData).length > 0 && (() => {
-              const PAIRS = [
-                { h1: 'h1_ls_ratio',     m5: 'm5_ls_ratio' },
-                { h1: 'h1_tt_positions', m5: 'm5_tt_positions' },
-                { h1: 'h1_tt_accounts',  m5: 'm5_tt_accounts' },
-                { h1: 'h1_oi',           m5: 'm5_oi' },
-                { h1: 'h1_oi_mcap',      m5: 'm5_oi_mcap' },
-              ]
-              const DeltaTable = ({ rows }: { rows: any[] }) => (
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace' }}>
-                  <thead>
-                    <tr>
-                      {['Delta', 'Win%', 'Avg R', 'Total R', 'n'].map((h, i) => (
-                        <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((r, i) => (
-                      <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
-                        <td style={{ padding: '4px 0', color: 'var(--text-2)' }}>{r.bucket}</td>
-                        <td style={{ padding: '4px 0', textAlign: 'right', color: winColor(Number(r.win_rate)) }}>%{Number(r.win_rate).toFixed(1)}</td>
-                        <td style={{ padding: '4px 0', textAlign: 'right', color: Number(r.avg_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                          {r.avg_r != null ? `${Number(r.avg_r) >= 0 ? '+' : ''}${Number(r.avg_r).toFixed(2)}R` : '—'}
-                        </td>
-                        <td style={{ padding: '4px 0', textAlign: 'right', color: Number(r.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                          {r.total_r != null ? `${Number(r.total_r) >= 0 ? '+' : ''}${Number(r.total_r).toFixed(2)}R` : '—'}
-                        </td>
-                        <td style={{ padding: '4px 0', textAlign: 'right', color: 'var(--text-3)' }}>{r.total}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )
-              return (
-                <div style={{ marginBottom: 16 }}>
-                  <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                    DELTA ANALYSIS (START → CURRENT)
-                  </div>
-                  <div className="delta-grid" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {PAIRS.map(({ h1, m5 }) => {
-                      const h1Rows = deltaData[h1]
-                      const m5Rows = deltaData[m5]
-                      if ((!h1Rows || h1Rows.length === 0) && (!m5Rows || m5Rows.length === 0)) return null
-                      const h1Label = h1Rows?.[0]?.label?.replace('H1 ', '') || h1
-                      return (
-                        <div key={h1} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                          <div className="card" style={{ padding: 16 }}>
-                            <div className="col-label" style={{ marginBottom: 10 }}>H1 {h1Label} delta</div>
-                            {h1Rows?.length > 0 ? <DeltaTable rows={h1Rows} /> : <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>veri yok</span>}
-                          </div>
-                          <div className="card" style={{ padding: 16 }}>
-                            <div className="col-label" style={{ marginBottom: 10 }}>M5 {h1Label} delta</div>
-                            {m5Rows?.length > 0 ? <DeltaTable rows={m5Rows} /> : <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>veri yok</span>}
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )
-            })()}
-
-            {/* ── ANALYSIS LIST ───────────────────────────────────────────── */}
-            <div style={{ marginBottom: 12 }}>
-              <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                ANALYSIS LIST
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <button
-                  className="filter-btn"
-                  style={{ fontSize: 10, padding: '3px 12px' }}
-                  onClick={() => {
-                    const p = filtersToParams(appliedFilters)
-                    const qs = p.toString() ? `?${p}` : ''
-                    window.location.href = `/api/analyses-export${qs}`
-                  }}
-                >
-                  ↓ CSV
-                </button>
-                <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{total} records</span>
-              </div>
-            </div>
-
-            <div className="card">
-              <div className="analysis-row" style={{ cursor: 'default' }}>
-                <span className="col-label">Date</span>
-                <span className="col-label">Dir</span>
-                <span className="col-label">Entry</span>
-                <span className="col-label">TP</span>
-                <span className="col-label">SL</span>
-                <span className="col-label">R/R</span>
-                <span className="col-label">RSI</span>
-                {['V6','V6 (Rev)'].map(h => (
-                  <span key={h} className="col-label">{h}</span>
-                ))}
-                {['Liq Ratio','Up Hit','Dn Hit','Up Reach','Dn Reach'].map(h => (
-                  <span key={h} className="col-label">{h}</span>
-                ))}
-                <span className="col-label">PnL</span>
-                <span className="col-label">R</span>
-                <span className="col-label">Result</span>
-              </div>
-
-              {analyses.length === 0 && (
-                <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }} className="mono">no records found</div>
-              )}
-
-              {analyses.map(a => (
-                <div key={a.id} className="analysis-row" onClick={() => router.push(`/dashboard/${a.id}`)}>
-                  <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{fmtDate(a.analyzed_at)}</span>
-                  <span>{dirBadge(a.direction)}</span>
-                  <span className="price" style={{ fontSize: 12 }}>${Math.round(a.entry).toLocaleString('en-US')}</span>
-                  <span className="mono" style={{ fontSize: 12, color: 'var(--green)' }}>${Math.round(a.tp).toLocaleString('en-US')}</span>
-                  <span className="mono" style={{ fontSize: 12, color: 'var(--red)' }}>${Math.round(a.sl).toLocaleString('en-US')}</span>
-                  <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rr}</span>
-                  <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span>
-                  {([
-                    { wp: a.win_probability_v6,         rev: null },
-                    { wp: a.win_probability_v6_reverse, rev: null },
-                  ]).map(({ wp }, i) => (
-                    <span key={i} className="mono" style={{ fontSize: 11, color: wpColor(wp) }}>
-                      {wp != null ? `%${Number(wp).toFixed(0)}` : '—'}
-                    </span>
-                  ))}
-                  <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>
-                    {a.cluster_liq_ratio != null ? Number(a.cluster_liq_ratio).toFixed(2) : '—'}
-                  </span>
-                  <span className="mono" style={{ fontSize: 11, color: a.cluster_up_hit ? 'var(--green)' : a.cluster_up_hit === false ? 'var(--text-3)' : 'var(--text-3)' }}>
-                    {a.cluster_up_hit != null ? (a.cluster_up_hit ? '✓' : '—') : '—'}
-                  </span>
-                  <span className="mono" style={{ fontSize: 11, color: a.cluster_dn_hit ? 'var(--green)' : a.cluster_dn_hit === false ? 'var(--text-3)' : 'var(--text-3)' }}>
-                    {a.cluster_dn_hit != null ? (a.cluster_dn_hit ? '✓' : '—') : '—'}
-                  </span>
-                  <span className="mono" style={{ fontSize: 11, color: a.cluster_up_reach_pct != null && Number(a.cluster_up_reach_pct) >= 75 ? 'var(--green)' : 'var(--text-2)' }}>
-                    {a.cluster_up_reach_pct != null ? `%${Number(a.cluster_up_reach_pct).toFixed(0)}` : '—'}
-                  </span>
-                  <span className="mono" style={{ fontSize: 11, color: a.cluster_dn_reach_pct != null && Number(a.cluster_dn_reach_pct) >= 75 ? 'var(--green)' : 'var(--text-2)' }}>
-                    {a.cluster_dn_reach_pct != null ? `%${Number(a.cluster_dn_reach_pct).toFixed(0)}` : '—'}
-                  </span>
-                  <span className={`mono ${a.sim_pnl_usd != null ? pnlClass(Number(a.sim_pnl_usd)) : 'pnl-zero'}`} style={{ fontSize: 11 }}>
-                    {a.sim_pnl_usd != null ? `${Number(a.sim_pnl_usd) > 0 ? '+' : ''}$${Math.abs(Number(a.sim_pnl_usd)).toFixed(2)}` : '—'}
-                  </span>
-                  <span className={`mono ${a.sim_r_multiple != null ? pnlClass(a.sim_result === 'SL_HIT' ? -1 : Number(a.sim_r_multiple)) : 'pnl-zero'}`} style={{ fontSize: 11 }}>
-                    {fmtR(a.sim_r_multiple, a.sim_result)}
-                  </span>
-                  <span>{resultBadge(a.sim_result)}</span>
-                </div>
-              ))}
-
-              {analyses.map(a => (
-                <div key={`m-${a.id}`} className="mobile-card" onClick={() => router.push(`/dashboard/${a.id}`)}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {dirBadge(a.direction)}
-                      {resultBadge(a.sim_result)}
-                    </div>
-                    <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{fmtDate(a.analyzed_at)}</span>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
-                    <div>
-                      <div className="col-label" style={{ marginBottom: 2 }}>Entry</div>
-                      <span className="price" style={{ fontSize: 13 }}>${fmt(a.entry)}</span>
-                    </div>
-                    <div>
-                      <div className="col-label" style={{ marginBottom: 2 }}>TP</div>
-                      <span className="mono" style={{ fontSize: 13, color: 'var(--green)' }}>${fmt(a.tp)}</span>
-                    </div>
-                    <div>
-                      <div className="col-label" style={{ marginBottom: 2 }}>SL</div>
-                      <span className="mono" style={{ fontSize: 13, color: 'var(--red)' }}>${fmt(a.sl)}</span>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                    <div><span className="col-label">R/R </span><span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rr}</span></div>
-                    <div><span className="col-label">RSI4H </span><span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span></div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
-                    {([
-                      { wp: a.win_probability_v6, rev: a.win_probability_v6_reverse, label: 'V6' },
-                    ]).map(({ wp, rev, label }) => (
-                      <div key={label}>
-                        <span className="col-label">{label} </span>
-                        <span className="mono" style={{ fontSize: 12, color: wpColor(wp) }}>
-                          {wp != null ? `%${Number(wp).toFixed(0)}` : '—'}
-                        </span>
-                        {rev != null && (
-                          <span className="mono" style={{ fontSize: 10, color: wpColor(rev), marginLeft: 2 }}>
-                            /{Number(rev).toFixed(0)}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  {a.sim_pnl_usd != null && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span className={`mono ${pnlClass(Number(a.sim_pnl_usd))}`} style={{ fontSize: 13, fontWeight: 500 }}>
-                        {Number(a.sim_pnl_usd) > 0 ? '+' : ''}${Math.abs(Number(a.sim_pnl_usd)).toFixed(2)}
-                      </span>
-                      <span className={`mono ${pnlClass(a.sim_result === 'SL_HIT' ? -1 : Number(a.sim_r_multiple))}`} style={{ fontSize: 11 }}>
-                        {fmtR(a.sim_r_multiple, a.sim_result)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {totalPages > 1 && (
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
-                <button className="filter-btn" onClick={() => handlePage(Math.max(1, page - 1))} disabled={page === 1}>← Prev</button>
-                <span className="mono" style={{ fontSize: 11, color: 'var(--text-3)', padding: '4px 12px' }}>{page} / {totalPages}</span>
-                <button className="filter-btn" onClick={() => handlePage(Math.min(totalPages, page + 1))} disabled={page === totalPages}>Next →</button>
-              </div>
-            )}
-          </>
-        )}
-
-        {loading && (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}>
-            <span className="mono" style={{ fontSize: 12, color: 'var(--text-3)' }}>loading...</span>
-          </div>
-        )}
+        <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8, textAlign: 'right' }}>
+          updates every {POLL_INTERVAL_MS / 1000}s
+        </div>
       </div>
     </div>
   )
