@@ -890,7 +890,7 @@ export default function AnalysisPage() {
                   ] as const).map(ver => {
                     const rows = wpAll[ver.key] ?? []
                     if (rows.length === 0) return null
-                    const buckets = ['0-20%','20-30%','30-40%','40-50%','50-60%','60-70%','70%+']
+                    const buckets = ['0-20%','20-30%','30-40%','40-50%','50-60%','60-70%','70-80%','80-90%','90%+']
                     return (
                       <div key={ver.key} className="card" style={{ padding: 16, overflowX: 'auto' }}>
                         <div className="col-label" style={{ marginBottom: 10 }}>{ver.label}</div>
