@@ -263,7 +263,7 @@ export default function ListPage() {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('list_presets')
+      const saved = localStorage.getItem('analysis_presets')
       if (saved) setPresets(JSON.parse(saved))
     } catch {}
   }, [])
@@ -273,7 +273,7 @@ export default function ListPage() {
     const newPreset: Preset = { name: presetName.trim(), filters: { ...appliedFilters } }
     const updated = [...presets.filter(p => p.name !== newPreset.name), newPreset]
     setPresets(updated)
-    try { localStorage.setItem('list_presets', JSON.stringify(updated)) } catch {}
+    try { localStorage.setItem('analysis_presets', JSON.stringify(updated)) } catch {}
     setPresetName('')
     setSavingPreset(false)
   }
@@ -281,7 +281,7 @@ export default function ListPage() {
   const deletePreset = (name: string) => {
     const updated = presets.filter(p => p.name !== name)
     setPresets(updated)
-    try { localStorage.setItem('list_presets', JSON.stringify(updated)) } catch {}
+    try { localStorage.setItem('analysis_presets', JSON.stringify(updated)) } catch {}
   }
 
   const applyPreset = (p: Preset) => {
