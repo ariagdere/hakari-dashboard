@@ -82,6 +82,8 @@ export async function GET(req: NextRequest) {
     d.setHours(d.getHours() + 3)
     return d.toISOString().replace('T', ' ').slice(0, 19)
   }
+
+  const escape = (v: any) => {
     if (v == null) return ''
     const s = String(v)
     if (s.includes(',') || s.includes('"') || s.includes('\n')) return `"${s.replace(/"/g, '""')}"`
