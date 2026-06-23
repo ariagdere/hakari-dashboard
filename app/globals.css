@@ -126,6 +126,9 @@ body {
   .screenshot-grid { grid-template-columns: repeat(2, 1fr); }
   .filter-btn { font-size: 12px; padding: 4px 8px; }
   .synthesis-block { font-size: 14px; word-break: break-word; }
+  .stat-cards-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  .two-col-grid { grid-template-columns: 1fr !important; }
+  .optimal-r-grid { grid-template-columns: repeat(3, 1fr) !important; }
   .stat-card { padding: 12px 12px; }
   .wp-model-grid { grid-template-columns: repeat(2, 1fr) !important; }
   .rsi-grid { grid-template-columns: 1fr !important; }
