@@ -612,7 +612,7 @@ export default function AnalysisPage() {
         {!loading && overview && (
           <>
             {/* ── SUMMARY SCORE CARDS ──────────────────────────────────────── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9, minmax(0, 1fr))', gap: 8, marginBottom: 16 }}>
+            <div className="stat-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(9, minmax(0, 1fr))', gap: 8, marginBottom: 16 }}>
               <div className="stat-card">
                 <div className="col-label" style={{ marginBottom: 4 }}>TOTAL</div>
                 <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{overview.total_all}</div>
@@ -783,7 +783,7 @@ export default function AnalysisPage() {
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   DAY OF WEEK ANALYSIS
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="two-col-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div className="card" style={{ padding: 16 }}>
                     <div className="col-label" style={{ marginBottom: 10 }}>By day</div>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
@@ -883,7 +883,7 @@ export default function AnalysisPage() {
                 </div>
 
                 {/* V6 ve V6 Rev yan yana */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                <div className="two-col-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
                   {([
                     { key: 'v6',     label: 'V6' },
                     { key: 'v6_rev', label: 'V6 Rev' },
@@ -980,7 +980,7 @@ export default function AnalysisPage() {
                         LIQUIDITY ZONE ANALYSIS
                       </div>
                       <LiqTable title="ALL" nKey="total" wrKey="win_rate" rKey="total_r" upKey="up_hit_win_rate" dnKey="dn_hit_win_rate" />
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
+                      <div className="two-col-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
                         <LiqTable title="LONG" nKey="long_total" wrKey="long_win_rate" rKey="long_total_r" upKey="up_hit_win_rate" dnKey="dn_hit_win_rate" color="var(--green)" />
                         <LiqTable title="SHORT" nKey="short_total" wrKey="short_win_rate" rKey="short_total_r" upKey="up_hit_win_rate" dnKey="dn_hit_win_rate" color="var(--red)" />
                       </div>
@@ -996,7 +996,7 @@ export default function AnalysisPage() {
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   TARGET DISTANCE ANALYSIS
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="two-col-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div className="card" style={{ padding: 16 }}>
                     <div className="col-label" style={{ marginBottom: 10 }}>TP distance</div>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
@@ -1039,7 +1039,7 @@ export default function AnalysisPage() {
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   ENTRY & TRADE DURATION
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div className="two-col-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   {(entryWait?.buckets?.length ?? 0) > 0 && (
                     <div className="card" style={{ padding: 16 }}>
                       <div className="col-label" style={{ marginBottom: 10 }}>Entry wait time</div>
@@ -1086,7 +1086,7 @@ export default function AnalysisPage() {
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   OPTIMAL R ANALYSIS
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 8, marginBottom: 12 }}>
+                <div className='optimal-r-grid' style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 8, marginBottom: 12 }}>
                   <div className="stat-card">
                     <div className="col-label" style={{ marginBottom: 4 }}>Total Closed</div>
                     <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--text)' }}>{optimalR.total_trades}</div>
@@ -1152,7 +1152,7 @@ export default function AnalysisPage() {
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   R MULTIPLE & MFE/MAE
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <div className="two-col-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
                   {rmae.r_histogram?.length > 0 && (
                     <div className="card" style={{ padding: 16 }}>
                       <div className="col-label" style={{ marginBottom: 10 }}>R multiple dagilimi</div>
@@ -1250,7 +1250,7 @@ export default function AnalysisPage() {
                       if ((!h1Rows || h1Rows.length === 0) && (!m5Rows || m5Rows.length === 0)) return null
                       const h1Label = h1Rows?.[0]?.label?.replace('H1 ', '') || h1
                       return (
-                        <div key={h1} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div key={h1} className="two-col-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                           <div className="card" style={{ padding: 16 }}>
                             <div className="col-label" style={{ marginBottom: 10 }}>H1 {h1Label} delta</div>
                             {h1Rows?.length > 0 ? <DeltaTable rows={h1Rows} /> : <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>veri yok</span>}
