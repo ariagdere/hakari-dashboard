@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 const NAV_ITEMS = [
   { label: 'ANALYSIS', href: '/analysis' },
-    { label: 'ANALYSIS', href: '/list' },
+    { label: 'LIST', href: '/list' },
   { label: 'MKT',      href: '/mkt' },
   { label: 'LIVE',      href: '/live' },
 ]
