@@ -64,6 +64,29 @@ interface AnalysisSummary {
 
 // ── Filters ────────────────────────────────────────────────────────────────
 
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+const CHART_DEFAULTS = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+const axisStyle = { grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 10 } }, border: { color: '#242424' } }
+
+const winColor = (v: number | null) => {
+  if (v == null) return 'var(--text-3)'
+  if (v >= 50) return 'var(--green)'
+  if (v >= 40) return 'var(--amber)'
+  return 'var(--red)'
+}
+const wpColor   = (v: number | null | undefined) => !v ? 'var(--text-3)' : v >= 70 ? 'var(--green)' : v >= 50 ? 'var(--amber)' : 'var(--red)'
+const pnlClass  = (v: number) => v > 0 ? 'pnl-pos' : v < 0 ? 'pnl-neg' : 'pnl-zero'
+const fmtDate   = (s: string) => { const d = new Date(s); return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')} ${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}` }
+const fmt       = (v: number) => Math.round(v).toLocaleString('en-US')
+const fmtR      = (r: number | null, result: string) => { if (r == null) return '—'; const v = result === 'SL_HIT' ? -1 : Number(r); return `${v >= 0 ? '+' : ''}${v.toFixed(2)}R` }
+const dirBadge  = (d: string) => <span className={`badge ${d === 'LONG' ? 'badge-long' : 'badge-short'}`}>{d}</span>
+const resultBadge = (r: string) => {
+  const map: Record<string, string> = { TP_HIT: 'badge-tp', SL_HIT: 'badge-sl', EXPIRED: 'badge-exp', NO_ENTRY: 'badge-ne', PENDING: 'badge-pending' }
+  const lbl: Record<string, string> = { TP_HIT: 'TP', SL_HIT: 'SL', EXPIRED: 'EXP', NO_ENTRY: 'N/E', PENDING: '...' }
+  return <span className={`badge ${map[r] || ''}`}>{lbl[r] || r}</span>
+}
+
 // ── Main Page ──────────────────────────────────────────────────────────────
 
 export default function AnalysisPage() {
