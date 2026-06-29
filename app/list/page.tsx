@@ -6,7 +6,6 @@ import {
   LinearScale, CategoryScale, BarElement, Filler,
 } from 'chart.js'
 import { Chart } from 'react-chartjs-2'
-import { FilterPanel } from '@/components/FilterPanel'
 
 ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, BarElement, Filler)
 
