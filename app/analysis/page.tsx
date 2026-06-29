@@ -1,4 +1,6 @@
 'use client'
+import { Filters, Preset, DEFAULT_FILTERS, filtersToParams, activeFilterCount, loadFilters, saveFilters, clearFilters, PRESETS_STORAGE_KEY } from '@/lib/filters'
+import { FilterPanel } from '@/components/FilterPanel'
 import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -62,354 +64,6 @@ interface AnalysisSummary {
 
 // ── Filters ────────────────────────────────────────────────────────────────
 
-interface Filters {
-  direction: string; sim_result: string
-  date_from: string; date_to: string
-  days: number[]
-  rsi_min: number; rsi_max: number
-  rsi30_min: number; rsi30_max: number
-  wp6_min: number; wp6_max: number
-  wp6_rev_min: number; wp6_rev_max: number
-  liq_ratio_min: number; liq_ratio_max: number
-  cluster_up_hit: string; cluster_dn_hit: string
-  h1_ls_delta_min: number; h1_ls_delta_max: number
-  h1_tt_positions_delta_min: number; h1_tt_positions_delta_max: number
-  h1_tt_accounts_delta_min: number; h1_tt_accounts_delta_max: number
-  h1_oi_delta_min: number; h1_oi_delta_max: number
-  h1_oi_mcap_delta_min: number; h1_oi_mcap_delta_max: number
-  m5_ls_delta_min: number; m5_ls_delta_max: number
-  m5_tt_positions_delta_min: number; m5_tt_positions_delta_max: number
-  m5_tt_accounts_delta_min: number; m5_tt_accounts_delta_max: number
-  m5_oi_delta_min: number; m5_oi_delta_max: number
-  m5_oi_mcap_delta_min: number; m5_oi_mcap_delta_max: number
-  sent_synthesis_mtf: string; sent_synthesis_h1: string; sent_synthesis_m5: string
-  sent_liquidity: string
-  wait_min: number; wait_max: number
-  trade_dur_min: number; trade_dur_max: number
-  r_min: number; r_max: number
-}
-
-interface Preset { name: string; filters: Filters }
-
-const DEFAULT_FILTERS: Filters = {
-  direction: '', sim_result: '',
-  date_from: '', date_to: '',
-  days: [0,1,2,3,4,5,6],
-  rsi_min: 0, rsi_max: 100,
-  rsi30_min: 0, rsi30_max: 100,
-  wp6_min: 0, wp6_max: 100,
-  wp6_rev_min: 0, wp6_rev_max: 100,
-  liq_ratio_min: 0, liq_ratio_max: 10,
-  cluster_up_hit: '', cluster_dn_hit: '',
-  h1_ls_delta_min: -3, h1_ls_delta_max: 3,
-  h1_tt_positions_delta_min: -1, h1_tt_positions_delta_max: 1,
-  h1_tt_accounts_delta_min: -1, h1_tt_accounts_delta_max: 1,
-  h1_oi_delta_min: -20000, h1_oi_delta_max: 20000,
-  h1_oi_mcap_delta_min: -0.05, h1_oi_mcap_delta_max: 0.05,
-  m5_ls_delta_min: -3, m5_ls_delta_max: 3,
-  m5_tt_positions_delta_min: -1, m5_tt_positions_delta_max: 1,
-  m5_tt_accounts_delta_min: -1, m5_tt_accounts_delta_max: 1,
-  m5_oi_delta_min: -20000, m5_oi_delta_max: 20000,
-  m5_oi_mcap_delta_min: -0.05, m5_oi_mcap_delta_max: 0.05,
-  sent_synthesis_mtf: '', sent_synthesis_h1: '', sent_synthesis_m5: '',
-  sent_liquidity: '',
-  wait_min: 0, wait_max: 4320,
-  trade_dur_min: 0, trade_dur_max: 4320,
-  r_min: 0, r_max: 10,
-}
-
-function filtersToParams(f: Filters): URLSearchParams {
-  const p = new URLSearchParams()
-  if (f.direction)   p.set('direction',  f.direction)
-  if (f.sim_result)  p.set('sim_result', f.sim_result)
-  if (f.date_from)   p.set('date_from',  f.date_from)
-  if (f.date_to)     p.set('date_to',    f.date_to)
-  if (f.days.length < 7) p.set('days', f.days.join(','))
-  p.set('rsi_min', String(f.rsi_min));     p.set('rsi_max', String(f.rsi_max))
-  p.set('rsi30_min', String(f.rsi30_min)); p.set('rsi30_max', String(f.rsi30_max))
-  p.set('wp6_min', String(f.wp6_min));         p.set('wp6_max', String(f.wp6_max))
-  p.set('wp6_rev_min', String(f.wp6_rev_min)); p.set('wp6_rev_max', String(f.wp6_rev_max))
-  p.set('liq_ratio_min', String(f.liq_ratio_min)); p.set('liq_ratio_max', String(f.liq_ratio_max))
-  if (f.cluster_up_hit) p.set('cluster_up_hit', f.cluster_up_hit)
-  if (f.cluster_dn_hit) p.set('cluster_dn_hit', f.cluster_dn_hit)
-  p.set('h1_ls_delta_min', String(f.h1_ls_delta_min)); p.set('h1_ls_delta_max', String(f.h1_ls_delta_max))
-  p.set('h1_tt_positions_delta_min', String(f.h1_tt_positions_delta_min)); p.set('h1_tt_positions_delta_max', String(f.h1_tt_positions_delta_max))
-  p.set('h1_tt_accounts_delta_min', String(f.h1_tt_accounts_delta_min)); p.set('h1_tt_accounts_delta_max', String(f.h1_tt_accounts_delta_max))
-  p.set('h1_oi_delta_min', String(f.h1_oi_delta_min)); p.set('h1_oi_delta_max', String(f.h1_oi_delta_max))
-  p.set('h1_oi_mcap_delta_min', String(f.h1_oi_mcap_delta_min)); p.set('h1_oi_mcap_delta_max', String(f.h1_oi_mcap_delta_max))
-  p.set('m5_ls_delta_min', String(f.m5_ls_delta_min)); p.set('m5_ls_delta_max', String(f.m5_ls_delta_max))
-  p.set('m5_tt_positions_delta_min', String(f.m5_tt_positions_delta_min)); p.set('m5_tt_positions_delta_max', String(f.m5_tt_positions_delta_max))
-  p.set('m5_tt_accounts_delta_min', String(f.m5_tt_accounts_delta_min)); p.set('m5_tt_accounts_delta_max', String(f.m5_tt_accounts_delta_max))
-  p.set('m5_oi_delta_min', String(f.m5_oi_delta_min)); p.set('m5_oi_delta_max', String(f.m5_oi_delta_max))
-  p.set('m5_oi_mcap_delta_min', String(f.m5_oi_mcap_delta_min)); p.set('m5_oi_mcap_delta_max', String(f.m5_oi_mcap_delta_max))
-  if (f.sent_synthesis_mtf) p.set('sent_synthesis_mtf', f.sent_synthesis_mtf)
-  if (f.sent_synthesis_h1)  p.set('sent_synthesis_h1',  f.sent_synthesis_h1)
-  if (f.sent_synthesis_m5)  p.set('sent_synthesis_m5',  f.sent_synthesis_m5)
-  if (f.sent_liquidity)     p.set('sent_liquidity',     f.sent_liquidity)
-  p.set('wait_min', String(f.wait_min));           p.set('wait_max', String(f.wait_max))
-  p.set('trade_dur_min', String(f.trade_dur_min)); p.set('trade_dur_max', String(f.trade_dur_max))
-  p.set('r_min', String(f.r_min));                 p.set('r_max', String(f.r_max))
-  return p
-}
-
-function activeFilterCount(f: Filters): number {
-  let n = 0
-  if (f.direction) n++; if (f.sim_result) n++
-  if (f.date_from || f.date_to) n++
-  if (f.days.length < 7) n++
-  if (f.rsi_min > 0 || f.rsi_max < 100) n++
-  if (f.rsi30_min > 0 || f.rsi30_max < 100) n++
-  if (f.wp6_min > 0 || f.wp6_max < 100) n++
-  if (f.wp6_rev_min > 0 || f.wp6_rev_max < 100) n++
-  if (f.liq_ratio_min > 0 || f.liq_ratio_max < 10) n++
-  if (f.cluster_up_hit) n++
-  if (f.cluster_dn_hit) n++
-  if (f.h1_ls_delta_min > -3 || f.h1_ls_delta_max < 3) n++
-  if (f.h1_tt_positions_delta_min > -1 || f.h1_tt_positions_delta_max < 1) n++
-  if (f.h1_tt_accounts_delta_min > -1 || f.h1_tt_accounts_delta_max < 1) n++
-  if (f.h1_oi_delta_min > -20000 || f.h1_oi_delta_max < 20000) n++
-  if (f.h1_oi_mcap_delta_min > -0.05 || f.h1_oi_mcap_delta_max < 0.05) n++
-  if (f.m5_ls_delta_min > -3 || f.m5_ls_delta_max < 3) n++
-  if (f.m5_tt_positions_delta_min > -1 || f.m5_tt_positions_delta_max < 1) n++
-  if (f.m5_tt_accounts_delta_min > -1 || f.m5_tt_accounts_delta_max < 1) n++
-  if (f.m5_oi_delta_min > -20000 || f.m5_oi_delta_max < 20000) n++
-  if (f.m5_oi_mcap_delta_min > -0.05 || f.m5_oi_mcap_delta_max < 0.05) n++
-  if (f.sent_synthesis_mtf) n++; if (f.sent_synthesis_h1) n++
-  if (f.sent_synthesis_m5) n++; if (f.sent_liquidity) n++
-  if (f.wait_min > 0 || f.wait_max < 4320) n++
-  if (f.trade_dur_min > 0 || f.trade_dur_max < 4320) n++
-  if (f.r_min > 0 || f.r_max < 10) n++
-  return n
-}
-
-// ── Helpers ────────────────────────────────────────────────────────────────
-
-const CHART_DEFAULTS = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-const axisStyle = { grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 10 } }, border: { color: '#242424' } }
-
-const winColor = (v: number | null) => {
-  if (v == null) return 'var(--text-3)'
-  if (v >= 50) return 'var(--green)'
-  if (v >= 40) return 'var(--amber)'
-  return 'var(--red)'
-}
-const wpColor = (v: number | null) => {
-  if (v == null) return 'var(--text-3)'
-  const n = Number(v)
-  if (n >= 60) return 'var(--green)'
-  if (n >= 50) return 'var(--amber)'
-  return 'var(--red)'
-}
-const pnlClass = (v: number) => v > 0 ? 'pnl-pos' : v < 0 ? 'pnl-neg' : 'pnl-zero'
-const fmt = (n: number) => n?.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) ?? '—'
-const fmtDate = (s: string) => new Date(s).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
-const fmtMins = (m: any) => { if (!m) return '—'; const h = Math.floor(Number(m) / 60); const min = Math.round(Number(m) % 60); return h > 0 ? `${h}s ${min}dk` : `${min}dk` }
-const fmtR = (v: number | null, result?: string) => {
-  if (v == null) return '—'
-  const n = Number(v)
-  if (isNaN(n)) return '—'
-  const signed = result === 'SL_HIT' ? -Math.abs(n) : result === 'TP_HIT' ? Math.abs(n) : n
-  return (signed > 0 ? '+' : '') + signed.toFixed(2) + 'R'
-}
-
-function WinBar({ rate, total }: { rate: number | null; total: number }) {
-  const val = rate ?? 0
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <div style={{ flex: 1, height: 3, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
-        <div style={{ width: `${Math.min(val, 100)}%`, height: '100%', background: winColor(rate), borderRadius: 2 }} />
-      </div>
-      <span className="mono" style={{ fontSize: 11, color: winColor(rate), minWidth: 40, textAlign: 'right' }}>{val.toFixed(1)}%</span>
-      <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)', minWidth: 32, textAlign: 'right' }}>n={total}</span>
-    </div>
-  )
-}
-
-const dirBadge = (d: string) => {
-  if (d === 'SHORT') return <span className="badge badge-short">SHORT</span>
-  if (d === 'LONG')  return <span className="badge badge-long">LONG</span>
-  return <span className="badge badge-wait">WAIT</span>
-}
-const resultBadge = (r: string) => {
-  if (!r)              return <span className="badge badge-pend">BEKL.</span>
-  if (r === 'TP_HIT')  return <span className="badge badge-tp">TP</span>
-  if (r === 'SL_HIT')  return <span className="badge badge-sl">SL</span>
-  if (r === 'EXPIRED') return <span className="badge badge-exp">EXP</span>
-  return <span className="badge badge-ne">N/E</span>
-}
-
-// ── Filter Panel ───────────────────────────────────────────────────────────
-
-function RangeRow({ label, minKey, maxKey, min, max, step = 1, filters, onChange }: {
-  label: string; minKey: keyof Filters; maxKey: keyof Filters
-  min: number; max: number; step?: number
-  filters: Filters; onChange: (f: Filters) => void
-}) {
-  const [localMin, setLocalMin] = React.useState<number>(filters[minKey] as number)
-  const [localMax, setLocalMax] = React.useState<number>(filters[maxKey] as number)
-  React.useEffect(() => { setLocalMin(filters[minKey] as number) }, [filters[minKey]])
-  React.useEffect(() => { setLocalMax(filters[maxKey] as number) }, [filters[maxKey]])
-  const set = (k: keyof Filters, v: any) => onChange({ ...filters, [k]: v })
-  return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span className="col-label" style={{ fontSize: 10 }}>{label}</span>
-        <span className="mono" style={{ fontSize: 10, color: 'var(--text)' }}>{localMin} – {localMax}</span>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', width: 20 }}>min</span>
-        <input type="range" min={min} max={max} step={step} value={localMin}
-          onChange={e => setLocalMin(Number(e.target.value))}
-          onMouseUp={e => set(minKey, Number((e.target as HTMLInputElement).value))}
-          onTouchEnd={e => set(minKey, Number((e.target as HTMLInputElement).value))}
-          style={{ flex: 1, cursor: 'pointer' }} />
-        <span className="mono" style={{ fontSize: 10, color: 'var(--text-2)', width: 32, textAlign: 'right' }}>{localMin}</span>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)', width: 20 }}>max</span>
-        <input type="range" min={min} max={max} step={step} value={localMax}
-          onChange={e => setLocalMax(Number(e.target.value))}
-          onMouseUp={e => set(maxKey, Number((e.target as HTMLInputElement).value))}
-          onTouchEnd={e => set(maxKey, Number((e.target as HTMLInputElement).value))}
-          style={{ flex: 1, cursor: 'pointer' }} />
-        <span className="mono" style={{ fontSize: 10, color: 'var(--text-2)', width: 32, textAlign: 'right' }}>{localMax}</span>
-      </div>
-    </div>
-  )
-}
-
-function ToggleGroup({ label, field, options, filters, onChange, nowrap }: {
-  label: string; field: keyof Filters; options: string[]
-  filters: Filters; onChange: (f: Filters) => void
-  nowrap?: boolean
-}) {
-  const set = (k: keyof Filters, v: any) => onChange({ ...filters, [k]: v })
-  return (
-    <div>
-      <div className="col-label" style={{ marginBottom: 5, fontSize: 10 }}>{label}</div>
-      <div style={{ display: 'flex', gap: 4, flexWrap: nowrap ? 'nowrap' : 'wrap' }}>
-        <button className={`filter-btn${!filters[field] ? ' active' : ''}`} style={{ fontSize: 10, padding: '2px 8px' }} onClick={() => set(field, '')}>ALL</button>
-        {options.map(o => (
-          <button key={o} className={`filter-btn${filters[field] === o ? ' active' : ''}`}
-            style={{ fontSize: 10, padding: '2px 6px' }}
-            onClick={() => set(field, filters[field] === o ? '' : o)}>
-            {o.replace('_pressure', '').replace('_HIT', '').replace('NO_ENTRY', 'N/E')}
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Filters) => void }) {
-  const sep = <div style={{ borderTop: '1px solid var(--border)', margin: '14px 0' }} />
-  const GL = ({ c }: { c: string }) => (
-    <div className="col-label" style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 8 }}>{c}</div>
-  )
-  const so = { str: ['strong', 'mixed', 'weak'], pres: ['buying_pressure', 'selling_pressure', 'neutral'] }
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 0, minWidth: 600 }}>
-      <GL c="FILTERS" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'auto auto 1fr', gap: 14 }}>
-        <ToggleGroup label="Direction" field="direction" options={['LONG','SHORT','WAIT']} filters={filters} onChange={onChange} />
-        <ToggleGroup label="RESULT" field="sim_result" options={['TP_HIT','SL_HIT','EXPIRED','NO_ENTRY']} filters={filters} onChange={onChange} nowrap />
-        <div>
-          <div className="col-label" style={{ marginBottom: 5, fontSize: 10 }}>DATE RANGE</div>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <input type="date" value={filters.date_from} onChange={e => onChange({ ...filters, date_from: e.target.value })}
-              style={{ flex: 1, background: 'var(--bg-3)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)', fontSize: 10, padding: '3px 6px', fontFamily: 'DM Mono, monospace' }} />
-            <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>–</span>
-            <input type="date" value={filters.date_to} onChange={e => onChange({ ...filters, date_to: e.target.value })}
-              style={{ flex: 1, background: 'var(--bg-3)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text)', fontSize: 10, padding: '3px 6px', fontFamily: 'DM Mono, monospace' }} />
-            {([
-              { dow: 1, label: 'M' }, { dow: 2, label: 'T' }, { dow: 3, label: 'W' },
-              { dow: 4, label: 'T' }, { dow: 5, label: 'F' }, { dow: 6, label: 'S' }, { dow: 0, label: 'S' },
-            ]).map(({ dow, label }) => {
-              const active = filters.days.includes(dow)
-              return (
-                <button
-                  key={dow}
-                  className={`filter-btn${active ? ' active' : ''}`}
-                  style={{ fontSize: 10, padding: '2px 7px', flexShrink: 0, minWidth: 24 }}
-                  onClick={() => {
-                    const next = active
-                      ? filters.days.filter(d => d !== dow)
-                      : [...filters.days, dow]
-                    if (next.length === 0) return
-                    onChange({ ...filters, days: next })
-                  }}
-                >
-                  {label}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      </div>
-
-      {sep}
-      <GL c="Win Probability — V6" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
-        <RangeRow label="V6" minKey="wp6_min" maxKey="wp6_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
-        <RangeRow label="V6 Rev" minKey="wp6_rev_min" maxKey="wp6_rev_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
-      </div>
-
-      {sep}
-      <GL c="Liquidity Cluster" />
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 14, alignItems: 'start' }}>
-        <RangeRow label="Liq Ratio" minKey="liq_ratio_min" maxKey="liq_ratio_max" min={0} max={10} step={0.1} filters={filters} onChange={onChange} />
-        <ToggleGroup label="Up Hit" field="cluster_up_hit" options={['true','false']} filters={filters} onChange={onChange} />
-        <ToggleGroup label="Dn Hit" field="cluster_dn_hit" options={['true','false']} filters={filters} onChange={onChange} />
-      </div>
-
-      {sep}
-      <GL c="RSI" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
-        <RangeRow label="RSI 4H" minKey="rsi_min" maxKey="rsi_max" min={0} max={100} filters={filters} onChange={onChange} />
-        <RangeRow label="RSI 30M" minKey="rsi30_min" maxKey="rsi30_max" min={0} max={100} filters={filters} onChange={onChange} />
-      </div>
-
-      {sep}
-      <GL c="Delta — H1" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
-        <RangeRow label="LS delta" minKey="h1_ls_delta_min" maxKey="h1_ls_delta_max" min={-3} max={3} step={0.1} filters={filters} onChange={onChange} />
-        <RangeRow label="TT Positions delta" minKey="h1_tt_positions_delta_min" maxKey="h1_tt_positions_delta_max" min={-1} max={1} step={0.05} filters={filters} onChange={onChange} />
-        <RangeRow label="TT Accounts delta" minKey="h1_tt_accounts_delta_min" maxKey="h1_tt_accounts_delta_max" min={-1} max={1} step={0.05} filters={filters} onChange={onChange} />
-        <RangeRow label="OI delta (BTC)" minKey="h1_oi_delta_min" maxKey="h1_oi_delta_max" min={-20000} max={20000} step={500} filters={filters} onChange={onChange} />
-        <RangeRow label="OI/MCap delta" minKey="h1_oi_mcap_delta_min" maxKey="h1_oi_mcap_delta_max" min={-0.05} max={0.05} step={0.005} filters={filters} onChange={onChange} />
-      </div>
-
-      {sep}
-      <GL c="Delta — M5" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
-        <RangeRow label="LS delta" minKey="m5_ls_delta_min" maxKey="m5_ls_delta_max" min={-3} max={3} step={0.1} filters={filters} onChange={onChange} />
-        <RangeRow label="TT Positions delta" minKey="m5_tt_positions_delta_min" maxKey="m5_tt_positions_delta_max" min={-1} max={1} step={0.05} filters={filters} onChange={onChange} />
-        <RangeRow label="TT Accounts delta" minKey="m5_tt_accounts_delta_min" maxKey="m5_tt_accounts_delta_max" min={-1} max={1} step={0.05} filters={filters} onChange={onChange} />
-        <RangeRow label="OI delta (BTC)" minKey="m5_oi_delta_min" maxKey="m5_oi_delta_max" min={-20000} max={20000} step={500} filters={filters} onChange={onChange} />
-        <RangeRow label="OI/MCap delta" minKey="m5_oi_mcap_delta_min" maxKey="m5_oi_mcap_delta_max" min={-0.05} max={0.05} step={0.005} filters={filters} onChange={onChange} />
-      </div>
-
-      {sep}
-      <GL c="Trade Dynamics" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
-        <RangeRow label="Entry wait (min)" minKey="wait_min" maxKey="wait_max" min={0} max={4320} step={30} filters={filters} onChange={onChange} />
-        <RangeRow label="Trade duration (min)" minKey="trade_dur_min" maxKey="trade_dur_max" min={0} max={4320} step={30} filters={filters} onChange={onChange} />
-        <RangeRow label="Target R" minKey="r_min" maxKey="r_max" min={0} max={10} step={0.5} filters={filters} onChange={onChange} />
-      </div>
-
-      {sep}
-      <GL c="SYNTHESIS" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 14 }}>
-        <ToggleGroup label="MTF Synthesis" field="sent_synthesis_mtf" options={so.str} filters={filters} onChange={onChange} nowrap />
-        <ToggleGroup label="H1 Synthesis"  field="sent_synthesis_h1"  options={so.str} filters={filters} onChange={onChange} nowrap />
-        <ToggleGroup label="M5 Synthesis"  field="sent_synthesis_m5"  options={so.str} filters={filters} onChange={onChange} nowrap />
-        <ToggleGroup label="Liquidity"     field="sent_liquidity"     options={so.pres} filters={filters} onChange={onChange} nowrap />
-      </div>
-    </div>
-  )
-}
-
 // ── Main Page ──────────────────────────────────────────────────────────────
 
 export default function AnalysisPage() {
@@ -441,9 +95,13 @@ export default function AnalysisPage() {
   // Load presets from localStorage
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('analysis_presets')
+      const saved = localStorage.getItem(PRESETS_STORAGE_KEY)
       if (saved) setPresets(JSON.parse(saved))
     } catch {}
+    const f = loadFilters()
+    setDraftFilters(f)
+    setAppliedFilters(f)
+    fetchAll(f)
   }, [])
 
   const savePreset = () => {
@@ -451,7 +109,7 @@ export default function AnalysisPage() {
     const newPreset: Preset = { name: presetName.trim(), filters: { ...appliedFilters } }
     const updated = [...presets.filter(p => p.name !== newPreset.name), newPreset]
     setPresets(updated)
-    try { localStorage.setItem('analysis_presets', JSON.stringify(updated)) } catch {}
+    try { localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(updated)) } catch {}
     setPresetName('')
     setSavingPreset(false)
   }
@@ -459,7 +117,7 @@ export default function AnalysisPage() {
   const deletePreset = (name: string) => {
     const updated = presets.filter(p => p.name !== name)
     setPresets(updated)
-    try { localStorage.setItem('analysis_presets', JSON.stringify(updated)) } catch {}
+    try { localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(updated)) } catch {}
   }
 
   const applyPreset = (p: Preset) => {
@@ -506,6 +164,7 @@ export default function AnalysisPage() {
 
   const handleApply = () => {
     setAppliedFilters(draftFilters)
+    saveFilters(draftFilters)
     setFilterOpen(false)
     setPage(1)
     fetchAll(draftFilters, 1)
@@ -514,6 +173,7 @@ export default function AnalysisPage() {
   const handleReset = () => {
     setDraftFilters(DEFAULT_FILTERS)
     setAppliedFilters(DEFAULT_FILTERS)
+    clearFilters()
     setPage(1)
     fetchAll(DEFAULT_FILTERS, 1)
   }
@@ -523,7 +183,7 @@ export default function AnalysisPage() {
     fetchAll(appliedFilters, pg)
   }
 
-  useEffect(() => { fetchAll(DEFAULT_FILTERS) }, [fetchAll])
+  // fetchAll on mount handled in presets effect above
   useEffect(() => {
     const onVisible = () => { if (!document.hidden) fetchAll(appliedFilters, page) }
     document.addEventListener('visibilitychange', onVisible)
