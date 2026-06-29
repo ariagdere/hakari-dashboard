@@ -271,6 +271,8 @@ export default function LivePositionsPage() {
   const [error, setError] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'OPEN' | 'CLOSED' | 'CANCELED'>('ALL')
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 20
   const [strategyFilter, setStrategyFilter] = useState<string>('ALL')
   const [comparison, setComparison] = useState<StrategyRow[]>([])
 
@@ -369,6 +371,11 @@ export default function LivePositionsPage() {
     return bT - aT
   })
 
+  // Pagination (filtre/siralama sonrasi 20'serli)
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const paged = sorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+
   const FILTERS: Array<{ key: typeof statusFilter; label: string }> = [
     { key: 'ALL', label: 'ALL' },
     { key: 'PENDING', label: 'PENDING' },
@@ -424,7 +431,7 @@ export default function LivePositionsPage() {
             <button
               className={`filter-btn${strategyFilter === 'ALL' ? ' active' : ''}`}
               style={{ fontSize: 11 }}
-              onClick={() => setStrategyFilter('ALL')}
+              onClick={() => { setStrategyFilter('ALL'); setPage(1) }}
             >
               ALL
             </button>
@@ -433,7 +440,7 @@ export default function LivePositionsPage() {
                 key={s.strategy_label}
                 className={`filter-btn${strategyFilter === s.strategy_label ? ' active' : ''}`}
                 style={{ fontSize: 11 }}
-                onClick={() => setStrategyFilter(s.strategy_label)}
+                onClick={() => { setStrategyFilter(s.strategy_label); setPage(1) }}
               >
                 {s.strategy_label}
               </button>
@@ -509,7 +516,7 @@ export default function LivePositionsPage() {
                     return (
                       <tr
                         key={s.strategy_label}
-                        onClick={() => setStrategyFilter(active ? 'ALL' : s.strategy_label)}
+                        onClick={() => { setStrategyFilter(active ? 'ALL' : s.strategy_label); setPage(1) }}
                         style={{ borderTop: '1px solid var(--border)', cursor: 'pointer', background: active ? 'var(--bg-3)' : 'transparent' }}
                       >
                         <td style={{ padding: '6px 0', color: 'var(--text-2)' }}>{s.strategy_label}</td>
@@ -549,7 +556,7 @@ export default function LivePositionsPage() {
               key={f.key}
               className={`filter-btn${statusFilter === f.key ? ' active' : ''}`}
               style={{ fontSize: 11 }}
-              onClick={() => setStatusFilter(f.key)}
+              onClick={() => { setStatusFilter(f.key); setPage(1) }}
             >
               {f.label}
             </button>
@@ -575,7 +582,7 @@ export default function LivePositionsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {sorted.map((order) => {
+                    {paged.map((order) => {
                       const selected = selectedIds.has(order.id)
                       const displayVolume = order.display_volume ?? getDisplayVolume(order)
                       const pnl = rowPnl(order)
@@ -607,7 +614,7 @@ export default function LivePositionsPage() {
 
               {/* Mobile cards */}
               <div className="live-mobile-cards">
-                {sorted.map((order) => {
+                {paged.map((order) => {
                   const selected = selectedIds.has(order.id)
                   const displayVolume = order.display_volume ?? getDisplayVolume(order)
                   const pnl = rowPnl(order)
@@ -645,6 +652,32 @@ export default function LivePositionsPage() {
             </>
           )}
         </div>
+
+        {/* Pagination */}
+        {sorted.length > PAGE_SIZE && (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 12 }}>
+            <button
+              className="filter-btn"
+              style={{ fontSize: 11 }}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              ← Prev
+            </button>
+            <span className="mono" style={{ fontSize: 11, color: 'var(--text-3)', padding: '0 8px' }}>
+              {currentPage} / {totalPages}
+              <span style={{ color: 'var(--text-3)', marginLeft: 8 }}>({sorted.length} total)</span>
+            </span>
+            <button
+              className="filter-btn"
+              style={{ fontSize: 11 }}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Next →
+            </button>
+          </div>
+        )}
 
         <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8, textAlign: 'right' }}>
           updates every {POLL_INTERVAL_MS / 1000}s
