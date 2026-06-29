@@ -32,6 +32,7 @@ interface Order {
   win_probability_v6: number | null
   analyzed_at: string | null
   analysis_rr: string | null
+  sim_result: string | null
 }
 
 interface Price { bid: number; ask: number; time: string }
@@ -107,6 +108,14 @@ const wpColor = (v: number | null) => {
   if (n >= 60) return 'var(--green)'
   if (n >= 50) return 'var(--amber)'
   return 'var(--red)'
+}
+const simBadge = (r: string | null) => {
+  if (!r) return <span className="badge badge-pend">—</span>
+  if (r === 'TP_HIT') return <span className="badge badge-tp">TP</span>
+  if (r === 'SL_HIT') return <span className="badge badge-sl">SL</span>
+  if (r === 'EXPIRED') return <span className="badge badge-exp">EXP</span>
+  if (r === 'NO_ENTRY') return <span className="badge badge-ne">N/E</span>
+  return <span className="badge badge-wait">{r}</span>
 }
 const fmtDate = (s: string | null | undefined) => {
   if (!s) return '—'
@@ -560,7 +569,7 @@ export default function LivePositionsPage() {
                   <thead>
                     <tr>
                       <th style={{ width: 28, paddingBottom: 8 }} />
-                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Volume (Norm 50$)', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'RR', 'WP V6', 'PnL ($)'].map((h, i) => (
+                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Sim', 'Volume (Norm 50$)', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'RR', 'WP V6', 'PnL ($)'].map((h, i) => (
                         <th key={h} style={{ textAlign: i <= 3 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
@@ -579,6 +588,7 @@ export default function LivePositionsPage() {
                           <td style={{ padding: '6px 0', color: 'var(--text-2)' }}>{order.strategy_label}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right' }}>{rowBadge(order)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right' }}>{dirBadge(order.direction)}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right' }}>{simBadge(order.sim_result)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{displayVolume}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtPrice(order.entry_price)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-3)' }}>{fmtPrice(order.fill_price)}</td>
@@ -608,6 +618,7 @@ export default function LivePositionsPage() {
                           <SelectDot selected={selected} />
                           {dirBadge(order.direction)}
                           {rowBadge(order)}
+                          {simBadge(order.sim_result)}
                         </div>
                         <span className={`mono ${pnl.cls}`} style={{ fontSize: 13, fontWeight: 600 }}>
                           {pnl.text === '—' ? '—' : `${pnl.text.startsWith('-') ? '-' : '+'}$${pnl.text.replace(/^[+-]/, '')}`}
