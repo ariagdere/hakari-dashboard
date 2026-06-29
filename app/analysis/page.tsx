@@ -644,21 +644,9 @@ export default function AnalysisPage() {
                 </div>
               </div>
               <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>TOTAL R</div>
+                <div className="col-label" style={{ marginBottom: 4 }}>TOTAL PNL</div>
                 <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: Number(overview.total_pnl) >= 0 ? 'var(--green)' : 'var(--red)' }}>
                   {overview.total_pnl != null ? `${Number(overview.total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.total_pnl)).toFixed(0)}` : '—'}
-                </div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>
-                    L:<span style={{ color: Number(overview.long_total_pnl ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                      {overview.long_total_pnl != null ? `${Number(overview.long_total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.long_total_pnl)).toFixed(0)}` : '—'}
-                    </span>
-                  </span>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>
-                    S:<span style={{ color: Number(overview.short_total_pnl ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                      {overview.short_total_pnl != null ? `${Number(overview.short_total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.short_total_pnl)).toFixed(0)}` : '—'}
-                    </span>
-                  </span>
                 </div>
               </div>
               <div className="stat-card">
