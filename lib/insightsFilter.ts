@@ -44,8 +44,24 @@ export function buildInsightsWhere(req: NextRequest): { where: string; params: a
   range('win_probability_v6',         s.get('wp6_min'),     s.get('wp6_max'),     0, 100)
   range('win_probability_v6_reverse', s.get('wp6_rev_min'), s.get('wp6_rev_max'), 0, 100)
 
-  // Liquidity cluster filtreleri
-  range('cluster_liq_ratio', s.get('liq_ratio_min'), s.get('liq_ratio_max'), 0, 10)
+  // Liquidity zone toggle filtresi
+  const liqZone = s.get('liq_zone')
+  if (liqZone) {
+    const zones = liqZone.split(',').map(z => z.trim()).filter(Boolean)
+    if (zones.length > 0) {
+      const liqCase = `CASE
+        WHEN cluster_liq_ratio < 0.3  THEN 'dn_very_dominant'
+        WHEN cluster_liq_ratio < 0.7  THEN 'dn_dominant'
+        WHEN cluster_liq_ratio < 0.9  THEN 'dn_slight'
+        WHEN cluster_liq_ratio < 1.1  THEN 'neutral'
+        WHEN cluster_liq_ratio < 1.5  THEN 'up_slight'
+        WHEN cluster_liq_ratio < 3.0  THEN 'up_dominant'
+        ELSE 'up_very_dominant'
+      END`
+      conditions.push(`(${liqCase}) = ANY($${i++}::text[])`)
+      params.push(zones)
+    }
+  }
   const upHit = s.get('cluster_up_hit')
   const dnHit = s.get('cluster_dn_hit')
   if (upHit === 'true')  { conditions.push(`cluster_up_hit = true`) }
