@@ -14,7 +14,7 @@ export async function GET() {
         o.symbol, o.direction, o.volume, o.entry_price, o.fill_price, o.sl, o.tp, o.rr,
         o.close_price, o.realized_pnl, o.status, o.exit_reason, o.is_manual,
         o.created_at, o.opened_at, o.closed_at,
-        a.position_size_btc, a.win_probability_v6, a.analyzed_at, a.rr AS analysis_rr
+        a.position_size_btc, a.win_probability_v6, a.analyzed_at, a.rr AS analysis_rr, a.sim_result
       FROM orders o
       LEFT JOIN btc_analysis a ON a.id = o.analysis_id
       WHERE o.status IN ('CLOSED', 'CANCELED')
