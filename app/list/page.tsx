@@ -49,7 +49,7 @@ const axisStyle = { grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { 
 const winColor  = (v: number | null | undefined) => !v ? 'var(--text-3)' : v >= 50 ? 'var(--green)' : 'var(--red)'
 const wpColor   = (v: number | null | undefined) => !v ? 'var(--text-3)' : v >= 70 ? 'var(--green)' : v >= 50 ? 'var(--amber)' : 'var(--red)'
 const pnlClass  = (v: number) => v > 0 ? 'pnl-pos' : v < 0 ? 'pnl-neg' : 'pnl-zero'
-const fmtDate   = (s: string) => { const d = new Date(s); return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')} ${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}` }
+const fmtDate   = (s: string) => { const d = new Date(s); d.setUTCHours(d.getUTCHours() + 3); return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')} ${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}` }
 const fmt       = (v: number) => Math.round(v).toLocaleString('en-US')
 const fmtR      = (r: number | null, result: string) => { if (r == null) return '—'; const v = result === 'SL_HIT' ? -1 : Number(r); return `${v >= 0 ? '+' : ''}${v.toFixed(2)}R` }
 const dirBadge  = (d: string) => <span className={`badge ${d === 'LONG' ? 'badge-long' : 'badge-short'}`}>{d}</span>
@@ -294,8 +294,8 @@ export default function ListPage() {
                     <Chart type="line" data={{
                       labels: activePeriod.series.map(p => {
                         const d = new Date(p.day)
-                        if (cumRPeriod === 'monthly') return d.toLocaleDateString('tr-TR', { month: 'short', year: '2-digit' })
-                        return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })
+                        if (cumRPeriod === 'monthly') return d.toLocaleDateString('tr-TR', { month: 'short', year: '2-digit', timeZone: 'UTC' })
+                        return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', timeZone: 'UTC' })
                       }),
                       datasets: [
                         { type: 'line' as const, data: activePeriod.series.map(p => p.cumulative_r), borderColor: lineColor, borderWidth: 1.5, pointRadius: 0, pointHitRadius: 20, fill: true, backgroundColor: activePeriod.final_r >= 0 ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)', tension: 0.3, yAxisID: 'yR' },
