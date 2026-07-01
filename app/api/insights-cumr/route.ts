@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   // Daily
   const { rows: dailyRows } = await pool.query(`
     SELECT
-      DATE(analyzed_at AT TIME ZONE 'UTC') AS day,
+      DATE(analyzed_at AT TIME ZONE 'Europe/Istanbul') AS day,
       SUM(sim_r_multiple) AS daily_r,
       SUM(sim_pnl_usd) AS daily_pnl,
       COUNT(*) AS trade_count
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
   // Weekly
   const { rows: weeklyRows } = await pool.query(`
     SELECT
-      DATE_TRUNC('week', analyzed_at AT TIME ZONE 'UTC') AS day,
+      DATE_TRUNC('week', analyzed_at AT TIME ZONE 'Europe/Istanbul') AS day,
       SUM(sim_r_multiple) AS daily_r,
       SUM(sim_pnl_usd) AS daily_pnl,
       COUNT(*) AS trade_count
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
   // Monthly
   const { rows: monthlyRows } = await pool.query(`
     SELECT
-      DATE_TRUNC('month', analyzed_at AT TIME ZONE 'UTC') AS day,
+      DATE_TRUNC('month', analyzed_at AT TIME ZONE 'Europe/Istanbul') AS day,
       SUM(sim_r_multiple) AS daily_r,
       SUM(sim_pnl_usd) AS daily_pnl,
       COUNT(*) AS trade_count
