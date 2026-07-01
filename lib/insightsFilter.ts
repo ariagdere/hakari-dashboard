@@ -30,7 +30,7 @@ export function buildInsightsWhere(req: NextRequest): { where: string; params: a
   if (days) {
     const dowList = days.split(',').map(Number).filter(d => d >= 0 && d <= 6)
     if (dowList.length > 0 && dowList.length < 7) {
-      conditions.push(`EXTRACT(DOW FROM analyzed_at AT TIME ZONE 'UTC') = ANY($${i++}::int[])`)
+      conditions.push(`EXTRACT(DOW FROM analyzed_at AT TIME ZONE 'Europe/Istanbul') = ANY($${i++}::int[])`)
       params.push(dowList)
     }
   }
