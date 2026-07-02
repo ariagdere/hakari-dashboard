@@ -26,8 +26,6 @@ interface Order {
   realized_pnl?: number | null
   exit_reason?: string | null
   is_manual?: boolean
-  normalized_pnl?: number | null
-  display_volume?: number | null
   position_size_btc: number | null
   win_probability_v6: number | null
   analyzed_at: string | null
@@ -64,11 +62,9 @@ interface StrategyRow {
 }
 
 const POLL_INTERVAL_MS = 5000
-const SIZE_MULTIPLIER = 2.5
 
 function getDisplayVolume(order: Order): number {
-  if (order.position_size_btc == null) return order.volume
-  return Math.round(order.position_size_btc * SIZE_MULTIPLIER * 100) / 100
+  return order.volume
 }
 function isLong(direction: string): boolean {
   return direction === 'BUY' || direction === 'LONG'
@@ -76,7 +72,6 @@ function isLong(direction: string): boolean {
 
 function calcPnL(order: Order, bid: number, ask: number, volume: number): number {
   const entry = order.fill_price ?? order.entry_price
-  // LONG/BUY: bid'den kapanir; SHORT/SELL: ask'tan kapanir
   if (isLong(order.direction)) {
     return (bid - entry) * volume
   }
@@ -397,8 +392,8 @@ export default function LivePositionsPage() {
       const v = calcPnL(o, price.bid, price.ask, getDisplayVolume(o))
       return { text: `${v > 0 ? '+' : ''}${v.toFixed(2)}`, cls: pnlClass(v) }
     }
-    if (o.status === 'CLOSED' && o.normalized_pnl != null) {
-      const v = o.normalized_pnl
+    if (o.status === 'CLOSED' && o.realized_pnl != null) {
+      const v = o.realized_pnl
       return { text: `${v > 0 ? '+' : ''}${v.toFixed(2)}`, cls: pnlClass(v) }
     }
     return { text: '—', cls: 'pnl-zero' }
@@ -576,7 +571,7 @@ export default function LivePositionsPage() {
                   <thead>
                     <tr>
                       <th style={{ width: 28, paddingBottom: 8 }} />
-                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Sim', 'Volume (Norm 50$)', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'RR', 'WP V6', 'PnL ($)'].map((h, i) => (
+                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Sim', 'Volume', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'RR', 'WP V6', 'PnL ($)'].map((h, i) => (
                         <th key={h} style={{ textAlign: i <= 3 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
@@ -584,7 +579,7 @@ export default function LivePositionsPage() {
                   <tbody>
                     {paged.map((order) => {
                       const selected = selectedIds.has(order.id)
-                      const displayVolume = order.display_volume ?? getDisplayVolume(order)
+                      const displayVolume = getDisplayVolume(order)
                       const pnl = rowPnl(order)
                       return (
                         <tr key={order.id} onClick={() => toggleSelect(order.id)} style={{ borderTop: '1px solid var(--border)', cursor: 'pointer', background: selected ? 'var(--bg-3)' : 'transparent' }}>
@@ -616,7 +611,7 @@ export default function LivePositionsPage() {
               <div className="live-mobile-cards">
                 {paged.map((order) => {
                   const selected = selectedIds.has(order.id)
-                  const displayVolume = order.display_volume ?? getDisplayVolume(order)
+                  const displayVolume = getDisplayVolume(order)
                   const pnl = rowPnl(order)
                   return (
                     <div key={order.id} className={`live-mcard${selected ? ' selected' : ''}`} onClick={() => toggleSelect(order.id)}>
