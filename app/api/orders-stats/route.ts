@@ -4,11 +4,6 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-// PnL normalize: gerçek MT5 volume sabit 0.1 ama arayüzde 50$ risk hedefine
-// göre normalize ediyoruz. position_size_btc * 2.5 = ideal volume.
-// realized_pnl gerçek volume (0.1) ile geldiği için, ideal/gerçek oranıyla ölçekliyoruz.
-const SIZE_MULTIPLIER = 2.5;
-
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -24,7 +19,7 @@ export async function GET(request: Request) {
     const { rows } = await pool.query(`
       SELECT
         o.status, o.exit_reason, o.is_manual, o.realized_pnl, o.volume,
-        a.position_size_btc, a.rr AS analysis_rr
+        a.rr AS analysis_rr
       FROM orders o
       LEFT JOIN btc_analysis a ON a.id = o.analysis_id
       ${where}
@@ -54,20 +49,9 @@ export async function GET(request: Request) {
         if (r.exit_reason === 'TP') tp++;
         else if (r.exit_reason === 'SL') sl++;
 
-        // Normalize PnL to 50$ basis
+        // Gercek realized PnL kullan
         const realPnl = r.realized_pnl != null ? Number(r.realized_pnl) : 0;
-        const realVol = r.volume != null ? Number(r.volume) : null;
-        const idealVol =
-          r.position_size_btc != null
-            ? Math.round(Number(r.position_size_btc) * SIZE_MULTIPLIER * 100) / 100
-            : realVol;
-
-        const scaledPnl =
-          realVol && realVol > 0 && idealVol != null
-            ? realPnl * (idealVol / realVol)
-            : realPnl;
-
-        totalPnl += scaledPnl;
+        totalPnl += realPnl;
 
         // R multiple from analysis_rr (format "1:2.14")
         const rrStr = r.analysis_rr as string | null;
