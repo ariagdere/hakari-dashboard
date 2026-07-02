@@ -4,8 +4,6 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const SIZE_MULTIPLIER = 2.5;
-
 interface Acc {
   magic: number;
   strategy_label: string;
@@ -57,7 +55,7 @@ export async function GET() {
       SELECT
         o.magic, o.strategy_label, o.status, o.exit_reason, o.is_manual,
         o.realized_pnl, o.volume, o.opened_at, o.closed_at,
-        a.position_size_btc, a.rr AS analysis_rr, a.win_probability_v6
+        a.rr AS analysis_rr, a.win_probability_v6
       FROM orders o
       LEFT JOIN btc_analysis a ON a.id = o.analysis_id
     `);
@@ -93,15 +91,9 @@ export async function GET() {
         if (r.exit_reason === 'TP') acc.tp++;
         else if (r.exit_reason === 'SL') acc.sl++;
 
-        // normalize PnL
+        // Gercek realized PnL kullan
         const realPnl = r.realized_pnl != null ? Number(r.realized_pnl) : 0;
-        const realVol = r.volume != null ? Number(r.volume) : null;
-        const idealVol = r.position_size_btc != null
-          ? Math.round(Number(r.position_size_btc) * SIZE_MULTIPLIER * 100) / 100
-          : realVol;
-        const scaledPnl = realVol && realVol > 0 && idealVol != null
-          ? realPnl * (idealVol / realVol) : realPnl;
-        acc.totalPnl += scaledPnl;
+        acc.totalPnl += realPnl;
 
         // R
         const rr = parseRR(r.analysis_rr);
