@@ -18,6 +18,8 @@ interface Order {
   sl: number
   tp: number
   rr: number | null
+  r_target: number | null
+  r_risk: number | null
   status: 'PENDING' | 'OPEN' | 'CLOSED' | 'CANCELED'
   created_at: string
   opened_at: string | null
@@ -126,6 +128,16 @@ const fmtDuration = (mins: number) => {
   const h = Math.floor(mins / 60)
   const m = Math.round(mins % 60)
   return h > 0 ? `${h}s ${m}dk` : `${m}dk`
+}
+// RR gosterimi: r_risk:r_target oranini oldugu gibi gosterir
+// (normal trade'de r_risk=1 oldugu icin otomatik "1:2.14" gibi cikar,
+//  inverse trade'de r_risk=6, r_target=1 ise "6:1" cikar)
+const fmtRR = (order: Order) => {
+  const target = order.r_target
+  const risk = order.r_risk ?? 1
+  if (target == null) return '—'
+  const fmtNum = (n: number) => (Number.isInteger(n) ? n.toString() : n.toFixed(2))
+  return `${fmtNum(risk)}:${fmtNum(target)}`
 }
 
 // lightweight-charts UTC gosterir; tarayicinin yerel offsetini ekleyerek
@@ -597,7 +609,7 @@ export default function LivePositionsPage() {
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtPrice(order.close_price)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--red)' }}>{fmtPrice(order.sl)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--green)' }}>{fmtPrice(order.tp)}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{order.analysis_rr ?? order.rr ?? '—'}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtRR(order)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</td>
                           <td className={`mono ${pnl.cls}`} style={{ padding: '6px 0', textAlign: 'right' }}>{pnl.text}</td>
                         </tr>
@@ -634,7 +646,7 @@ export default function LivePositionsPage() {
                         <div><span className="col-label">Vol </span><span style={{ color: 'var(--text-2)' }}>{displayVolume}</span></div>
                         <div><span className="col-label">SL </span><span style={{ color: 'var(--red)' }}>{fmtPrice(order.sl)}</span></div>
                         <div><span className="col-label">TP </span><span style={{ color: 'var(--green)' }}>{fmtPrice(order.tp)}</span></div>
-                        <div><span className="col-label">RR </span><span style={{ color: 'var(--text-2)' }}>{order.analysis_rr ?? order.rr ?? '—'}</span></div>
+                        <div><span className="col-label">RR </span><span style={{ color: 'var(--text-2)' }}>{fmtRR(order)}</span></div>
                         <div><span className="col-label">WP6 </span><span style={{ color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</span></div>
                         <div><span className="col-label">Order D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.created_at)}</span></div>
                         <div><span className="col-label">Entry D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.opened_at)}</span></div>
