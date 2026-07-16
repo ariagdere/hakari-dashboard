@@ -26,14 +26,6 @@ interface Acc {
   closedSeries: Array<{ t: number; r: number }>;
 }
 
-function parseRR(rrStr: string | null): number | null {
-  if (rrStr && rrStr.includes(':')) {
-    const v = parseFloat(rrStr.split(':')[1]);
-    if (!isNaN(v)) return v;
-  }
-  return null;
-}
-
 function maxDrawdown(series: Array<{ t: number; r: number }>): number {
   // kronolojik sirala, kumulatif R egrisinde tepe-dip farki
   const sorted = series.slice().sort((a, b) => a.t - b.t);
@@ -54,8 +46,8 @@ export async function GET() {
     const { rows } = await pool.query(`
       SELECT
         o.magic, o.strategy_label, o.status, o.exit_reason, o.is_manual,
-        o.realized_pnl, o.volume, o.opened_at, o.closed_at,
-        a.rr AS analysis_rr, a.win_probability_v6
+        o.realized_pnl, o.volume, o.opened_at, o.closed_at, o.r_target, o.r_risk,
+        a.win_probability_v6
       FROM orders o
       LEFT JOIN btc_analysis a ON a.id = o.analysis_id
     `);
@@ -95,13 +87,14 @@ export async function GET() {
         const realPnl = r.realized_pnl != null ? Number(r.realized_pnl) : 0;
         acc.totalPnl += realPnl;
 
-        // R
-        const rr = parseRR(r.analysis_rr);
+        // R: orders.r_target / r_risk (analysis'in orijinal risk mesafesine gore)
+        const rTarget = r.r_target != null ? Number(r.r_target) : null;
+        const rRisk = r.r_risk != null ? Number(r.r_risk) : 1;
         let rVal = 0;
-        if (r.exit_reason === 'TP' && rr != null) {
-          rVal = rr; acc.winRSum += rr; acc.winCount++;
+        if (r.exit_reason === 'TP' && rTarget != null) {
+          rVal = rTarget; acc.winRSum += rTarget; acc.winCount++;
         } else if (r.exit_reason === 'SL') {
-          rVal = -1;
+          rVal = -rRisk;
         }
         acc.totalR += rVal;
 
