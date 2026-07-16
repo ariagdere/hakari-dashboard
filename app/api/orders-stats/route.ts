@@ -19,9 +19,8 @@ export async function GET(request: Request) {
     const { rows } = await pool.query(`
       SELECT
         o.status, o.exit_reason, o.is_manual, o.realized_pnl, o.volume,
-        a.rr AS analysis_rr
+        o.r_target, o.r_risk
       FROM orders o
-      LEFT JOIN btc_analysis a ON a.id = o.analysis_id
       ${where}
     `, params);
 
@@ -53,20 +52,17 @@ export async function GET(request: Request) {
         const realPnl = r.realized_pnl != null ? Number(r.realized_pnl) : 0;
         totalPnl += realPnl;
 
-        // R multiple from analysis_rr (format "1:2.14")
-        const rrStr = r.analysis_rr as string | null;
-        let rrValue: number | null = null;
-        if (rrStr && rrStr.includes(':')) {
-          const parsed = parseFloat(rrStr.split(':')[1]);
-          if (!isNaN(parsed)) rrValue = parsed;
-        }
+        // R multiple: orders.r_target / r_risk (analysis'in orijinal risk mesafesine
+        // gore hesaplanmis, sizing ile tutarli - normal ve inverse trade'lerde dogru calisir)
+        const rTarget = r.r_target != null ? Number(r.r_target) : null;
+        const rRisk = r.r_risk != null ? Number(r.r_risk) : 1;
 
-        if (r.exit_reason === 'TP' && rrValue != null) {
-          totalR += rrValue;
-          winRSum += rrValue;
+        if (r.exit_reason === 'TP' && rTarget != null) {
+          totalR += rTarget;
+          winRSum += rTarget;
           winCount++;
         } else if (r.exit_reason === 'SL') {
-          totalR += -1; // 1R loss
+          totalR += -rRisk;
         }
       }
     }
