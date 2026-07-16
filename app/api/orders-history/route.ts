@@ -10,6 +10,7 @@ export async function GET() {
       SELECT
         o.id, o.analysis_id, o.mt5_order_id, o.mt5_position_id, o.magic, o.strategy_label,
         o.symbol, o.direction, o.volume, o.entry_price, o.fill_price, o.sl, o.tp, o.rr,
+        o.r_target, o.r_risk,
         o.close_price, o.realized_pnl, o.status, o.exit_reason, o.is_manual,
         o.created_at, o.opened_at, o.closed_at,
         a.win_probability_v6, a.analyzed_at, a.rr AS analysis_rr, a.sim_result
@@ -20,7 +21,7 @@ export async function GET() {
     `);
 
     const numericFields = [
-      'volume', 'entry_price', 'fill_price', 'sl', 'tp', 'rr',
+      'volume', 'entry_price', 'fill_price', 'sl', 'tp', 'rr', 'r_target', 'r_risk',
       'close_price', 'realized_pnl', 'win_probability_v6',
     ] as const;
 
