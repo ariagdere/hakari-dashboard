@@ -159,19 +159,19 @@ function ScoreCard({ label, value, color, sub, subColor }: { label: string; valu
 // OPEN karti icin ozel duzen: sol = adet, sag = ust uste unrealized PnL + value at risk
 function OpenScoreCard({ count, unrealized, valueAtRisk }: { count: number; unrealized: number | null; valueAtRisk: number | null }) {
   return (
-    <div className="stat-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div className="stat-card" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
       <div>
         <div className="col-label" style={{ marginBottom: 4 }}>OPEN</div>
         <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>{count}</div>
       </div>
-      <div style={{ textAlign: 'right' }}>
+      <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: 2, alignSelf: 'flex-end' }}>
         <div
           className="mono"
           style={{ fontSize: 9, color: unrealized != null ? moneyColor(unrealized) : 'var(--text-3)' }}
         >
           PnL: {unrealized != null ? `${unrealized >= 0 ? '+' : ''}$${unrealized.toFixed(2)}` : '—'}
         </div>
-        <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 2 }}>
+        <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>
           VaR: {valueAtRisk != null ? `$${valueAtRisk.toFixed(2)}` : '—'}
         </div>
       </div>
