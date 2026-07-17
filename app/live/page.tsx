@@ -2,6 +2,13 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 import { createChart, ColorType, IChartApi, ISeriesApi, LineStyle } from 'lightweight-charts'
+import {
+  Chart as ChartJS, Tooltip, LineElement, PointElement,
+  LinearScale, Filler, Legend,
+} from 'chart.js'
+import { Line } from 'react-chartjs-2'
+
+ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, Filler, Legend)
 
 interface Order {
   id: number
@@ -293,9 +300,9 @@ function SelectDot({ selected }: { selected: boolean }) {
   )
 }
 
-// Bir strateji secimine gore, kapanan islemleri (history) kronolojik siralayip
-// kumulatif R noktalarini hesaplar. { time (local, saniye), value } dizisi doner.
-function buildEquitySeries(history: Order[], strategyLabels: string[] | null): Array<{ time: number; value: number }> {
+// Bir strateji secimine gore (null = tum hesap), kapanan islemleri kronolojik siralayip
+// kumulatif R noktalarini {x: ms timestamp, y: kumulatif R} olarak hesaplar.
+function buildEquitySeries(history: Order[], strategyLabels: string[] | null): Array<{ x: number; y: number }> {
   const closed = history.filter((o) => {
     if (o.status !== 'CLOSED') return false
     if (o.exit_reason !== 'TP' && o.exit_reason !== 'SL') return false
@@ -313,92 +320,122 @@ function buildEquitySeries(history: Order[], strategyLabels: string[] | null): A
     .sort((a, b) => a.t - b.t)
 
   let cum = 0
-  const points: Array<{ time: number; value: number }> = []
+  const points: Array<{ x: number; y: number }> = []
   for (const s of sorted) {
     cum += s.r
-    points.push({ time: toLocalTime(Math.floor(s.t / 1000)), value: Number(cum.toFixed(4)) })
+    points.push({ x: s.t, y: Number(cum.toFixed(4)) })
   }
   return points
 }
 
-const EQUITY_LINE_COLORS = ['#f59e0b', '#3b82f6', '#a78bfa', '#f472b6', '#4ade80', '#f87171']
+const EQUITY_LINE_COLORS = ['#f59e0b', '#3b82f6', '#a78bfa', '#f472b6', '#fbbf24']
 
+// Analiz sayfasindaki Cumulative R grafigiyle ayni tasarim dili (Chart.js, dolgulu alan,
+// DM Mono eksen fontu, koyu grid) — TradingView/lightweight-charts kullanilmiyor.
+// Varsayilan: tum hesabin solid cizgisi. Secim yapilinca uzerine ince dotted (secilenler)
+// + kalin dotted (kombine, 2+ secilirse) eklenir.
 function EquityCurveChart({ history, selectedStrategies }: { history: Order[]; selectedStrategies: string[] }) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const chartRef = useRef<IChartApi | null>(null)
-  const seriesRefs = useRef<any[]>([])
+  const total = buildEquitySeries(history, null)
+  const totalFinal = total.length > 0 ? total[total.length - 1].y : 0
+  const totalColor = totalFinal >= 0 ? '#4ade80' : '#f87171'
 
-  useEffect(() => {
-    if (!containerRef.current) return
-    const container = containerRef.current
-    const chart = createChart(container, {
-      layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: '#a0a0a0', fontFamily: 'DM Mono, monospace', fontSize: 10 },
-      grid: { vertLines: { color: '#1a1a1a' }, horzLines: { color: '#1a1a1a' } },
-      timeScale: { borderColor: '#242424', timeVisible: true, secondsVisible: false },
-      rightPriceScale: { borderColor: '#242424' },
-      crosshair: { mode: 0 },
-      width: container.clientWidth || 600,
-      height: 220,
+  const perStrategy = selectedStrategies.map((label, i) => ({
+    label,
+    color: EQUITY_LINE_COLORS[i % EQUITY_LINE_COLORS.length],
+    points: buildEquitySeries(history, [label]),
+  })).filter((s) => s.points.length > 0)
+
+  const combined = selectedStrategies.length >= 2 ? buildEquitySeries(history, selectedStrategies) : null
+
+  if (total.length === 0 && perStrategy.length === 0) {
+    return (
+      <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', padding: '40px 0', textAlign: 'center' }}>
+        No closed trades yet
+      </div>
+    )
+  }
+
+  const datasets: any[] = [
+    {
+      label: 'Total Account',
+      data: total,
+      borderColor: totalColor,
+      backgroundColor: totalColor === '#4ade80' ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)',
+      borderWidth: 1.5,
+      pointRadius: 0,
+      pointHitRadius: 12,
+      fill: true,
+      tension: 0.25,
+    },
+    ...perStrategy.map((s) => ({
+      label: s.label,
+      data: s.points,
+      borderColor: s.color,
+      borderWidth: 1.2,
+      borderDash: [3, 3],
+      pointRadius: 0,
+      pointHitRadius: 12,
+      fill: false,
+      tension: 0.25,
+    })),
+  ]
+
+  if (combined) {
+    datasets.push({
+      label: 'Combined (selected)',
+      data: combined,
+      borderColor: '#ffffff',
+      borderWidth: 2.5,
+      borderDash: [6, 4],
+      pointRadius: 0,
+      pointHitRadius: 12,
+      fill: false,
+      tension: 0.25,
     })
-    chartRef.current = chart
+  }
 
-    const handleResize = () => {
-      if (containerRef.current && chartRef.current) {
-        chartRef.current.applyOptions({ width: containerRef.current.clientWidth })
-      }
-    }
-    window.addEventListener('resize', handleResize)
-    requestAnimationFrame(handleResize)
-
-    return () => {
-      window.removeEventListener('resize', handleResize)
-      chart.remove()
-      chartRef.current = null
-    }
-  }, [])
-
-  useEffect(() => {
-    const chart = chartRef.current
-    if (!chart) return
-
-    // Onceki serileri temizle
-    seriesRefs.current.forEach((s) => { try { chart.removeSeries(s) } catch {} })
-    seriesRefs.current = []
-
-    if (selectedStrategies.length === 0) return
-
-    // Her secili strateji icin ince noktali cizgi
-    selectedStrategies.forEach((label, i) => {
-      const points = buildEquitySeries(history, [label])
-      if (points.length === 0) return
-      const color = EQUITY_LINE_COLORS[i % EQUITY_LINE_COLORS.length]
-      const series = chart.addLineSeries({
-        color, lineWidth: 1, lineStyle: LineStyle.Dotted,
-        priceLineVisible: false, lastValueVisible: true,
-        title: label,
-      })
-      series.setData(points as any)
-      seriesRefs.current.push(series)
-    })
-
-    // 2+ strateji seciliyse, birlesik (kombine) kalin noktali cizgi
-    if (selectedStrategies.length >= 2) {
-      const combinedPoints = buildEquitySeries(history, selectedStrategies)
-      if (combinedPoints.length > 0) {
-        const combinedSeries = chart.addLineSeries({
-          color: '#ffffff', lineWidth: 3, lineStyle: LineStyle.Dotted,
-          priceLineVisible: false, lastValueVisible: true,
-          title: 'Combined',
-        })
-        combinedSeries.setData(combinedPoints as any)
-        seriesRefs.current.push(combinedSeries)
-      }
-    }
-
-    chart.timeScale().fitContent()
-  }, [history, selectedStrategies])
-
-  return <div ref={containerRef} style={{ width: '100%' }} />
+  return (
+    <div style={{ height: 220 }}>
+      <Line
+        data={{ datasets }}
+        options={{
+          responsive: true,
+          maintainAspectRatio: false,
+          parsing: false,
+          interaction: { mode: 'nearest', intersect: false },
+          plugins: {
+            legend: {
+              display: true, position: 'top', align: 'end',
+              labels: { color: '#a0a0a0', font: { family: 'DM Mono', size: 9 }, boxWidth: 12, padding: 8, usePointStyle: false },
+            },
+            tooltip: {
+              displayColors: true,
+              callbacks: {
+                title: (items: any) => new Date(items[0].parsed.x).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }),
+                label: (ctx: any) => `${ctx.dataset.label}: ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(2)}R`,
+              },
+            },
+          },
+          scales: {
+            x: {
+              type: 'linear',
+              grid: { color: '#1a1a1a' },
+              ticks: {
+                color: '#555', font: { family: 'DM Mono', size: 9 }, maxTicksLimit: 8,
+                callback: (v: any) => new Date(v).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' }),
+              },
+              border: { color: '#242424' },
+            },
+            y: {
+              grid: { color: '#1a1a1a' },
+              ticks: { color: '#555', font: { family: 'DM Mono', size: 9 }, callback: (v: any) => `${v}R` },
+              border: { color: '#242424' },
+            },
+          },
+        } as any}
+      />
+    </div>
+  )
 }
 
 export default function LivePositionsPage() {
@@ -667,9 +704,9 @@ export default function LivePositionsPage() {
           <div className="card" style={{ padding: 16, marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <div className="col-label">EQUITY CURVE (R)</div>
-              {equityStrategies.size >= 2 && (
-                <span className="mono" style={{ fontSize: 10, color: 'var(--text-2)' }}>bold = combined</span>
-              )}
+              <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>
+                solid = total account{equityStrategies.size > 0 ? ' · dotted = selected' : ''}
+              </span>
             </div>
             <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
               {comparison.map((s) => (
@@ -683,13 +720,7 @@ export default function LivePositionsPage() {
                 </button>
               ))}
             </div>
-            {equityStrategies.size === 0 ? (
-              <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', padding: '20px 0', textAlign: 'center' }}>
-                Select one or more strategies above to view their equity curve
-              </div>
-            ) : (
-              <EquityCurveChart history={history} selectedStrategies={Array.from(equityStrategies)} />
-            )}
+            <EquityCurveChart history={history} selectedStrategies={Array.from(equityStrategies)} />
           </div>
         )}
 
