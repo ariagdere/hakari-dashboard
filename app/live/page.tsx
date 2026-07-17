@@ -167,9 +167,9 @@ function OpenScoreCard({ count, unrealized, valueAtRisk }: { count: number; unre
       <div style={{ textAlign: 'right' }}>
         <div
           className="mono"
-          style={{ fontSize: 11, fontWeight: 600, color: unrealized != null ? moneyColor(unrealized) : 'var(--text-3)' }}
+          style={{ fontSize: 9, color: unrealized != null ? moneyColor(unrealized) : 'var(--text-3)' }}
         >
-          {unrealized != null ? `${unrealized >= 0 ? '+' : ''}$${unrealized.toFixed(2)}` : '—'}
+          PnL: {unrealized != null ? `${unrealized >= 0 ? '+' : ''}$${unrealized.toFixed(2)}` : '—'}
         </div>
         <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 2 }}>
           VaR: {valueAtRisk != null ? `$${valueAtRisk.toFixed(2)}` : '—'}
