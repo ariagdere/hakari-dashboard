@@ -688,7 +688,7 @@ export default function LivePositionsPage() {
                 Select one or more strategies above to view their equity curve
               </div>
             ) : (
-              <EquityCurveChart history={history} selectedStrategies={[...equityStrategies]} />
+              <EquityCurveChart history={history} selectedStrategies={Array.from(equityStrategies)} />
             )}
           </div>
         )}
