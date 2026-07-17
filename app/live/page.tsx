@@ -152,7 +152,7 @@ function ScoreCard({ label, value, color, sub, subColor }: { label: string; valu
     <div className="stat-card">
       <div className="col-label" style={{ marginBottom: 4 }}>{label}</div>
       <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: color ?? 'var(--text)' }}>{value}</div>
-      {sub != null && <div className="mono" style={{ fontSize: 10, marginTop: 4, color: subColor ?? 'var(--text-3)' }}>{sub}</div>}
+      {sub != null && <div className="mono" style={{ fontSize: 10, marginTop: 4, color: subColor ?? 'var(--text-3)', whiteSpace: 'nowrap' }}>{sub}</div>}
     </div>
   )
 }
@@ -293,6 +293,114 @@ function SelectDot({ selected }: { selected: boolean }) {
   )
 }
 
+// Bir strateji secimine gore, kapanan islemleri (history) kronolojik siralayip
+// kumulatif R noktalarini hesaplar. { time (local, saniye), value } dizisi doner.
+function buildEquitySeries(history: Order[], strategyLabels: string[] | null): Array<{ time: number; value: number }> {
+  const closed = history.filter((o) => {
+    if (o.status !== 'CLOSED') return false
+    if (o.exit_reason !== 'TP' && o.exit_reason !== 'SL') return false
+    if (!o.closed_at) return false
+    if (strategyLabels && !strategyLabels.includes(o.strategy_label)) return false
+    return true
+  })
+  const sorted = closed
+    .map((o) => {
+      const rTarget = o.r_target
+      const rRisk = o.r_risk ?? 1
+      const r = o.exit_reason === 'TP' ? (rTarget ?? 0) : -rRisk
+      return { t: new Date(o.closed_at as string).getTime(), r }
+    })
+    .sort((a, b) => a.t - b.t)
+
+  let cum = 0
+  const points: Array<{ time: number; value: number }> = []
+  for (const s of sorted) {
+    cum += s.r
+    points.push({ time: toLocalTime(Math.floor(s.t / 1000)), value: Number(cum.toFixed(4)) })
+  }
+  return points
+}
+
+const EQUITY_LINE_COLORS = ['#f59e0b', '#3b82f6', '#a78bfa', '#f472b6', '#4ade80', '#f87171']
+
+function EquityCurveChart({ history, selectedStrategies }: { history: Order[]; selectedStrategies: string[] }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const chartRef = useRef<IChartApi | null>(null)
+  const seriesRefs = useRef<any[]>([])
+
+  useEffect(() => {
+    if (!containerRef.current) return
+    const container = containerRef.current
+    const chart = createChart(container, {
+      layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: '#a0a0a0', fontFamily: 'DM Mono, monospace', fontSize: 10 },
+      grid: { vertLines: { color: '#1a1a1a' }, horzLines: { color: '#1a1a1a' } },
+      timeScale: { borderColor: '#242424', timeVisible: true, secondsVisible: false },
+      rightPriceScale: { borderColor: '#242424' },
+      crosshair: { mode: 0 },
+      width: container.clientWidth || 600,
+      height: 220,
+    })
+    chartRef.current = chart
+
+    const handleResize = () => {
+      if (containerRef.current && chartRef.current) {
+        chartRef.current.applyOptions({ width: containerRef.current.clientWidth })
+      }
+    }
+    window.addEventListener('resize', handleResize)
+    requestAnimationFrame(handleResize)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      chart.remove()
+      chartRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    const chart = chartRef.current
+    if (!chart) return
+
+    // Onceki serileri temizle
+    seriesRefs.current.forEach((s) => { try { chart.removeSeries(s) } catch {} })
+    seriesRefs.current = []
+
+    if (selectedStrategies.length === 0) return
+
+    // Her secili strateji icin ince noktali cizgi
+    selectedStrategies.forEach((label, i) => {
+      const points = buildEquitySeries(history, [label])
+      if (points.length === 0) return
+      const color = EQUITY_LINE_COLORS[i % EQUITY_LINE_COLORS.length]
+      const series = chart.addLineSeries({
+        color, lineWidth: 1, lineStyle: LineStyle.Dotted,
+        priceLineVisible: false, lastValueVisible: true,
+        title: label,
+      })
+      series.setData(points as any)
+      seriesRefs.current.push(series)
+    })
+
+    // 2+ strateji seciliyse, birlesik (kombine) kalin noktali cizgi
+    if (selectedStrategies.length >= 2) {
+      const combinedPoints = buildEquitySeries(history, selectedStrategies)
+      if (combinedPoints.length > 0) {
+        const combinedSeries = chart.addLineSeries({
+          color: '#ffffff', lineWidth: 3, lineStyle: LineStyle.Dotted,
+          priceLineVisible: false, lastValueVisible: true,
+          title: 'Combined',
+        })
+        combinedSeries.setData(combinedPoints as any)
+        seriesRefs.current.push(combinedSeries)
+      }
+    }
+
+    chart.timeScale().fitContent()
+  }, [history, selectedStrategies])
+
+  return <div ref={containerRef} style={{ width: '100%' }} />
+}
+
 export default function LivePositionsPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [history, setHistory] = useState<Order[]>([])
@@ -306,6 +414,16 @@ export default function LivePositionsPage() {
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 20
   const [strategyFilter, setStrategyFilter] = useState<string>('ALL')
+  const [equityStrategies, setEquityStrategies] = useState<Set<string>>(new Set())
+
+  const toggleEquityStrategy = (label: string) => {
+    setEquityStrategies((prev) => {
+      const next = new Set(prev)
+      if (next.has(label)) next.delete(label)
+      else next.add(label)
+      return next
+    })
+  }
   const [comparison, setComparison] = useState<StrategyRow[]>([])
 
   const toggleSelect = (id: number) => {
@@ -503,7 +621,7 @@ export default function LivePositionsPage() {
               label="TP HIT"
               value={stats.tp_count}
               color="var(--green)"
-              sub={`Max Cons Win: ${stats.max_consecutive_wins}`}
+              sub={`Max Cons: ${stats.max_consecutive_wins}`}
             />
             <ScoreCard
               label="SL HIT"
