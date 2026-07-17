@@ -80,6 +80,7 @@ function calcPnL(order: Order, bid: number, ask: number, volume: number): number
   return (entry - ask) * volume
 }
 const pnlClass = (v: number) => (v > 0 ? 'pnl-pos' : v < 0 ? 'pnl-neg' : 'pnl-zero')
+const moneyColor = (v: number) => (v >= 0 ? 'var(--green)' : 'var(--red)')
 const dirBadge = (d: string) => {
   if (d === 'SELL' || d === 'SHORT') return <span className="badge badge-short">{d}</span>
   if (d === 'BUY' || d === 'LONG') return <span className="badge badge-long">{d}</span>
@@ -151,6 +152,29 @@ function ScoreCard({ label, value, color, sub, subColor }: { label: string; valu
       <div className="col-label" style={{ marginBottom: 4 }}>{label}</div>
       <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: color ?? 'var(--text)' }}>{value}</div>
       {sub != null && <div className="mono" style={{ fontSize: 10, marginTop: 4, color: subColor ?? 'var(--text-3)' }}>{sub}</div>}
+    </div>
+  )
+}
+
+// OPEN karti icin ozel duzen: sol = adet, sag = ust uste unrealized PnL + value at risk
+function OpenScoreCard({ count, unrealized, valueAtRisk }: { count: number; unrealized: number | null; valueAtRisk: number | null }) {
+  return (
+    <div className="stat-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div>
+        <div className="col-label" style={{ marginBottom: 4 }}>OPEN</div>
+        <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>{count}</div>
+      </div>
+      <div style={{ textAlign: 'right' }}>
+        <div
+          className="mono"
+          style={{ fontSize: 11, fontWeight: 600, color: unrealized != null ? moneyColor(unrealized) : 'var(--text-3)' }}
+        >
+          {unrealized != null ? `${unrealized >= 0 ? '+' : ''}$${unrealized.toFixed(2)}` : '—'}
+        </div>
+        <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 2 }}>
+          VaR: {valueAtRisk != null ? `$${valueAtRisk.toFixed(2)}` : '—'}
+        </div>
+      </div>
     </div>
   )
 }
@@ -345,15 +369,22 @@ export default function LivePositionsPage() {
 
   const midPrice = price ? (price.bid + price.ask) / 2 : null
   const fmtMoney = (v: number) => `${v > 0 ? '+' : ''}$${Math.abs(v).toFixed(0)}`
-  const moneyColor = (v: number) => (v >= 0 ? 'var(--green)' : 'var(--red)')
 
-  // Acik pozisyonlarin toplam unrealized PnL'i (strateji filtresine uyar, normalize 50$)
+  // Acik pozisyonlarin toplam unrealized PnL'i (strateji filtresine uyar)
   const totalUnrealized =
     price !== null
       ? orders
           .filter((o) => o.status === 'OPEN' && (strategyFilter === 'ALL' || o.strategy_label === strategyFilter))
           .reduce((sum, o) => sum + calcPnL(o, price.bid, price.ask, getDisplayVolume(o)), 0)
       : null
+
+  // Acik pozisyonlarin toplam Value at Risk'i (SL'e giderse kaybedilecek toplam $ - strateji filtresine uyar)
+  const totalValueAtRisk = orders
+    .filter((o) => o.status === 'OPEN' && (strategyFilter === 'ALL' || o.strategy_label === strategyFilter))
+    .reduce((sum, o) => {
+      const entry = o.fill_price ?? o.entry_price
+      return sum + Math.abs(entry - o.sl) * getDisplayVolume(o)
+    }, 0)
 
   // Strateji filtresi once tum satirlara uygulanir (skorkart stats route'tan filtreli geliyor)
   const stratRows = [...orders, ...history].filter((o) =>
@@ -460,12 +491,10 @@ export default function LivePositionsPage() {
           <div className="live-scorecards">
             <ScoreCard label="TOTAL" value={stats.total_orders} />
             <ScoreCard label="PENDING" value={stats.pending} color="var(--amber)" />
-            <ScoreCard
-              label="OPEN"
-              value={stats.open}
-              color="var(--green)"
-              sub={totalUnrealized != null && stats.open > 0 ? `${totalUnrealized >= 0 ? '+' : ''}$${totalUnrealized.toFixed(2)}` : undefined}
-              subColor={totalUnrealized != null ? moneyColor(totalUnrealized) : undefined}
+            <OpenScoreCard
+              count={stats.open}
+              unrealized={stats.open > 0 ? totalUnrealized : null}
+              valueAtRisk={stats.open > 0 ? totalValueAtRisk : null}
             />
             <ScoreCard label="EXPIRED" value={stats.expired} color="var(--text-2)" />
             <ScoreCard label="WIN RATE" value={`%${stats.win_rate.toFixed(1)}`} color={wpColor(stats.win_rate)} />
