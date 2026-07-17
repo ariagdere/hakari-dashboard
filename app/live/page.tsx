@@ -40,6 +40,7 @@ interface Stats {
   total_orders: number; pending: number; open: number; expired: number
   win_rate: number; tp_count: number; sl_count: number
   avg_win_r: number | null; total_r: number; total_pnl: number
+  max_drawdown: number; max_consecutive_wins: number
 }
 interface Candle { time: number; open: number; high: number; low: number; close: number }
 
@@ -498,8 +499,18 @@ export default function LivePositionsPage() {
             />
             <ScoreCard label="EXPIRED" value={stats.expired} color="var(--text-2)" />
             <ScoreCard label="WIN RATE" value={`%${stats.win_rate.toFixed(1)}`} color={wpColor(stats.win_rate)} />
-            <ScoreCard label="TP HIT" value={stats.tp_count} color="var(--green)" />
-            <ScoreCard label="SL HIT" value={stats.sl_count} color="var(--red)" />
+            <ScoreCard
+              label="TP HIT"
+              value={stats.tp_count}
+              color="var(--green)"
+              sub={`Max Cons Win: ${stats.max_consecutive_wins}`}
+            />
+            <ScoreCard
+              label="SL HIT"
+              value={stats.sl_count}
+              color="var(--red)"
+              sub={`Max DD: -${stats.max_drawdown.toFixed(2)}R`}
+            />
             <ScoreCard label="AVG WIN R" value={stats.avg_win_r != null ? `+${stats.avg_win_r.toFixed(2)}R` : '—'} color="var(--green)" />
             <ScoreCard label="TOTAL R" value={`${stats.total_r >= 0 ? '+' : ''}${stats.total_r.toFixed(2)}R`} color={moneyColor(stats.total_r)} />
             <ScoreCard
