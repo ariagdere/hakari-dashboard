@@ -300,8 +300,9 @@ function SelectDot({ selected }: { selected: boolean }) {
   )
 }
 
-// Bir strateji secimine gore (null = tum hesap), kapanan islemleri kronolojik siralayip
-// kumulatif R noktalarini {x: ms timestamp, y: kumulatif R} olarak hesaplar.
+// Bir strateji secimine gore (null = tum hesap), kapanan islemleri GUNLUK bucket'lara
+// toplayip {x: gun (ms), y: o gunun sonundaki kumulatif R} dizisi doner — analiz sayfasindaki
+// Cumulative R grafiginin gunluk moduyla ayni mantik (her trade degil, her gun tek nokta).
 function buildEquitySeries(history: Order[], strategyLabels: string[] | null): Array<{ x: number; y: number }> {
   const closed = history.filter((o) => {
     if (o.status !== 'CLOSED') return false
@@ -310,20 +311,23 @@ function buildEquitySeries(history: Order[], strategyLabels: string[] | null): A
     if (strategyLabels && !strategyLabels.includes(o.strategy_label)) return false
     return true
   })
-  const sorted = closed
-    .map((o) => {
-      const rTarget = o.r_target
-      const rRisk = o.r_risk ?? 1
-      const r = o.exit_reason === 'TP' ? (rTarget ?? 0) : -rRisk
-      return { t: new Date(o.closed_at as string).getTime(), r }
-    })
-    .sort((a, b) => a.t - b.t)
 
+  // Gune gore grupla (yerel saat diliminde, 'sv-SE' formati guvenilir YYYY-MM-DD verir)
+  const byDay = new Map<string, number>()
+  for (const o of closed) {
+    const rTarget = o.r_target
+    const rRisk = o.r_risk ?? 1
+    const r = o.exit_reason === 'TP' ? (rTarget ?? 0) : -rRisk
+    const dayKey = new Date(o.closed_at as string).toLocaleDateString('sv-SE')
+    byDay.set(dayKey, (byDay.get(dayKey) ?? 0) + r)
+  }
+
+  const days = Array.from(byDay.keys()).sort()
   let cum = 0
   const points: Array<{ x: number; y: number }> = []
-  for (const s of sorted) {
-    cum += s.r
-    points.push({ x: s.t, y: Number(cum.toFixed(4)) })
+  for (const day of days) {
+    cum += byDay.get(day) ?? 0
+    points.push({ x: new Date(day + 'T00:00:00').getTime(), y: Number(cum.toFixed(4)) })
   }
   return points
 }
@@ -411,7 +415,7 @@ function EquityCurveChart({ history, selectedStrategies }: { history: Order[]; s
             tooltip: {
               displayColors: true,
               callbacks: {
-                title: (items: any) => new Date(items[0].parsed.x).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }),
+                title: (items: any) => new Date(items[0].parsed.x).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
                 label: (ctx: any) => `${ctx.dataset.label}: ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(2)}R`,
               },
             },
