@@ -662,6 +662,37 @@ export default function LivePositionsPage() {
           </div>
         </div>
 
+        {/* Equity curve */}
+        {comparison.length > 0 && (
+          <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <div className="col-label">EQUITY CURVE (R)</div>
+              {equityStrategies.size >= 2 && (
+                <span className="mono" style={{ fontSize: 10, color: 'var(--text-2)' }}>bold = combined</span>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+              {comparison.map((s) => (
+                <button
+                  key={s.strategy_label}
+                  className={`filter-btn${equityStrategies.has(s.strategy_label) ? ' active' : ''}`}
+                  style={{ fontSize: 11 }}
+                  onClick={() => toggleEquityStrategy(s.strategy_label)}
+                >
+                  {s.strategy_label}
+                </button>
+              ))}
+            </div>
+            {equityStrategies.size === 0 ? (
+              <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', padding: '20px 0', textAlign: 'center' }}>
+                Select one or more strategies above to view their equity curve
+              </div>
+            ) : (
+              <EquityCurveChart history={history} selectedStrategies={[...equityStrategies]} />
+            )}
+          </div>
+        )}
+
         {/* Strategy comparison */}
         {comparison.length > 0 && (
           <>
