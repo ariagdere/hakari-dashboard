@@ -776,14 +776,14 @@ export default function LivePositionsPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 64 }}>
       <style>{`
-        .live-scorecards { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+        .live-scorecards { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
         .live-section-title { font-size: 11px; color: var(--text-3); letter-spacing: 0.08em; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-family: 'DM Mono', monospace; }
         .live-table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: 'DM Mono', monospace; }
         .live-table-wrap { overflow-x: auto; }
         .live-mobile-cards { display: none; }
         .live-date-input { background: var(--bg-3); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 10px; padding: 3px 8px; font-family: 'DM Mono', monospace; }
         @media (max-width: 1200px) {
-          .live-scorecards { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+          .live-scorecards { grid-template-columns: repeat(5, minmax(0, 1fr)); }
         }
         @media (max-width: 768px) {
           .live-scorecards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -866,12 +866,11 @@ export default function LivePositionsPage() {
               sub={`Max DD: -${stats.max_drawdown.toFixed(2)}R`}
             />
             <ScoreCard
-              label="TOTAL WIN R"
-              value={`+${stats.total_win_r.toFixed(2)}R`}
-              color="var(--green)"
+              label="TOTAL R"
+              value={`${stats.total_r >= 0 ? '+' : ''}${stats.total_r.toFixed(2)}R`}
+              color={moneyColor(stats.total_r)}
               sub={stats.avg_win_r != null ? `Avg: +${stats.avg_win_r.toFixed(2)}R` : 'Avg: —'}
             />
-            <ScoreCard label="TOTAL R" value={`${stats.total_r >= 0 ? '+' : ''}${stats.total_r.toFixed(2)}R`} color={moneyColor(stats.total_r)} />
             <ScoreCard
               label="TOTAL P&L"
               value={fmtMoney(stats.total_pnl)}
