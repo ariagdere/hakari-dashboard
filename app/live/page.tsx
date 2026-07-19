@@ -1,14 +1,14 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { createChart, ColorType, IChartApi, ISeriesApi, LineStyle } from 'lightweight-charts'
 import {
   Chart as ChartJS, Tooltip, LineElement, PointElement,
-  LinearScale, Filler, Legend,
+  LinearScale, CategoryScale, Filler, Legend,
 } from 'chart.js'
 import { Line } from 'react-chartjs-2'
 
-ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, Filler, Legend)
+ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, Filler, Legend)
 
 interface Order {
   id: number
@@ -37,16 +37,19 @@ interface Order {
   is_manual?: boolean
   position_size_btc: number | null
   win_probability_v6: number | null
+  win_probability_v6_reverse: number | null
   analyzed_at: string | null
   analysis_rr: string | null
   sim_result: string | null
 }
 
 interface Price { bid: number; ask: number; time: string }
+interface AccountInfo { balance: number; currency: string }
+
 interface Stats {
   total_orders: number; pending: number; open: number; expired: number
   win_rate: number; tp_count: number; sl_count: number
-  avg_win_r: number | null; total_r: number; total_pnl: number
+  avg_win_r: number | null; total_win_r: number; total_r: number; total_pnl: number
   max_drawdown: number; max_consecutive_wins: number
 }
 interface Candle { time: number; open: number; high: number; low: number; close: number }
@@ -67,8 +70,7 @@ interface StrategyRow {
   total_pnl: number
   avg_duration_min: number | null
   max_drawdown_r: number
-  avg_wp_v6: number | null
-  calibration_gap: number | null
+  max_consecutive_wins: number
 }
 
 const POLL_INTERVAL_MS = 5000
@@ -154,6 +156,122 @@ const fmtRR = (order: Order) => {
 const TZ_OFFSET_SEC = -new Date().getTimezoneOffset() * 60 // İstanbul icin +10800
 const toLocalTime = (unixSec: number) => unixSec + TZ_OFFSET_SEC
 
+// -------------------- TARIH FILTRESI --------------------
+// Genel sayfa tarih filtresi. Sadece kapanan/iptal edilen (gecmis) kayitlara uygulanir;
+// acik/pending pozisyonlar her zaman gosterilir (anlik durumdur, tarih araligindan bagimsiz).
+function withinDateRange(dateStr: string | null | undefined, from: string, to: string): boolean {
+  if (!from && !to) return true
+  if (!dateStr) return true
+  const d = new Date(dateStr)
+  if (from) {
+    const f = new Date(from + 'T00:00:00')
+    if (d < f) return false
+  }
+  if (to) {
+    const t = new Date(to + 'T23:59:59')
+    if (d > t) return false
+  }
+  return true
+}
+
+// -------------------- CLIENT-SIDE AGGREGATION --------------------
+// Skorkartlar ve strateji karsilastirmasi artik sunucudan degil, zaten yuklu olan
+// orders+history dizilerinden hesaplaniyor. Bu sayede 3 farkli strateji secici
+// (ust toggle, equity curve, karsilastirma tablosu) TEK bir hesaplama fonksiyonunu
+// besliyor ve her zaman ayni sonucu uretiyor.
+function computeStats(historyRows: Order[], liveRows: Order[]): Stats {
+  let pending = 0, open = 0, expired = 0, closed = 0, tp = 0, sl = 0
+  let totalPnl = 0, totalR = 0, winRSum = 0, winCount = 0
+  const closedSeries: Array<{ t: number; r: number }> = []
+
+  liveRows.forEach((o) => {
+    if (o.status === 'PENDING') pending++
+    else if (o.status === 'OPEN') open++
+  })
+
+  historyRows.forEach((o) => {
+    if (o.status === 'CANCELED') {
+      if (o.exit_reason === 'EXPIRED') expired++
+      return
+    }
+    if (o.status !== 'CLOSED') return
+    closed++
+    if (o.exit_reason === 'TP') tp++
+    else if (o.exit_reason === 'SL') sl++
+
+    totalPnl += o.realized_pnl ?? 0
+
+    const rTarget = o.r_target
+    const rRisk = o.r_risk ?? 1
+    let rVal = 0
+    if (o.exit_reason === 'TP' && rTarget != null) {
+      rVal = rTarget
+      totalR += rTarget
+      winRSum += rTarget
+      winCount++
+    } else if (o.exit_reason === 'SL') {
+      rVal = -rRisk
+      totalR += -rRisk
+    }
+
+    if (o.closed_at) closedSeries.push({ t: new Date(o.closed_at).getTime(), r: rVal })
+  })
+
+  const totalOrders = liveRows.length + historyRows.length
+  const decided = tp + sl
+  const winRate = decided > 0 ? (tp / decided) * 100 : 0
+  const avgWinR = winCount > 0 ? winRSum / winCount : null
+
+  const sortedSeries = closedSeries.slice().sort((a, b) => a.t - b.t)
+  let cum = 0, peak = 0, maxDD = 0, streak = 0, maxStreak = 0
+  sortedSeries.forEach((s) => {
+    cum += s.r
+    if (cum > peak) peak = cum
+    const dd = peak - cum
+    if (dd > maxDD) maxDD = dd
+    if (s.r > 0) { streak++; if (streak > maxStreak) maxStreak = streak } else streak = 0
+  })
+
+  return {
+    total_orders: totalOrders, pending, open, expired, closed,
+    tp_count: tp, sl_count: sl,
+    win_rate: Number(winRate.toFixed(1)),
+    avg_win_r: avgWinR != null ? Number(avgWinR.toFixed(2)) : null,
+    total_win_r: Number(winRSum.toFixed(2)),
+    total_r: Number(totalR.toFixed(2)),
+    total_pnl: Number(totalPnl.toFixed(2)),
+    max_drawdown: Number(maxDD.toFixed(2)),
+    max_consecutive_wins: maxStreak,
+  }
+}
+
+function computeStrategyComparison(orders: Order[], history: Order[]): StrategyRow[] {
+  const labels = new Set<string>()
+  orders.forEach((o) => { if (o.strategy_label !== 'MANUAL') labels.add(o.strategy_label) })
+  history.forEach((o) => { if (o.strategy_label !== 'MANUAL') labels.add(o.strategy_label) })
+
+  return Array.from(labels).map((label) => {
+    const liveRows = orders.filter((o) => o.strategy_label === label)
+    const histRows = history.filter((o) => o.strategy_label === label)
+    const s = computeStats(histRows, liveRows)
+
+    const durations = histRows
+      .filter((o) => o.status === 'CLOSED' && o.opened_at && o.closed_at)
+      .map((o) => (new Date(o.closed_at as string).getTime() - new Date(o.opened_at as string).getTime()) / 60000)
+    const avgDur = durations.length > 0 ? durations.reduce((a, b) => a + b, 0) / durations.length : null
+
+    const magic = liveRows[0]?.magic ?? histRows[0]?.magic ?? 0
+
+    return {
+      magic, strategy_label: label,
+      total: s.total_orders, open: s.open, pending: s.pending, expired: s.expired, closed: s.closed,
+      tp_count: s.tp_count, sl_count: s.sl_count, win_rate: s.win_rate, avg_win_r: s.avg_win_r,
+      total_r: s.total_r, total_pnl: s.total_pnl, avg_duration_min: avgDur,
+      max_drawdown_r: s.max_drawdown, max_consecutive_wins: s.max_consecutive_wins,
+    }
+  }).sort((a, b) => b.total - a.total)
+}
+
 function ScoreCard({ label, value, color, sub, subColor }: { label: string; value: React.ReactNode; color?: string; sub?: React.ReactNode; subColor?: string }) {
   return (
     <div className="stat-card">
@@ -173,10 +291,7 @@ function OpenScoreCard({ count, unrealized, valueAtRisk }: { count: number; unre
         <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>{count}</div>
       </div>
       <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: 2, alignSelf: 'flex-end' }}>
-        <div
-          className="mono"
-          style={{ fontSize: 9, color: unrealized != null ? moneyColor(unrealized) : 'var(--text-3)' }}
-        >
+        <div className="mono" style={{ fontSize: 9, color: unrealized != null ? moneyColor(unrealized) : 'var(--text-3)' }}>
           PnL: {unrealized != null ? `${unrealized >= 0 ? '+' : ''}$${unrealized.toFixed(2)}` : '—'}
         </div>
         <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>
@@ -268,20 +383,17 @@ function LiveChart({ candles, selectedOrders }: { candles: Candle[]; selectedOrd
     const roundToCandle = (iso: string) => {
       const ts = Math.floor(new Date(iso).getTime() / 1000)
       const rounded = Math.floor(ts / CANDLE_SEC) * CANDLE_SEC
-      return toLocalTime(rounded) // candle'lar local'e kaydirildi, markerlar da
+      return toLocalTime(rounded)
     }
     const markers: any[] = []
     selectedOrders.forEach((o) => {
       const isBuy = isLong(o.direction)
-      // Order olusturma (created_at = order'in gonderildigi/PENDING oldugu mum)
       if (o.created_at) {
         markers.push({ time: roundToCandle(o.created_at), position: 'aboveBar', color: '#fbbf24', shape: 'square', text: `Order #${o.id}` })
       }
-      // Giris (opened_at = fill mumu)
       if (o.opened_at) {
         markers.push({ time: roundToCandle(o.opened_at), position: isBuy ? 'belowBar' : 'aboveBar', color: '#60a5fa', shape: isBuy ? 'arrowUp' : 'arrowDown', text: `In #${o.id}` })
       }
-      // Cikis (closed_at)
       if (o.status === 'CLOSED' && o.closed_at) {
         const exitColor = o.exit_reason === 'TP' ? '#4ade80' : o.exit_reason === 'SL' ? '#f87171' : '#a0a0a0'
         markers.push({ time: roundToCandle(o.closed_at), position: isBuy ? 'aboveBar' : 'belowBar', color: exitColor, shape: 'circle', text: `Out #${o.id} ${o.exit_reason ?? ''}` })
@@ -300,58 +412,76 @@ function SelectDot({ selected }: { selected: boolean }) {
   )
 }
 
-// Bir strateji secimine gore (null = tum hesap), kapanan islemleri GUNLUK bucket'lara
-// toplayip {x: gun (ms), y: o gunun sonundaki kumulatif R} dizisi doner — analiz sayfasindaki
-// Cumulative R grafiginin gunluk moduyla ayni mantik (her trade degil, her gun tek nokta).
-function buildEquitySeries(history: Order[], strategyLabels: string[] | null): Array<{ x: number; y: number }> {
-  const closed = history.filter((o) => {
-    if (o.status !== 'CLOSED') return false
-    if (o.exit_reason !== 'TP' && o.exit_reason !== 'SL') return false
-    if (!o.closed_at) return false
-    if (strategyLabels && !strategyLabels.includes(o.strategy_label)) return false
-    return true
-  })
+// -------------------- EQUITY CURVE (Chart.js, kategori ekseni) --------------------
+// Analiz sayfasindaki Cumulative R grafigiyle ayni tasarim dili ve ayni mantik:
+// tum seriler AYNI (paylasilan) gun/hafta/ay etiket listesine hizalanir (category axis),
+// bu yuzden eksendeki tarih ile noktalar HER ZAMAN birebir eslesir.
+type EquityPeriod = 'daily' | 'weekly' | 'monthly'
 
-  // Gune gore grupla (yerel saat diliminde, 'sv-SE' formati guvenilir YYYY-MM-DD verir)
-  const byDay = new Map<string, number>()
-  for (const o of closed) {
+function bucketKey(date: Date, period: EquityPeriod): string {
+  if (period === 'monthly') {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+  }
+  if (period === 'weekly') {
+    const d = new Date(date)
+    const day = (d.getDay() + 6) % 7 // 0=Pazartesi
+    d.setDate(d.getDate() - day)
+    return d.toLocaleDateString('sv-SE')
+  }
+  return date.toLocaleDateString('sv-SE')
+}
+
+function bucketLabel(key: string, period: EquityPeriod): string {
+  if (period === 'monthly') {
+    const [y, m] = key.split('-')
+    return `${m}/${y.slice(2)}`
+  }
+  const d = new Date(key + 'T00:00:00')
+  return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })
+}
+
+function computeBucketRSums(rows: Order[], period: EquityPeriod): Map<string, number> {
+  const map = new Map<string, number>()
+  for (const o of rows) {
+    if (o.status !== 'CLOSED') continue
+    if (o.exit_reason !== 'TP' && o.exit_reason !== 'SL') continue
+    if (!o.closed_at) continue
     const rTarget = o.r_target
     const rRisk = o.r_risk ?? 1
     const r = o.exit_reason === 'TP' ? (rTarget ?? 0) : -rRisk
-    const dayKey = new Date(o.closed_at as string).toLocaleDateString('sv-SE')
-    byDay.set(dayKey, (byDay.get(dayKey) ?? 0) + r)
+    const key = bucketKey(new Date(o.closed_at), period)
+    map.set(key, (map.get(key) ?? 0) + r)
   }
+  return map
+}
 
-  const days = Array.from(byDay.keys()).sort()
+// globalLabels'a hizali dizi doner. Ilk trade'den once null (cizgi baslamaz),
+// sonrasinda kumulatif deger duz (flat) devam eder (trade olmayan gunlerde sabit kalir).
+function alignSeries(rSumsByKey: Map<string, number>, globalLabels: string[]): Array<number | null> {
   let cum = 0
-  const points: Array<{ x: number; y: number }> = []
-  for (const day of days) {
-    cum += byDay.get(day) ?? 0
-    points.push({ x: new Date(day + 'T00:00:00').getTime(), y: Number(cum.toFixed(4)) })
+  let started = false
+  const out: Array<number | null> = []
+  for (const key of globalLabels) {
+    if (rSumsByKey.has(key)) started = true
+    if (!started) { out.push(null); continue }
+    cum += rSumsByKey.get(key) ?? 0
+    out.push(Number(cum.toFixed(4)))
   }
-  return points
+  return out
 }
 
 const EQUITY_LINE_COLORS = ['#f59e0b', '#3b82f6', '#a78bfa', '#f472b6', '#fbbf24']
 
-// Analiz sayfasindaki Cumulative R grafigiyle ayni tasarim dili (Chart.js, dolgulu alan,
-// DM Mono eksen fontu, koyu grid) — TradingView/lightweight-charts kullanilmiyor.
-// Varsayilan: tum hesabin solid cizgisi. Secim yapilinca uzerine ince dotted (secilenler)
-// + kalin dotted (kombine, 2+ secilirse) eklenir.
-function EquityCurveChart({ history, selectedStrategies }: { history: Order[]; selectedStrategies: string[] }) {
-  const total = buildEquitySeries(history, null)
-  const totalFinal = total.length > 0 ? total[total.length - 1].y : 0
-  const totalColor = totalFinal >= 0 ? '#4ade80' : '#f87171'
+function EquityCurveChart({ history, selectedStrategies, period }: { history: Order[]; selectedStrategies: string[]; period: EquityPeriod }) {
+  const allKeys = new Set<string>()
+  history.forEach((o) => {
+    if (o.status === 'CLOSED' && (o.exit_reason === 'TP' || o.exit_reason === 'SL') && o.closed_at) {
+      allKeys.add(bucketKey(new Date(o.closed_at), period))
+    }
+  })
+  const globalLabels = Array.from(allKeys).sort()
 
-  const perStrategy = selectedStrategies.map((label, i) => ({
-    label,
-    color: EQUITY_LINE_COLORS[i % EQUITY_LINE_COLORS.length],
-    points: buildEquitySeries(history, [label]),
-  })).filter((s) => s.points.length > 0)
-
-  const combined = selectedStrategies.length >= 2 ? buildEquitySeries(history, selectedStrategies) : null
-
-  if (total.length === 0 && perStrategy.length === 0) {
+  if (globalLabels.length === 0) {
     return (
       <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', padding: '40px 0', textAlign: 'center' }}>
         No closed trades yet
@@ -359,28 +489,47 @@ function EquityCurveChart({ history, selectedStrategies }: { history: Order[]; s
     )
   }
 
+  const displayLabels = globalLabels.map((k) => bucketLabel(k, period))
+
+  const totalSums = computeBucketRSums(history, period)
+  const totalSeries = alignSeries(totalSums, globalLabels)
+  const totalFinal = totalSeries.length > 0 ? (totalSeries[totalSeries.length - 1] ?? 0) : 0
+  const totalColor = totalFinal >= 0 ? '#4ade80' : '#f87171'
+
+  const perStrategy = selectedStrategies.map((label, i) => {
+    const rows = history.filter((o) => o.strategy_label === label)
+    const sums = computeBucketRSums(rows, period)
+    return { label, color: EQUITY_LINE_COLORS[i % EQUITY_LINE_COLORS.length], data: alignSeries(sums, globalLabels) }
+  })
+
+  const combined = selectedStrategies.length >= 2
+    ? alignSeries(computeBucketRSums(history.filter((o) => selectedStrategies.includes(o.strategy_label)), period), globalLabels)
+    : null
+
   const datasets: any[] = [
     {
       label: 'Total Account',
-      data: total,
+      data: totalSeries,
       borderColor: totalColor,
       backgroundColor: totalColor === '#4ade80' ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)',
       borderWidth: 1.5,
       pointRadius: 0,
       pointHitRadius: 12,
       fill: true,
-      tension: 0.25,
+      tension: 0.2,
+      spanGaps: true,
     },
     ...perStrategy.map((s) => ({
       label: s.label,
-      data: s.points,
+      data: s.data,
       borderColor: s.color,
       borderWidth: 1.2,
       borderDash: [3, 3],
       pointRadius: 0,
       pointHitRadius: 12,
       fill: false,
-      tension: 0.25,
+      tension: 0.2,
+      spanGaps: false,
     })),
   ]
 
@@ -394,18 +543,18 @@ function EquityCurveChart({ history, selectedStrategies }: { history: Order[]; s
       pointRadius: 0,
       pointHitRadius: 12,
       fill: false,
-      tension: 0.25,
+      tension: 0.2,
+      spanGaps: false,
     })
   }
 
   return (
     <div style={{ height: 220 }}>
       <Line
-        data={{ datasets }}
+        data={{ labels: displayLabels, datasets }}
         options={{
           responsive: true,
           maintainAspectRatio: false,
-          parsing: false,
           interaction: { mode: 'nearest', intersect: false },
           plugins: {
             legend: {
@@ -415,19 +564,15 @@ function EquityCurveChart({ history, selectedStrategies }: { history: Order[]; s
             tooltip: {
               displayColors: true,
               callbacks: {
-                title: (items: any) => new Date(items[0].parsed.x).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-                label: (ctx: any) => `${ctx.dataset.label}: ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(2)}R`,
+                title: (items: any) => items[0]?.label ?? '',
+                label: (ctx: any) => ctx.parsed.y == null ? undefined : `${ctx.dataset.label}: ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y.toFixed(2)}R`,
               },
             },
           },
           scales: {
             x: {
-              type: 'linear',
               grid: { color: '#1a1a1a' },
-              ticks: {
-                color: '#555', font: { family: 'DM Mono', size: 9 }, maxTicksLimit: 8,
-                callback: (v: any) => new Date(v).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' }),
-              },
+              ticks: { color: '#555', font: { family: 'DM Mono', size: 9 }, maxTicksLimit: 10 },
               border: { color: '#242424' },
             },
             y: {
@@ -446,7 +591,7 @@ export default function LivePositionsPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [history, setHistory] = useState<Order[]>([])
   const [price, setPrice] = useState<Price | null>(null)
-  const [stats, setStats] = useState<Stats | null>(null)
+  const [accountInfo, setAccountInfo] = useState<AccountInfo | null>(null)
   const [candles, setCandles] = useState<Candle[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -454,18 +599,26 @@ export default function LivePositionsPage() {
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'OPEN' | 'CLOSED' | 'CANCELED'>('ALL')
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 20
-  const [strategyFilter, setStrategyFilter] = useState<string>('ALL')
-  const [equityStrategies, setEquityStrategies] = useState<Set<string>>(new Set())
 
-  const toggleEquityStrategy = (label: string) => {
-    setEquityStrategies((prev) => {
+  // Tekilleştirilmiş strateji seçimi — üst toggle, equity curve ve karşılaştırma
+  // tablosu AYNI bu state'i okur/yazar; hangisinden seçilirse seçilsin aynı etkiyi yapar.
+  const [selectedStrategies, setSelectedStrategies] = useState<Set<string>>(new Set())
+  const toggleStrategy = (label: string) => {
+    setSelectedStrategies((prev) => {
       const next = new Set(prev)
       if (next.has(label)) next.delete(label)
       else next.add(label)
       return next
     })
+    setPage(1)
   }
-  const [comparison, setComparison] = useState<StrategyRow[]>([])
+  const clearStrategies = () => { setSelectedStrategies(new Set()); setPage(1) }
+
+  const [equityPeriod, setEquityPeriod] = useState<EquityPeriod>('daily')
+
+  // Genel tarih filtresi (gecmis/kapanan kayitlara uygulanir)
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
 
   const toggleSelect = (id: number) => {
     setSelectedIds((prev) => {
@@ -479,24 +632,19 @@ export default function LivePositionsPage() {
     let active = true
     async function fetchData() {
       try {
-        const statsUrl = strategyFilter && strategyFilter !== 'ALL'
-          ? `/api/orders-stats?strategy=${encodeURIComponent(strategyFilter)}`
-          : '/api/orders-stats'
-        const [ordersRes, priceRes, statsRes, historyRes, compRes] = await Promise.all([
+        const [ordersRes, priceRes, historyRes, accountRes] = await Promise.all([
           fetch('/api/orders-live', { cache: 'no-store' }),
           fetch('/api/live-price', { cache: 'no-store' }),
-          fetch(statsUrl, { cache: 'no-store' }),
           fetch('/api/orders-history', { cache: 'no-store' }),
-          fetch('/api/strategy-comparison', { cache: 'no-store' }),
+          fetch('/api/account-info', { cache: 'no-store' }),
         ])
         if (!ordersRes.ok || !priceRes.ok) throw new Error('fetch failed')
         const ordersData: Order[] = await ordersRes.json()
         const priceData: Price = await priceRes.json()
-        const statsData: Stats = statsRes.ok ? await statsRes.json() : null
         const historyData: Order[] = historyRes.ok ? await historyRes.json() : []
-        const compData: StrategyRow[] = compRes.ok ? await compRes.json() : []
+        const accountData: AccountInfo | null = accountRes.ok ? await accountRes.json() : null
         if (active) {
-          setOrders(ordersData); setPrice(priceData); setStats(statsData); setHistory(historyData); setComparison(compData)
+          setOrders(ordersData); setPrice(priceData); setHistory(historyData); setAccountInfo(accountData)
           setSelectedIds((prev) => {
             const validIds = new Set([...ordersData, ...historyData].map((o) => o.id))
             const next = new Set<number>()
@@ -512,7 +660,7 @@ export default function LivePositionsPage() {
     fetchData()
     const interval = setInterval(fetchData, POLL_INTERVAL_MS)
     return () => { active = false; clearInterval(interval) }
-  }, [strategyFilter])
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -530,36 +678,60 @@ export default function LivePositionsPage() {
   const midPrice = price ? (price.bid + price.ask) / 2 : null
   const fmtMoney = (v: number) => `${v > 0 ? '+' : ''}$${Math.abs(v).toFixed(0)}`
 
-  // Acik pozisyonlarin toplam unrealized PnL'i (strateji filtresine uyar)
+  // Tarihe gore filtrelenmis gecmis (skorkart/karsilastirma/equity curve icin ortak kaynak)
+  const dateFilteredHistory = useMemo(
+    () => history.filter((o) => withinDateRange(o.closed_at, dateFrom, dateTo)),
+    [history, dateFrom, dateTo]
+  )
+
+  const matchStrategy = (o: Order) => selectedStrategies.size === 0 || selectedStrategies.has(o.strategy_label)
+
+  const strategyFilteredHistory = useMemo(
+    () => dateFilteredHistory.filter(matchStrategy),
+    [dateFilteredHistory, selectedStrategies]
+  )
+  const strategyFilteredOrders = useMemo(
+    () => orders.filter(matchStrategy),
+    [orders, selectedStrategies]
+  )
+
+  const stats = useMemo(
+    () => computeStats(strategyFilteredHistory, strategyFilteredOrders),
+    [strategyFilteredHistory, strategyFilteredOrders]
+  )
+
+  // Karsilastirma tablosu her zaman TUM stratejileri gosterir (secimden bagimsiz),
+  // sadece tarih filtresine uyar.
+  const comparison = useMemo(
+    () => computeStrategyComparison(orders, dateFilteredHistory),
+    [orders, dateFilteredHistory]
+  )
+
+  // Acik pozisyonlarin toplam unrealized PnL'i (strateji secimine uyar)
   const totalUnrealized =
     price !== null
-      ? orders
-          .filter((o) => o.status === 'OPEN' && (strategyFilter === 'ALL' || o.strategy_label === strategyFilter))
+      ? orders.filter((o) => o.status === 'OPEN' && matchStrategy(o))
           .reduce((sum, o) => sum + calcPnL(o, price.bid, price.ask, getDisplayVolume(o)), 0)
       : null
 
-  // Acik pozisyonlarin toplam Value at Risk'i (SL'e giderse kaybedilecek toplam $ - strateji filtresine uyar)
+  // Acik pozisyonlarin toplam Value at Risk'i
   const totalValueAtRisk = orders
-    .filter((o) => o.status === 'OPEN' && (strategyFilter === 'ALL' || o.strategy_label === strategyFilter))
+    .filter((o) => o.status === 'OPEN' && matchStrategy(o))
     .reduce((sum, o) => {
       const entry = o.fill_price ?? o.entry_price
       return sum + Math.abs(entry - o.sl) * getDisplayVolume(o)
     }, 0)
 
-  // Strateji filtresi once tum satirlara uygulanir (skorkart stats route'tan filtreli geliyor)
-  const stratRows = [...orders, ...history].filter((o) =>
-    strategyFilter === 'ALL' ? true : o.strategy_label === strategyFilter
-  )
+  // Birlesik liste: acik/pending (tarih filtresinden bagimsiz, her zaman guncel) + tarihe gore filtrelenmis gecmis
+  const stratRows = [...orders, ...dateFilteredHistory].filter(matchStrategy)
   const selectedOrders = stratRows.filter((o) => selectedIds.has(o.id))
 
-  // Durum filtresi (strateji filtreli satirlar uzerinde)
   const filtered = stratRows.filter((o) => {
     if (statusFilter === 'ALL') return true
     if (statusFilter === 'CANCELED') return o.status === 'CANCELED'
     return o.status === statusFilter
   })
 
-  // Siralama: aktif olanlar (PENDING/OPEN) once, sonra kapanma tarihine gore
   const sorted = [...filtered].sort((a, b) => {
     const aActive = a.status === 'OPEN' || a.status === 'PENDING'
     const bActive = b.status === 'OPEN' || b.status === 'PENDING'
@@ -569,7 +741,6 @@ export default function LivePositionsPage() {
     return bT - aT
   })
 
-  // Pagination (filtre/siralama sonrasi 20'serli)
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
   const paged = sorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
@@ -582,14 +753,12 @@ export default function LivePositionsPage() {
     { key: 'CANCELED', label: 'CANCELED' },
   ]
 
-  // Satirin durum/sonuc rozeti
   const rowBadge = (o: Order) => {
     if (o.status === 'OPEN') return <span className="badge badge-tp">OPEN</span>
     if (o.status === 'PENDING') return <span className="badge badge-pend">PENDING</span>
     return exitBadge(o)
   }
 
-  // Satirin PnL gosterimi (acik -> anlik, kapali -> gerceklesmis normalize, pending/canceled -> —)
   const rowPnl = (o: Order): { text: string; cls: string } => {
     if (o.status === 'OPEN' && price !== null) {
       const v = calcPnL(o, price.bid, price.ask, getDisplayVolume(o))
@@ -602,14 +771,17 @@ export default function LivePositionsPage() {
     return { text: '—', cls: 'pnl-zero' }
   }
 
+  const equity = accountInfo != null ? accountInfo.balance + (totalUnrealized ?? 0) : null
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 64 }}>
       <style>{`
-        .live-scorecards { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+        .live-scorecards { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 8px; margin-bottom: 16px; }
         .live-section-title { font-size: 11px; color: var(--text-3); letter-spacing: 0.08em; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-family: 'DM Mono', monospace; }
         .live-table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: 'DM Mono', monospace; }
         .live-table-wrap { overflow-x: auto; }
         .live-mobile-cards { display: none; }
+        .live-date-input { background: var(--bg-3); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 10px; padding: 3px 8px; font-family: 'DM Mono', monospace; }
         @media (max-width: 768px) {
           .live-scorecards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
           .live-table-wrap { display: none; }
@@ -622,23 +794,37 @@ export default function LivePositionsPage() {
       <div className="container" style={{ paddingTop: 24 }}>
         <div className="live-section-title">LIVE POSITIONS</div>
 
+        {/* Genel tarih filtresi */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+          <span className="col-label" style={{ fontSize: 9 }}>DATE RANGE</span>
+          <input type="date" className="live-date-input" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1) }} />
+          <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>–</span>
+          <input type="date" className="live-date-input" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1) }} />
+          {(dateFrom || dateTo) && (
+            <button className="filter-btn" style={{ fontSize: 10, padding: '3px 10px' }} onClick={() => { setDateFrom(''); setDateTo(''); setPage(1) }}>
+              Clear
+            </button>
+          )}
+          <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>(applies to closed trades; open/pending always shown)</span>
+        </div>
+
         {/* Strategy toggle bar */}
         {comparison.length > 0 && (
           <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
             <span className="col-label" style={{ fontSize: 9, marginRight: 2 }}>STRATEGY</span>
             <button
-              className={`filter-btn${strategyFilter === 'ALL' ? ' active' : ''}`}
+              className={`filter-btn${selectedStrategies.size === 0 ? ' active' : ''}`}
               style={{ fontSize: 11 }}
-              onClick={() => { setStrategyFilter('ALL'); setPage(1) }}
+              onClick={clearStrategies}
             >
               ALL
             </button>
             {comparison.map((s) => (
               <button
                 key={s.strategy_label}
-                className={`filter-btn${strategyFilter === s.strategy_label ? ' active' : ''}`}
+                className={`filter-btn${selectedStrategies.has(s.strategy_label) ? ' active' : ''}`}
                 style={{ fontSize: 11 }}
-                onClick={() => { setStrategyFilter(s.strategy_label); setPage(1) }}
+                onClick={() => toggleStrategy(s.strategy_label)}
               >
                 {s.strategy_label}
               </button>
@@ -649,6 +835,12 @@ export default function LivePositionsPage() {
         {/* Score cards */}
         {stats && (
           <div className="live-scorecards">
+            <ScoreCard
+              label="BALANCE"
+              value={accountInfo != null ? `$${accountInfo.balance.toFixed(2)}` : '—'}
+              sub={equity != null ? `Equity: $${equity.toFixed(2)}` : undefined}
+              subColor={totalUnrealized != null ? moneyColor(totalUnrealized) : undefined}
+            />
             <ScoreCard label="TOTAL" value={stats.total_orders} />
             <ScoreCard label="PENDING" value={stats.pending} color="var(--amber)" />
             <OpenScoreCard
@@ -670,7 +862,12 @@ export default function LivePositionsPage() {
               color="var(--red)"
               sub={`Max DD: -${stats.max_drawdown.toFixed(2)}R`}
             />
-            <ScoreCard label="AVG WIN R" value={stats.avg_win_r != null ? `+${stats.avg_win_r.toFixed(2)}R` : '—'} color="var(--green)" />
+            <ScoreCard
+              label="TOTAL WIN R"
+              value={`+${stats.total_win_r.toFixed(2)}R`}
+              color="var(--green)"
+              sub={stats.avg_win_r != null ? `Avg: +${stats.avg_win_r.toFixed(2)}R` : 'Avg: —'}
+            />
             <ScoreCard label="TOTAL R" value={`${stats.total_r >= 0 ? '+' : ''}${stats.total_r.toFixed(2)}R`} color={moneyColor(stats.total_r)} />
             <ScoreCard
               label="TOTAL P&L"
@@ -706,25 +903,39 @@ export default function LivePositionsPage() {
         {/* Equity curve */}
         {comparison.length > 0 && (
           <div className="card" style={{ padding: 16, marginBottom: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <div className="col-label">EQUITY CURVE (R)</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div className="col-label">EQUITY CURVE (R)</div>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  {(['daily', 'weekly', 'monthly'] as const).map((p) => (
+                    <button
+                      key={p}
+                      className={`filter-btn${equityPeriod === p ? ' active' : ''}`}
+                      style={{ fontSize: 9, padding: '2px 8px' }}
+                      onClick={() => setEquityPeriod(p)}
+                    >
+                      {p === 'daily' ? 'Daily' : p === 'weekly' ? 'Weekly' : 'Monthly'}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>
-                solid = total account{equityStrategies.size > 0 ? ' · dotted = selected' : ''}
+                solid = total account{selectedStrategies.size > 0 ? ' · dotted = selected' : ''}
               </span>
             </div>
             <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
               {comparison.map((s) => (
                 <button
                   key={s.strategy_label}
-                  className={`filter-btn${equityStrategies.has(s.strategy_label) ? ' active' : ''}`}
+                  className={`filter-btn${selectedStrategies.has(s.strategy_label) ? ' active' : ''}`}
                   style={{ fontSize: 11 }}
-                  onClick={() => toggleEquityStrategy(s.strategy_label)}
+                  onClick={() => toggleStrategy(s.strategy_label)}
                 >
                   {s.strategy_label}
                 </button>
               ))}
             </div>
-            <EquityCurveChart history={history} selectedStrategies={Array.from(equityStrategies)} />
+            <EquityCurveChart history={dateFilteredHistory} selectedStrategies={Array.from(selectedStrategies)} period={equityPeriod} />
           </div>
         )}
 
@@ -736,18 +947,18 @@ export default function LivePositionsPage() {
               <table className="live-table" style={{ minWidth: 1100 }}>
                 <thead>
                   <tr>
-                    {['Strategy', 'Total', 'Open', 'Pend', 'Exp', 'Closed', 'TP', 'SL', 'Win%', 'Avg Win R', 'Total R', 'Total P&L', 'Avg Dur', 'Max DD', 'WP V6', 'Calib'].map((h, i) => (
+                    {['Strategy', 'Total', 'Open', 'Pend', 'Exp', 'Closed', 'TP', 'SL', 'Win%', 'Avg Win R', 'Total R', 'Total P&L', 'Avg Dur', 'Max DD', 'Cons Win'].map((h, i) => (
                       <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {comparison.map((s) => {
-                    const active = strategyFilter === s.strategy_label
+                    const active = selectedStrategies.has(s.strategy_label)
                     return (
                       <tr
                         key={s.strategy_label}
-                        onClick={() => { setStrategyFilter(active ? 'ALL' : s.strategy_label); setPage(1) }}
+                        onClick={() => toggleStrategy(s.strategy_label)}
                         style={{ borderTop: '1px solid var(--border)', cursor: 'pointer', background: active ? 'var(--bg-3)' : 'transparent' }}
                       >
                         <td style={{ padding: '6px 0', color: 'var(--text-2)' }}>{s.strategy_label}</td>
@@ -764,17 +975,14 @@ export default function LivePositionsPage() {
                         <td style={{ padding: '6px 0', textAlign: 'right', color: moneyColor(s.total_pnl) }}>{`${s.total_pnl >= 0 ? '+' : ''}$${Math.abs(s.total_pnl).toFixed(0)}`}</td>
                         <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-3)' }}>{s.avg_duration_min != null ? fmtDuration(s.avg_duration_min) : '—'}</td>
                         <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--red)' }}>{`-${s.max_drawdown_r.toFixed(2)}R`}</td>
-                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-3)' }}>{s.avg_wp_v6 != null ? `%${s.avg_wp_v6.toFixed(0)}` : '—'}</td>
-                        <td style={{ padding: '6px 0', textAlign: 'right', color: s.calibration_gap == null ? 'var(--text-3)' : s.calibration_gap >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                          {s.calibration_gap != null ? `${s.calibration_gap >= 0 ? '+' : ''}${s.calibration_gap.toFixed(1)}` : '—'}
-                        </td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{s.max_consecutive_wins}</td>
                       </tr>
                     )
                   })}
                 </tbody>
               </table>
               <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8 }}>
-                Click a row to filter the whole page by that strategy · Calib = actual win rate − predicted WP
+                Click a row to toggle that strategy (affects table, cards and equity curve)
               </div>
             </div>
           </>
@@ -803,11 +1011,11 @@ export default function LivePositionsPage() {
             <>
               {/* Desktop table */}
               <div className="live-table-wrap">
-                <table className="live-table" style={{ minWidth: 1080 }}>
+                <table className="live-table" style={{ minWidth: 1160 }}>
                   <thead>
                     <tr>
                       <th style={{ width: 28, paddingBottom: 8 }} />
-                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Sim', 'Volume', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'RR', 'WP V6', 'PnL ($)'].map((h, i) => (
+                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Sim', 'Volume', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'RR', 'WP V6', 'WP V6 Rev', 'PnL ($)'].map((h, i) => (
                         <th key={h} style={{ textAlign: i <= 3 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
@@ -835,6 +1043,7 @@ export default function LivePositionsPage() {
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--green)' }}>{fmtPrice(order.tp)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtRR(order)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: wpColor(order.win_probability_v6_reverse) }}>{order.win_probability_v6_reverse != null ? `%${Number(order.win_probability_v6_reverse).toFixed(0)}` : '—'}</td>
                           <td className={`mono ${pnl.cls}`} style={{ padding: '6px 0', textAlign: 'right' }}>{pnl.text}</td>
                         </tr>
                       )
@@ -872,6 +1081,7 @@ export default function LivePositionsPage() {
                         <div><span className="col-label">TP </span><span style={{ color: 'var(--green)' }}>{fmtPrice(order.tp)}</span></div>
                         <div><span className="col-label">RR </span><span style={{ color: 'var(--text-2)' }}>{fmtRR(order)}</span></div>
                         <div><span className="col-label">WP6 </span><span style={{ color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</span></div>
+                        <div><span className="col-label">WP6R </span><span style={{ color: wpColor(order.win_probability_v6_reverse) }}>{order.win_probability_v6_reverse != null ? `%${Number(order.win_probability_v6_reverse).toFixed(0)}` : '—'}</span></div>
                         <div><span className="col-label">Order D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.created_at)}</span></div>
                         <div><span className="col-label">Entry D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.opened_at)}</span></div>
                         <div><span className="col-label">Close D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.closed_at)}</span></div>
