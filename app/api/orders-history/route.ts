@@ -13,7 +13,7 @@ export async function GET() {
         o.r_target, o.r_risk,
         o.close_price, o.realized_pnl, o.status, o.exit_reason, o.is_manual,
         o.created_at, o.opened_at, o.closed_at,
-        a.win_probability_v6, a.analyzed_at, a.rr AS analysis_rr, a.sim_result
+        a.win_probability_v6, a.win_probability_v6_reverse, a.analyzed_at, a.rr AS analysis_rr, a.sim_result
       FROM orders o
       LEFT JOIN btc_analysis a ON a.id = o.analysis_id
       WHERE o.status IN ('CLOSED', 'CANCELED')
@@ -22,7 +22,7 @@ export async function GET() {
 
     const numericFields = [
       'volume', 'entry_price', 'fill_price', 'sl', 'tp', 'rr', 'r_target', 'r_risk',
-      'close_price', 'realized_pnl', 'win_probability_v6',
+      'close_price', 'realized_pnl', 'win_probability_v6', 'win_probability_v6_reverse',
     ] as const;
 
     const result = rows.map((row) => {
