@@ -776,12 +776,15 @@ export default function LivePositionsPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 64 }}>
       <style>{`
-        .live-scorecards { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 8px; margin-bottom: 16px; }
+        .live-scorecards { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
         .live-section-title { font-size: 11px; color: var(--text-3); letter-spacing: 0.08em; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-family: 'DM Mono', monospace; }
         .live-table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: 'DM Mono', monospace; }
         .live-table-wrap { overflow-x: auto; }
         .live-mobile-cards { display: none; }
         .live-date-input { background: var(--bg-3); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 10px; padding: 3px 8px; font-family: 'DM Mono', monospace; }
+        @media (max-width: 1200px) {
+          .live-scorecards { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        }
         @media (max-width: 768px) {
           .live-scorecards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
           .live-table-wrap { display: none; }
