@@ -47,7 +47,7 @@ interface Price { bid: number; ask: number; time: string }
 interface AccountInfo { balance: number; currency: string }
 
 interface Stats {
-  total_orders: number; pending: number; open: number; expired: number
+  total_orders: number; pending: number; open: number; expired: number; closed: number
   win_rate: number; tp_count: number; sl_count: number
   avg_win_r: number | null; total_win_r: number; total_r: number; total_pnl: number
   max_drawdown: number; max_consecutive_wins: number
