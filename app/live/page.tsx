@@ -292,7 +292,7 @@ function OpenScoreCard({ count, unrealized, valueAtRisk }: { count: number; unre
       </div>
       <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: 2, alignSelf: 'flex-end' }}>
         <div className="mono" style={{ fontSize: 9, color: unrealized != null ? moneyColor(unrealized) : 'var(--text-3)' }}>
-          PnL: {unrealized != null ? `${unrealized >= 0 ? '+' : ''}$${unrealized.toFixed(2)}` : '—'}
+          PnL: {unrealized != null ? `${unrealized >= 0 ? '+' : '-'}$${Math.abs(unrealized).toFixed(2)}` : '—'}
         </div>
         <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>
           VaR: {valueAtRisk != null ? `$${valueAtRisk.toFixed(2)}` : '—'}
@@ -676,7 +676,7 @@ export default function LivePositionsPage() {
   }, [])
 
   const midPrice = price ? (price.bid + price.ask) / 2 : null
-  const fmtMoney = (v: number) => `${v > 0 ? '+' : ''}$${Math.abs(v).toFixed(0)}`
+  const fmtMoney = (v: number) => `${v >= 0 ? '+' : '-'}$${Math.abs(v).toFixed(0)}`
 
   // Tarihe gore filtrelenmis gecmis (skorkart/karsilastirma/equity curve icin ortak kaynak)
   const dateFilteredHistory = useMemo(
@@ -877,7 +877,7 @@ export default function LivePositionsPage() {
               color={moneyColor(stats.total_pnl)}
               sub={
                 totalUnrealized != null
-                  ? `${(stats.total_pnl + totalUnrealized) >= 0 ? '+' : ''}$${(stats.total_pnl + totalUnrealized).toFixed(2)}`
+                  ? `${(stats.total_pnl + totalUnrealized) >= 0 ? '+' : '-'}$${Math.abs(stats.total_pnl + totalUnrealized).toFixed(2)}`
                   : undefined
               }
               subColor={totalUnrealized != null ? moneyColor(stats.total_pnl + totalUnrealized) : undefined}
@@ -974,7 +974,7 @@ export default function LivePositionsPage() {
                         <td style={{ padding: '6px 0', textAlign: 'right', color: wpColor(s.win_rate) }}>{s.win_rate != null ? `%${s.win_rate.toFixed(1)}` : '—'}</td>
                         <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--green)' }}>{s.avg_win_r != null ? `+${s.avg_win_r.toFixed(2)}R` : '—'}</td>
                         <td style={{ padding: '6px 0', textAlign: 'right', color: moneyColor(s.total_r) }}>{`${s.total_r >= 0 ? '+' : ''}${s.total_r.toFixed(2)}R`}</td>
-                        <td style={{ padding: '6px 0', textAlign: 'right', color: moneyColor(s.total_pnl) }}>{`${s.total_pnl >= 0 ? '+' : ''}$${Math.abs(s.total_pnl).toFixed(0)}`}</td>
+                        <td style={{ padding: '6px 0', textAlign: 'right', color: moneyColor(s.total_pnl) }}>{`${s.total_pnl >= 0 ? '+' : '-'}$${Math.abs(s.total_pnl).toFixed(0)}`}</td>
                         <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-3)' }}>{s.avg_duration_min != null ? fmtDuration(s.avg_duration_min) : '—'}</td>
                         <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--red)' }}>{`-${s.max_drawdown_r.toFixed(2)}R`}</td>
                         <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{s.max_consecutive_wins}</td>
