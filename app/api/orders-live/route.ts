@@ -12,7 +12,8 @@ export async function GET() {
         o.symbol, o.direction, o.volume, o.entry_price, o.fill_price, o.sl, o.tp, o.rr,
         o.r_target, o.r_risk,
         o.status, o.created_at, o.opened_at,
-        a.position_size_btc, a.win_probability_v6, a.analyzed_at, a.rr AS analysis_rr, a.sim_result
+        a.position_size_btc, a.win_probability_v6, a.win_probability_v6_reverse,
+        a.analyzed_at, a.rr AS analysis_rr, a.sim_result
       FROM orders o
       LEFT JOIN btc_analysis a ON a.id = o.analysis_id
       WHERE o.status IN ('PENDING', 'OPEN')
@@ -20,7 +21,7 @@ export async function GET() {
     `);
     const numericFields = [
       'volume', 'entry_price', 'fill_price', 'sl', 'tp', 'rr', 'r_target', 'r_risk',
-      'position_size_btc', 'win_probability_v6',
+      'position_size_btc', 'win_probability_v6', 'win_probability_v6_reverse',
     ] as const;
 
     const result = rows.map((row) => {
