@@ -163,15 +163,6 @@ export default function AnalysisListUniversal({ analyses }: { analyses: Universa
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(ids)) } catch {}
   }
 
-  // Fare tekerleği ile yatay kaydırma — tablo üzerindeyken dikey tekerlek hareketi yatay kaydırmaya dönüşür
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    const el = scrollRef.current
-    if (!el) return
-    if (el.scrollWidth <= el.clientWidth) return // taşma yoksa müdahale etme
-    e.preventDefault()
-    el.scrollLeft += e.deltaY !== 0 ? e.deltaY : e.deltaX
-  }, [])
-
   // Tıkla-sürükle ile kaydırma
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     const el = scrollRef.current
@@ -203,7 +194,7 @@ export default function AnalysisListUniversal({ analyses }: { analyses: Universa
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>↔ tekerlek veya sürükle ile kaydır</span>
+        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>↔ sürükleyerek veya scrollbar ile kaydır</span>
         <ColumnPicker visible={visible} onChange={handleChange} />
       </div>
 
@@ -212,7 +203,6 @@ export default function AnalysisListUniversal({ analyses }: { analyses: Universa
           ref={scrollRef}
           className="hscroll-fancy"
           style={{ overflowX: 'auto', overflowY: 'hidden', cursor: 'grab' }}
-          onWheel={handleWheel}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={endDrag}
