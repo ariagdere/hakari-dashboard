@@ -1172,6 +1172,7 @@ export default function AnalysisPage() {
                   style={{ fontSize: 10, padding: '3px 12px' }}
                   onClick={() => {
                     const p = filtersToParams(appliedFilters)
+                    p.set('view', mode)
                     const qs = p.toString() ? `?${p}` : ''
                     window.location.href = `/api/analyses-export${qs}`
                   }}
