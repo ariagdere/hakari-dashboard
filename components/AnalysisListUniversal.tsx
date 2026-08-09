@@ -9,6 +9,10 @@ export interface UniversalAnalysisRow {
   sim_result: string; sim_pnl_usd: number; sim_r_multiple: number
   win_probability_v6: number | null; win_probability_v6_reverse: number | null
   win_probability_c75: number | null; win_probability_c75_reverse: number | null
+  win_probability_v6_3105: number | null; win_probability_v6_3105_reverse: number | null
+  win_probability_v6_jul: number | null; win_probability_v6_jul_reverse: number | null
+  win_probability_c75_3105: number | null; win_probability_c75_3105_reverse: number | null
+  win_probability_c75_jul: number | null; win_probability_c75_jul_reverse: number | null
   zlema_zone_4h: string | null
   cluster_liq_ratio: number | null
   cluster_up_hit: boolean | null; cluster_dn_hit: boolean | null
@@ -73,6 +77,14 @@ export const COLUMNS: ColumnDef[] = [
   { id: 'v6rev',     label: 'V6 Rev',    group: 'ai', width: 'minmax(44px,0.5fr)', default: true,  render: a => wpCell(a.win_probability_v6_reverse) },
   { id: 'c75',       label: 'C75',       group: 'ai', width: 'minmax(44px,0.5fr)', default: false, render: a => wpCell(a.win_probability_c75) },
   { id: 'c75rev',    label: 'C75 Rev',   group: 'ai', width: 'minmax(44px,0.5fr)', default: false, render: a => wpCell(a.win_probability_c75_reverse) },
+  { id: 'v6_3105',    label: 'V6 3105',     group: 'ai', width: 'minmax(44px,0.5fr)', default: false, render: a => wpCell(a.win_probability_v6_3105) },
+  { id: 'v6_3105rev', label: 'V6 3105 Rev', group: 'ai', width: 'minmax(44px,0.5fr)', default: false, render: a => wpCell(a.win_probability_v6_3105_reverse) },
+  { id: 'v6_jul',     label: 'V6 Jul',      group: 'ai', width: 'minmax(44px,0.5fr)', default: false, render: a => wpCell(a.win_probability_v6_jul) },
+  { id: 'v6_julrev',  label: 'V6 Jul Rev',  group: 'ai', width: 'minmax(44px,0.5fr)', default: false, render: a => wpCell(a.win_probability_v6_jul_reverse) },
+  { id: 'c75_3105',    label: 'C75 3105',     group: 'ai', width: 'minmax(44px,0.5fr)', default: false, render: a => wpCell(a.win_probability_c75_3105) },
+  { id: 'c75_3105rev', label: 'C75 3105 Rev', group: 'ai', width: 'minmax(44px,0.5fr)', default: false, render: a => wpCell(a.win_probability_c75_3105_reverse) },
+  { id: 'c75_jul',     label: 'C75 Jul',      group: 'ai', width: 'minmax(44px,0.5fr)', default: false, render: a => wpCell(a.win_probability_c75_jul) },
+  { id: 'c75_julrev',  label: 'C75 Jul Rev',  group: 'ai', width: 'minmax(44px,0.5fr)', default: false, render: a => wpCell(a.win_probability_c75_jul_reverse) },
   { id: 'ai_pnl',    label: 'AI PnL',    group: 'ai', width: 'minmax(72px,1fr)',   default: false, render: a => <span className={`mono ${pnlClass(Number(a.sim_pnl_usd))}`} style={{ fontSize: 11 }}>{a.sim_pnl_usd != null ? `${Number(a.sim_pnl_usd) > 0 ? '+' : ''}$${Math.abs(Number(a.sim_pnl_usd)).toFixed(2)}` : '—'}</span> },
   { id: 'ai_r',      label: 'AI R',      group: 'ai', width: 'minmax(60px,0.7fr)', default: true,  render: a => <span className={`mono ${pnlClass(a.sim_result === 'SL_HIT' ? -1 : Number(a.sim_r_multiple))}`} style={{ fontSize: 11 }}>{fmtR(a.sim_r_multiple, a.sim_result)}</span> },
   { id: 'ai_result', label: 'AI Result', group: 'ai', width: '64px',               default: true,  render: a => resultBadge(a.sim_result) },
