@@ -91,6 +91,19 @@ body {
 .screenshot-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .mobile-card { display: none; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; cursor: pointer; transition: background 0.1s; margin-bottom: 6px; }
 .mobile-card:hover { background: var(--bg-3); }
+
+/* ── Evrensel analiz listesi — özel yatay scrollbar + sticky ilk kolon ── */
+.hscroll-fancy { scrollbar-width: auto; }
+.hscroll-fancy::-webkit-scrollbar { height: 14px; }
+.hscroll-fancy::-webkit-scrollbar-track { background: var(--bg-2); }
+.hscroll-fancy::-webkit-scrollbar-thumb { background: var(--border-3, var(--border)); border-radius: 7px; border: 3px solid var(--bg-2); }
+.hscroll-fancy::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+.uni-row { cursor: pointer; }
+.uni-row:hover { background: var(--bg-3); }
+.uni-row:hover .uni-sticky-cell { background: var(--bg-3); }
+.uni-sticky-cell { position: sticky; left: 0; background: var(--bg-2); z-index: 1; padding-right: 8px; }
+.uni-sticky-header { position: sticky; left: 0; background: var(--bg-2); z-index: 2; padding-right: 8px; }
+
 .synthesis-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .reasons-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 .charts-2col { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
