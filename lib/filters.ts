@@ -10,7 +10,10 @@ export interface Filters {
   rsi30_min: number; rsi30_max: number
   wp6_min: number; wp6_max: number
   wp6_rev_min: number; wp6_rev_max: number
+  wp_c75_min: number; wp_c75_max: number
+  wp_c75_rev_min: number; wp_c75_rev_max: number
   liq_zone: string  // virgülle ayrılmış: 'dn_very_dominant,dn_dominant,...'
+  zlema_zone: string  // virgülle ayrılmış: 'LONG,SHORT,NO_TRADE'
   cluster_up_hit: string; cluster_dn_hit: string
   h1_ls_delta_min: number; h1_ls_delta_max: number
   h1_tt_positions_delta_min: number; h1_tt_positions_delta_max: number
@@ -39,7 +42,10 @@ export const DEFAULT_FILTERS: Filters = {
   rsi30_min: 0, rsi30_max: 100,
   wp6_min: 0, wp6_max: 100,
   wp6_rev_min: 0, wp6_rev_max: 100,
+  wp_c75_min: 0, wp_c75_max: 100,
+  wp_c75_rev_min: 0, wp_c75_rev_max: 100,
   liq_zone: '',
+  zlema_zone: '',
   cluster_up_hit: '', cluster_dn_hit: '',
   h1_ls_delta_min: -3, h1_ls_delta_max: 3,
   h1_tt_positions_delta_min: -1, h1_tt_positions_delta_max: 1,
@@ -88,7 +94,10 @@ export function filtersToParams(f: Filters): URLSearchParams {
   p.set('rsi30_min', String(f.rsi30_min)); p.set('rsi30_max', String(f.rsi30_max))
   p.set('wp6_min', String(f.wp6_min));         p.set('wp6_max', String(f.wp6_max))
   p.set('wp6_rev_min', String(f.wp6_rev_min)); p.set('wp6_rev_max', String(f.wp6_rev_max))
+  p.set('wp_c75_min', String(f.wp_c75_min));         p.set('wp_c75_max', String(f.wp_c75_max))
+  p.set('wp_c75_rev_min', String(f.wp_c75_rev_min)); p.set('wp_c75_rev_max', String(f.wp_c75_rev_max))
   if (f.liq_zone) p.set('liq_zone', f.liq_zone)
+  if (f.zlema_zone) p.set('zlema_zone', f.zlema_zone)
   if (f.cluster_up_hit) p.set('cluster_up_hit', f.cluster_up_hit)
   if (f.cluster_dn_hit) p.set('cluster_dn_hit', f.cluster_dn_hit)
   p.set('h1_ls_delta_min', String(f.h1_ls_delta_min)); p.set('h1_ls_delta_max', String(f.h1_ls_delta_max))
@@ -120,7 +129,10 @@ export function activeFilterCount(f: Filters): number {
   if (f.rsi30_min > 0 || f.rsi30_max < 100) n++
   if (f.wp6_min > 0 || f.wp6_max < 100) n++
   if (f.wp6_rev_min > 0 || f.wp6_rev_max < 100) n++
+  if (f.wp_c75_min > 0 || f.wp_c75_max < 100) n++
+  if (f.wp_c75_rev_min > 0 || f.wp_c75_rev_max < 100) n++
   if (f.liq_zone) n++
+  if (f.zlema_zone) n++
   if (f.cluster_up_hit) n++
   if (f.cluster_dn_hit) n++
   if (f.h1_ls_delta_min > -3 || f.h1_ls_delta_max < 3) n++
