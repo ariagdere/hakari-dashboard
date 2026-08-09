@@ -297,7 +297,7 @@ export default function AnalysisPage() {
             style={{ fontSize: 12, padding: '6px 18px' }}
             onClick={() => handleModeChange('naive')}
           >
-            NAİF
+            NAIF
           </button>
         </div>
 
@@ -801,7 +801,7 @@ export default function AnalysisPage() {
             {mode === 'naive' && distRatio && distRatio.buckets.length > 0 && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  DIST RATIO CALIBRATION — Naif (uzak/yakın cluster mesafe oranı)
+                  DIST RATIO CALIBRATION — Naif (far/near cluster distance ratio)
                 </div>
                 <div className="card" style={{ padding: 16, overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
@@ -1147,11 +1147,11 @@ export default function AnalysisPage() {
                         <div key={h1} className="two-col-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                           <div className="card" style={{ padding: 16 }}>
                             <div className="col-label" style={{ marginBottom: 10 }}>H1 {h1Label} delta</div>
-                            {h1Rows?.length > 0 ? <DeltaTable rows={h1Rows} /> : <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>veri yok</span>}
+                            {h1Rows?.length > 0 ? <DeltaTable rows={h1Rows} /> : <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>no data</span>}
                           </div>
                           <div className="card" style={{ padding: 16 }}>
                             <div className="col-label" style={{ marginBottom: 10 }}>M5 {h1Label} delta</div>
-                            {m5Rows?.length > 0 ? <DeltaTable rows={m5Rows} /> : <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>veri yok</span>}
+                            {m5Rows?.length > 0 ? <DeltaTable rows={m5Rows} /> : <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>no data</span>}
                           </div>
                         </div>
                       )
