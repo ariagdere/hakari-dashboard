@@ -117,7 +117,7 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
           style={{ fontSize: 11, padding: '5px 14px' }}
           onClick={() => onChange({ ...filters, naive_aligned: filters.naive_aligned === 'true' ? '' : 'true' })}
         >
-          {filters.naive_aligned === 'true' ? '✓ ' : ''}Naif yön = ZLEMA zone (LONG+LONG veya SHORT+SHORT)
+          {filters.naive_aligned === 'true' ? '✓ ' : ''}Naif direction = ZLEMA zone (LONG+LONG or SHORT+SHORT)
         </button>
       </div>
 
@@ -130,7 +130,7 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
         <RangeRow label="C75 Rev" minKey="wp_c75_rev_min" maxKey="wp_c75_rev_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
       </div>
       <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 6 }}>
-        Not: V6/C75 skorları AI'ın analiz yönüne göre hesaplanır (Naif sekmesinde de aynı değerler gösterilir).
+        Note: V6/C75 scores are calculated based on AI's analysis direction (the same values are shown in the Naif tab too).
       </div>
 
       {sep}
