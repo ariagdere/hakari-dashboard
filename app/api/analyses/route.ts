@@ -11,7 +11,8 @@ export async function GET(request: NextRequest) {
   const page  = parseInt(searchParams.get('page') || '1')
   const limit = 20
   const offset = (page - 1) * limit
-  const { where, params } = buildInsightsWhere(request)
+  const view = searchParams.get('view') === 'naive' ? 'naive' : 'ai'
+  const { where, params } = buildInsightsWhere(request, view)
   const w = where || 'WHERE 1=1'
   const dataParams = [...params, limit, offset]
   const i = params.length + 1
