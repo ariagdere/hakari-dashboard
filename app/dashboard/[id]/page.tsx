@@ -57,9 +57,9 @@ const zlemaBadge = (z: string | null) => {
   const color = z === 'LONG' ? 'var(--green)' : z === 'SHORT' ? 'var(--red)' : 'var(--text-3)'
   return <span className="mono" style={{ fontSize: 14, fontWeight: 500, color }}>{z === 'NO_TRADE' ? 'NO TRADE' : z}</span>
 }
-const fmt = (n: number) => n?.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) ?? '—'
+const fmt = (n: number) => n?.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) ?? '—'
 const fmtDate = (s: string) => new Date(s).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-const fmtMins = (m: number | null) => { if (!m) return '—'; const h = Math.floor(m / 60); const min = m % 60; return h > 0 ? `${h}s ${min}dk` : `${min}dk` }
+const fmtMins = (m: number | null) => { if (!m) return '—'; const total = Math.round(m); const h = Math.floor(total / 60); const min = total % 60; return h > 0 ? `${h}s ${min}dk` : `${min}dk` }
 const fmtR = (v: number | null, result?: string) => {
   if (v == null) return '—'
   const n = parseFloat(String(v))
@@ -165,19 +165,6 @@ export default function AnalysisPage() {
 
         {data && !loading && (
           <div style={{ display: 'grid', gap: 20 }}>
-            {/* Scorecard */}
-            <div className="scorecard-grid">
-              <ScoreCard label="Yön" value={data.direction} color={data.direction === 'SHORT' ? 'var(--red)' : 'var(--green)'} />
-              <ScoreCard label="Güven" value={`%${data.confidence_value}`} />
-              <ScoreCard label="Skor" value={`${data.market_score_value}/10`} />
-              <ScoreCard label="4H RSI" value={data.rsi_4h ?? '—'} />
-              <ScoreCard label="R/R" value={data.rr} />
-              <ScoreCard label="Entry" value={`$${fmt(data.entry)}`} color="var(--amber)" sub={data.order_type?.replace('ORDER_TYPE_', '')} />
-              <ScoreCard label="SL" value={`$${fmt(data.sl)}`} color="var(--red)" />
-              <ScoreCard label="TP" value={`$${fmt(data.tp)}`} color="var(--green)" />
-              <ScoreCard label="Size" value={`${data.position_size_btc} BTC`} sub={`$${data.risk_usd} risk`} />
-            </div>
-
             {/* Tabs */}
             <div style={{ display: 'flex', borderBottom: '1px solid var(--border)' }}>
               <button className={`tab-btn${tab === 'analysis' ? ' active' : ''}`} onClick={() => setTab('analysis')}>Analiz</button>
@@ -190,30 +177,28 @@ export default function AnalysisPage() {
                 <div>
                   <div className="section-title">AI & Naif Setup</div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8, marginBottom: 12 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 12 }}>
                     <div className="stat-card">
-                      <div className="col-label" style={{ marginBottom: 4 }}>AI WP</div>
-                      <div className="mono" style={{ fontSize: 16, fontWeight: 500, color: wpColor(data.win_probability) }}>{data.win_probability != null ? `%${data.win_probability}` : '—'}</div>
+                      <div className="col-label" style={{ marginBottom: 6 }}>V6 / Rev</div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                        <span className="mono" style={{ fontSize: 17, fontWeight: 600, color: wpColor(data.win_probability_v6) }}>{data.win_probability_v6 != null ? `%${Number(data.win_probability_v6).toFixed(0)}` : '—'}</span>
+                        <span className="mono" style={{ fontSize: 14, fontWeight: 500, color: wpColor(data.win_probability_v6_reverse) }}>{data.win_probability_v6_reverse != null ? `%${Number(data.win_probability_v6_reverse).toFixed(0)}` : '—'}</span>
+                      </div>
                     </div>
                     <div className="stat-card">
-                      <div className="col-label" style={{ marginBottom: 4 }}>V6</div>
-                      <div className="mono" style={{ fontSize: 16, fontWeight: 500, color: wpColor(data.win_probability_v6) }}>{data.win_probability_v6 != null ? `%${Number(data.win_probability_v6).toFixed(0)}` : '—'}</div>
-                      <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 3 }}>Rev: {data.win_probability_v6_reverse != null ? `%${Number(data.win_probability_v6_reverse).toFixed(0)}` : '—'}</div>
+                      <div className="col-label" style={{ marginBottom: 6 }}>C75 / Rev</div>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                        <span className="mono" style={{ fontSize: 17, fontWeight: 600, color: wpColor(data.win_probability_c75) }}>{data.win_probability_c75 != null ? `%${Number(data.win_probability_c75).toFixed(0)}` : '—'}</span>
+                        <span className="mono" style={{ fontSize: 14, fontWeight: 500, color: wpColor(data.win_probability_c75_reverse) }}>{data.win_probability_c75_reverse != null ? `%${Number(data.win_probability_c75_reverse).toFixed(0)}` : '—'}</span>
+                      </div>
                     </div>
                     <div className="stat-card">
-                      <div className="col-label" style={{ marginBottom: 4 }}>C75</div>
-                      <div className="mono" style={{ fontSize: 16, fontWeight: 500, color: wpColor(data.win_probability_c75) }}>{data.win_probability_c75 != null ? `%${Number(data.win_probability_c75).toFixed(0)}` : '—'}</div>
-                      <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 3 }}>Rev: {data.win_probability_c75_reverse != null ? `%${Number(data.win_probability_c75_reverse).toFixed(0)}` : '—'}</div>
-                    </div>
-                    <div className="stat-card">
-                      <div className="col-label" style={{ marginBottom: 4 }}>ZLEMA (4H)</div>
+                      <div className="col-label" style={{ marginBottom: 6 }}>ZLEMA (4H)</div>
                       {zlemaBadge(data.zlema_zone_4h)}
                     </div>
                     <div className="stat-card">
-                      <div className="col-label" style={{ marginBottom: 4 }}>Aligned?</div>
-                      <div className="mono" style={{ fontSize: 16, fontWeight: 500, color: data.naive_direction && data.naive_direction === data.zlema_zone_4h ? 'var(--green)' : 'var(--text-3)' }}>
-                        {data.naive_direction ? (data.naive_direction === data.zlema_zone_4h ? '✓ Evet' : '✗ Hayır') : '—'}
-                      </div>
+                      <div className="col-label" style={{ marginBottom: 6 }}>4H RSI</div>
+                      <div className="mono" style={{ fontSize: 17, fontWeight: 600 }}>{data.rsi_4h ?? '—'}</div>
                     </div>
                   </div>
 
@@ -223,12 +208,12 @@ export default function AnalysisPage() {
                     </div>
                   ) : (
                     <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'DM Mono, monospace' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, fontFamily: 'DM Mono, monospace' }}>
                         <thead>
-                          <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                            <th style={{ textAlign: 'left', color: 'var(--text-3)', padding: '8px 14px', fontWeight: 400 }}></th>
-                            <th style={{ textAlign: 'right', color: 'var(--text-3)', padding: '8px 14px', fontWeight: 400 }}>AI</th>
-                            <th style={{ textAlign: 'right', color: 'var(--text-3)', padding: '8px 14px', fontWeight: 400 }}>Naif</th>
+                          <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-3)' }}>
+                            <th style={{ textAlign: 'left', color: 'var(--text-3)', padding: '12px 18px', fontWeight: 400, fontSize: 11, letterSpacing: '0.05em' }}></th>
+                            <th style={{ textAlign: 'right', color: 'var(--text-2)', padding: '12px 18px', fontWeight: 600, fontSize: 12, letterSpacing: '0.05em' }}>AI</th>
+                            <th style={{ textAlign: 'right', color: 'var(--text-2)', padding: '12px 18px', fontWeight: 600, fontSize: 12, letterSpacing: '0.05em' }}>NAİF</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -242,9 +227,9 @@ export default function AnalysisPage() {
                             { label: 'Pos. Size', ai: `${data.position_size_btc} BTC`, nv: data.naive_pos_size != null ? `${Number(data.naive_pos_size).toFixed(4)} BTC` : '—' },
                           ].map((row, i) => (
                             <tr key={i} style={{ borderBottom: i < 6 ? '1px solid var(--border)' : 'none' }}>
-                              <td style={{ padding: '8px 14px', color: 'var(--text-2)' }}>{row.label}</td>
-                              <td style={{ padding: '8px 14px', textAlign: 'right' }}>{row.ai}</td>
-                              <td style={{ padding: '8px 14px', textAlign: 'right' }}>{row.nv}</td>
+                              <td style={{ padding: '13px 18px', color: 'var(--text-2)', fontSize: 13 }}>{row.label}</td>
+                              <td style={{ padding: '13px 18px', textAlign: 'right', fontSize: 15 }}>{row.ai}</td>
+                              <td style={{ padding: '13px 18px', textAlign: 'right', fontSize: 15 }}>{row.nv}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -336,6 +321,12 @@ export default function AnalysisPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
                       {[
                         { label: 'Sonuç', value: resultBadge(data.sim_result_naive || '') },
+                        {
+                          label: 'PnL', color: safeNum(data.naive_sim_r_multiple) == null ? 'var(--text-3)' : safeNum(data.naive_sim_r_multiple)! > 0 ? 'var(--green)' : safeNum(data.naive_sim_r_multiple)! < 0 ? 'var(--red)' : 'var(--text-3)',
+                          value: safeNum(data.naive_sim_r_multiple) != null
+                            ? `${safeNum(data.naive_sim_r_multiple)! * 20 > 0 ? '+' : ''}$${Math.abs(safeNum(data.naive_sim_r_multiple)! * 20).toFixed(2)}`
+                            : '—',
+                        },
                         { label: 'R Multiple', value: fmtR(safeNum(data.naive_sim_r_multiple), data.sim_result_naive || undefined), color: data.sim_result_naive === 'TP_HIT' ? 'var(--green)' : data.sim_result_naive === 'SL_HIT' ? 'var(--red)' : 'var(--text-3)' },
                         { label: 'Süre', value: fmtMins(data.naive_duration_mins) },
                       ].map((s, i) => (
@@ -345,6 +336,7 @@ export default function AnalysisPage() {
                         </div>
                       ))}
                     </div>
+                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 6 }}>PnL, sabit $20 risk baz alınarak R × $20 şeklinde hesaplanır.</div>
                   </div>
                 )}
 
@@ -356,6 +348,13 @@ export default function AnalysisPage() {
                         { label: 'Analiz', val: fmtDate(data.analyzed_at), color: 'var(--text-2)' },
                         { label: 'Entry tetiklendi', val: fmtDate(data.sim_entry_triggered_at), color: 'var(--amber)' },
                         ...(data.sim_result_at ? [{ label: data.sim_result === 'TP_HIT' ? 'TP vuruldu' : 'SL vuruldu', val: fmtDate(data.sim_result_at), color: data.sim_result === 'TP_HIT' ? 'var(--green)' : 'var(--red)' }] : []),
+                        ...(data.naive_duration_mins != null && (data.sim_result_naive === 'TP_HIT' || data.sim_result_naive === 'SL_HIT')
+                          ? [{
+                              label: `Naif ${data.sim_result_naive === 'TP_HIT' ? 'TP' : 'SL'} vuruldu`,
+                              val: fmtDate(new Date(new Date(data.analyzed_at).getTime() + data.naive_duration_mins * 60000).toISOString()),
+                              color: data.sim_result_naive === 'TP_HIT' ? 'var(--green)' : 'var(--red)',
+                            }]
+                          : []),
                       ].map((x, i) => (
                         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
                           <span style={{ color: x.color }}>{x.label}</span>
