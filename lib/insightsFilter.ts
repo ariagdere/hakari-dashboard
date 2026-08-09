@@ -82,6 +82,17 @@ export function buildInsightsWhere(
     }
   }
 
+  // Naif Aligned — naive_direction ile zlema_zone_4h aynı yönde olan analizler
+  // (LONG+LONG veya SHORT+SHORT). mode'dan bağımsız — her iki sekmede de aynı
+  // satır kümesini filtreler.
+  const naiveAligned = s.get('naive_aligned')
+  if (naiveAligned === 'true') {
+    conditions.push(`(
+      (naive_direction = 'LONG'  AND zlema_zone_4h = 'LONG')
+      OR (naive_direction = 'SHORT' AND zlema_zone_4h = 'SHORT')
+    )`)
+  }
+
   const upHit = s.get('cluster_up_hit')
   const dnHit = s.get('cluster_dn_hit')
   if (upHit === 'true')  { conditions.push(`cluster_up_hit = true`) }
