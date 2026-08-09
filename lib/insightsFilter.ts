@@ -1,6 +1,9 @@
 import { NextRequest } from 'next/server'
 
-export function buildInsightsWhere(req: NextRequest): { where: string; params: any[] } {
+export function buildInsightsWhere(
+  req: NextRequest,
+  mode: 'ai' | 'naive' = 'ai'
+): { where: string; params: any[] } {
   const s = req.nextUrl.searchParams
   const conditions: string[] = []
   const params: any[] = []
@@ -40,9 +43,13 @@ export function buildInsightsWhere(req: NextRequest): { where: string; params: a
   range('rsi_4h',             s.get('rsi_min'),   s.get('rsi_max'),   0, 100)
   range('rsi_30m',            s.get('rsi30_min'), s.get('rsi30_max'), 0, 100)
 
-  // Win Probability — V6 only
+  // Win Probability — V6 (AI direction bazlı, her iki modda da aynı — not: UI'da belirt)
   range('win_probability_v6',         s.get('wp6_min'),     s.get('wp6_max'),     0, 100)
   range('win_probability_v6_reverse', s.get('wp6_rev_min'), s.get('wp6_rev_max'), 0, 100)
+
+  // Win Probability — C75 (cluster-eğitimli hat, AI direction bazlı — v6 ile aynı mantık)
+  range('win_probability_c75',         s.get('wp_c75_min'),     s.get('wp_c75_max'),     0, 100)
+  range('win_probability_c75_reverse', s.get('wp_c75_rev_min'), s.get('wp_c75_rev_max'), 0, 100)
 
   // Liquidity zone toggle filtresi
   const liqZone = s.get('liq_zone')
@@ -62,6 +69,17 @@ export function buildInsightsWhere(req: NextRequest): { where: string; params: a
       params.push(zones)
     }
   }
+
+  // ZLEMA Ribbon w/ Kalman — 4H zone toggle filtresi
+  const zlemaZone = s.get('zlema_zone')
+  if (zlemaZone) {
+    const zones = zlemaZone.split(',').map(z => z.trim()).filter(Boolean)
+    if (zones.length > 0) {
+      conditions.push(`zlema_zone_4h = ANY($${i++}::text[])`)
+      params.push(zones)
+    }
+  }
+
   const upHit = s.get('cluster_up_hit')
   const dnHit = s.get('cluster_dn_hit')
   if (upHit === 'true')  { conditions.push(`cluster_up_hit = true`) }
@@ -116,14 +134,17 @@ export function buildInsightsWhere(req: NextRequest): { where: string; params: a
   if (tradeDurMin && Number(tradeDurMin) > 0)    { conditions.push(`sim_entry_to_result_minutes >= $${i++}`); params.push(Number(tradeDurMin)) }
   if (tradeDurMax && Number(tradeDurMax) < 4320) { conditions.push(`sim_entry_to_result_minutes <= $${i++}`); params.push(Number(tradeDurMax)) }
 
-  const waitMin = s.get('wait_min'); const waitMax = s.get('wait_max')
-  if (waitMin && Number(waitMin) > 0) {
-    conditions.push(`EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 >= $${i++}`)
-    params.push(Number(waitMin))
-  }
-  if (waitMax && Number(waitMax) < 4320) {
-    conditions.push(`EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 <= $${i++}`)
-    params.push(Number(waitMax))
+  // Entry bekleme filtresi — sadece AI modda anlamlı (naif entry = anlık fiyat, bekleme yok)
+  if (mode === 'ai') {
+    const waitMin = s.get('wait_min'); const waitMax = s.get('wait_max')
+    if (waitMin && Number(waitMin) > 0) {
+      conditions.push(`EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 >= $${i++}`)
+      params.push(Number(waitMin))
+    }
+    if (waitMax && Number(waitMax) < 4320) {
+      conditions.push(`EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 <= $${i++}`)
+      params.push(Number(waitMax))
+    }
   }
 
   const rMin = s.get('r_min'); const rMax = s.get('r_max')
