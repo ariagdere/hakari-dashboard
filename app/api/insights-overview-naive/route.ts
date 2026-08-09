@@ -3,7 +3,7 @@ import pool from '@/lib/db'
 import { buildInsightsWhere } from '@/lib/insightsFilter'
 export const dynamic = 'force-dynamic'
 export async function GET(req: NextRequest) {
-  const { where, params } = buildInsightsWhere(req)
+  const { where, params } = buildInsightsWhere(req, 'naive')
   const w = where || 'WHERE 1=1'
   const q = await pool.query(`
     SELECT
