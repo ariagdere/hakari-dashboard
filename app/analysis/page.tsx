@@ -1,6 +1,7 @@
 'use client'
 import { Filters, Preset, DEFAULT_FILTERS, filtersToParams, activeFilterCount, loadFilters, saveFilters, clearFilters, PRESETS_STORAGE_KEY } from '@/lib/filters'
 import { FilterPanel } from '@/components/FilterPanel'
+import AnalysisListUniversal, { UniversalAnalysisRow } from '@/components/AnalysisListUniversal'
 import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -22,6 +23,16 @@ interface Overview {
   short_total: number; short_win_rate: number; short_tp: number; short_sl: number
   long_total_pnl: number | null; short_total_pnl: number | null
 }
+interface NaiveOverview {
+  total_all: number; total: number; tp_count: number; sl_count: number
+  expired_count: number; pending_count: number
+  win_rate: number; avg_r_win: number; avg_r_loss: number
+  avg_duration_mins: number; total_r: number
+  long_total: number; long_win_rate: number; long_tp: number; long_sl: number; long_total_r: number
+  short_total: number; short_win_rate: number; short_tp: number; short_sl: number; short_total_r: number
+}
+interface DistRatioBucket { bucket: string; avg_dist_ratio: number; total: number; wins: number; win_rate: number; total_r: number | null; max_dd: number | null }
+interface DistRatioData { buckets: DistRatioBucket[] }
 interface ScoringData {
   by_rsi: any[]; by_rsi_long: any[]; by_rsi_short: any[]
   by_rsi30: any[]; by_rsi30_long: any[]; by_rsi30_short: any[]
@@ -47,20 +58,6 @@ interface TradeDurBucket  { bucket: string; sort_order: number; total: number; w
 interface TradeDurData    { buckets: TradeDurBucket[] }
 interface WeeklyRow       { label: string; dow?: number; total: number; wins: number; win_rate: number; total_r: number | null }
 interface WeeklyData      { by_day: WeeklyRow[]; by_type: WeeklyRow[] }
-interface AnalysisSummary {
-  id: number; analyzed_at: string; direction: string
-  entry: number; tp: number; sl: number; rr: string
-  sim_result: string; sim_pnl_usd: number; sim_r_multiple: number
-  sim_direction: string | null
-  rsi_4h: number | null; rsi_30m: number | null
-  win_probability_v6: number | null
-  win_probability_v6_reverse: number | null
-  cluster_liq_ratio: number | null
-  cluster_up_hit: boolean | null; cluster_dn_hit: boolean | null
-  cluster_up_reach_pct: number | null; cluster_dn_reach_pct: number | null
-  cluster_up_dist_pct: number | null; cluster_dn_dist_pct: number | null
-  cluster_first_closer: string | null
-}
 
 // ── Filters ────────────────────────────────────────────────────────────────
 
@@ -104,7 +101,10 @@ function WinBar({ rate, total }: { rate: number | null; total: number }) {
 
 export default function AnalysisPage() {
   const router = useRouter()
+  const [mode, setMode] = useState<'ai' | 'naive'>('ai')
   const [overview,  setOverview]  = useState<Overview | null>(null)
+  const [naiveOverview, setNaiveOverview] = useState<NaiveOverview | null>(null)
+  const [distRatio, setDistRatio] = useState<DistRatioData | null>(null)
   const [scoring,   setScoring]   = useState<ScoringData | null>(null)
   const [deltaData, setDeltaData] = useState<DeltaData | null>(null)
   const [cumR,      setCumR]      = useState<CumRData | null>(null)
@@ -116,7 +116,7 @@ export default function AnalysisPage() {
   const [tradeDur,  setTradeDur]  = useState<TradeDurData | null>(null)
   const [distance,  setDistance]  = useState<DistanceData | null>(null)
   const [weekly,    setWeekly]    = useState<WeeklyData | null>(null)
-  const [analyses,  setAnalyses]  = useState<AnalysisSummary[]>([])
+  const [analyses,  setAnalyses]  = useState<UniversalAnalysisRow[]>([])
   const [loading,   setLoading]   = useState(true)
   const [filterOpen, setFilterOpen] = useState(false)
   const [draftFilters,   setDraftFilters]   = useState<Filters>(DEFAULT_FILTERS)
@@ -137,7 +137,7 @@ export default function AnalysisPage() {
     const f = loadFilters()
     setDraftFilters(f)
     setAppliedFilters(f)
-    fetchAll(f)
+    fetchAll(f, 1, mode)
   }, [])
 
   const savePreset = () => {
@@ -159,43 +159,59 @@ export default function AnalysisPage() {
   const applyPreset = (p: Preset) => {
     setDraftFilters(p.filters)
     setAppliedFilters(p.filters)
-    fetchAll(p.filters)
+    fetchAll(p.filters, 1, mode)
   }
 
-  const fetchAll = useCallback((f: Filters, pg = 1) => {
+  const fetchAll = useCallback((f: Filters, pg = 1, m: 'ai' | 'naive' = 'ai') => {
     setLoading(true)
     const p = filtersToParams(f)
     const qs = p.toString() ? `?${p}` : ''
-    Promise.all([
-      fetch(`/api/insights-overview${qs}`,      { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-scoring${qs}`,       { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-delta${qs}`,         { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-cumr${qs}`,          { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-winprob-all${qs}`,   { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-optimal-r${qs}`,     { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-rmae${qs}`,          { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-entrywait${qs}`,     { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-tradedur${qs}`,      { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-distance${qs}`,      { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/insights-weekly${qs}`,        { cache: 'no-store' }).then(r => r.json()),
-      fetch(`/api/analyses?${p}&page=${pg}`,    { cache: 'no-store' }).then(r => r.json()),
-    ]).then(([ov, sc, delta, cr, wpa, optR, rm, ew, td, dist, wk, an]) => {
-      setOverview(ov)
-      setScoring(sc)
-      setDeltaData(delta)
-      setCumR(cr)
-      setWpAll(wpa)
-      setOptimalR(optR)
-      setRmae(rm)
-      setEntryWait(ew)
-      setTradeDur(td)
-      setDistance(dist)
-      setWeekly(wk)
-      setAnalyses(an.analyses)
-      setTotalPages(an.totalPages)
-      setTotal(an.total)
-      setLoading(false)
-    })
+
+    if (m === 'ai') {
+      Promise.all([
+        fetch(`/api/insights-overview${qs}`,      { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-scoring${qs}`,       { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-delta${qs}`,         { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-cumr${qs}`,          { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-winprob-all${qs}`,   { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-optimal-r${qs}`,     { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-rmae${qs}`,          { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-entrywait${qs}`,     { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-tradedur${qs}`,      { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-distance${qs}`,      { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-weekly${qs}`,        { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/analyses?${p}&page=${pg}`,    { cache: 'no-store' }).then(r => r.json()),
+      ]).then(([ov, sc, delta, cr, wpa, optR, rm, ew, td, dist, wk, an]) => {
+        setOverview(ov)
+        setScoring(sc)
+        setDeltaData(delta)
+        setCumR(cr)
+        setWpAll(wpa)
+        setOptimalR(optR)
+        setRmae(rm)
+        setEntryWait(ew)
+        setTradeDur(td)
+        setDistance(dist)
+        setWeekly(wk)
+        setAnalyses(an.analyses)
+        setTotalPages(an.totalPages)
+        setTotal(an.total)
+        setLoading(false)
+      })
+    } else {
+      Promise.all([
+        fetch(`/api/insights-overview-naive${qs}`,  { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-naive-distratio${qs}`, { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/analyses?${p}&page=${pg}`,      { cache: 'no-store' }).then(r => r.json()),
+      ]).then(([nov, dr, an]) => {
+        setNaiveOverview(nov)
+        setDistRatio(dr)
+        setAnalyses(an.analyses)
+        setTotalPages(an.totalPages)
+        setTotal(an.total)
+        setLoading(false)
+      })
+    }
   }, [])
 
   const handleApply = () => {
@@ -203,7 +219,7 @@ export default function AnalysisPage() {
     saveFilters(draftFilters)
     setFilterOpen(false)
     setPage(1)
-    fetchAll(draftFilters, 1)
+    fetchAll(draftFilters, 1, mode)
   }
 
   const handleReset = () => {
@@ -211,26 +227,51 @@ export default function AnalysisPage() {
     setAppliedFilters(DEFAULT_FILTERS)
     clearFilters()
     setPage(1)
-    fetchAll(DEFAULT_FILTERS, 1)
+    fetchAll(DEFAULT_FILTERS, 1, mode)
   }
 
   const handlePage = (pg: number) => {
     setPage(pg)
-    fetchAll(appliedFilters, pg)
+    fetchAll(appliedFilters, pg, mode)
+  }
+
+  const handleModeChange = (m: 'ai' | 'naive') => {
+    if (m === mode) return
+    setMode(m)
+    setPage(1)
+    fetchAll(appliedFilters, 1, m)
   }
 
   // fetchAll on mount handled in presets effect above
   useEffect(() => {
-    const onVisible = () => { if (!document.hidden) fetchAll(appliedFilters, page) }
+    const onVisible = () => { if (!document.hidden) fetchAll(appliedFilters, page, mode) }
     document.addEventListener('visibilitychange', onVisible)
     return () => document.removeEventListener('visibilitychange', onVisible)
-  }, [fetchAll, appliedFilters, page])
+  }, [fetchAll, appliedFilters, page, mode])
 
   const activeCount = activeFilterCount(appliedFilters)
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 64 }}>
       <div className="container" style={{ paddingTop: 24 }}>
+
+        {/* ── MODE TOGGLE (AI / NAİF) ───────────────────────────────────── */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+          <button
+            className={`filter-btn${mode === 'ai' ? ' active' : ''}`}
+            style={{ fontSize: 12, padding: '6px 18px' }}
+            onClick={() => handleModeChange('ai')}
+          >
+            AI
+          </button>
+          <button
+            className={`filter-btn${mode === 'naive' ? ' active' : ''}`}
+            style={{ fontSize: 12, padding: '6px 18px' }}
+            onClick={() => handleModeChange('naive')}
+          >
+            NAİF
+          </button>
+        </div>
 
         {/* ── PRESET BAR ─────────────────────────────────────────────────── */}
         {presets.length > 0 && (
@@ -305,66 +346,118 @@ export default function AnalysisPage() {
           )}
         </div>
 
-        {!loading && overview && (
+        {!loading && (mode === 'ai' ? overview : naiveOverview) && (
           <>
             {/* ── SUMMARY SCORE CARDS ──────────────────────────────────────── */}
-            <div className="stat-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(9, minmax(0, 1fr))', gap: 8, marginBottom: 16 }}>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>TOTAL</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{overview.total_all}</div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:{overview.long_total}</span>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>S:{overview.short_total}</span>
+            {mode === 'ai' && overview && (
+              <div className="stat-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(9, minmax(0, 1fr))', gap: 8, marginBottom: 16 }}>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>TOTAL</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{overview.total_all}</div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:{overview.long_total}</span>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>S:{overview.short_total}</span>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>SIMULATED</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{overview.total}</div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:{overview.long_total}</span>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>S:{overview.short_total}</span>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>WIN RATE</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: winColor(Number(overview.win_rate)) }}>%{Number(overview.win_rate).toFixed(1)}</div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:%{Number(overview.long_win_rate).toFixed(1)}</span>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>S:%{Number(overview.short_win_rate).toFixed(1)}</span>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>AVG WIN R</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>
+                    {overview.avg_r_win != null ? `+${Number(overview.avg_r_win).toFixed(2)}R` : '—'}
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>TOTAL PNL</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: Number(overview.total_pnl) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                    {overview.total_pnl != null ? `${Number(overview.total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.total_pnl)).toFixed(0)}` : '—'}
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>TP HIT</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>{overview.tp_count}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>SL HIT</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--red)' }}>{overview.sl_count}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>EXPIRED</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--amber)' }}>{overview.expired_count}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>NO ENTRY</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--text-2)' }}>{overview.no_entry_count}</div>
                 </div>
               </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>SIMULATED</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{overview.total}</div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:{overview.long_total}</span>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>S:{overview.short_total}</span>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>WIN RATE</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: winColor(Number(overview.win_rate)) }}>%{Number(overview.win_rate).toFixed(1)}</div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:%{Number(overview.long_win_rate).toFixed(1)}</span>
-                  <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>S:%{Number(overview.short_win_rate).toFixed(1)}</span>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>AVG WIN R</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>
-                  {overview.avg_r_win != null ? `+${Number(overview.avg_r_win).toFixed(2)}R` : '—'}
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>TOTAL PNL</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: Number(overview.total_pnl) >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                  {overview.total_pnl != null ? `${Number(overview.total_pnl) > 0 ? '+' : ''}$${Math.abs(Number(overview.total_pnl)).toFixed(0)}` : '—'}
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>TP HIT</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>{overview.tp_count}</div>
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>SL HIT</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--red)' }}>{overview.sl_count}</div>
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>EXPIRED</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--amber)' }}>{overview.expired_count}</div>
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>NO ENTRY</div>
-                <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--text-2)' }}>{overview.no_entry_count}</div>
-              </div>
-            </div>
+            )}
 
-            {/* ── CUMULATIVE R + DAILY TRADES ─────────────────────────────── */}
-            {cumR && cumR[cumRPeriod].series.length > 0 && (() => {
+            {/* ── NAİF SUMMARY SCORE CARDS ────────────────────────────────── */}
+            {mode === 'naive' && naiveOverview && (
+              <div className="stat-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(0, 1fr))', gap: 8, marginBottom: 16 }}>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>TOTAL</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{naiveOverview.total_all}</div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:{naiveOverview.long_total}</span>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>S:{naiveOverview.short_total}</span>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>SIMULATED</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{naiveOverview.total}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>WIN RATE</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: winColor(Number(naiveOverview.win_rate)) }}>%{Number(naiveOverview.win_rate).toFixed(1)}</div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:%{Number(naiveOverview.long_win_rate).toFixed(1)}</span>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>S:%{Number(naiveOverview.short_win_rate).toFixed(1)}</span>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>AVG WIN R</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>
+                    {naiveOverview.avg_r_win != null ? `+${Number(naiveOverview.avg_r_win).toFixed(2)}R` : '—'}
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>TOTAL R</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: Number(naiveOverview.total_r) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                    {naiveOverview.total_r != null ? `${Number(naiveOverview.total_r) > 0 ? '+' : ''}${Number(naiveOverview.total_r).toFixed(2)}R` : '—'}
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>TP HIT</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>{naiveOverview.tp_count}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>SL HIT</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--red)' }}>{naiveOverview.sl_count}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>EXPIRED</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--amber)' }}>{naiveOverview.expired_count}</div>
+                </div>
+              </div>
+            )}
+
+            {/* ── CUMULATIVE R + DAILY TRADES (sadece AI) ──────────────────── */}
+            {mode === 'ai' && cumR && cumR[cumRPeriod].series.length > 0 && (() => {
               const activePeriod = cumR[cumRPeriod]
               const lineColor = activePeriod.final_r >= 0 ? '#4ade80' : '#f87171'
               const periodLabel = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' }
@@ -461,8 +554,8 @@ export default function AnalysisPage() {
               )
             })()}
 
-            {/* ── DAY OF WEEK ANALYSIS ───────────────────────────────── */}
-            {weekly && (weekly.by_day?.length > 0 || weekly.by_type?.length > 0) && (
+            {/* ── DAY OF WEEK ANALYSIS (sadece AI) ─────────────────────────── */}
+            {mode === 'ai' && weekly && (weekly.by_day?.length > 0 || weekly.by_type?.length > 0) && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   DAY OF WEEK ANALYSIS
@@ -508,8 +601,8 @@ export default function AnalysisPage() {
               </div>
             )}
 
-            {/* ── RSI ANALYSIS ─────────────────────────────────────────────── */}
-            {scoring && (
+            {/* ── RSI ANALYSIS (sadece AI) ─────────────────────────────────── */}
+            {mode === 'ai' && scoring && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   RSI ANALYSIS
@@ -559,18 +652,20 @@ export default function AnalysisPage() {
               </div>
             )}
 
-            {/* ── WIN PROBABILITY CALIBRATION TABLE ─────────────────────── */}
-            {wpAll && (
+            {/* ── WIN PROBABILITY CALIBRATION TABLE (sadece AI) ───────────── */}
+            {mode === 'ai' && wpAll && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  WIN PROBABILITY CALIBRATION — V6
+                  WIN PROBABILITY CALIBRATION — V6 & C75
                 </div>
 
-                {/* V6 ve V6 Rev yan yana */}
+                {/* V6 / V6 Rev / C75 / C75 Rev — 2x2 */}
                 <div className="two-col-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
                   {([
-                    { key: 'v6',     label: 'V6' },
-                    { key: 'v6_rev', label: 'V6 Rev' },
+                    { key: 'v6',      label: 'V6' },
+                    { key: 'v6_rev',  label: 'V6 Rev' },
+                    { key: 'c75',     label: 'C75' },
+                    { key: 'c75_rev', label: 'C75 Rev' },
                   ] as const).map(ver => {
                     const rows = wpAll[ver.key] ?? []
                     if (rows.length === 0) return null
@@ -674,8 +769,45 @@ export default function AnalysisPage() {
               </div>
             )}
 
-            {/* ── TARGET DISTANCE ANALYSIS ─────────────────────────────────────── */}
-            {distance && (distance.tp_buckets?.length > 0 || distance.sl_buckets?.length > 0) && (
+            {/* ── DIST RATIO CALIBRATION (sadece Naif) ─────────────────────── */}
+            {mode === 'naive' && distRatio && distRatio.buckets.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+                  DIST RATIO CALIBRATION — Naif (uzak/yakın cluster mesafe oranı)
+                </div>
+                <div className="card" style={{ padding: 16, overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Bucket</th>
+                        <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Ort. Oran</th>
+                        <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>n</th>
+                        <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Win%</th>
+                        <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Total R</th>
+                        <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Max DD</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {distRatio.buckets.map((b, i) => (
+                        <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                          <td style={{ padding: '6px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
+                          <td style={{ padding: '6px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{b.avg_dist_ratio != null ? `${Number(b.avg_dist_ratio).toFixed(2)}x` : '—'}</td>
+                          <td style={{ padding: '6px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
+                          <td style={{ padding: '6px 4px', textAlign: 'right', color: winColor(Number(b.win_rate)) }}>{b.win_rate != null ? `%${Number(b.win_rate).toFixed(1)}` : '—'}</td>
+                          <td style={{ padding: '6px 4px', textAlign: 'right', color: Number(b.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                            {b.total_r != null ? `${Number(b.total_r) >= 0 ? '+' : ''}${Number(b.total_r).toFixed(2)}R` : '—'}
+                          </td>
+                          <td style={{ padding: '6px 4px', textAlign: 'right', color: 'var(--red)' }}>{b.max_dd != null ? `${Number(b.max_dd).toFixed(2)}` : '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* ── TARGET DISTANCE ANALYSIS (sadece AI) ──────────────────────── */}
+            {mode === 'ai' && distance && (distance.tp_buckets?.length > 0 || distance.sl_buckets?.length > 0) && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   TARGET DISTANCE ANALYSIS
@@ -717,8 +849,8 @@ export default function AnalysisPage() {
               </div>
             )}
 
-            {/* ── ENTRY & TRADE DURATION ────────────────────────────── */}
-            {((entryWait?.buckets?.length ?? 0) > 0 || (tradeDur?.buckets?.length ?? 0) > 0) && (
+            {/* ── ENTRY & TRADE DURATION (sadece AI) ────────────────────── */}
+            {mode === 'ai' && ((entryWait?.buckets?.length ?? 0) > 0 || (tradeDur?.buckets?.length ?? 0) > 0) && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   ENTRY & TRADE DURATION
@@ -765,7 +897,8 @@ export default function AnalysisPage() {
             )}
 
             {/* ── OPTIMAL R ────────────────────────────────────────────────── */}
-            {optimalR && optimalR.sweep.length > 0 && (
+            {/* ── OPTIMAL R (kaldırıldı — sadece AI, kullanıcı isteğiyle Naif'te yok) ── */}
+            {mode === 'ai' && overview && optimalR && optimalR.sweep.length > 0 && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   OPTIMAL R ANALYSIS
@@ -830,8 +963,8 @@ export default function AnalysisPage() {
               </div>
             )}
 
-            {/* ── R MULTIPLE & MFE/MAE ─────────────────────────────────────── */}
-            {rmae && (rmae.r_histogram?.length > 0 || rmae.target_r_distribution?.length > 0) && (
+            {/* ── R MULTIPLE & MFE/MAE (kaldırıldı — sadece AI, Naif'te yok) ── */}
+            {mode === 'ai' && rmae && (rmae.r_histogram?.length > 0 || rmae.target_r_distribution?.length > 0) && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   R MULTIPLE & MFE/MAE
@@ -888,7 +1021,7 @@ export default function AnalysisPage() {
             )}
 
             {/* ── DELTA ANALYSIS ────────────────────────────────────────────── */}
-            {deltaData && Object.keys(deltaData).length > 0 && (() => {
+            {mode === 'ai' && deltaData && Object.keys(deltaData).length > 0 && (() => {
               const PAIRS = [
                 { h1: 'h1_ls_ratio',     m5: 'm5_ls_ratio' },
                 { h1: 'h1_tt_positions', m5: 'm5_tt_positions' },
@@ -972,129 +1105,7 @@ export default function AnalysisPage() {
               </div>
             </div>
 
-            <div className="card">
-              <div className="analysis-row" style={{ cursor: 'default' }}>
-                <span className="col-label">Date</span>
-                <span className="col-label">Dir</span>
-                <span className="col-label">Entry</span>
-                <span className="col-label">TP</span>
-                <span className="col-label">SL</span>
-                <span className="col-label">R/R</span>
-                <span className="col-label">RSI</span>
-                {['V6','V6 (Rev)'].map(h => (
-                  <span key={h} className="col-label">{h}</span>
-                ))}
-                {['Liq Ratio','Up Hit','Dn Hit','Up Reach','Dn Reach'].map(h => (
-                  <span key={h} className="col-label">{h}</span>
-                ))}
-                <span className="col-label">PnL</span>
-                <span className="col-label">R</span>
-                <span className="col-label">Result</span>
-              </div>
-
-              {analyses.length === 0 && (
-                <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }} className="mono">no records found</div>
-              )}
-
-              {analyses.map(a => (
-                <div key={a.id} className="analysis-row" onClick={() => router.push(`/dashboard/${a.id}`)}>
-                  <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{fmtDate(a.analyzed_at)}</span>
-                  <span>{dirBadge(a.direction)}</span>
-                  <span className="price" style={{ fontSize: 12 }}>${Math.round(a.entry).toLocaleString('en-US')}</span>
-                  <span className="mono" style={{ fontSize: 12, color: 'var(--green)' }}>${Math.round(a.tp).toLocaleString('en-US')}</span>
-                  <span className="mono" style={{ fontSize: 12, color: 'var(--red)' }}>${Math.round(a.sl).toLocaleString('en-US')}</span>
-                  <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rr}</span>
-                  <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span>
-                  {([
-                    { wp: a.win_probability_v6,         rev: null },
-                    { wp: a.win_probability_v6_reverse, rev: null },
-                  ]).map(({ wp }, i) => (
-                    <span key={i} className="mono" style={{ fontSize: 11, color: wpColor(wp) }}>
-                      {wp != null ? `%${Number(wp).toFixed(0)}` : '—'}
-                    </span>
-                  ))}
-                  <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>
-                    {a.cluster_liq_ratio != null ? Number(a.cluster_liq_ratio).toFixed(2) : '—'}
-                  </span>
-                  <span className="mono" style={{ fontSize: 11, color: a.cluster_up_hit ? 'var(--green)' : a.cluster_up_hit === false ? 'var(--text-3)' : 'var(--text-3)' }}>
-                    {a.cluster_up_hit != null ? (a.cluster_up_hit ? '✓' : '—') : '—'}
-                  </span>
-                  <span className="mono" style={{ fontSize: 11, color: a.cluster_dn_hit ? 'var(--green)' : a.cluster_dn_hit === false ? 'var(--text-3)' : 'var(--text-3)' }}>
-                    {a.cluster_dn_hit != null ? (a.cluster_dn_hit ? '✓' : '—') : '—'}
-                  </span>
-                  <span className="mono" style={{ fontSize: 11, color: a.cluster_up_reach_pct != null && Number(a.cluster_up_reach_pct) >= 75 ? 'var(--green)' : 'var(--text-2)' }}>
-                    {a.cluster_up_reach_pct != null ? `%${Number(a.cluster_up_reach_pct).toFixed(0)}` : '—'}
-                  </span>
-                  <span className="mono" style={{ fontSize: 11, color: a.cluster_dn_reach_pct != null && Number(a.cluster_dn_reach_pct) >= 75 ? 'var(--green)' : 'var(--text-2)' }}>
-                    {a.cluster_dn_reach_pct != null ? `%${Number(a.cluster_dn_reach_pct).toFixed(0)}` : '—'}
-                  </span>
-                  <span className={`mono ${a.sim_pnl_usd != null ? pnlClass(Number(a.sim_pnl_usd)) : 'pnl-zero'}`} style={{ fontSize: 11 }}>
-                    {a.sim_pnl_usd != null ? `${Number(a.sim_pnl_usd) > 0 ? '+' : ''}$${Math.abs(Number(a.sim_pnl_usd)).toFixed(2)}` : '—'}
-                  </span>
-                  <span className={`mono ${a.sim_r_multiple != null ? pnlClass(a.sim_result === 'SL_HIT' ? -1 : Number(a.sim_r_multiple)) : 'pnl-zero'}`} style={{ fontSize: 11 }}>
-                    {fmtR(a.sim_r_multiple, a.sim_result)}
-                  </span>
-                  <span>{resultBadge(a.sim_result)}</span>
-                </div>
-              ))}
-
-              {analyses.map(a => (
-                <div key={`m-${a.id}`} className="mobile-card" onClick={() => router.push(`/dashboard/${a.id}`)}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {dirBadge(a.direction)}
-                      {resultBadge(a.sim_result)}
-                    </div>
-                    <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{fmtDate(a.analyzed_at)}</span>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
-                    <div>
-                      <div className="col-label" style={{ marginBottom: 2 }}>Entry</div>
-                      <span className="price" style={{ fontSize: 13 }}>${fmt(a.entry)}</span>
-                    </div>
-                    <div>
-                      <div className="col-label" style={{ marginBottom: 2 }}>TP</div>
-                      <span className="mono" style={{ fontSize: 13, color: 'var(--green)' }}>${fmt(a.tp)}</span>
-                    </div>
-                    <div>
-                      <div className="col-label" style={{ marginBottom: 2 }}>SL</div>
-                      <span className="mono" style={{ fontSize: 13, color: 'var(--red)' }}>${fmt(a.sl)}</span>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                    <div><span className="col-label">R/R </span><span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rr}</span></div>
-                    <div><span className="col-label">RSI4H </span><span className="mono" style={{ fontSize: 12, color: 'var(--text-2)' }}>{a.rsi_4h != null ? Number(a.rsi_4h).toFixed(1) : '—'}</span></div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
-                    {([
-                      { wp: a.win_probability_v6, rev: a.win_probability_v6_reverse, label: 'V6' },
-                    ]).map(({ wp, rev, label }) => (
-                      <div key={label}>
-                        <span className="col-label">{label} </span>
-                        <span className="mono" style={{ fontSize: 12, color: wpColor(wp) }}>
-                          {wp != null ? `%${Number(wp).toFixed(0)}` : '—'}
-                        </span>
-                        {rev != null && (
-                          <span className="mono" style={{ fontSize: 10, color: wpColor(rev), marginLeft: 2 }}>
-                            /{Number(rev).toFixed(0)}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  {a.sim_pnl_usd != null && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span className={`mono ${pnlClass(Number(a.sim_pnl_usd))}`} style={{ fontSize: 13, fontWeight: 500 }}>
-                        {Number(a.sim_pnl_usd) > 0 ? '+' : ''}${Math.abs(Number(a.sim_pnl_usd)).toFixed(2)}
-                      </span>
-                      <span className={`mono ${pnlClass(a.sim_result === 'SL_HIT' ? -1 : Number(a.sim_r_multiple))}`} style={{ fontSize: 11 }}>
-                        {fmtR(a.sim_r_multiple, a.sim_result)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+            <AnalysisListUniversal analyses={analyses} />
 
             {totalPages > 1 && (
               <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
