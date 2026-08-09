@@ -11,10 +11,19 @@ interface Analysis {
   entry: number; tp: number; sl: number; rr: string
   risk_usd: number; position_size_btc: number
   market_score_value: number; confidence_value: number; rsi_4h: number; win_probability: number | null
+  win_probability_v6: number | null; win_probability_v6_reverse: number | null
+  win_probability_c75: number | null; win_probability_c75_reverse: number | null
+  zlema_zone_4h: string | null
   sim_result: string; sim_pnl_usd: number; sim_r_multiple: number
   sim_entry_to_result_minutes: number
   sim_entry_triggered_at: string; sim_result_at: string
   sim_max_favorable_move: number; sim_max_adverse_move: number
+  // Naif
+  naive_direction: string | null; naive_entry: number | null
+  naive_tp: number | null; naive_sl: number | null; naive_rr: number | null
+  naive_dist_ratio: number | null; naive_pos_size: number | null
+  naive_duration_mins: number | null
+  sim_result_naive: string | null; naive_sim_r_multiple: number | null
   synthesis_h1: string; synthesis_m5: string; synthesis_mtf: string
   h1_global_ls_ratio_comment: string; h1_global_ls_ratio_is_critical: boolean
   h1_top_trader_accounts_comment: string; h1_top_trader_accounts_is_critical: boolean
@@ -60,9 +69,15 @@ const resultBadge = (r: string) => {
 }
 
 const pnlClass = (v: number) => v > 0 ? 'pnl-pos' : v < 0 ? 'pnl-neg' : 'pnl-zero'
+const wpColor = (v: number | null | undefined) => !v ? 'var(--text-3)' : v >= 70 ? 'var(--green)' : v >= 50 ? 'var(--amber)' : 'var(--red)'
+const zlemaBadge = (z: string | null) => {
+  if (!z) return <span className="mono" style={{ fontSize: 14, color: 'var(--text-3)' }}>—</span>
+  const color = z === 'LONG' ? 'var(--green)' : z === 'SHORT' ? 'var(--red)' : 'var(--text-3)'
+  return <span className="mono" style={{ fontSize: 14, fontWeight: 500, color }}>{z === 'NO_TRADE' ? 'NO TRADE' : z}</span>
+}
 const fmt = (n: number) => n?.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) ?? '—'
 const fmtDate = (s: string) => new Date(s).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-const fmtMins = (m: number) => { if (!m) return '—'; const h = Math.floor(m / 60); const min = m % 60; return h > 0 ? `${h}s ${min}dk` : `${min}dk` }
+const fmtMins = (m: number | null) => { if (!m) return '—'; const h = Math.floor(m / 60); const min = m % 60; return h > 0 ? `${h}s ${min}dk` : `${min}dk` }
 const fmtR = (v: number | null, result?: string) => {
   if (v == null) return '—'
   const n = parseFloat(String(v))
@@ -100,7 +115,7 @@ export default function AnalysisPage() {
   const router = useRouter()
   const [data, setData] = useState<Analysis | null>(null)
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'analysis' | 'simulation' | 'scoring'>('analysis')
+  const [tab, setTab] = useState<'analysis' | 'simulation' | 'naif' | 'scoring'>('analysis')
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -173,9 +188,6 @@ export default function AnalysisPage() {
               <ScoreCard label="Yön" value={data.direction} color={data.direction === 'SHORT' ? 'var(--red)' : 'var(--green)'} />
               <ScoreCard label="Güven" value={`%${data.confidence_value}`} />
               <ScoreCard label="Skor" value={`${data.market_score_value}/10`} />
-              {data.win_probability != null && (
-                <ScoreCard label="WP" value={`%${data.win_probability}`} color={data.win_probability >= 65 ? 'var(--green)' : data.win_probability >= 55 ? 'var(--amber)' : 'var(--red)'} />
-              )}
               <ScoreCard label="4H RSI" value={data.rsi_4h ?? '—'} />
               <ScoreCard label="R/R" value={data.rr} />
               <ScoreCard label="Entry" value={`$${fmt(data.entry)}`} color="var(--amber)" sub={data.order_type?.replace('ORDER_TYPE_', '')} />
@@ -184,10 +196,37 @@ export default function AnalysisPage() {
               <ScoreCard label="Size" value={`${data.position_size_btc} BTC`} sub={`$${data.risk_usd} risk`} />
             </div>
 
+            {/* Model & Market — V6/C75/ZLEMA */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
+              <div className="stat-card">
+                <div className="col-label" style={{ marginBottom: 4 }}>V6</div>
+                <div className="mono" style={{ fontSize: 16, fontWeight: 500, color: wpColor(data.win_probability_v6) }}>{data.win_probability_v6 != null ? `%${Number(data.win_probability_v6).toFixed(0)}` : '—'}</div>
+                <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 3 }}>Rev: {data.win_probability_v6_reverse != null ? `%${Number(data.win_probability_v6_reverse).toFixed(0)}` : '—'}</div>
+              </div>
+              <div className="stat-card">
+                <div className="col-label" style={{ marginBottom: 4 }}>C75</div>
+                <div className="mono" style={{ fontSize: 16, fontWeight: 500, color: wpColor(data.win_probability_c75) }}>{data.win_probability_c75 != null ? `%${Number(data.win_probability_c75).toFixed(0)}` : '—'}</div>
+                <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 3 }}>Rev: {data.win_probability_c75_reverse != null ? `%${Number(data.win_probability_c75_reverse).toFixed(0)}` : '—'}</div>
+              </div>
+              <div className="stat-card">
+                <div className="col-label" style={{ marginBottom: 4 }}>ZLEMA (4H)</div>
+                {zlemaBadge(data.zlema_zone_4h)}
+              </div>
+              <div className="stat-card">
+                <div className="col-label" style={{ marginBottom: 4 }}>Naif Yön</div>
+                {dirBadge(data.naive_direction || '')}
+              </div>
+              <div className="stat-card">
+                <div className="col-label" style={{ marginBottom: 4 }}>Naif Sonuç</div>
+                {resultBadge(data.sim_result_naive || '')}
+              </div>
+            </div>
+
             {/* Tabs */}
             <div style={{ display: 'flex', borderBottom: '1px solid var(--border)' }}>
               <button className={`tab-btn${tab === 'analysis' ? ' active' : ''}`} onClick={() => setTab('analysis')}>Analiz</button>
               <button className={`tab-btn${tab === 'simulation' ? ' active' : ''}`} onClick={() => setTab('simulation')}>Simülasyon</button>
+              <button className={`tab-btn${tab === 'naif' ? ' active' : ''}`} onClick={() => setTab('naif')}>Naif</button>
               <button className={`tab-btn${tab === 'scoring' ? ' active' : ''}`} onClick={() => setTab('scoring')}>Skorlama</button>
             </div>
 
@@ -336,15 +375,26 @@ export default function AnalysisPage() {
                 <div>
                   <div className="section-title">Grafik</div>
                   {data.candles_json?.length ? (
-                    <CandleChart
-                      candles={data.candles_json}
-                      entry={data.entry} tp={data.tp} sl={data.sl}
-                      direction={data.direction}
-                      analyzedAt={new Date(data.analyzed_at).getTime()}
-                      entryTriggeredAt={data.sim_entry_triggered_at ? new Date(data.sim_entry_triggered_at).getTime() : null}
-                      resultAt={data.sim_result_at ? new Date(data.sim_result_at).getTime() : null}
-                      simResult={data.sim_result}
-                    />
+                    <>
+                      <CandleChart
+                        candles={data.candles_json}
+                        entry={data.entry} tp={data.tp} sl={data.sl}
+                        direction={data.direction}
+                        analyzedAt={new Date(data.analyzed_at).getTime()}
+                        entryTriggeredAt={data.sim_entry_triggered_at ? new Date(data.sim_entry_triggered_at).getTime() : null}
+                        resultAt={data.sim_result_at ? new Date(data.sim_result_at).getTime() : null}
+                        simResult={data.sim_result}
+                        naiveTp={data.naive_tp}
+                        naiveSl={data.naive_sl}
+                        naiveDirection={data.naive_direction}
+                      />
+                      {(data.naive_tp != null || data.naive_sl != null) && (
+                        <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 10 }} className="mono">
+                          <span style={{ color: 'var(--text-3)' }}>┄┄ AI (kesikli)</span>
+                          <span style={{ color: 'var(--text-3)' }}>┈┈ Naif (noktalı)</span>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)', background: 'var(--bg-3)', borderRadius: 6 }} className="mono">candle verisi yok</div>
                   )}
@@ -375,6 +425,72 @@ export default function AnalysisPage() {
                     </button>
                   </div>
                 </div>
+              </>
+            )}
+
+            {tab === 'naif' && (
+              <>
+                {!data.naive_direction ? (
+                  <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)', background: 'var(--bg-3)', borderRadius: 6 }} className="mono">
+                    Bu analiz için naif setup hesaplanmamış (cluster verisi eksik olabilir)
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
+                      {[
+                        { label: 'Yön', value: dirBadge(data.naive_direction) },
+                        { label: 'Entry', value: data.naive_entry != null ? `$${fmt(data.naive_entry)}` : '—', color: 'var(--amber)' },
+                        { label: 'TP', value: data.naive_tp != null ? `$${fmt(data.naive_tp)}` : '—', color: 'var(--green)' },
+                        { label: 'SL', value: data.naive_sl != null ? `$${fmt(data.naive_sl)}` : '—', color: 'var(--red)' },
+                        { label: 'Hedef RR', value: data.naive_rr != null ? Number(data.naive_rr).toFixed(2) : '—' },
+                        { label: 'Dist Ratio', value: data.naive_dist_ratio != null ? `${Number(data.naive_dist_ratio).toFixed(2)}x` : '—' },
+                        { label: 'Pos. Size', value: data.naive_pos_size != null ? `${Number(data.naive_pos_size).toFixed(4)} BTC` : '—' },
+                        { label: 'Sonuç', value: resultBadge(data.sim_result_naive || '') },
+                        { label: 'R Multiple', value: fmtR(safeNum(data.naive_sim_r_multiple), data.sim_result_naive || undefined), color: data.sim_result_naive === 'TP_HIT' ? 'var(--green)' : data.sim_result_naive === 'SL_HIT' ? 'var(--red)' : 'var(--text-3)' },
+                        { label: 'Süre', value: fmtMins(data.naive_duration_mins) },
+                      ].map((s, i) => (
+                        <div key={i} className="stat-card">
+                          <div className="col-label" style={{ marginBottom: 6 }}>{s.label}</div>
+                          <div className="mono" style={{ fontSize: 14, fontWeight: 500, color: (s as any).color || 'var(--text)' }}>{s.value}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div>
+                      <div className="section-title">AI vs Naif Karşılaştırma</div>
+                      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'DM Mono, monospace' }}>
+                          <thead>
+                            <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                              <th style={{ textAlign: 'left', color: 'var(--text-3)', padding: '8px 14px', fontWeight: 400 }}></th>
+                              <th style={{ textAlign: 'right', color: 'var(--text-3)', padding: '8px 14px', fontWeight: 400 }}>AI</th>
+                              <th style={{ textAlign: 'right', color: 'var(--text-3)', padding: '8px 14px', fontWeight: 400 }}>Naif</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[
+                              { label: 'Yön', ai: dirBadge(data.direction), nv: dirBadge(data.naive_direction), match: data.direction === data.naive_direction },
+                              { label: 'Entry', ai: `$${fmt(data.entry)}`, nv: data.naive_entry != null ? `$${fmt(data.naive_entry)}` : '—' },
+                              { label: 'TP', ai: `$${fmt(data.tp)}`, nv: data.naive_tp != null ? `$${fmt(data.naive_tp)}` : '—' },
+                              { label: 'SL', ai: `$${fmt(data.sl)}`, nv: data.naive_sl != null ? `$${fmt(data.naive_sl)}` : '—' },
+                              { label: 'Sonuç', ai: resultBadge(data.sim_result), nv: resultBadge(data.sim_result_naive || ''), match: data.sim_result === data.sim_result_naive },
+                              { label: 'R', ai: fmtR(safeNum(data.sim_r_multiple), data.sim_result), nv: fmtR(safeNum(data.naive_sim_r_multiple), data.sim_result_naive || undefined) },
+                            ].map((row, i) => (
+                              <tr key={i} style={{ borderBottom: i < 5 ? '1px solid var(--border)' : 'none' }}>
+                                <td style={{ padding: '8px 14px', color: 'var(--text-2)' }}>{row.label}</td>
+                                <td style={{ padding: '8px 14px', textAlign: 'right' }}>{row.ai}</td>
+                                <td style={{ padding: '8px 14px', textAlign: 'right' }}>{row.nv}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8 }}>
+                        Grafikte AI (kesikli) ve Naif (noktalı) hedefleri birlikte görmek için "Simülasyon" sekmesine bak.
+                      </div>
+                    </div>
+                  </>
+                )}
               </>
             )}
 
