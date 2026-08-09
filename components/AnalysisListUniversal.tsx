@@ -103,7 +103,7 @@ export const COLUMNS: ColumnDef[] = [
 
 const DEFAULT_VISIBLE = COLUMNS.filter(c => c.default).map(c => c.id)
 const STORAGE_KEY = 'hakari_analysis_columns'
-const GROUP_LABELS: Record<string, string> = { shared: 'ORTAK', ai: 'AI', naive: 'NAİF' }
+const GROUP_LABELS: Record<string, string> = { shared: 'ORTAK', ai: 'AI', naive: 'NAIF' }
 const GROUP_COLOR: Record<string, string> = { shared: 'var(--text-3)', ai: 'var(--green)', naive: 'var(--amber)' }
 
 // ── Kolon Seçici Panel ───────────────────────────────────────────────────
@@ -125,7 +125,7 @@ function ColumnPicker({ visible, onChange }: { visible: string[]; onChange: (ids
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button className="filter-btn" style={{ fontSize: 10, padding: '3px 12px' }} onClick={() => setOpen(o => !o)}>
-        ⚙ Kolonlar ({visible.length})
+        ⚙ Columns ({visible.length})
       </button>
       {open && (
         <div className="card" style={{
@@ -144,8 +144,8 @@ function ColumnPicker({ visible, onChange }: { visible: string[]; onChange: (ids
             </div>
           ))}
           <div style={{ borderTop: '1px solid var(--border)', paddingTop: 8, display: 'flex', gap: 6 }}>
-            <button className="filter-btn" style={{ fontSize: 10, padding: '2px 8px' }} onClick={() => onChange(DEFAULT_VISIBLE)}>Varsayılan</button>
-            <button className="filter-btn" style={{ fontSize: 10, padding: '2px 8px' }} onClick={() => onChange(COLUMNS.map(c => c.id))}>Tümü</button>
+            <button className="filter-btn" style={{ fontSize: 10, padding: '2px 8px' }} onClick={() => onChange(DEFAULT_VISIBLE)}>Default</button>
+            <button className="filter-btn" style={{ fontSize: 10, padding: '2px 8px' }} onClick={() => onChange(COLUMNS.map(c => c.id))}>All</button>
           </div>
         </div>
       )}
@@ -206,7 +206,7 @@ export default function AnalysisListUniversal({ analyses }: { analyses: Universa
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>↔ sürükleyerek veya scrollbar ile kaydır</span>
+        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>↔ drag or use the scrollbar to scroll</span>
         <ColumnPicker visible={visible} onChange={handleChange} />
       </div>
 
