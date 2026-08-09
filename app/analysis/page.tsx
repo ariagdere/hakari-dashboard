@@ -33,6 +33,8 @@ interface NaiveOverview {
 }
 interface DistRatioBucket { bucket: string; avg_dist_ratio: number; total: number; wins: number; win_rate: number; total_r: number | null; max_dd: number | null }
 interface DistRatioData { buckets: DistRatioBucket[] }
+interface ZlemaZoneRow { zone: string; total: number; wins: number; win_rate: number; total_r: number | null; long_total: number; long_win_rate: number; long_total_r: number | null; short_total: number; short_win_rate: number; short_total_r: number | null }
+interface ZlemaData { zones: ZlemaZoneRow[] }
 interface ScoringData {
   by_rsi: any[]; by_rsi_long: any[]; by_rsi_short: any[]
   by_rsi30: any[]; by_rsi30_long: any[]; by_rsi30_short: any[]
@@ -106,16 +108,22 @@ export default function AnalysisPage() {
   const [naiveOverview, setNaiveOverview] = useState<NaiveOverview | null>(null)
   const [distRatio, setDistRatio] = useState<DistRatioData | null>(null)
   const [scoring,   setScoring]   = useState<ScoringData | null>(null)
+  const [naiveScoring, setNaiveScoring] = useState<ScoringData | null>(null)
   const [deltaData, setDeltaData] = useState<DeltaData | null>(null)
   const [cumR,      setCumR]      = useState<CumRData | null>(null)
+  const [naiveCumR, setNaiveCumR] = useState<CumRData | null>(null)
   const [cumRPeriod, setCumRPeriod] = useState<'daily'|'weekly'|'monthly'>('daily')
   const [wpAll,     setWpAll]     = useState<WpAllData | null>(null)
   const [optimalR,  setOptimalR]  = useState<OptimalRData | null>(null)
   const [rmae,      setRmae]      = useState<RmaeData | null>(null)
   const [entryWait, setEntryWait] = useState<EntryWaitData | null>(null)
   const [tradeDur,  setTradeDur]  = useState<TradeDurData | null>(null)
+  const [naiveTradeDur, setNaiveTradeDur] = useState<TradeDurData | null>(null)
   const [distance,  setDistance]  = useState<DistanceData | null>(null)
   const [weekly,    setWeekly]    = useState<WeeklyData | null>(null)
+  const [naiveWeekly, setNaiveWeekly] = useState<WeeklyData | null>(null)
+  const [zlemaAI,    setZlemaAI]    = useState<ZlemaData | null>(null)
+  const [zlemaNaive, setZlemaNaive] = useState<ZlemaData | null>(null)
   const [analyses,  setAnalyses]  = useState<UniversalAnalysisRow[]>([])
   const [loading,   setLoading]   = useState(true)
   const [filterOpen, setFilterOpen] = useState(false)
@@ -166,6 +174,9 @@ export default function AnalysisPage() {
     setLoading(true)
     const p = filtersToParams(f)
     const qs = p.toString() ? `?${p}` : ''
+    const pView = new URLSearchParams(p)
+    pView.set('view', m)
+    const qsView = `?${pView.toString()}`
 
     if (m === 'ai') {
       Promise.all([
@@ -180,8 +191,9 @@ export default function AnalysisPage() {
         fetch(`/api/insights-tradedur${qs}`,      { cache: 'no-store' }).then(r => r.json()),
         fetch(`/api/insights-distance${qs}`,      { cache: 'no-store' }).then(r => r.json()),
         fetch(`/api/insights-weekly${qs}`,        { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-zlema${qsView}`,     { cache: 'no-store' }).then(r => r.json()),
         fetch(`/api/analyses?${p}&page=${pg}`,    { cache: 'no-store' }).then(r => r.json()),
-      ]).then(([ov, sc, delta, cr, wpa, optR, rm, ew, td, dist, wk, an]) => {
+      ]).then(([ov, sc, delta, cr, wpa, optR, rm, ew, td, dist, wk, zl, an]) => {
         setOverview(ov)
         setScoring(sc)
         setDeltaData(delta)
@@ -193,6 +205,7 @@ export default function AnalysisPage() {
         setTradeDur(td)
         setDistance(dist)
         setWeekly(wk)
+        setZlemaAI(zl)
         setAnalyses(an.analyses)
         setTotalPages(an.totalPages)
         setTotal(an.total)
@@ -202,10 +215,20 @@ export default function AnalysisPage() {
       Promise.all([
         fetch(`/api/insights-overview-naive${qs}`,  { cache: 'no-store' }).then(r => r.json()),
         fetch(`/api/insights-naive-distratio${qs}`, { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-cumr-naive${qs}`,      { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-scoring-naive${qs}`,   { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-weekly-naive${qs}`,    { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-tradedur-naive${qs}`,  { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-zlema${qsView}`,       { cache: 'no-store' }).then(r => r.json()),
         fetch(`/api/analyses?${p}&page=${pg}`,      { cache: 'no-store' }).then(r => r.json()),
-      ]).then(([nov, dr, an]) => {
+      ]).then(([nov, dr, ncr, nsc, nwk, ntd, zl, an]) => {
         setNaiveOverview(nov)
         setDistRatio(dr)
+        setNaiveCumR(ncr)
+        setNaiveScoring(nsc)
+        setNaiveWeekly(nwk)
+        setNaiveTradeDur(ntd)
+        setZlemaNaive(zl)
         setAnalyses(an.analyses)
         setTotalPages(an.totalPages)
         setTotal(an.total)
@@ -250,6 +273,11 @@ export default function AnalysisPage() {
   }, [fetchAll, appliedFilters, page, mode])
 
   const activeCount = activeFilterCount(appliedFilters)
+  const activeCumR      = mode === 'ai' ? cumR      : naiveCumR
+  const activeScoring    = mode === 'ai' ? scoring    : naiveScoring
+  const activeWeekly     = mode === 'ai' ? weekly     : naiveWeekly
+  const activeTradeDur   = mode === 'ai' ? tradeDur   : naiveTradeDur
+  const activeZlema      = mode === 'ai' ? zlemaAI    : zlemaNaive
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 64 }}>
@@ -456,9 +484,9 @@ export default function AnalysisPage() {
               </div>
             )}
 
-            {/* ── CUMULATIVE R + DAILY TRADES (sadece AI) ──────────────────── */}
-            {mode === 'ai' && cumR && cumR[cumRPeriod].series.length > 0 && (() => {
-              const activePeriod = cumR[cumRPeriod]
+            {/* ── CUMULATIVE R + DAILY TRADES ──────────────────────────────── */}
+            {activeCumR && activeCumR[cumRPeriod].series.length > 0 && (() => {
+              const activePeriod = activeCumR[cumRPeriod]
               const lineColor = activePeriod.final_r >= 0 ? '#4ade80' : '#f87171'
               const periodLabel = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' }
               return (
@@ -554,8 +582,8 @@ export default function AnalysisPage() {
               )
             })()}
 
-            {/* ── DAY OF WEEK ANALYSIS (sadece AI) ─────────────────────────── */}
-            {mode === 'ai' && weekly && (weekly.by_day?.length > 0 || weekly.by_type?.length > 0) && (
+            {/* ── DAY OF WEEK ANALYSIS ─────────────────────────────────────── */}
+            {activeWeekly && (activeWeekly.by_day?.length > 0 || activeWeekly.by_type?.length > 0) && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   DAY OF WEEK ANALYSIS
@@ -567,7 +595,7 @@ export default function AnalysisPage() {
                       <thead><tr>{['Day', 'n', 'Win%', 'Total R'].map((h, i) => (
                         <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
                       ))}</tr></thead>
-                      <tbody>{weekly.by_day.map((row, i) => (
+                      <tbody>{activeWeekly.by_day.map((row, i) => (
                         <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
                           <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{row.label}</td>
                           <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{row.total}</td>
@@ -585,7 +613,7 @@ export default function AnalysisPage() {
                       <thead><tr>{['Type', 'n', 'Win%', 'Total R'].map((h, i) => (
                         <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
                       ))}</tr></thead>
-                      <tbody>{weekly.by_type.map((row, i) => (
+                      <tbody>{activeWeekly.by_type.map((row, i) => (
                         <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
                           <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{row.label}</td>
                           <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{row.total}</td>
@@ -601,8 +629,8 @@ export default function AnalysisPage() {
               </div>
             )}
 
-            {/* ── RSI ANALYSIS (sadece AI) ─────────────────────────────────── */}
-            {mode === 'ai' && scoring && (
+            {/* ── RSI ANALYSIS ─────────────────────────────────────────────── */}
+            {activeScoring && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   RSI ANALYSIS
@@ -615,9 +643,9 @@ export default function AnalysisPage() {
                     <span className="mono" style={{ fontSize: 9, color: 'var(--green)', textAlign: 'center' }}>LONG</span>
                     <span className="mono" style={{ fontSize: 9, color: 'var(--red)', textAlign: 'center' }}>SHORT</span>
                   </div>
-                  {scoring.by_rsi.map(row => {
-                    const long  = scoring.by_rsi_long.find((r: any) => r.rsi_zone === row.rsi_zone)
-                    const short = scoring.by_rsi_short.find((r: any) => r.rsi_zone === row.rsi_zone)
+                  {activeScoring.by_rsi.map(row => {
+                    const long  = activeScoring.by_rsi_long.find((r: any) => r.rsi_zone === row.rsi_zone)
+                    const short = activeScoring.by_rsi_short.find((r: any) => r.rsi_zone === row.rsi_zone)
                     return (
                       <div key={row.rsi_zone} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: 6, alignItems: 'center', marginBottom: 8 }}>
                         <span className="mono" style={{ fontSize: 10, color: 'var(--text-2)' }}>{row.rsi_zone}</span>
@@ -627,7 +655,7 @@ export default function AnalysisPage() {
                     )
                   })}
                 </div>
-                {scoring.by_rsi30?.length > 0 && (
+                {activeScoring.by_rsi30?.length > 0 && (
                   <div className="card" style={{ padding: 16 }}>
                     <div className="col-label" style={{ marginBottom: 12 }}>RSI 30M Zone → Win Rate</div>
                     <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: 6, marginBottom: 6 }}>
@@ -635,9 +663,9 @@ export default function AnalysisPage() {
                       <span className="mono" style={{ fontSize: 9, color: 'var(--green)', textAlign: 'center' }}>LONG</span>
                       <span className="mono" style={{ fontSize: 9, color: 'var(--red)', textAlign: 'center' }}>SHORT</span>
                     </div>
-                    {scoring.by_rsi30.map((row: any) => {
-                      const long  = scoring.by_rsi30_long?.find((r: any) => r.rsi_zone === row.rsi_zone)
-                      const short = scoring.by_rsi30_short?.find((r: any) => r.rsi_zone === row.rsi_zone)
+                    {activeScoring.by_rsi30.map((row: any) => {
+                      const long  = activeScoring.by_rsi30_long?.find((r: any) => r.rsi_zone === row.rsi_zone)
+                      const short = activeScoring.by_rsi30_short?.find((r: any) => r.rsi_zone === row.rsi_zone)
                       return (
                         <div key={row.rsi_zone} style={{ display: 'grid', gridTemplateColumns: '120px 1fr 1fr', gap: 6, alignItems: 'center', marginBottom: 8 }}>
                           <span className="mono" style={{ fontSize: 10, color: 'var(--text-2)' }}>{row.rsi_zone}</span>
@@ -806,6 +834,55 @@ export default function AnalysisPage() {
               </div>
             )}
 
+            {/* ── ZLEMA ZONE ANALYSIS (her iki modda) ───────────────────────── */}
+            {activeZlema && activeZlema.zones.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+                  ZLEMA ZONE ANALYSIS (4H)
+                </div>
+                <div className="card" style={{ padding: 16, overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Zone</th>
+                        <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>n</th>
+                        <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Win%</th>
+                        <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Tot.R</th>
+                        <th style={{ textAlign: 'right', color: 'var(--green)', paddingBottom: 6, fontWeight: 400 }}>LONG n</th>
+                        <th style={{ textAlign: 'right', color: 'var(--green)', paddingBottom: 6, fontWeight: 400 }}>LONG Win%</th>
+                        <th style={{ textAlign: 'right', color: 'var(--green)', paddingBottom: 6, fontWeight: 400 }}>LONG R</th>
+                        <th style={{ textAlign: 'right', color: 'var(--red)', paddingBottom: 6, fontWeight: 400 }}>SHORT n</th>
+                        <th style={{ textAlign: 'right', color: 'var(--red)', paddingBottom: 6, fontWeight: 400 }}>SHORT Win%</th>
+                        <th style={{ textAlign: 'right', color: 'var(--red)', paddingBottom: 6, fontWeight: 400 }}>SHORT R</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {activeZlema.zones.map((z, i) => (
+                        <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
+                          <td style={{ padding: '6px 0', color: 'var(--text-2)' }}>{z.zone === 'NO_TRADE' ? 'NO TRADE' : z.zone}</td>
+                          <td style={{ padding: '6px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{z.total}</td>
+                          <td style={{ padding: '6px 4px', textAlign: 'right', color: winColor(Number(z.win_rate)) }}>{z.win_rate != null ? `%${Number(z.win_rate).toFixed(1)}` : '—'}</td>
+                          <td style={{ padding: '6px 4px', textAlign: 'right', color: Number(z.total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                            {z.total_r != null ? `${Number(z.total_r) >= 0 ? '+' : ''}${Number(z.total_r).toFixed(2)}R` : '—'}
+                          </td>
+                          <td style={{ padding: '6px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{z.long_total}</td>
+                          <td style={{ padding: '6px 4px', textAlign: 'right', color: winColor(Number(z.long_win_rate)) }}>{z.long_win_rate != null ? `%${Number(z.long_win_rate).toFixed(1)}` : '—'}</td>
+                          <td style={{ padding: '6px 4px', textAlign: 'right', color: Number(z.long_total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                            {z.long_total_r != null ? `${Number(z.long_total_r) >= 0 ? '+' : ''}${Number(z.long_total_r).toFixed(2)}R` : '—'}
+                          </td>
+                          <td style={{ padding: '6px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{z.short_total}</td>
+                          <td style={{ padding: '6px 4px', textAlign: 'right', color: winColor(Number(z.short_win_rate)) }}>{z.short_win_rate != null ? `%${Number(z.short_win_rate).toFixed(1)}` : '—'}</td>
+                          <td style={{ padding: '6px 4px', textAlign: 'right', color: Number(z.short_total_r ?? 0) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                            {z.short_total_r != null ? `${Number(z.short_total_r) >= 0 ? '+' : ''}${Number(z.short_total_r).toFixed(2)}R` : '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             {/* ── TARGET DISTANCE ANALYSIS (sadece AI) ──────────────────────── */}
             {mode === 'ai' && distance && (distance.tp_buckets?.length > 0 || distance.sl_buckets?.length > 0) && (
               <div style={{ marginBottom: 16 }}>
@@ -849,14 +926,14 @@ export default function AnalysisPage() {
               </div>
             )}
 
-            {/* ── ENTRY & TRADE DURATION (sadece AI) ────────────────────── */}
-            {mode === 'ai' && ((entryWait?.buckets?.length ?? 0) > 0 || (tradeDur?.buckets?.length ?? 0) > 0) && (
+            {/* ── ENTRY & TRADE DURATION (Entry Wait sadece AI, Duration paylaşımlı) ── */}
+            {(((mode === 'ai') && (entryWait?.buckets?.length ?? 0) > 0) || (activeTradeDur?.buckets?.length ?? 0) > 0) && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
                   ENTRY & TRADE DURATION
                 </div>
                 <div className="two-col-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  {(entryWait?.buckets?.length ?? 0) > 0 && (
+                  {mode === 'ai' && (entryWait?.buckets?.length ?? 0) > 0 && (
                     <div className="card" style={{ padding: 16 }}>
                       <div className="col-label" style={{ marginBottom: 10 }}>Entry wait time</div>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
@@ -874,14 +951,14 @@ export default function AnalysisPage() {
                       </table>
                     </div>
                   )}
-                  {(tradeDur?.buckets?.length ?? 0) > 0 && (
+                  {(activeTradeDur?.buckets?.length ?? 0) > 0 && (
                     <div className="card" style={{ padding: 16 }}>
                       <div className="col-label" style={{ marginBottom: 10 }}>Trade duration</div>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
                         <thead><tr>{['Duration', 'n', 'Win%', 'Total R'].map((h, i) => (
                           <th key={h} style={{ textAlign: i === 0 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>{h}</th>
                         ))}</tr></thead>
-                        <tbody>{tradeDur!.buckets!.map((b, i) => (
+                        <tbody>{activeTradeDur!.buckets!.map((b, i) => (
                           <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
                             <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
                             <td style={{ padding: '5px 0', textAlign: 'right', color: 'var(--text-3)' }}>{b.total}</td>
