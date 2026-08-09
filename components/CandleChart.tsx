@@ -20,9 +20,15 @@ interface Props {
   entryTriggeredAt?: number | null
   resultAt?: number | null
   simResult?: string | null
+  // Naif — opsiyonel, verilirse aynı grafikte noktalı çizgi olarak gösterilir
+  naiveTp?: number | null
+  naiveSl?: number | null
+  naiveDirection?: string | null
+  naiveResultAt?: number | null
+  naiveSimResult?: string | null
 }
 
-export default function CandleChart({ candles, entry, tp, sl, direction, analyzedAt, entryTriggeredAt, resultAt, simResult }: Props) {
+export default function CandleChart({ candles, entry, tp, sl, direction, analyzedAt, entryTriggeredAt, resultAt, simResult, naiveTp, naiveSl, naiveDirection, naiveResultAt, naiveSimResult }: Props) {
   const chartRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -88,6 +94,13 @@ export default function CandleChart({ candles, entry, tp, sl, direction, analyze
       candleSeries.createPriceLine({ price: tp,    color: '#4ade80', lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: `TP ${tp.toLocaleString()}` })
       candleSeries.createPriceLine({ price: sl,    color: '#f87171', lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: `SL ${sl.toLocaleString()}` })
 
+      if (naiveTp != null) {
+        candleSeries.createPriceLine({ price: naiveTp, color: '#4ade80', lineWidth: 1, lineStyle: LineStyle.Dotted, axisLabelVisible: true, title: `Naif TP ${naiveTp.toLocaleString()}` })
+      }
+      if (naiveSl != null) {
+        candleSeries.createPriceLine({ price: naiveSl, color: '#f87171', lineWidth: 1, lineStyle: LineStyle.Dotted, axisLabelVisible: true, title: `Naif SL ${naiveSl.toLocaleString()}` })
+      }
+
       const markers: any[] = []
 
       if (analyzedAt) {
@@ -120,6 +133,16 @@ export default function CandleChart({ candles, entry, tp, sl, direction, analyze
         })
       }
 
+      if (naiveResultAt && naiveSimResult && naiveSimResult !== 'EXPIRED') {
+        markers.push({
+          time: Math.floor(naiveResultAt / 1000) as any,
+          position: naiveSimResult === 'TP_HIT' ? (naiveDirection === 'SHORT' ? 'belowBar' : 'aboveBar') : 'belowBar',
+          color: naiveSimResult === 'TP_HIT' ? '#86efac' : '#fca5a5',
+          shape: 'square' as any,
+          text: naiveSimResult === 'TP_HIT' ? 'Naif TP' : 'Naif SL',
+        })
+      }
+
       if (markers.length > 0) {
         candleSeries.setMarkers(markers)
       }
@@ -138,7 +161,7 @@ export default function CandleChart({ candles, entry, tp, sl, direction, analyze
       cleanup = true
       if (chart) chart.remove()
     }
-  }, [candles, entry, tp, sl, direction, analyzedAt, entryTriggeredAt, resultAt, simResult])
+  }, [candles, entry, tp, sl, direction, analyzedAt, entryTriggeredAt, resultAt, simResult, naiveTp, naiveSl, naiveDirection, naiveResultAt, naiveSimResult])
 
   return (
     <div
