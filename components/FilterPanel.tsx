@@ -110,14 +110,19 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
       </div>
 
       {sep}
-      <GL c="Win Probability — V6" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+      <GL c="Win Probability — V6 & C75" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
         <RangeRow label="V6" minKey="wp6_min" maxKey="wp6_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
         <RangeRow label="V6 Rev" minKey="wp6_rev_min" maxKey="wp6_rev_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
+        <RangeRow label="C75" minKey="wp_c75_min" maxKey="wp_c75_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
+        <RangeRow label="C75 Rev" minKey="wp_c75_rev_min" maxKey="wp_c75_rev_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
+      </div>
+      <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 6 }}>
+        Not: V6/C75 skorları AI'ın analiz yönüne göre hesaplanır (Naif sekmesinde de aynı değerler gösterilir).
       </div>
 
       {sep}
-      <GL c="Liquidity Cluster" />
+      <GL c="Liquidity Cluster & ZLEMA Trend (4H)" />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div>
           <div className="col-label" style={{ marginBottom: 6, fontSize: 10 }}>LIQ ZONE</div>
@@ -150,6 +155,39 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
                 className="filter-btn"
                 style={{ fontSize: 10, padding: '2px 8px', color: 'var(--text-3)' }}
                 onClick={() => onChange({ ...filters, liq_zone: '' })}
+              >
+                clear
+              </button>
+            )}
+          </div>
+        </div>
+        <div>
+          <div className="col-label" style={{ marginBottom: 6, fontSize: 10 }}>ZLEMA ZONE (4H)</div>
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+            {(['LONG', 'SHORT', 'NO_TRADE'] as const).map(zone => {
+              const active = filters.zlema_zone.split(',').filter(Boolean).includes(zone)
+              return (
+                <button
+                  key={zone}
+                  className={`filter-btn${active ? ' active' : ''}`}
+                  style={{ fontSize: 10, padding: '2px 8px' }}
+                  onClick={() => {
+                    const current = filters.zlema_zone.split(',').filter(Boolean)
+                    const next = active
+                      ? current.filter(z => z !== zone)
+                      : [...current, zone]
+                    onChange({ ...filters, zlema_zone: next.join(',') })
+                  }}
+                >
+                  {zone === 'NO_TRADE' ? 'no trade' : zone.toLowerCase()}
+                </button>
+              )
+            })}
+            {filters.zlema_zone && (
+              <button
+                className="filter-btn"
+                style={{ fontSize: 10, padding: '2px 8px', color: 'var(--text-3)' }}
+                onClick={() => onChange({ ...filters, zlema_zone: '' })}
               >
                 clear
               </button>
