@@ -45,6 +45,8 @@ const LIQ_BUCKET = `
 const MODELS = [
   { key: 'v6',      col: 'win_probability_v6',         rev: false },
   { key: 'v6_rev',  col: 'win_probability_v6_reverse',  rev: true  },
+  { key: 'c75',     col: 'win_probability_c75',         rev: false },
+  { key: 'c75_rev', col: 'win_probability_c75_reverse', rev: true  },
 ]
 
 export async function GET(req: NextRequest) {
