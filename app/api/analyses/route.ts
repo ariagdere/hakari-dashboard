@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const page  = parseInt(searchParams.get('page') || '1')
-  const limit = 20
+  const limit = 15
   const offset = (page - 1) * limit
   const view = searchParams.get('view') === 'naive' ? 'naive' : 'ai'
   const { where, params } = buildInsightsWhere(request, view)
