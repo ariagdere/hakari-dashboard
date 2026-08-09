@@ -172,7 +172,7 @@ export default function ListPage() {
         {/* ── MODE TOGGLE ────────────────────────────────────────────────── */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
           <button className={`filter-btn${mode === 'ai' ? ' active' : ''}`} style={{ fontSize: 12, padding: '6px 18px' }} onClick={() => handleModeChange('ai')}>AI</button>
-          <button className={`filter-btn${mode === 'naive' ? ' active' : ''}`} style={{ fontSize: 12, padding: '6px 18px' }} onClick={() => handleModeChange('naive')}>NAİF</button>
+          <button className={`filter-btn${mode === 'naive' ? ' active' : ''}`} style={{ fontSize: 12, padding: '6px 18px' }} onClick={() => handleModeChange('naive')}>NAIF</button>
         </div>
 
         {/* ── PRESET BAR ─────────────────────────────────────────────────── */}
