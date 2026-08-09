@@ -122,11 +122,11 @@ export default function AnalysisPage() {
 
   const NotesBlock = (
     <div>
-      <div className="section-title">Not</div>
-      <textarea className="note-textarea" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Analize not ekle..." />
+      <div className="section-title">Notes</div>
+      <textarea className="note-textarea" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Add a note to this analysis..." />
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
         <button className="save-btn" onClick={saveNote} disabled={saving}>
-          {saving ? 'kaydediliyor...' : saved ? '✓ kaydedildi' : 'kaydet'}
+          {saving ? 'saving...' : saved ? '✓ saved' : 'save'}
         </button>
       </div>
     </div>
@@ -143,7 +143,7 @@ export default function AnalysisPage() {
             onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--border-3)')}
             onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
           >
-            ← Geri
+            ← Back
           </button>
           <div style={{ width: 1, height: 20, background: 'var(--border)' }} />
           <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--text)' }}>HAKARI</span>
@@ -160,15 +160,15 @@ export default function AnalysisPage() {
 
       <div className="container" style={{ paddingTop: 24 }}>
         {loading && (
-          <div style={{ textAlign: 'center', padding: 80, color: 'var(--text-3)' }} className="mono">yükleniyor...</div>
+          <div style={{ textAlign: 'center', padding: 80, color: 'var(--text-3)' }} className="mono">loading...</div>
         )}
 
         {data && !loading && (
           <div style={{ display: 'grid', gap: 20 }}>
             {/* Tabs */}
             <div style={{ display: 'flex', borderBottom: '1px solid var(--border)' }}>
-              <button className={`tab-btn${tab === 'analysis' ? ' active' : ''}`} onClick={() => setTab('analysis')}>Analiz</button>
-              <button className={`tab-btn${tab === 'simulation' ? ' active' : ''}`} onClick={() => setTab('simulation')}>Simülasyon</button>
+              <button className={`tab-btn${tab === 'analysis' ? ' active' : ''}`} onClick={() => setTab('analysis')}>Analysis</button>
+              <button className={`tab-btn${tab === 'simulation' ? ' active' : ''}`} onClick={() => setTab('simulation')}>Simulation</button>
             </div>
 
             {tab === 'analysis' && (
@@ -204,7 +204,7 @@ export default function AnalysisPage() {
 
                   {!data.naive_direction ? (
                     <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-3)', background: 'var(--bg-3)', borderRadius: 6 }} className="mono">
-                      Naif setup hesaplanmamış (cluster verisi eksik olabilir)
+                      Naif setup not calculated (cluster data may be missing)
                     </div>
                   ) : (
                     <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
@@ -213,12 +213,12 @@ export default function AnalysisPage() {
                           <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-3)' }}>
                             <th style={{ textAlign: 'left', color: 'var(--text-3)', padding: '12px 18px', fontWeight: 400, fontSize: 11, letterSpacing: '0.05em' }}></th>
                             <th style={{ textAlign: 'right', color: 'var(--text-2)', padding: '12px 18px', fontWeight: 600, fontSize: 12, letterSpacing: '0.05em' }}>AI</th>
-                            <th style={{ textAlign: 'right', color: 'var(--text-2)', padding: '12px 18px', fontWeight: 600, fontSize: 12, letterSpacing: '0.05em' }}>NAİF</th>
+                            <th style={{ textAlign: 'right', color: 'var(--text-2)', padding: '12px 18px', fontWeight: 600, fontSize: 12, letterSpacing: '0.05em' }}>NAIF</th>
                           </tr>
                         </thead>
                         <tbody>
                           {[
-                            { label: 'Yön', ai: dirBadge(data.direction), nv: dirBadge(data.naive_direction) },
+                            { label: 'Direction', ai: dirBadge(data.direction), nv: dirBadge(data.naive_direction) },
                             { label: 'Entry', ai: `$${fmt(data.entry)}`, nv: data.naive_entry != null ? `$${fmt(data.naive_entry)}` : '—' },
                             { label: 'TP', ai: `$${fmt(data.tp)}`, nv: data.naive_tp != null ? `$${fmt(data.naive_tp)}` : '—' },
                             { label: 'SL', ai: `$${fmt(data.sl)}`, nv: data.naive_sl != null ? `$${fmt(data.naive_sl)}` : '—' },
@@ -240,27 +240,27 @@ export default function AnalysisPage() {
 
                 {/* ── GENEL GİRDİ VE ANALİZ ÇIKTILARI ────────────────────── */}
                 <div>
-                  <div className="section-title">Genel Girdi ve Analiz Çıktıları</div>
+                  <div className="section-title">General Inputs & Analysis Outputs</div>
                 </div>
 
                 <div>
-                  <div className="section-title">MTF Sentez</div>
+                  <div className="section-title">MTF Synthesis</div>
                   <div className="synthesis-block">{data.synthesis_mtf}</div>
                 </div>
 
                 <div className="synthesis-2col">
                   <div>
-                    <div className="section-title">1H Sentez</div>
+                    <div className="section-title">1H Synthesis</div>
                     <div className="synthesis-block">{data.synthesis_h1}</div>
                   </div>
                   <div>
-                    <div className="section-title">5M Sentez</div>
+                    <div className="section-title">5M Synthesis</div>
                     <div className="synthesis-block">{data.synthesis_m5}</div>
                   </div>
                 </div>
 
                 <div>
-                  <div className="section-title">Likidite Haritası</div>
+                  <div className="section-title">Liquidity Map</div>
                   <div className="synthesis-2col" style={{ marginBottom: 8 }}>
                     {[
                       { zone: data.upside_zone_1, dir: 'up' },
@@ -279,7 +279,7 @@ export default function AnalysisPage() {
 
                 {screenshots.length > 0 && (
                   <div>
-                    <div className="section-title">Ekran Görüntüleri</div>
+                    <div className="section-title">Screenshots</div>
                     <div className="screenshot-grid">
                       {screenshots.map((url, i) => (
                         <div key={i} className="screenshot-thumb" onClick={() => setLightbox(url)}>
@@ -297,15 +297,15 @@ export default function AnalysisPage() {
             {tab === 'simulation' && (
               <>
                 <div>
-                  <div className="section-title">AI Sonucu</div>
+                  <div className="section-title">AI Result</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
                     {[
-                      { label: 'Sonuç', value: resultBadge(data.sim_result) },
+                      { label: 'Result', value: resultBadge(data.sim_result) },
                       { label: 'PnL', value: safeNum(data.sim_pnl_usd) != null ? `${safeNum(data.sim_pnl_usd)! > 0 ? '+' : ''}$${Math.abs(safeNum(data.sim_pnl_usd)!).toFixed(2)}` : '—', color: safeNum(data.sim_pnl_usd)! > 0 ? 'var(--green)' : safeNum(data.sim_pnl_usd)! < 0 ? 'var(--red)' : 'var(--text-3)' },
                       { label: 'R Multiple', value: fmtR(safeNum(data.sim_r_multiple), data.sim_result), color: safeNum(data.sim_r_multiple) != null && data.sim_result === 'TP_HIT' ? 'var(--green)' : data.sim_result === 'SL_HIT' ? 'var(--red)' : 'var(--text-3)' },
-                      { label: 'Süre', value: fmtMins(data.sim_entry_to_result_minutes) },
-                      { label: 'Max Kazanç', value: safeNum(data.sim_max_favorable_move) != null ? `$${fmt(safeNum(data.sim_max_favorable_move)!)}` : '—', color: 'var(--green)' },
-                      { label: 'Max Kayıp', value: safeNum(data.sim_max_adverse_move) != null ? `$${fmt(safeNum(data.sim_max_adverse_move)!)}` : '—', color: 'var(--red)' },
+                      { label: 'Duration', value: fmtMins(data.sim_entry_to_result_minutes) },
+                      { label: 'Max Gain', value: safeNum(data.sim_max_favorable_move) != null ? `$${fmt(safeNum(data.sim_max_favorable_move)!)}` : '—', color: 'var(--green)' },
+                      { label: 'Max Loss', value: safeNum(data.sim_max_adverse_move) != null ? `$${fmt(safeNum(data.sim_max_adverse_move)!)}` : '—', color: 'var(--red)' },
                     ].map((s, i) => (
                       <div key={i} className="stat-card">
                         <div className="col-label" style={{ marginBottom: 6 }}>{s.label}</div>
@@ -317,10 +317,10 @@ export default function AnalysisPage() {
 
                 {data.naive_direction && (
                   <div>
-                    <div className="section-title">Naif Sonucu</div>
+                    <div className="section-title">Naif Result</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
                       {[
-                        { label: 'Sonuç', value: resultBadge(data.sim_result_naive || '') },
+                        { label: 'Result', value: resultBadge(data.sim_result_naive || '') },
                         {
                           label: 'PnL', color: safeNum(data.naive_sim_r_multiple) == null ? 'var(--text-3)' : safeNum(data.naive_sim_r_multiple)! > 0 ? 'var(--green)' : safeNum(data.naive_sim_r_multiple)! < 0 ? 'var(--red)' : 'var(--text-3)',
                           value: safeNum(data.naive_sim_r_multiple) != null
@@ -328,7 +328,7 @@ export default function AnalysisPage() {
                             : '—',
                         },
                         { label: 'R Multiple', value: fmtR(safeNum(data.naive_sim_r_multiple), data.sim_result_naive || undefined), color: data.sim_result_naive === 'TP_HIT' ? 'var(--green)' : data.sim_result_naive === 'SL_HIT' ? 'var(--red)' : 'var(--text-3)' },
-                        { label: 'Süre', value: fmtMins(data.naive_duration_mins) },
+                        { label: 'Duration', value: fmtMins(data.naive_duration_mins) },
                       ].map((s, i) => (
                         <div key={i} className="stat-card">
                           <div className="col-label" style={{ marginBottom: 6 }}>{s.label}</div>
@@ -336,28 +336,28 @@ export default function AnalysisPage() {
                         </div>
                       ))}
                     </div>
-                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 6 }}>PnL, sabit $20 risk baz alınarak R × $20 şeklinde hesaplanır.</div>
+                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 6 }}>PnL is calculated as R × $20, based on a fixed $20 risk.</div>
                   </div>
                 )}
 
                 {(data.sim_entry_triggered_at || data.naive_direction) && (
                   <div className="data-item">
-                    <div className="section-title" style={{ marginBottom: 10 }}>Zaman Çizelgesi</div>
+                    <div className="section-title" style={{ marginBottom: 10 }}>Timeline</div>
                     <div style={{ display: 'grid', gap: 8 }}>
                       {[
-                        { label: 'Analiz', val: fmtDate(data.analyzed_at), color: 'var(--text-2)' },
+                        { label: 'Analysis', val: fmtDate(data.analyzed_at), color: 'var(--text-2)' },
                         ...(data.naive_direction
-                          ? [{ label: 'Naif Entry (anlık)', val: fmtDate(data.analyzed_at), color: 'var(--amber)' }]
+                          ? [{ label: 'Naif Entry (instant)', val: fmtDate(data.analyzed_at), color: 'var(--amber)' }]
                           : []),
                         ...(data.sim_entry_triggered_at
-                          ? [{ label: 'AI Entry tetiklendi', val: fmtDate(data.sim_entry_triggered_at), color: 'var(--amber)' }]
+                          ? [{ label: 'AI Entry triggered', val: fmtDate(data.sim_entry_triggered_at), color: 'var(--amber)' }]
                           : []),
                         ...(data.sim_result_at
-                          ? [{ label: `AI ${data.sim_result === 'TP_HIT' ? 'TP' : 'SL'} vuruldu`, val: fmtDate(data.sim_result_at), color: data.sim_result === 'TP_HIT' ? 'var(--green)' : 'var(--red)' }]
+                          ? [{ label: `AI ${data.sim_result === 'TP_HIT' ? 'TP' : 'SL'} hit`, val: fmtDate(data.sim_result_at), color: data.sim_result === 'TP_HIT' ? 'var(--green)' : 'var(--red)' }]
                           : []),
                         ...(data.naive_duration_mins != null && (data.sim_result_naive === 'TP_HIT' || data.sim_result_naive === 'SL_HIT')
                           ? [{
-                              label: `Naif ${data.sim_result_naive === 'TP_HIT' ? 'TP' : 'SL'} vuruldu`,
+                              label: `Naif ${data.sim_result_naive === 'TP_HIT' ? 'TP' : 'SL'} hit`,
                               val: fmtDate(new Date(new Date(data.analyzed_at).getTime() + data.naive_duration_mins * 60000).toISOString()),
                               color: data.sim_result_naive === 'TP_HIT' ? 'var(--green)' : 'var(--red)',
                             }]
@@ -371,14 +371,14 @@ export default function AnalysisPage() {
                     </div>
                     {data.sim_entry_triggered_at && data.naive_direction && (
                       <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 8 }}>
-                        Naif her zaman analiz anında anlık fiyattan girer, bekleme yoktur — AI ise pending order olabileceğinden farklı bir anda tetiklenebilir.
+                        Naif always enters at the instant price at analysis time — no wait. AI may be a pending order and can trigger at a different time.
                       </div>
                     )}
                   </div>
                 )}
 
                 <div>
-                  <div className="section-title">Grafik</div>
+                  <div className="section-title">Chart</div>
                   {data.candles_json?.length ? (
                     <>
                       <CandleChart
@@ -395,13 +395,13 @@ export default function AnalysisPage() {
                       />
                       {(data.naive_tp != null || data.naive_sl != null) && (
                         <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 10 }} className="mono">
-                          <span style={{ color: 'var(--text-3)' }}>┄┄ AI (kesikli)</span>
-                          <span style={{ color: 'var(--text-3)' }}>┈┈ Naif (noktalı)</span>
+                          <span style={{ color: 'var(--text-3)' }}>┄┄ AI (dashed)</span>
+                          <span style={{ color: 'var(--text-3)' }}>┈┈ Naif (dotted)</span>
                         </div>
                       )}
                     </>
                   ) : (
-                    <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)', background: 'var(--bg-3)', borderRadius: 6 }} className="mono">candle verisi yok</div>
+                    <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)', background: 'var(--bg-3)', borderRadius: 6 }} className="mono">no candle data</div>
                   )}
                 </div>
 
