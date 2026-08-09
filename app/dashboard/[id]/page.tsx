@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import ScoringTab from '@/components/ScoringTab'
 
 const CandleChart = dynamic(() => import('@/components/CandleChart'), { ssr: false })
 
@@ -25,27 +24,10 @@ interface Analysis {
   naive_duration_mins: number | null
   sim_result_naive: string | null; naive_sim_r_multiple: number | null
   synthesis_h1: string; synthesis_m5: string; synthesis_mtf: string
-  h1_global_ls_ratio_comment: string; h1_global_ls_ratio_is_critical: boolean
-  h1_top_trader_accounts_comment: string; h1_top_trader_accounts_is_critical: boolean
-  h1_top_trader_positions_comment: string; h1_top_trader_positions_is_critical: boolean
-  h1_open_interest_comment: string; h1_open_interest_is_critical: boolean
-  h1_oi_marketcap_ratio_comment: string; h1_oi_marketcap_ratio_is_critical: boolean
-  m5_global_ls_ratio_comment: string; m5_global_ls_ratio_is_critical: boolean
-  m5_top_trader_accounts_comment: string; m5_top_trader_accounts_is_critical: boolean
-  m5_top_trader_positions_comment: string; m5_top_trader_positions_is_critical: boolean
-  m5_open_interest_comment: string; m5_open_interest_is_critical: boolean
-  m5_oi_marketcap_ratio_comment: string; m5_oi_marketcap_ratio_is_critical: boolean
-  market_score_reason_1: string; market_score_reason_2: string
-  market_score_reason_3: string; market_score_reason_4: string
-  confidence_reason_1: string; confidence_reason_2: string
-  confidence_reason_3: string; confidence_reason_4: string
-  upside_zone_1: string; upside_comment_1: string
-  upside_zone_2: string; upside_comment_2: string
-  downside_zone_1: string; downside_comment_1: string
-  downside_zone_2: string; downside_comment_2: string
+  upside_zone_1: string; upside_zone_2: string
+  downside_zone_1: string; downside_zone_2: string
   liquidity_summary_note: string
   entry_reason: string; tp_reason: string; sl_reason: string
-  spot_pct: number; leverage_pct: number; market_power_comment: string
   candles_json: any[]
   notes: string
   screenshot_01_url: string; screenshot_02_url: string; screenshot_03_url: string
@@ -87,18 +69,6 @@ const fmtR = (v: number | null, result?: string) => {
 }
 const safeNum = (v: any): number | null => { const n = parseFloat(String(v)); return isNaN(n) ? null : n }
 
-function DataRow({ label, comment, critical }: { label: string; comment: string; critical: boolean }) {
-  return (
-    <div className={`data-item${critical ? ' critical' : ''}`}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
-        <span className="col-label">{label}</span>
-        {critical && <span style={{ fontSize: 9, color: 'var(--amber)', fontFamily: 'DM Mono, monospace' }}>● KRİTİK</span>}
-      </div>
-      <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.65 }}>{comment || '—'}</p>
-    </div>
-  )
-}
-
 function ScoreCard({ label, value, color, sub }: { label: string; value: any; color?: string; sub?: string }) {
   return (
     <div className="scorecard-cell">
@@ -115,7 +85,7 @@ export default function AnalysisPage() {
   const router = useRouter()
   const [data, setData] = useState<Analysis | null>(null)
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'analysis' | 'simulation' | 'naif' | 'scoring'>('analysis')
+  const [tab, setTab] = useState<'analysis' | 'simulation'>('analysis')
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -149,6 +119,18 @@ export default function AnalysisPage() {
     data.screenshot_07_url, data.screenshot_08_url, data.screenshot_09_url,
     data.screenshot_10_url, data.screenshot_11_url, data.screenshot_12_url,
   ].filter(Boolean) : []
+
+  const NotesBlock = (
+    <div>
+      <div className="section-title">Not</div>
+      <textarea className="note-textarea" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Analize not ekle..." />
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+        <button className="save-btn" onClick={saveNote} disabled={saving}>
+          {saving ? 'kaydediliyor...' : saved ? '✓ kaydedildi' : 'kaydet'}
+        </button>
+      </div>
+    </div>
+  )
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 48 }}>
@@ -196,42 +178,86 @@ export default function AnalysisPage() {
               <ScoreCard label="Size" value={`${data.position_size_btc} BTC`} sub={`$${data.risk_usd} risk`} />
             </div>
 
-            {/* Model & Market — V6/C75/ZLEMA */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>V6</div>
-                <div className="mono" style={{ fontSize: 16, fontWeight: 500, color: wpColor(data.win_probability_v6) }}>{data.win_probability_v6 != null ? `%${Number(data.win_probability_v6).toFixed(0)}` : '—'}</div>
-                <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 3 }}>Rev: {data.win_probability_v6_reverse != null ? `%${Number(data.win_probability_v6_reverse).toFixed(0)}` : '—'}</div>
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>C75</div>
-                <div className="mono" style={{ fontSize: 16, fontWeight: 500, color: wpColor(data.win_probability_c75) }}>{data.win_probability_c75 != null ? `%${Number(data.win_probability_c75).toFixed(0)}` : '—'}</div>
-                <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 3 }}>Rev: {data.win_probability_c75_reverse != null ? `%${Number(data.win_probability_c75_reverse).toFixed(0)}` : '—'}</div>
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>ZLEMA (4H)</div>
-                {zlemaBadge(data.zlema_zone_4h)}
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>Naif Yön</div>
-                {dirBadge(data.naive_direction || '')}
-              </div>
-              <div className="stat-card">
-                <div className="col-label" style={{ marginBottom: 4 }}>Naif Sonuç</div>
-                {resultBadge(data.sim_result_naive || '')}
-              </div>
-            </div>
-
             {/* Tabs */}
             <div style={{ display: 'flex', borderBottom: '1px solid var(--border)' }}>
               <button className={`tab-btn${tab === 'analysis' ? ' active' : ''}`} onClick={() => setTab('analysis')}>Analiz</button>
               <button className={`tab-btn${tab === 'simulation' ? ' active' : ''}`} onClick={() => setTab('simulation')}>Simülasyon</button>
-              <button className={`tab-btn${tab === 'naif' ? ' active' : ''}`} onClick={() => setTab('naif')}>Naif</button>
-              <button className={`tab-btn${tab === 'scoring' ? ' active' : ''}`} onClick={() => setTab('scoring')}>Skorlama</button>
             </div>
 
             {tab === 'analysis' && (
               <>
+                {/* ── AI & NAİF SETUP ─────────────────────────────────────── */}
+                <div>
+                  <div className="section-title">AI & Naif Setup</div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8, marginBottom: 12 }}>
+                    <div className="stat-card">
+                      <div className="col-label" style={{ marginBottom: 4 }}>AI WP</div>
+                      <div className="mono" style={{ fontSize: 16, fontWeight: 500, color: wpColor(data.win_probability) }}>{data.win_probability != null ? `%${data.win_probability}` : '—'}</div>
+                    </div>
+                    <div className="stat-card">
+                      <div className="col-label" style={{ marginBottom: 4 }}>V6</div>
+                      <div className="mono" style={{ fontSize: 16, fontWeight: 500, color: wpColor(data.win_probability_v6) }}>{data.win_probability_v6 != null ? `%${Number(data.win_probability_v6).toFixed(0)}` : '—'}</div>
+                      <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 3 }}>Rev: {data.win_probability_v6_reverse != null ? `%${Number(data.win_probability_v6_reverse).toFixed(0)}` : '—'}</div>
+                    </div>
+                    <div className="stat-card">
+                      <div className="col-label" style={{ marginBottom: 4 }}>C75</div>
+                      <div className="mono" style={{ fontSize: 16, fontWeight: 500, color: wpColor(data.win_probability_c75) }}>{data.win_probability_c75 != null ? `%${Number(data.win_probability_c75).toFixed(0)}` : '—'}</div>
+                      <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 3 }}>Rev: {data.win_probability_c75_reverse != null ? `%${Number(data.win_probability_c75_reverse).toFixed(0)}` : '—'}</div>
+                    </div>
+                    <div className="stat-card">
+                      <div className="col-label" style={{ marginBottom: 4 }}>ZLEMA (4H)</div>
+                      {zlemaBadge(data.zlema_zone_4h)}
+                    </div>
+                    <div className="stat-card">
+                      <div className="col-label" style={{ marginBottom: 4 }}>Aligned?</div>
+                      <div className="mono" style={{ fontSize: 16, fontWeight: 500, color: data.naive_direction && data.naive_direction === data.zlema_zone_4h ? 'var(--green)' : 'var(--text-3)' }}>
+                        {data.naive_direction ? (data.naive_direction === data.zlema_zone_4h ? '✓ Evet' : '✗ Hayır') : '—'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {!data.naive_direction ? (
+                    <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-3)', background: 'var(--bg-3)', borderRadius: 6 }} className="mono">
+                      Naif setup hesaplanmamış (cluster verisi eksik olabilir)
+                    </div>
+                  ) : (
+                    <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'DM Mono, monospace' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                            <th style={{ textAlign: 'left', color: 'var(--text-3)', padding: '8px 14px', fontWeight: 400 }}></th>
+                            <th style={{ textAlign: 'right', color: 'var(--text-3)', padding: '8px 14px', fontWeight: 400 }}>AI</th>
+                            <th style={{ textAlign: 'right', color: 'var(--text-3)', padding: '8px 14px', fontWeight: 400 }}>Naif</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {[
+                            { label: 'Yön', ai: dirBadge(data.direction), nv: dirBadge(data.naive_direction) },
+                            { label: 'Entry', ai: `$${fmt(data.entry)}`, nv: data.naive_entry != null ? `$${fmt(data.naive_entry)}` : '—' },
+                            { label: 'TP', ai: `$${fmt(data.tp)}`, nv: data.naive_tp != null ? `$${fmt(data.naive_tp)}` : '—' },
+                            { label: 'SL', ai: `$${fmt(data.sl)}`, nv: data.naive_sl != null ? `$${fmt(data.naive_sl)}` : '—' },
+                            { label: 'R/R', ai: data.rr, nv: data.naive_rr != null ? Number(data.naive_rr).toFixed(2) : '—' },
+                            { label: 'Dist Ratio', ai: '—', nv: data.naive_dist_ratio != null ? `${Number(data.naive_dist_ratio).toFixed(2)}x` : '—' },
+                            { label: 'Pos. Size', ai: `${data.position_size_btc} BTC`, nv: data.naive_pos_size != null ? `${Number(data.naive_pos_size).toFixed(4)} BTC` : '—' },
+                          ].map((row, i) => (
+                            <tr key={i} style={{ borderBottom: i < 6 ? '1px solid var(--border)' : 'none' }}>
+                              <td style={{ padding: '8px 14px', color: 'var(--text-2)' }}>{row.label}</td>
+                              <td style={{ padding: '8px 14px', textAlign: 'right' }}>{row.ai}</td>
+                              <td style={{ padding: '8px 14px', textAlign: 'right' }}>{row.nv}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                {/* ── GENEL GİRDİ VE ANALİZ ÇIKTILARI ────────────────────── */}
+                <div>
+                  <div className="section-title">Genel Girdi ve Analiz Çıktıları</div>
+                </div>
+
                 <div>
                   <div className="section-title">MTF Sentez</div>
                   <div className="synthesis-block">{data.synthesis_mtf}</div>
@@ -249,61 +275,17 @@ export default function AnalysisPage() {
                 </div>
 
                 <div>
-                  <div className="section-title">1H — Ham Veri</div>
-                  <div className="data-grid">
-                    <DataRow label="Global L/S" comment={data.h1_global_ls_ratio_comment} critical={data.h1_global_ls_ratio_is_critical} />
-                    <DataRow label="TT Accounts" comment={data.h1_top_trader_accounts_comment} critical={data.h1_top_trader_accounts_is_critical} />
-                    <DataRow label="TT Positions" comment={data.h1_top_trader_positions_comment} critical={data.h1_top_trader_positions_is_critical} />
-                    <DataRow label="Open Interest" comment={data.h1_open_interest_comment} critical={data.h1_open_interest_is_critical} />
-                    <DataRow label="OI/MCap" comment={data.h1_oi_marketcap_ratio_comment} critical={data.h1_oi_marketcap_ratio_is_critical} />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="section-title">5M — Ham Veri</div>
-                  <div className="data-grid">
-                    <DataRow label="Global L/S" comment={data.m5_global_ls_ratio_comment} critical={data.m5_global_ls_ratio_is_critical} />
-                    <DataRow label="TT Accounts" comment={data.m5_top_trader_accounts_comment} critical={data.m5_top_trader_accounts_is_critical} />
-                    <DataRow label="TT Positions" comment={data.m5_top_trader_positions_comment} critical={data.m5_top_trader_positions_is_critical} />
-                    <DataRow label="Open Interest" comment={data.m5_open_interest_comment} critical={data.m5_open_interest_is_critical} />
-                    <DataRow label="OI/MCap" comment={data.m5_oi_marketcap_ratio_comment} critical={data.m5_oi_marketcap_ratio_is_critical} />
-                  </div>
-                </div>
-
-                <div className="synthesis-2col">
-                  <div>
-                    <div className="section-title">Skor Gerekçeleri</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {[data.market_score_reason_1, data.market_score_reason_2, data.market_score_reason_3, data.market_score_reason_4].map((r, i) => (
-                        <div key={i} className="data-item"><p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6 }}>{r}</p></div>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="section-title">Güven Gerekçeleri</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {[data.confidence_reason_1, data.confidence_reason_2, data.confidence_reason_3, data.confidence_reason_4].map((r, i) => (
-                        <div key={i} className="data-item"><p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6 }}>{r}</p></div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div>
                   <div className="section-title">Likidite Haritası</div>
                   <div className="synthesis-2col" style={{ marginBottom: 8 }}>
                     {[
-                      { zone: data.upside_zone_1, comment: data.upside_comment_1, dir: 'up' },
-                      { zone: data.upside_zone_2, comment: data.upside_comment_2, dir: 'up' },
-                      { zone: data.downside_zone_1, comment: data.downside_comment_1, dir: 'down' },
-                      { zone: data.downside_zone_2, comment: data.downside_comment_2, dir: 'down' },
+                      { zone: data.upside_zone_1, dir: 'up' },
+                      { zone: data.upside_zone_2, dir: 'up' },
+                      { zone: data.downside_zone_1, dir: 'down' },
+                      { zone: data.downside_zone_2, dir: 'down' },
                     ].map((l, i) => (
-                      <div key={i} className="data-item">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                          <span style={{ fontSize: 10, color: l.dir === 'up' ? 'var(--green)' : 'var(--red)' }}>{l.dir === 'up' ? '▲' : '▼'}</span>
-                          <span className="mono" style={{ fontSize: 12, color: 'var(--text)' }}>{l.zone}</span>
-                        </div>
-                        <p style={{ fontSize: 11, color: 'var(--text-2)', lineHeight: 1.5 }}>{l.comment}</p>
+                      <div key={i} className="data-item" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 10, color: l.dir === 'up' ? 'var(--green)' : 'var(--red)' }}>{l.dir === 'up' ? '▲' : '▼'}</span>
+                        <span className="mono" style={{ fontSize: 12, color: 'var(--text)' }}>{l.zone}</span>
                       </div>
                     ))}
                   </div>
@@ -323,36 +305,48 @@ export default function AnalysisPage() {
                   </div>
                 )}
 
-                <div>
-                  <div className="section-title">Not</div>
-                  <textarea className="note-textarea" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Analize not ekle..." />
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-                    <button className="save-btn" onClick={saveNote} disabled={saving}>
-                      {saving ? 'kaydediliyor...' : saved ? '✓ kaydedildi' : 'kaydet'}
-                    </button>
-                  </div>
-                </div>
+                {NotesBlock}
               </>
             )}
 
             {tab === 'simulation' && (
               <>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
-                  {[
-                    { label: 'Sonuç', value: resultBadge(data.sim_result) },
-                    { label: 'PnL', value: safeNum(data.sim_pnl_usd) != null ? `${safeNum(data.sim_pnl_usd)! > 0 ? '+' : ''}$${Math.abs(safeNum(data.sim_pnl_usd)!).toFixed(2)}` : '—', color: safeNum(data.sim_pnl_usd)! > 0 ? 'var(--green)' : safeNum(data.sim_pnl_usd)! < 0 ? 'var(--red)' : 'var(--text-3)' },
-                    { label: 'R Multiple', value: fmtR(safeNum(data.sim_r_multiple), data.sim_result), color: safeNum(data.sim_r_multiple) != null && data.sim_result === 'TP_HIT' ? 'var(--green)' : data.sim_result === 'SL_HIT' ? 'var(--red)' : 'var(--text-3)' },
-                    { label: 'Süre', value: fmtMins(data.sim_entry_to_result_minutes) },
-                    { label: 'Max Kazanç', value: safeNum(data.sim_max_favorable_move) != null ? `$${fmt(safeNum(data.sim_max_favorable_move)!)}` : '—', color: 'var(--green)' },
-                    { label: 'Max Kayıp', value: safeNum(data.sim_max_adverse_move) != null ? `$${fmt(safeNum(data.sim_max_adverse_move)!)}` : '—', color: 'var(--red)' },
-                    { label: 'Spot / Lev', value: `%${data.spot_pct} / %${data.leverage_pct}` },
-                  ].map((s, i) => (
-                    <div key={i} className="stat-card">
-                      <div className="col-label" style={{ marginBottom: 6 }}>{s.label}</div>
-                      <div className="mono" style={{ fontSize: 14, fontWeight: 500, color: (s as any).color || 'var(--text)' }}>{s.value}</div>
-                    </div>
-                  ))}
+                <div>
+                  <div className="section-title">AI Sonucu</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
+                    {[
+                      { label: 'Sonuç', value: resultBadge(data.sim_result) },
+                      { label: 'PnL', value: safeNum(data.sim_pnl_usd) != null ? `${safeNum(data.sim_pnl_usd)! > 0 ? '+' : ''}$${Math.abs(safeNum(data.sim_pnl_usd)!).toFixed(2)}` : '—', color: safeNum(data.sim_pnl_usd)! > 0 ? 'var(--green)' : safeNum(data.sim_pnl_usd)! < 0 ? 'var(--red)' : 'var(--text-3)' },
+                      { label: 'R Multiple', value: fmtR(safeNum(data.sim_r_multiple), data.sim_result), color: safeNum(data.sim_r_multiple) != null && data.sim_result === 'TP_HIT' ? 'var(--green)' : data.sim_result === 'SL_HIT' ? 'var(--red)' : 'var(--text-3)' },
+                      { label: 'Süre', value: fmtMins(data.sim_entry_to_result_minutes) },
+                      { label: 'Max Kazanç', value: safeNum(data.sim_max_favorable_move) != null ? `$${fmt(safeNum(data.sim_max_favorable_move)!)}` : '—', color: 'var(--green)' },
+                      { label: 'Max Kayıp', value: safeNum(data.sim_max_adverse_move) != null ? `$${fmt(safeNum(data.sim_max_adverse_move)!)}` : '—', color: 'var(--red)' },
+                    ].map((s, i) => (
+                      <div key={i} className="stat-card">
+                        <div className="col-label" style={{ marginBottom: 6 }}>{s.label}</div>
+                        <div className="mono" style={{ fontSize: 14, fontWeight: 500, color: (s as any).color || 'var(--text)' }}>{s.value}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+
+                {data.naive_direction && (
+                  <div>
+                    <div className="section-title">Naif Sonucu</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
+                      {[
+                        { label: 'Sonuç', value: resultBadge(data.sim_result_naive || '') },
+                        { label: 'R Multiple', value: fmtR(safeNum(data.naive_sim_r_multiple), data.sim_result_naive || undefined), color: data.sim_result_naive === 'TP_HIT' ? 'var(--green)' : data.sim_result_naive === 'SL_HIT' ? 'var(--red)' : 'var(--text-3)' },
+                        { label: 'Süre', value: fmtMins(data.naive_duration_mins) },
+                      ].map((s, i) => (
+                        <div key={i} className="stat-card">
+                          <div className="col-label" style={{ marginBottom: 6 }}>{s.label}</div>
+                          <div className="mono" style={{ fontSize: 14, fontWeight: 500, color: (s as any).color || 'var(--text)' }}>{s.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {data.sim_entry_triggered_at && (
                   <div className="data-item">
@@ -400,13 +394,6 @@ export default function AnalysisPage() {
                   )}
                 </div>
 
-                {data.market_power_comment && (
-                  <div>
-                    <div className="section-title">Market Power</div>
-                    <div className="synthesis-block">{data.market_power_comment}</div>
-                  </div>
-                )}
-
                 <div className="reasons-3col">
                   {[{ label: 'Entry', val: data.entry_reason }, { label: 'TP', val: data.tp_reason }, { label: 'SL', val: data.sl_reason }].map((x, i) => (
                     <div key={i} className="data-item">
@@ -415,87 +402,7 @@ export default function AnalysisPage() {
                     </div>
                   ))}
                 </div>
-
-                <div>
-                  <div className="section-title">Not</div>
-                  <textarea className="note-textarea" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Analize not ekle..." />
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-                    <button className="save-btn" onClick={saveNote} disabled={saving}>
-                      {saving ? 'kaydediliyor...' : saved ? '✓ kaydedildi' : 'kaydet'}
-                    </button>
-                  </div>
-                </div>
               </>
-            )}
-
-            {tab === 'naif' && (
-              <>
-                {!data.naive_direction ? (
-                  <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)', background: 'var(--bg-3)', borderRadius: 6 }} className="mono">
-                    Bu analiz için naif setup hesaplanmamış (cluster verisi eksik olabilir)
-                  </div>
-                ) : (
-                  <>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
-                      {[
-                        { label: 'Yön', value: dirBadge(data.naive_direction) },
-                        { label: 'Entry', value: data.naive_entry != null ? `$${fmt(data.naive_entry)}` : '—', color: 'var(--amber)' },
-                        { label: 'TP', value: data.naive_tp != null ? `$${fmt(data.naive_tp)}` : '—', color: 'var(--green)' },
-                        { label: 'SL', value: data.naive_sl != null ? `$${fmt(data.naive_sl)}` : '—', color: 'var(--red)' },
-                        { label: 'Hedef RR', value: data.naive_rr != null ? Number(data.naive_rr).toFixed(2) : '—' },
-                        { label: 'Dist Ratio', value: data.naive_dist_ratio != null ? `${Number(data.naive_dist_ratio).toFixed(2)}x` : '—' },
-                        { label: 'Pos. Size', value: data.naive_pos_size != null ? `${Number(data.naive_pos_size).toFixed(4)} BTC` : '—' },
-                        { label: 'Sonuç', value: resultBadge(data.sim_result_naive || '') },
-                        { label: 'R Multiple', value: fmtR(safeNum(data.naive_sim_r_multiple), data.sim_result_naive || undefined), color: data.sim_result_naive === 'TP_HIT' ? 'var(--green)' : data.sim_result_naive === 'SL_HIT' ? 'var(--red)' : 'var(--text-3)' },
-                        { label: 'Süre', value: fmtMins(data.naive_duration_mins) },
-                      ].map((s, i) => (
-                        <div key={i} className="stat-card">
-                          <div className="col-label" style={{ marginBottom: 6 }}>{s.label}</div>
-                          <div className="mono" style={{ fontSize: 14, fontWeight: 500, color: (s as any).color || 'var(--text)' }}>{s.value}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div>
-                      <div className="section-title">AI vs Naif Karşılaştırma</div>
-                      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'DM Mono, monospace' }}>
-                          <thead>
-                            <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                              <th style={{ textAlign: 'left', color: 'var(--text-3)', padding: '8px 14px', fontWeight: 400 }}></th>
-                              <th style={{ textAlign: 'right', color: 'var(--text-3)', padding: '8px 14px', fontWeight: 400 }}>AI</th>
-                              <th style={{ textAlign: 'right', color: 'var(--text-3)', padding: '8px 14px', fontWeight: 400 }}>Naif</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {[
-                              { label: 'Yön', ai: dirBadge(data.direction), nv: dirBadge(data.naive_direction), match: data.direction === data.naive_direction },
-                              { label: 'Entry', ai: `$${fmt(data.entry)}`, nv: data.naive_entry != null ? `$${fmt(data.naive_entry)}` : '—' },
-                              { label: 'TP', ai: `$${fmt(data.tp)}`, nv: data.naive_tp != null ? `$${fmt(data.naive_tp)}` : '—' },
-                              { label: 'SL', ai: `$${fmt(data.sl)}`, nv: data.naive_sl != null ? `$${fmt(data.naive_sl)}` : '—' },
-                              { label: 'Sonuç', ai: resultBadge(data.sim_result), nv: resultBadge(data.sim_result_naive || ''), match: data.sim_result === data.sim_result_naive },
-                              { label: 'R', ai: fmtR(safeNum(data.sim_r_multiple), data.sim_result), nv: fmtR(safeNum(data.naive_sim_r_multiple), data.sim_result_naive || undefined) },
-                            ].map((row, i) => (
-                              <tr key={i} style={{ borderBottom: i < 5 ? '1px solid var(--border)' : 'none' }}>
-                                <td style={{ padding: '8px 14px', color: 'var(--text-2)' }}>{row.label}</td>
-                                <td style={{ padding: '8px 14px', textAlign: 'right' }}>{row.ai}</td>
-                                <td style={{ padding: '8px 14px', textAlign: 'right' }}>{row.nv}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                      <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8 }}>
-                        Grafikte AI (kesikli) ve Naif (noktalı) hedefleri birlikte görmek için "Simülasyon" sekmesine bak.
-                      </div>
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-
-            {tab === 'scoring' && (
-              <ScoringTab data={data} />
             )}
           </div>
         )}
