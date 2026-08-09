@@ -19,8 +19,10 @@ export function buildInsightsWhere(
     if (mx !== defaultMax) { conditions.push(`${col} <= $${i++}`); params.push(mx) }
   }
 
-  p('direction',        s.get('direction'))
-  p('sim_result',       s.get('sim_result'))
+  const directionCol = mode === 'naive' ? 'naive_direction'  : 'direction'
+  const resultCol    = mode === 'naive' ? 'sim_result_naive' : 'sim_result'
+  p(directionCol,       s.get('direction'))
+  p(resultCol,          s.get('sim_result'))
   p('order_type',       s.get('order_type'))
   p('sequential_trade', s.get('sequential_trade'))
 
@@ -125,14 +127,18 @@ export function buildInsightsWhere(
 
   const tpDistMin = s.get('tp_dist_min'); const tpDistMax = s.get('tp_dist_max')
   const slDistMin = s.get('sl_dist_min'); const slDistMax = s.get('sl_dist_max')
-  if (tpDistMin && Number(tpDistMin) > 0)    { conditions.push(`ABS(tp - entry) >= $${i++}`); params.push(Number(tpDistMin)) }
-  if (tpDistMax && Number(tpDistMax) < 4000) { conditions.push(`ABS(tp - entry) <= $${i++}`); params.push(Number(tpDistMax)) }
-  if (slDistMin && Number(slDistMin) > 0)    { conditions.push(`ABS(sl - entry) >= $${i++}`); params.push(Number(slDistMin)) }
-  if (slDistMax && Number(slDistMax) < 1500) { conditions.push(`ABS(sl - entry) <= $${i++}`); params.push(Number(slDistMax)) }
+  const tpCol = mode === 'naive' ? 'naive_tp' : 'tp'
+  const slCol = mode === 'naive' ? 'naive_sl' : 'sl'
+  const entryCol = mode === 'naive' ? 'naive_entry' : 'entry'
+  if (tpDistMin && Number(tpDistMin) > 0)    { conditions.push(`ABS(${tpCol} - ${entryCol}) >= $${i++}`); params.push(Number(tpDistMin)) }
+  if (tpDistMax && Number(tpDistMax) < 4000) { conditions.push(`ABS(${tpCol} - ${entryCol}) <= $${i++}`); params.push(Number(tpDistMax)) }
+  if (slDistMin && Number(slDistMin) > 0)    { conditions.push(`ABS(${slCol} - ${entryCol}) >= $${i++}`); params.push(Number(slDistMin)) }
+  if (slDistMax && Number(slDistMax) < 1500) { conditions.push(`ABS(${slCol} - ${entryCol}) <= $${i++}`); params.push(Number(slDistMax)) }
 
   const tradeDurMin = s.get('trade_dur_min'); const tradeDurMax = s.get('trade_dur_max')
-  if (tradeDurMin && Number(tradeDurMin) > 0)    { conditions.push(`sim_entry_to_result_minutes >= $${i++}`); params.push(Number(tradeDurMin)) }
-  if (tradeDurMax && Number(tradeDurMax) < 4320) { conditions.push(`sim_entry_to_result_minutes <= $${i++}`); params.push(Number(tradeDurMax)) }
+  const durCol = mode === 'naive' ? 'naive_duration_mins' : 'sim_entry_to_result_minutes'
+  if (tradeDurMin && Number(tradeDurMin) > 0)    { conditions.push(`${durCol} >= $${i++}`); params.push(Number(tradeDurMin)) }
+  if (tradeDurMax && Number(tradeDurMax) < 4320) { conditions.push(`${durCol} <= $${i++}`); params.push(Number(tradeDurMax)) }
 
   // Entry bekleme filtresi — sadece AI modda anlamlı (naif entry = anlık fiyat, bekleme yok)
   if (mode === 'ai') {
@@ -148,8 +154,13 @@ export function buildInsightsWhere(
   }
 
   const rMin = s.get('r_min'); const rMax = s.get('r_max')
-  if (rMin && Number(rMin) > 0)   { conditions.push(`SPLIT_PART(rr, ':', 2)::numeric >= $${i++}`); params.push(Number(rMin)) }
-  if (rMax && Number(rMax) < 10)  { conditions.push(`SPLIT_PART(rr, ':', 2)::numeric <= $${i++}`); params.push(Number(rMax)) }
+  if (mode === 'naive') {
+    if (rMin && Number(rMin) > 0)   { conditions.push(`naive_rr >= $${i++}`); params.push(Number(rMin)) }
+    if (rMax && Number(rMax) < 10)  { conditions.push(`naive_rr <= $${i++}`); params.push(Number(rMax)) }
+  } else {
+    if (rMin && Number(rMin) > 0)   { conditions.push(`SPLIT_PART(rr, ':', 2)::numeric >= $${i++}`); params.push(Number(rMin)) }
+    if (rMax && Number(rMax) < 10)  { conditions.push(`SPLIT_PART(rr, ':', 2)::numeric <= $${i++}`); params.push(Number(rMax)) }
+  }
 
   const sentFields = [
     'sent_synthesis_mtf','sent_synthesis_h1','sent_synthesis_m5',
