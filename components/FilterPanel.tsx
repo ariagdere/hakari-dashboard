@@ -110,6 +110,18 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
       </div>
 
       {sep}
+      <GL c="Naif Aligned" />
+      <div>
+        <button
+          className={`filter-btn${filters.naive_aligned === 'true' ? ' active' : ''}`}
+          style={{ fontSize: 11, padding: '5px 14px' }}
+          onClick={() => onChange({ ...filters, naive_aligned: filters.naive_aligned === 'true' ? '' : 'true' })}
+        >
+          {filters.naive_aligned === 'true' ? '✓ ' : ''}Naif yön = ZLEMA zone (LONG+LONG veya SHORT+SHORT)
+        </button>
+      </div>
+
+      {sep}
       <GL c="Win Probability — V6 & C75" />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
         <RangeRow label="V6" minKey="wp6_min" maxKey="wp6_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
