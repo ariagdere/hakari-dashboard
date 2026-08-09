@@ -192,7 +192,7 @@ export default function AnalysisPage() {
         fetch(`/api/insights-distance${qs}`,      { cache: 'no-store' }).then(r => r.json()),
         fetch(`/api/insights-weekly${qs}`,        { cache: 'no-store' }).then(r => r.json()),
         fetch(`/api/insights-zlema${qsView}`,     { cache: 'no-store' }).then(r => r.json()),
-        fetch(`/api/analyses?${p}&page=${pg}`,    { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/analyses?${pView}&page=${pg}`, { cache: 'no-store' }).then(r => r.json()),
       ]).then(([ov, sc, delta, cr, wpa, optR, rm, ew, td, dist, wk, zl, an]) => {
         setOverview(ov)
         setScoring(sc)
@@ -220,7 +220,7 @@ export default function AnalysisPage() {
         fetch(`/api/insights-weekly-naive${qs}`,    { cache: 'no-store' }).then(r => r.json()),
         fetch(`/api/insights-tradedur-naive${qs}`,  { cache: 'no-store' }).then(r => r.json()),
         fetch(`/api/insights-zlema${qsView}`,       { cache: 'no-store' }).then(r => r.json()),
-        fetch(`/api/analyses?${p}&page=${pg}`,      { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/analyses?${pView}&page=${pg}`,  { cache: 'no-store' }).then(r => r.json()),
       ]).then(([nov, dr, ncr, nsc, nwk, ntd, zl, an]) => {
         setNaiveOverview(nov)
         setDistRatio(dr)
