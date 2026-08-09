@@ -25,9 +25,11 @@ export async function GET(request: NextRequest) {
       win_probability_v6, win_probability_v6_reverse,
       win_probability_c75, win_probability_c75_reverse,
       zlema_zone_4h,
+      cluster_liq_ratio, cluster_up_hit, cluster_dn_hit,
+      cluster_up_reach_pct, cluster_dn_reach_pct,
       -- NAİF
       naive_direction, naive_entry, naive_tp, naive_sl, naive_rr,
-      naive_dist_ratio,
+      naive_dist_ratio, naive_pos_size, naive_duration_mins,
       sim_result_naive, naive_sim_r_multiple
     FROM btc_analysis
     ${w}
