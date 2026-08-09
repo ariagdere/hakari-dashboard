@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
 export interface UniversalAnalysisRow {
@@ -145,6 +145,8 @@ function ColumnPicker({ visible, onChange }: { visible: string[]; onChange: (ids
 export default function AnalysisListUniversal({ analyses }: { analyses: UniversalAnalysisRow[] }) {
   const router = useRouter()
   const [visible, setVisible] = useState<string[]>(DEFAULT_VISIBLE)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const dragState = useRef<{ dragging: boolean; startX: number; startScroll: number; moved: boolean }>({ dragging: false, startX: 0, startScroll: 0, moved: false })
 
   useEffect(() => {
     try {
@@ -161,38 +163,93 @@ export default function AnalysisListUniversal({ analyses }: { analyses: Universa
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(ids)) } catch {}
   }
 
+  // Fare tekerleği ile yatay kaydırma — tablo üzerindeyken dikey tekerlek hareketi yatay kaydırmaya dönüşür
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    const el = scrollRef.current
+    if (!el) return
+    if (el.scrollWidth <= el.clientWidth) return // taşma yoksa müdahale etme
+    e.preventDefault()
+    el.scrollLeft += e.deltaY !== 0 ? e.deltaY : e.deltaX
+  }, [])
+
+  // Tıkla-sürükle ile kaydırma
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    const el = scrollRef.current
+    if (!el) return
+    dragState.current = { dragging: true, startX: e.pageX, startScroll: el.scrollLeft, moved: false }
+    el.style.cursor = 'grabbing'
+  }, [])
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    const el = scrollRef.current
+    if (!el || !dragState.current.dragging) return
+    const dx = e.pageX - dragState.current.startX
+    if (Math.abs(dx) > 4) dragState.current.moved = true
+    el.scrollLeft = dragState.current.startScroll - dx
+  }, [])
+  const endDrag = useCallback(() => {
+    const el = scrollRef.current
+    if (el) el.style.cursor = 'grab'
+    dragState.current.dragging = false
+  }, [])
+
   const activeCols = COLUMNS.filter(c => visible.includes(c.id))
   const gridTemplate = activeCols.map(c => c.width).join(' ')
 
+  const handleRowClick = (id: number) => {
+    if (dragState.current.moved) return // sürüklemeyi tıklama sayma
+    router.push(`/dashboard/${id}`)
+  }
+
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>↔ tekerlek veya sürükle ile kaydır</span>
         <ColumnPicker visible={visible} onChange={handleChange} />
       </div>
 
-      <div className="card" style={{ overflowX: 'auto' }}>
-        <div style={{ minWidth: 'fit-content' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 8, padding: '9px 16px', borderBottom: '1px solid var(--border)' }}>
-            {activeCols.map(c => (
-              <span key={c.id} className="col-label" style={{ color: GROUP_COLOR[c.group] }}>{c.label}</span>
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div
+          ref={scrollRef}
+          className="hscroll-fancy"
+          style={{ overflowX: 'auto', overflowY: 'hidden', cursor: 'grab' }}
+          onWheel={handleWheel}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={endDrag}
+          onMouseLeave={endDrag}
+        >
+          <div style={{ minWidth: 'fit-content' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 8, padding: '9px 16px', borderBottom: '1px solid var(--border)' }}>
+              {activeCols.map((c, i) => (
+                <span
+                  key={c.id}
+                  className={`col-label${i === 0 ? ' uni-sticky-header' : ''}`}
+                  style={{ color: GROUP_COLOR[c.group] }}
+                >
+                  {c.label}
+                </span>
+              ))}
+            </div>
+
+            {analyses.length === 0 && (
+              <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }} className="mono">no records found</div>
+            )}
+
+            {analyses.map(a => (
+              <div
+                key={a.id}
+                className="uni-row"
+                style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 8, padding: '7px 16px', borderBottom: '1px solid var(--border)' }}
+                onClick={() => handleRowClick(a.id)}
+              >
+                {activeCols.map((c, i) => (
+                  <div key={c.id} className={i === 0 ? 'uni-sticky-cell' : undefined}>
+                    {c.render(a)}
+                  </div>
+                ))}
+              </div>
             ))}
           </div>
-
-          {analyses.length === 0 && (
-            <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }} className="mono">no records found</div>
-          )}
-
-          {analyses.map(a => (
-            <div
-              key={a.id}
-              style={{ display: 'grid', gridTemplateColumns: gridTemplate, gap: 8, padding: '7px 16px', borderBottom: '1px solid var(--border)', cursor: 'pointer', transition: 'background 0.1s' }}
-              onClick={() => router.push(`/dashboard/${a.id}`)}
-              onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-3)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-            >
-              {activeCols.map(c => <React.Fragment key={c.id}>{c.render(a)}</React.Fragment>)}
-            </div>
-          ))}
         </div>
       </div>
     </div>
