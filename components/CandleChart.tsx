@@ -109,7 +109,7 @@ export default function CandleChart({ candles, entry, tp, sl, direction, analyze
           position: 'aboveBar',
           color: '#6366f1',
           shape: 'arrowDown',
-          text: 'Analiz',
+          text: 'Analysis',
         })
       }
 
