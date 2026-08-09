@@ -14,6 +14,7 @@ export interface Filters {
   wp_c75_rev_min: number; wp_c75_rev_max: number
   liq_zone: string  // virgülle ayrılmış: 'dn_very_dominant,dn_dominant,...'
   zlema_zone: string  // virgülle ayrılmış: 'LONG,SHORT,NO_TRADE'
+  naive_aligned: string  // 'true' ise naive_direction === zlema_zone_4h filtrelenir
   cluster_up_hit: string; cluster_dn_hit: string
   h1_ls_delta_min: number; h1_ls_delta_max: number
   h1_tt_positions_delta_min: number; h1_tt_positions_delta_max: number
@@ -46,6 +47,7 @@ export const DEFAULT_FILTERS: Filters = {
   wp_c75_rev_min: 0, wp_c75_rev_max: 100,
   liq_zone: '',
   zlema_zone: '',
+  naive_aligned: '',
   cluster_up_hit: '', cluster_dn_hit: '',
   h1_ls_delta_min: -3, h1_ls_delta_max: 3,
   h1_tt_positions_delta_min: -1, h1_tt_positions_delta_max: 1,
@@ -98,6 +100,7 @@ export function filtersToParams(f: Filters): URLSearchParams {
   p.set('wp_c75_rev_min', String(f.wp_c75_rev_min)); p.set('wp_c75_rev_max', String(f.wp_c75_rev_max))
   if (f.liq_zone) p.set('liq_zone', f.liq_zone)
   if (f.zlema_zone) p.set('zlema_zone', f.zlema_zone)
+  if (f.naive_aligned) p.set('naive_aligned', f.naive_aligned)
   if (f.cluster_up_hit) p.set('cluster_up_hit', f.cluster_up_hit)
   if (f.cluster_dn_hit) p.set('cluster_dn_hit', f.cluster_dn_hit)
   p.set('h1_ls_delta_min', String(f.h1_ls_delta_min)); p.set('h1_ls_delta_max', String(f.h1_ls_delta_max))
@@ -133,6 +136,7 @@ export function activeFilterCount(f: Filters): number {
   if (f.wp_c75_rev_min > 0 || f.wp_c75_rev_max < 100) n++
   if (f.liq_zone) n++
   if (f.zlema_zone) n++
+  if (f.naive_aligned) n++
   if (f.cluster_up_hit) n++
   if (f.cluster_dn_hit) n++
   if (f.h1_ls_delta_min > -3 || f.h1_ls_delta_max < 3) n++
