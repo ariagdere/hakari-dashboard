@@ -340,14 +340,21 @@ export default function AnalysisPage() {
                   </div>
                 )}
 
-                {data.sim_entry_triggered_at && (
+                {(data.sim_entry_triggered_at || data.naive_direction) && (
                   <div className="data-item">
                     <div className="section-title" style={{ marginBottom: 10 }}>Zaman Çizelgesi</div>
                     <div style={{ display: 'grid', gap: 8 }}>
                       {[
                         { label: 'Analiz', val: fmtDate(data.analyzed_at), color: 'var(--text-2)' },
-                        { label: 'Entry tetiklendi', val: fmtDate(data.sim_entry_triggered_at), color: 'var(--amber)' },
-                        ...(data.sim_result_at ? [{ label: data.sim_result === 'TP_HIT' ? 'TP vuruldu' : 'SL vuruldu', val: fmtDate(data.sim_result_at), color: data.sim_result === 'TP_HIT' ? 'var(--green)' : 'var(--red)' }] : []),
+                        ...(data.naive_direction
+                          ? [{ label: 'Naif Entry (anlık)', val: fmtDate(data.analyzed_at), color: 'var(--amber)' }]
+                          : []),
+                        ...(data.sim_entry_triggered_at
+                          ? [{ label: 'AI Entry tetiklendi', val: fmtDate(data.sim_entry_triggered_at), color: 'var(--amber)' }]
+                          : []),
+                        ...(data.sim_result_at
+                          ? [{ label: `AI ${data.sim_result === 'TP_HIT' ? 'TP' : 'SL'} vuruldu`, val: fmtDate(data.sim_result_at), color: data.sim_result === 'TP_HIT' ? 'var(--green)' : 'var(--red)' }]
+                          : []),
                         ...(data.naive_duration_mins != null && (data.sim_result_naive === 'TP_HIT' || data.sim_result_naive === 'SL_HIT')
                           ? [{
                               label: `Naif ${data.sim_result_naive === 'TP_HIT' ? 'TP' : 'SL'} vuruldu`,
@@ -362,6 +369,11 @@ export default function AnalysisPage() {
                         </div>
                       ))}
                     </div>
+                    {data.sim_entry_triggered_at && data.naive_direction && (
+                      <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 8 }}>
+                        Naif her zaman analiz anında anlık fiyattan girer, bekleme yoktur — AI ise pending order olabileceğinden farklı bir anda tetiklenebilir.
+                      </div>
+                    )}
                   </div>
                 )}
 
