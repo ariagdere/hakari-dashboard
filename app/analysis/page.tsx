@@ -684,62 +684,78 @@ export default function AnalysisPage() {
             {mode === 'ai' && wpAll && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  WIN PROBABILITY CALIBRATION — V6 & C75
+                  WIN PROBABILITY CALIBRATION — V6 & C75 (6 model × own/rev)
                 </div>
 
-                {/* V6 / V6 Rev / C75 / C75 Rev — 2x2 */}
-                <div className="two-col-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-                  {([
-                    { key: 'v6',      label: 'V6' },
-                    { key: 'v6_rev',  label: 'V6 Rev' },
-                    { key: 'c75',     label: 'C75' },
-                    { key: 'c75_rev', label: 'C75 Rev' },
-                  ] as const).map(ver => {
-                    const rows = wpAll[ver.key] ?? []
-                    if (rows.length === 0) return null
-                    const buckets = ['0-20%','20-30%','30-40%','40-50%','50-60%','60-70%','70-80%','80-90%','90%+']
-                    return (
-                      <div key={ver.key} className="card" style={{ padding: 16, overflowX: 'auto' }}>
-                        <div className="col-label" style={{ marginBottom: 10 }}>{ver.label}</div>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace' }}>
-                          <thead>
-                            <tr>
-                              <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, width: 60 }}>Bucket</th>
-                              <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Win%</th>
-                              <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>n</th>
-                              <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Tot.R</th>
-                              <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Max DD</th>
-                              <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Dir%</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {buckets.map(bucket => {
-                              const row = rows.find((r: WpBucket) => r.bucket === bucket)
-                              return (
-                                <tr key={bucket} style={{ borderTop: '1px solid var(--border)' }}>
-                                  <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{bucket}</td>
-                                  <td style={{ padding: '5px 4px', textAlign: 'right', color: row ? winColor(Number(row.win_rate)) : 'var(--text-3)' }}>
-                                    {row ? `%${Number(row.win_rate).toFixed(1)}` : '—'}
-                                  </td>
-                                  <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{row ? row.total : '—'}</td>
-                                  <td style={{ padding: '5px 4px', textAlign: 'right', color: row?.total_r != null ? (Number(row.total_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>
-                                    {row?.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(1)}` : '—'}
-                                  </td>
-                                  <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--red)' }}>
-                                    {row?.max_dd != null ? `${Number(row.max_dd).toFixed(2)}` : '—'}
-                                  </td>
-                                  <td style={{ padding: '5px 4px', textAlign: 'right', color: row?.dir_accuracy != null ? winColor(Number(row.dir_accuracy)) : 'var(--text-3)' }}>
-                                    {row?.dir_accuracy != null ? `%${Number(row.dir_accuracy).toFixed(1)}` : '—'}
-                                  </td>
+                {([
+                  { familyLabel: 'V6 Family (2:1 direction target)', models: [
+                    { key: 'v6',           label: 'V6' },
+                    { key: 'v6_rev',       label: 'V6 Rev' },
+                    { key: 'v6_3105',      label: 'V6 3105' },
+                    { key: 'v6_3105_rev',  label: 'V6 3105 Rev' },
+                    { key: 'v6_jul',       label: 'V6 Jul' },
+                    { key: 'v6_jul_rev',   label: 'V6 Jul Rev' },
+                  ]},
+                  { familyLabel: 'C75 Family (cluster direction target)', models: [
+                    { key: 'c75',          label: 'C75' },
+                    { key: 'c75_rev',      label: 'C75 Rev' },
+                    { key: 'c75_3105',     label: 'C75 3105' },
+                    { key: 'c75_3105_rev', label: 'C75 3105 Rev' },
+                    { key: 'c75_jul',      label: 'C75 Jul' },
+                    { key: 'c75_jul_rev',  label: 'C75 Jul Rev' },
+                  ]},
+                ] as const).map(family => (
+                  <div key={family.familyLabel} style={{ marginBottom: 14 }}>
+                    <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginBottom: 8 }}>{family.familyLabel}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                      {family.models.map(ver => {
+                        const rows = wpAll[ver.key] ?? []
+                        if (rows.length === 0) return null
+                        const buckets = ['0-20%','20-30%','30-40%','40-50%','50-60%','60-70%','70-80%','80-90%','90%+']
+                        return (
+                          <div key={ver.key} className="card" style={{ padding: 16, overflowX: 'auto' }}>
+                            <div className="col-label" style={{ marginBottom: 10 }}>{ver.label}</div>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10, fontFamily: 'DM Mono, monospace' }}>
+                              <thead>
+                                <tr>
+                                  <th style={{ textAlign: 'left', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400, width: 60 }}>Bucket</th>
+                                  <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Win%</th>
+                                  <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>n</th>
+                                  <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Tot.R</th>
+                                  <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Max DD</th>
+                                  <th style={{ textAlign: 'right', color: 'var(--text-3)', paddingBottom: 6, fontWeight: 400 }}>Dir%</th>
                                 </tr>
-                              )
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    )
-                  })}
-                </div>
+                              </thead>
+                              <tbody>
+                                {buckets.map(bucket => {
+                                  const row = rows.find((r: WpBucket) => r.bucket === bucket)
+                                  return (
+                                    <tr key={bucket} style={{ borderTop: '1px solid var(--border)' }}>
+                                      <td style={{ padding: '5px 0', color: 'var(--text-2)' }}>{bucket}</td>
+                                      <td style={{ padding: '5px 4px', textAlign: 'right', color: row ? winColor(Number(row.win_rate)) : 'var(--text-3)' }}>
+                                        {row ? `%${Number(row.win_rate).toFixed(1)}` : '—'}
+                                      </td>
+                                      <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{row ? row.total : '—'}</td>
+                                      <td style={{ padding: '5px 4px', textAlign: 'right', color: row?.total_r != null ? (Number(row.total_r) >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--text-3)' }}>
+                                        {row?.total_r != null ? `${Number(row.total_r) >= 0 ? '+' : ''}${Number(row.total_r).toFixed(1)}` : '—'}
+                                      </td>
+                                      <td style={{ padding: '5px 4px', textAlign: 'right', color: 'var(--red)' }}>
+                                        {row?.max_dd != null ? `${Number(row.max_dd).toFixed(2)}` : '—'}
+                                      </td>
+                                      <td style={{ padding: '5px 4px', textAlign: 'right', color: row?.dir_accuracy != null ? winColor(Number(row.dir_accuracy)) : 'var(--text-3)' }}>
+                                        {row?.dir_accuracy != null ? `%${Number(row.dir_accuracy).toFixed(1)}` : '—'}
+                                      </td>
+                                    </tr>
+                                  )
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
 
                 {/* Liq Zone Analysis — 3 ayrı tablo */}
                 {(wpAll['liq_zone'] ?? []).length > 0 && (() => {
