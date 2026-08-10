@@ -12,6 +12,14 @@ export interface Filters {
   wp6_rev_min: number; wp6_rev_max: number
   wp_c75_min: number; wp_c75_max: number
   wp_c75_rev_min: number; wp_c75_rev_max: number
+  wp_v6_3105_min: number; wp_v6_3105_max: number
+  wp_v6_3105_rev_min: number; wp_v6_3105_rev_max: number
+  wp_v6_jul_min: number; wp_v6_jul_max: number
+  wp_v6_jul_rev_min: number; wp_v6_jul_rev_max: number
+  wp_c75_3105_min: number; wp_c75_3105_max: number
+  wp_c75_3105_rev_min: number; wp_c75_3105_rev_max: number
+  wp_c75_jul_min: number; wp_c75_jul_max: number
+  wp_c75_jul_rev_min: number; wp_c75_jul_rev_max: number
   liq_zone: string  // virgülle ayrılmış: 'dn_very_dominant,dn_dominant,...'
   zlema_zone: string  // virgülle ayrılmış: 'LONG,SHORT,NO_TRADE'
   naive_aligned: string  // 'true' ise naive_direction === zlema_zone_4h filtrelenir
@@ -45,6 +53,14 @@ export const DEFAULT_FILTERS: Filters = {
   wp6_rev_min: 0, wp6_rev_max: 100,
   wp_c75_min: 0, wp_c75_max: 100,
   wp_c75_rev_min: 0, wp_c75_rev_max: 100,
+  wp_v6_3105_min: 0, wp_v6_3105_max: 100,
+  wp_v6_3105_rev_min: 0, wp_v6_3105_rev_max: 100,
+  wp_v6_jul_min: 0, wp_v6_jul_max: 100,
+  wp_v6_jul_rev_min: 0, wp_v6_jul_rev_max: 100,
+  wp_c75_3105_min: 0, wp_c75_3105_max: 100,
+  wp_c75_3105_rev_min: 0, wp_c75_3105_rev_max: 100,
+  wp_c75_jul_min: 0, wp_c75_jul_max: 100,
+  wp_c75_jul_rev_min: 0, wp_c75_jul_rev_max: 100,
   liq_zone: '',
   zlema_zone: '',
   naive_aligned: '',
@@ -98,6 +114,14 @@ export function filtersToParams(f: Filters): URLSearchParams {
   p.set('wp6_rev_min', String(f.wp6_rev_min)); p.set('wp6_rev_max', String(f.wp6_rev_max))
   p.set('wp_c75_min', String(f.wp_c75_min));         p.set('wp_c75_max', String(f.wp_c75_max))
   p.set('wp_c75_rev_min', String(f.wp_c75_rev_min)); p.set('wp_c75_rev_max', String(f.wp_c75_rev_max))
+  p.set('wp_v6_3105_min', String(f.wp_v6_3105_min));         p.set('wp_v6_3105_max', String(f.wp_v6_3105_max))
+  p.set('wp_v6_3105_rev_min', String(f.wp_v6_3105_rev_min)); p.set('wp_v6_3105_rev_max', String(f.wp_v6_3105_rev_max))
+  p.set('wp_v6_jul_min', String(f.wp_v6_jul_min));         p.set('wp_v6_jul_max', String(f.wp_v6_jul_max))
+  p.set('wp_v6_jul_rev_min', String(f.wp_v6_jul_rev_min)); p.set('wp_v6_jul_rev_max', String(f.wp_v6_jul_rev_max))
+  p.set('wp_c75_3105_min', String(f.wp_c75_3105_min));         p.set('wp_c75_3105_max', String(f.wp_c75_3105_max))
+  p.set('wp_c75_3105_rev_min', String(f.wp_c75_3105_rev_min)); p.set('wp_c75_3105_rev_max', String(f.wp_c75_3105_rev_max))
+  p.set('wp_c75_jul_min', String(f.wp_c75_jul_min));         p.set('wp_c75_jul_max', String(f.wp_c75_jul_max))
+  p.set('wp_c75_jul_rev_min', String(f.wp_c75_jul_rev_min)); p.set('wp_c75_jul_rev_max', String(f.wp_c75_jul_rev_max))
   if (f.liq_zone) p.set('liq_zone', f.liq_zone)
   if (f.zlema_zone) p.set('zlema_zone', f.zlema_zone)
   if (f.naive_aligned) p.set('naive_aligned', f.naive_aligned)
@@ -134,6 +158,14 @@ export function activeFilterCount(f: Filters): number {
   if (f.wp6_rev_min > 0 || f.wp6_rev_max < 100) n++
   if (f.wp_c75_min > 0 || f.wp_c75_max < 100) n++
   if (f.wp_c75_rev_min > 0 || f.wp_c75_rev_max < 100) n++
+  if (f.wp_v6_3105_min > 0 || f.wp_v6_3105_max < 100) n++
+  if (f.wp_v6_3105_rev_min > 0 || f.wp_v6_3105_rev_max < 100) n++
+  if (f.wp_v6_jul_min > 0 || f.wp_v6_jul_max < 100) n++
+  if (f.wp_v6_jul_rev_min > 0 || f.wp_v6_jul_rev_max < 100) n++
+  if (f.wp_c75_3105_min > 0 || f.wp_c75_3105_max < 100) n++
+  if (f.wp_c75_3105_rev_min > 0 || f.wp_c75_3105_rev_max < 100) n++
+  if (f.wp_c75_jul_min > 0 || f.wp_c75_jul_max < 100) n++
+  if (f.wp_c75_jul_rev_min > 0 || f.wp_c75_jul_rev_max < 100) n++
   if (f.liq_zone) n++
   if (f.zlema_zone) n++
   if (f.naive_aligned) n++
