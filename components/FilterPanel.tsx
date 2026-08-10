@@ -122,15 +122,45 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
       </div>
 
       {sep}
-      <GL c="Win Probability — V6 & C75" />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-        <RangeRow label="V6" minKey="wp6_min" maxKey="wp6_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
-        <RangeRow label="V6 Rev" minKey="wp6_rev_min" maxKey="wp6_rev_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
-        <RangeRow label="C75" minKey="wp_c75_min" maxKey="wp_c75_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
-        <RangeRow label="C75 Rev" minKey="wp_c75_rev_min" maxKey="wp_c75_rev_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
+      <GL c="Win Probability — V6 Family" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 10 }}>
+        <div>
+          <div className="col-label" style={{ marginBottom: 6, fontSize: 9 }}>V6</div>
+          <RangeRow label="Own" minKey="wp6_min" maxKey="wp6_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
+          <RangeRow label="Rev" minKey="wp6_rev_min" maxKey="wp6_rev_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
+        </div>
+        <div>
+          <div className="col-label" style={{ marginBottom: 6, fontSize: 9 }}>V6 3105</div>
+          <RangeRow label="Own" minKey="wp_v6_3105_min" maxKey="wp_v6_3105_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
+          <RangeRow label="Rev" minKey="wp_v6_3105_rev_min" maxKey="wp_v6_3105_rev_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
+        </div>
+        <div>
+          <div className="col-label" style={{ marginBottom: 6, fontSize: 9 }}>V6 Jul</div>
+          <RangeRow label="Own" minKey="wp_v6_jul_min" maxKey="wp_v6_jul_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
+          <RangeRow label="Rev" minKey="wp_v6_jul_rev_min" maxKey="wp_v6_jul_rev_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
+        </div>
+      </div>
+
+      <GL c="Win Probability — C75 Family" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+        <div>
+          <div className="col-label" style={{ marginBottom: 6, fontSize: 9 }}>C75</div>
+          <RangeRow label="Own" minKey="wp_c75_min" maxKey="wp_c75_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
+          <RangeRow label="Rev" minKey="wp_c75_rev_min" maxKey="wp_c75_rev_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
+        </div>
+        <div>
+          <div className="col-label" style={{ marginBottom: 6, fontSize: 9 }}>C75 3105</div>
+          <RangeRow label="Own" minKey="wp_c75_3105_min" maxKey="wp_c75_3105_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
+          <RangeRow label="Rev" minKey="wp_c75_3105_rev_min" maxKey="wp_c75_3105_rev_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
+        </div>
+        <div>
+          <div className="col-label" style={{ marginBottom: 6, fontSize: 9 }}>C75 Jul</div>
+          <RangeRow label="Own" minKey="wp_c75_jul_min" maxKey="wp_c75_jul_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
+          <RangeRow label="Rev" minKey="wp_c75_jul_rev_min" maxKey="wp_c75_jul_rev_max" min={0} max={100} step={5} filters={filters} onChange={onChange} />
+        </div>
       </div>
       <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 6 }}>
-        Note: V6/C75 scores are calculated based on AI's analysis direction (the same values are shown in the Naif tab too).
+        Note: V6 family scores use AI's own (2:1) direction target; C75 family scores use the cluster-based direction target.
       </div>
 
       {sep}
