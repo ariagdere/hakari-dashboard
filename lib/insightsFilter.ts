@@ -53,6 +53,16 @@ export function buildInsightsWhere(
   range('win_probability_c75',         s.get('wp_c75_min'),     s.get('wp_c75_max'),     0, 100)
   range('win_probability_c75_reverse', s.get('wp_c75_rev_min'), s.get('wp_c75_rev_max'), 0, 100)
 
+  // v6/c75 ailelerinin diğer 4 model varyantı (3105/jul, own+rev)
+  range('win_probability_v6_3105',          s.get('wp_v6_3105_min'),      s.get('wp_v6_3105_max'),      0, 100)
+  range('win_probability_v6_3105_reverse',  s.get('wp_v6_3105_rev_min'),  s.get('wp_v6_3105_rev_max'),  0, 100)
+  range('win_probability_v6_jul',           s.get('wp_v6_jul_min'),       s.get('wp_v6_jul_max'),       0, 100)
+  range('win_probability_v6_jul_reverse',   s.get('wp_v6_jul_rev_min'),   s.get('wp_v6_jul_rev_max'),   0, 100)
+  range('win_probability_c75_3105',         s.get('wp_c75_3105_min'),     s.get('wp_c75_3105_max'),     0, 100)
+  range('win_probability_c75_3105_reverse', s.get('wp_c75_3105_rev_min'), s.get('wp_c75_3105_rev_max'), 0, 100)
+  range('win_probability_c75_jul',          s.get('wp_c75_jul_min'),      s.get('wp_c75_jul_max'),      0, 100)
+  range('win_probability_c75_jul_reverse',  s.get('wp_c75_jul_rev_min'),  s.get('wp_c75_jul_rev_max'),  0, 100)
+
   // Liquidity zone toggle filtresi
   const liqZone = s.get('liq_zone')
   if (liqZone) {
