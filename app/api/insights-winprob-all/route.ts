@@ -43,10 +43,22 @@ const LIQ_BUCKET = `
 `
 
 const MODELS = [
-  { key: 'v6',      col: 'win_probability_v6',         rev: false },
-  { key: 'v6_rev',  col: 'win_probability_v6_reverse',  rev: true  },
-  { key: 'c75',     col: 'win_probability_c75',         rev: false },
-  { key: 'c75_rev', col: 'win_probability_c75_reverse', rev: true  },
+  // V6 ailesi — 2:1 (sim_direction) hedefiyle eğitildi, dir% de ona göre
+  { key: 'v6',           col: 'win_probability_v6',                rev: false, dirTarget: 'sim_direction' },
+  { key: 'v6_rev',       col: 'win_probability_v6_reverse',         rev: true,  dirTarget: 'sim_direction' },
+  { key: 'v6_3105',      col: 'win_probability_v6_3105',            rev: false, dirTarget: 'sim_direction' },
+  { key: 'v6_3105_rev',  col: 'win_probability_v6_3105_reverse',    rev: true,  dirTarget: 'sim_direction' },
+  { key: 'v6_jul',       col: 'win_probability_v6_jul',             rev: false, dirTarget: 'sim_direction' },
+  { key: 'v6_jul_rev',   col: 'win_probability_v6_jul_reverse',     rev: true,  dirTarget: 'sim_direction' },
+  // C75 ailesi — cluster_first_closer (%75 kronolojik) hedefiyle eğitildi, dir% de ona göre
+  // NOT: cluster_first_closer'ın direction ile eşlemesi doğrulanana kadar GEÇİCİ
+  // olarak sim_direction kullanılıyor — bu kesinleşince tek satır değişecek.
+  { key: 'c75',          col: 'win_probability_c75',                rev: false, dirTarget: 'sim_direction' },
+  { key: 'c75_rev',      col: 'win_probability_c75_reverse',        rev: true,  dirTarget: 'sim_direction' },
+  { key: 'c75_3105',     col: 'win_probability_c75_3105',           rev: false, dirTarget: 'sim_direction' },
+  { key: 'c75_3105_rev', col: 'win_probability_c75_3105_reverse',   rev: true,  dirTarget: 'sim_direction' },
+  { key: 'c75_jul',      col: 'win_probability_c75_jul',            rev: false, dirTarget: 'sim_direction' },
+  { key: 'c75_jul_rev',  col: 'win_probability_c75_jul_reverse',    rev: true,  dirTarget: 'sim_direction' },
 ]
 
 export async function GET(req: NextRequest) {
@@ -67,10 +79,10 @@ export async function GET(req: NextRequest) {
   }
 
   // WP kalibrasyon tablosu
-  await Promise.all(MODELS.map(async ({ key, col, rev }) => {
+  await Promise.all(MODELS.map(async ({ key, col, rev, dirTarget }) => {
     const dirCorrect = rev
-      ? `COUNT(*) FILTER (WHERE sim_direction IS NOT NULL AND sim_direction != 'FLAT' AND sim_direction != direction)`
-      : `COUNT(*) FILTER (WHERE sim_direction = direction)`
+      ? `COUNT(*) FILTER (WHERE ${dirTarget} IS NOT NULL AND ${dirTarget} != 'FLAT' AND ${dirTarget} != direction)`
+      : `COUNT(*) FILTER (WHERE ${dirTarget} = direction)`
 
     // Bucket bazında aggregate
     const { rows } = await pool.query(`
@@ -87,7 +99,7 @@ export async function GET(req: NextRequest) {
         ROUND(SUM(sim_r_multiple) FILTER (WHERE sim_result IN ('TP_HIT','SL_HIT')), 2) AS total_r,
         ROUND(
           ${dirCorrect} * 100.0 /
-          NULLIF(COUNT(*) FILTER (WHERE sim_direction IS NOT NULL), 0), 1
+          NULLIF(COUNT(*) FILTER (WHERE ${dirTarget} IS NOT NULL), 0), 1
         ) AS dir_accuracy
       FROM btc_analysis
       ${base} ${col} IS NOT NULL
