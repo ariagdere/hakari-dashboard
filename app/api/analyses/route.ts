@@ -11,7 +11,8 @@ export async function GET(request: NextRequest) {
   const page  = parseInt(searchParams.get('page') || '1')
   const limit = 15
   const offset = (page - 1) * limit
-  const view = searchParams.get('view') === 'naive' ? 'naive' : 'ai'
+  const viewParam = searchParams.get('view')
+  const view = viewParam === 'naive' ? 'naive' : viewParam === 'pullback' ? 'pullback' : 'ai'
   const { where, params } = buildInsightsWhere(request, view)
   const w = where || 'WHERE 1=1'
   const dataParams = [...params, limit, offset]
@@ -35,7 +36,11 @@ export async function GET(request: NextRequest) {
       -- NAİF
       naive_direction, naive_entry, naive_tp, naive_sl, naive_rr,
       naive_dist_ratio, naive_pos_size, naive_duration_mins,
-      sim_result_naive, naive_sim_r_multiple
+      sim_result_naive, naive_sim_r_multiple,
+      -- PULLBACK
+      pullback_direction, pullback_entry_target, pullback_tp, pullback_sl, pullback_rr,
+      pullback_atr_5m, pullback_pos_size, pullback_wait_mins, pullback_duration_mins,
+      pullback_entry_triggered_at, sim_result_pullback, pullback_sim_r_multiple
     FROM btc_analysis
     ${w}
     ORDER BY analyzed_at DESC
