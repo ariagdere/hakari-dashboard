@@ -27,6 +27,13 @@ interface NaiveOverview {
   long_total: number; long_win_rate: number
   short_total: number; short_win_rate: number
 }
+interface PullbackOverview {
+  total_all: number; total: number; tp_count: number; sl_count: number
+  expired_count: number; no_entry_count: number; pending_count: number
+  win_rate: number; avg_r_win: number; total_r: number; avg_wait_mins: number
+  long_total: number; long_win_rate: number
+  short_total: number; short_win_rate: number
+}
 interface CumRPoint { day: string; cumulative_r: number; daily_r: number; daily_pnl: number | null; trade_count: number }
 interface CumRPeriod { series: CumRPoint[]; max_drawdown: number; final_r: number }
 interface CumRData { daily: CumRPeriod; weekly: CumRPeriod; monthly: CumRPeriod }
@@ -37,11 +44,13 @@ const winColor  = (v: number | null | undefined) => !v ? 'var(--text-3)' : v >= 
 
 // ── Main Page ──────────────────────────────────────────────────────────────
 export default function ListPage() {
-  const [mode, setMode] = useState<'ai' | 'naive'>('ai')
+  const [mode, setMode] = useState<'ai' | 'naive' | 'pullback'>('ai')
   const [overview, setOverview] = useState<Overview | null>(null)
   const [naiveOverview, setNaiveOverview] = useState<NaiveOverview | null>(null)
+  const [pullbackOverview, setPullbackOverview] = useState<PullbackOverview | null>(null)
   const [cumR, setCumR] = useState<CumRData | null>(null)
   const [naiveCumR, setNaiveCumR] = useState<CumRData | null>(null)
+  const [pullbackCumR, setPullbackCumR] = useState<CumRData | null>(null)
   const [cumRPeriod, setCumRPeriod] = useState<'daily'|'weekly'|'monthly'>('daily')
   const [analyses, setAnalyses] = useState<UniversalAnalysisRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -92,7 +101,7 @@ export default function ListPage() {
   // Diğer 8+ endpoint (RSI, delta, WP calibration, vb.) burada YOK — bu sayfa
   // bilinçli olarak minimal. Liste render'ı AnalysisListUniversal'dan geliyor,
   // bu sayfa onu asla kendi başına render etmiyor.
-  const fetchAll = useCallback((f: Filters, pg = 1, m: 'ai' | 'naive' = 'ai') => {
+  const fetchAll = useCallback((f: Filters, pg = 1, m: 'ai' | 'naive' | 'pullback' = 'ai') => {
     setLoading(true)
     const p = filtersToParams(f)
     const pView = new URLSearchParams(p)
@@ -111,7 +120,7 @@ export default function ListPage() {
         setTotal(an.total)
         setLoading(false)
       })
-    } else {
+    } else if (m === 'naive') {
       Promise.all([
         fetch(`/api/insights-overview-naive?${p}`,   { cache: 'no-store' }).then(r => r.json()),
         fetch(`/api/insights-cumr-naive?${p}`,       { cache: 'no-store' }).then(r => r.json()),
@@ -119,6 +128,19 @@ export default function ListPage() {
       ]).then(([nov, ncr, an]) => {
         setNaiveOverview(nov)
         setNaiveCumR(ncr)
+        setAnalyses(an.analyses)
+        setTotalPages(an.totalPages)
+        setTotal(an.total)
+        setLoading(false)
+      })
+    } else {
+      Promise.all([
+        fetch(`/api/insights-overview-pullback?${p}`, { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-cumr-pullback?${p}`,     { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/analyses?${pView}&page=${pg}`,    { cache: 'no-store' }).then(r => r.json()),
+      ]).then(([pov, pcr, an]) => {
+        setPullbackOverview(pov)
+        setPullbackCumR(pcr)
         setAnalyses(an.analyses)
         setTotalPages(an.totalPages)
         setTotal(an.total)
@@ -148,7 +170,7 @@ export default function ListPage() {
     fetchAll(appliedFilters, pg, mode)
   }
 
-  const handleModeChange = (m: 'ai' | 'naive') => {
+  const handleModeChange = (m: 'ai' | 'naive' | 'pullback') => {
     if (m === mode) return
     setMode(m)
     setPage(1)
@@ -163,7 +185,7 @@ export default function ListPage() {
 
   const activeCount = activeFilterCount(appliedFilters)
   const activeOverview = mode === 'ai' ? overview : null
-  const activeCumR = mode === 'ai' ? cumR : naiveCumR
+  const activeCumR = mode === 'ai' ? cumR : mode === 'naive' ? naiveCumR : pullbackCumR
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 64 }}>
@@ -173,6 +195,7 @@ export default function ListPage() {
         <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
           <button className={`filter-btn${mode === 'ai' ? ' active' : ''}`} style={{ fontSize: 12, padding: '6px 18px' }} onClick={() => handleModeChange('ai')}>AI</button>
           <button className={`filter-btn${mode === 'naive' ? ' active' : ''}`} style={{ fontSize: 12, padding: '6px 18px' }} onClick={() => handleModeChange('naive')}>NAIF</button>
+          <button className={`filter-btn${mode === 'pullback' ? ' active' : ''}`} style={{ fontSize: 12, padding: '6px 18px' }} onClick={() => handleModeChange('pullback')}>PULLBACK</button>
         </div>
 
         {/* ── PRESET BAR ─────────────────────────────────────────────────── */}
@@ -225,7 +248,7 @@ export default function ListPage() {
           )}
         </div>
 
-        {!loading && (mode === 'ai' ? overview : naiveOverview) && (
+        {!loading && (mode === 'ai' ? overview : mode === 'naive' ? naiveOverview : pullbackOverview) && (
           <>
             {/* ── SUMMARY CARDS ─────────────────────────────────────────── */}
             {mode === 'ai' && overview && (
@@ -293,6 +316,41 @@ export default function ListPage() {
                 <div className="stat-card"><div className="col-label" style={{ marginBottom: 4 }}>TP HIT</div><div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>{naiveOverview.tp_count}</div></div>
                 <div className="stat-card"><div className="col-label" style={{ marginBottom: 4 }}>SL HIT</div><div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--red)' }}>{naiveOverview.sl_count}</div></div>
                 <div className="stat-card"><div className="col-label" style={{ marginBottom: 4 }}>EXPIRED</div><div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--amber)' }}>{naiveOverview.expired_count}</div></div>
+              </div>
+            )}
+
+            {mode === 'pullback' && pullbackOverview && (
+              <div className="stat-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(0, 1fr))', gap: 8, marginBottom: 16 }}>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>TOTAL</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{pullbackOverview.total_all}</div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:{pullbackOverview.long_total}</span>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>S:{pullbackOverview.short_total}</span>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>WIN RATE</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: winColor(Number(pullbackOverview.win_rate)) }}>%{Number(pullbackOverview.win_rate).toFixed(1)}</div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:%{Number(pullbackOverview.long_win_rate).toFixed(1)}</span>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>S:%{Number(pullbackOverview.short_win_rate).toFixed(1)}</span>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>AVG WIN R</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>{pullbackOverview.avg_r_win != null ? `+${Number(pullbackOverview.avg_r_win).toFixed(2)}R` : '—'}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>TOTAL R</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: Number(pullbackOverview.total_r) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                    {pullbackOverview.total_r != null ? `${Number(pullbackOverview.total_r) > 0 ? '+' : ''}${Number(pullbackOverview.total_r).toFixed(2)}R` : '—'}
+                  </div>
+                </div>
+                <div className="stat-card"><div className="col-label" style={{ marginBottom: 4 }}>TP HIT</div><div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>{pullbackOverview.tp_count}</div></div>
+                <div className="stat-card"><div className="col-label" style={{ marginBottom: 4 }}>SL HIT</div><div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--red)' }}>{pullbackOverview.sl_count}</div></div>
+                <div className="stat-card"><div className="col-label" style={{ marginBottom: 4 }}>EXPIRED</div><div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--amber)' }}>{pullbackOverview.expired_count}</div></div>
+                <div className="stat-card"><div className="col-label" style={{ marginBottom: 4 }}>NO ENTRY</div><div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--text-3)' }}>{pullbackOverview.no_entry_count}</div></div>
               </div>
             )}
 
