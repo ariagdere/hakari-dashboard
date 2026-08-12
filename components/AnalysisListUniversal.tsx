@@ -22,6 +22,12 @@ export interface UniversalAnalysisRow {
   naive_dist_ratio: number | null; naive_pos_size: number | null
   naive_duration_mins: number | null
   sim_result_naive: string | null; naive_sim_r_multiple: number | null
+  pullback_direction: string | null; pullback_entry_target: number | null
+  pullback_tp: number | null; pullback_sl: number | null; pullback_rr: number | null
+  pullback_atr_5m: number | null; pullback_pos_size: number | null
+  pullback_wait_mins: number | null; pullback_duration_mins: number | null
+  pullback_entry_triggered_at: string | null
+  sim_result_pullback: string | null; pullback_sim_r_multiple: number | null
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────
@@ -51,7 +57,7 @@ const boolCell = (v: boolean | null) => <span className="mono" style={{ fontSize
 interface ColumnDef {
   id: string
   label: string
-  group: 'shared' | 'ai' | 'naive'
+  group: 'shared' | 'ai' | 'naive' | 'pullback'
   width: string       // CSS grid track boyutu
   default: boolean     // varsayılan olarak açık mı
   render: (a: UniversalAnalysisRow) => React.ReactNode
@@ -99,6 +105,17 @@ export const COLUMNS: ColumnDef[] = [
   { id: 'nv_dur',    label: 'Nv Dur',    group: 'naive', width: 'minmax(60px,0.7fr)', default: false, render: a => a.naive_duration_mins != null ? <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{Math.round(Number(a.naive_duration_mins)/60)}sa</span> : <span className="mono" style={{ fontSize: 11, color: 'var(--text-3)' }}>—</span> },
   { id: 'nv_r',      label: 'Nv R',      group: 'naive', width: 'minmax(60px,0.7fr)', default: true,  render: a => <span className={`mono ${a.naive_sim_r_multiple != null ? pnlClass(a.sim_result_naive === 'SL_HIT' ? -1 : Number(a.naive_sim_r_multiple)) : 'pnl-zero'}`} style={{ fontSize: 11 }}>{fmtR(a.naive_sim_r_multiple, a.sim_result_naive)}</span> },
   { id: 'nv_result', label: 'Nv Result', group: 'naive', width: '64px',               default: true,  render: a => resultBadge(a.sim_result_naive) },
+  { id: 'pb_dir',    label: 'Pb Dir',    group: 'pullback', width: '64px',               default: true,  render: a => dirBadge(a.pullback_direction) },
+  { id: 'pb_entry',  label: 'Pb Entry',  group: 'pullback', width: 'minmax(76px,1fr)',   default: false, render: a => priceCell(a.pullback_entry_target) },
+  { id: 'pb_tp',     label: 'Pb TP',     group: 'pullback', width: 'minmax(76px,1fr)',   default: false, render: a => priceCell(a.pullback_tp, 'var(--green)') },
+  { id: 'pb_sl',     label: 'Pb SL',     group: 'pullback', width: 'minmax(76px,1fr)',   default: false, render: a => priceCell(a.pullback_sl, 'var(--red)') },
+  { id: 'pb_rr',     label: 'Pb R/R',    group: 'pullback', width: 'minmax(50px,0.6fr)', default: false, render: a => numCell(a.pullback_rr, 2) },
+  { id: 'pb_atr',    label: 'ATR(5m)',   group: 'pullback', width: 'minmax(60px,0.7fr)', default: false, render: a => numCell(a.pullback_atr_5m, 0) },
+  { id: 'pb_pos',    label: 'Pos Size',  group: 'pullback', width: 'minmax(64px,0.8fr)', default: false, render: a => numCell(a.pullback_pos_size, 2) },
+  { id: 'pb_wait',   label: 'Pb Wait',   group: 'pullback', width: 'minmax(60px,0.7fr)', default: false, render: a => a.pullback_wait_mins != null ? <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{Math.round(Number(a.pullback_wait_mins))}dk</span> : <span className="mono" style={{ fontSize: 11, color: 'var(--text-3)' }}>—</span> },
+  { id: 'pb_dur',    label: 'Pb Dur',    group: 'pullback', width: 'minmax(60px,0.7fr)', default: false, render: a => a.pullback_duration_mins != null ? <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{Math.round(Number(a.pullback_duration_mins)/60)}sa</span> : <span className="mono" style={{ fontSize: 11, color: 'var(--text-3)' }}>—</span> },
+  { id: 'pb_r',      label: 'Pb R',      group: 'pullback', width: 'minmax(60px,0.7fr)', default: true,  render: a => <span className={`mono ${a.pullback_sim_r_multiple != null ? pnlClass(a.sim_result_pullback === 'SL_HIT' ? -1 : Number(a.pullback_sim_r_multiple)) : 'pnl-zero'}`} style={{ fontSize: 11 }}>{fmtR(a.pullback_sim_r_multiple, a.sim_result_pullback)}</span> },
+  { id: 'pb_result', label: 'Pb Result', group: 'pullback', width: '64px',               default: true,  render: a => resultBadge(a.sim_result_pullback) },
 ]
 
 const DEFAULT_VISIBLE = COLUMNS.filter(c => c.default).map(c => c.id)
@@ -132,7 +149,7 @@ function ColumnPicker({ visible, onChange }: { visible: string[]; onChange: (ids
           position: 'absolute', top: '110%', right: 0, zIndex: 20, padding: 14,
           width: 260, maxHeight: 420, overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
         }}>
-          {(['shared', 'ai', 'naive'] as const).map(group => (
+          {(['shared', 'ai', 'naive', 'pullback'] as const).map(group => (
             <div key={group} style={{ marginBottom: 12 }}>
               <div className="col-label" style={{ fontSize: 9, color: GROUP_COLOR[group], marginBottom: 6 }}>{GROUP_LABELS[group]}</div>
               {COLUMNS.filter(c => c.group === group).map(c => (
