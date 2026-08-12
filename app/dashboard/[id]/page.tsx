@@ -23,6 +23,13 @@ interface Analysis {
   naive_dist_ratio: number | null; naive_pos_size: number | null
   naive_duration_mins: number | null
   sim_result_naive: string | null; naive_sim_r_multiple: number | null
+  // Pullback
+  pullback_direction: string | null; pullback_entry_target: number | null
+  pullback_tp: number | null; pullback_sl: number | null; pullback_rr: number | null
+  pullback_atr_5m: number | null; pullback_pos_size: number | null
+  pullback_wait_mins: number | null; pullback_duration_mins: number | null
+  pullback_entry_triggered_at: string | null
+  sim_result_pullback: string | null; pullback_sim_r_multiple: number | null
   synthesis_h1: string; synthesis_m5: string; synthesis_mtf: string
   upside_zone_1: string; upside_zone_2: string
   downside_zone_1: string; downside_zone_2: string
@@ -214,22 +221,25 @@ export default function AnalysisPage() {
                             <th style={{ textAlign: 'left', color: 'var(--text-3)', padding: '12px 18px', fontWeight: 400, fontSize: 11, letterSpacing: '0.05em' }}></th>
                             <th style={{ textAlign: 'right', color: 'var(--text-2)', padding: '12px 18px', fontWeight: 600, fontSize: 12, letterSpacing: '0.05em' }}>AI</th>
                             <th style={{ textAlign: 'right', color: 'var(--text-2)', padding: '12px 18px', fontWeight: 600, fontSize: 12, letterSpacing: '0.05em' }}>NAIF</th>
+                            <th style={{ textAlign: 'right', color: 'var(--text-2)', padding: '12px 18px', fontWeight: 600, fontSize: 12, letterSpacing: '0.05em' }}>PULLBACK</th>
                           </tr>
                         </thead>
                         <tbody>
                           {[
-                            { label: 'Direction', ai: dirBadge(data.direction), nv: dirBadge(data.naive_direction) },
-                            { label: 'Entry', ai: `$${fmt(data.entry)}`, nv: data.naive_entry != null ? `$${fmt(data.naive_entry)}` : '—' },
-                            { label: 'TP', ai: `$${fmt(data.tp)}`, nv: data.naive_tp != null ? `$${fmt(data.naive_tp)}` : '—' },
-                            { label: 'SL', ai: `$${fmt(data.sl)}`, nv: data.naive_sl != null ? `$${fmt(data.naive_sl)}` : '—' },
-                            { label: 'R/R', ai: data.rr, nv: data.naive_rr != null ? Number(data.naive_rr).toFixed(2) : '—' },
-                            { label: 'Dist Ratio', ai: '—', nv: data.naive_dist_ratio != null ? `${Number(data.naive_dist_ratio).toFixed(2)}x` : '—' },
-                            { label: 'Pos. Size', ai: `${data.position_size_btc} BTC`, nv: data.naive_pos_size != null ? `${Number(data.naive_pos_size).toFixed(4)} BTC` : '—' },
-                          ].map((row, i) => (
-                            <tr key={i} style={{ borderBottom: i < 6 ? '1px solid var(--border)' : 'none' }}>
+                            { label: 'Direction', ai: dirBadge(data.direction), nv: dirBadge(data.naive_direction), pb: data.pullback_direction ? dirBadge(data.pullback_direction) : '—' },
+                            { label: 'Entry', ai: `$${fmt(data.entry)}`, nv: data.naive_entry != null ? `$${fmt(data.naive_entry)}` : '—', pb: data.pullback_entry_target != null ? `$${fmt(data.pullback_entry_target)}` : '—' },
+                            { label: 'TP', ai: `$${fmt(data.tp)}`, nv: data.naive_tp != null ? `$${fmt(data.naive_tp)}` : '—', pb: data.pullback_tp != null ? `$${fmt(data.pullback_tp)}` : '—' },
+                            { label: 'SL', ai: `$${fmt(data.sl)}`, nv: data.naive_sl != null ? `$${fmt(data.naive_sl)}` : '—', pb: data.pullback_sl != null ? `$${fmt(data.pullback_sl)}` : '—' },
+                            { label: 'R/R', ai: data.rr, nv: data.naive_rr != null ? Number(data.naive_rr).toFixed(2) : '—', pb: data.pullback_rr != null ? Number(data.pullback_rr).toFixed(2) : '—' },
+                            { label: 'Dist Ratio', ai: '—', nv: data.naive_dist_ratio != null ? `${Number(data.naive_dist_ratio).toFixed(2)}x` : '—', pb: '—' },
+                            { label: 'ATR (5m)', ai: '—', nv: '—', pb: data.pullback_atr_5m != null ? `$${fmt(data.pullback_atr_5m)}` : '—' },
+                            { label: 'Pos. Size', ai: `${data.position_size_btc} BTC`, nv: data.naive_pos_size != null ? `${Number(data.naive_pos_size).toFixed(4)} BTC` : '—', pb: data.pullback_pos_size != null ? `${Number(data.pullback_pos_size).toFixed(2)} BTC` : '—' },
+                          ].map((row, i, arr) => (
+                            <tr key={i} style={{ borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none' }}>
                               <td style={{ padding: '13px 18px', color: 'var(--text-2)', fontSize: 13 }}>{row.label}</td>
                               <td style={{ padding: '13px 18px', textAlign: 'right', fontSize: 15 }}>{row.ai}</td>
                               <td style={{ padding: '13px 18px', textAlign: 'right', fontSize: 15 }}>{row.nv}</td>
+                              <td style={{ padding: '13px 18px', textAlign: 'right', fontSize: 15 }}>{row.pb}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -340,6 +350,36 @@ export default function AnalysisPage() {
                   </div>
                 )}
 
+                {data.pullback_direction && (
+                  <div>
+                    <div className="section-title">Pullback Result</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
+                      {[
+                        { label: 'Result', value: resultBadge(data.sim_result_pullback || '') },
+                        {
+                          label: 'PnL', color: safeNum(data.pullback_sim_r_multiple) == null ? 'var(--text-3)' : safeNum(data.pullback_sim_r_multiple)! > 0 ? 'var(--green)' : safeNum(data.pullback_sim_r_multiple)! < 0 ? 'var(--red)' : 'var(--text-3)',
+                          value: safeNum(data.pullback_sim_r_multiple) != null
+                            ? `${safeNum(data.pullback_sim_r_multiple)! * 20 > 0 ? '+' : ''}$${Math.abs(safeNum(data.pullback_sim_r_multiple)! * 20).toFixed(2)}`
+                            : '—',
+                        },
+                        { label: 'R Multiple', value: fmtR(safeNum(data.pullback_sim_r_multiple), data.sim_result_pullback || undefined), color: data.sim_result_pullback === 'TP_HIT' ? 'var(--green)' : data.sim_result_pullback === 'SL_HIT' ? 'var(--red)' : 'var(--text-3)' },
+                        { label: 'Wait', value: fmtMins(data.pullback_wait_mins) },
+                        { label: 'Duration', value: fmtMins(data.pullback_duration_mins) },
+                      ].map((s, i) => (
+                        <div key={i} className="stat-card">
+                          <div className="col-label" style={{ marginBottom: 6 }}>{s.label}</div>
+                          <div className="mono" style={{ fontSize: 14, fontWeight: 500, color: (s as any).color || 'var(--text)' }}>{s.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mono" style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 6 }}>
+                      {data.sim_result_pullback === 'NO_ENTRY'
+                        ? 'Price never pulled back to the ATR entry level -- position was never opened.'
+                        : 'Entry waits for a 1×ATR(5m) pullback from the Naif price; TP/SL are the same absolute levels as Naif, so risk/reward differ. PnL is calculated as R × $20.'}
+                    </div>
+                  </div>
+                )}
+
                 {(data.sim_entry_triggered_at || data.naive_direction) && (
                   <div className="data-item">
                     <div className="section-title" style={{ marginBottom: 10 }}>Timeline</div>
@@ -360,6 +400,16 @@ export default function AnalysisPage() {
                               label: `Naif ${data.sim_result_naive === 'TP_HIT' ? 'TP' : 'SL'} hit`,
                               val: fmtDate(new Date(new Date(data.analyzed_at).getTime() + data.naive_duration_mins * 60000).toISOString()),
                               color: data.sim_result_naive === 'TP_HIT' ? 'var(--green)' : 'var(--red)',
+                            }]
+                          : []),
+                        ...(data.pullback_entry_triggered_at
+                          ? [{ label: 'Pullback Entry triggered', val: fmtDate(data.pullback_entry_triggered_at), color: 'var(--amber)' }]
+                          : []),
+                        ...(data.pullback_entry_triggered_at && data.pullback_duration_mins != null && (data.sim_result_pullback === 'TP_HIT' || data.sim_result_pullback === 'SL_HIT')
+                          ? [{
+                              label: `Pullback ${data.sim_result_pullback === 'TP_HIT' ? 'TP' : 'SL'} hit`,
+                              val: fmtDate(new Date(new Date(data.pullback_entry_triggered_at).getTime() + data.pullback_duration_mins * 60000).toISOString()),
+                              color: data.sim_result_pullback === 'TP_HIT' ? 'var(--green)' : 'var(--red)',
                             }]
                           : []),
                       ].map((x, i) => (
