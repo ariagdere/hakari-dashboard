@@ -417,7 +417,7 @@ export default function AnalysisPage() {
           )}
         </div>
 
-        {!loading && (mode === 'ai' ? overview : naiveOverview) && (
+        {!loading && (mode === 'ai' ? overview : mode === 'naive' ? naiveOverview : pullbackOverview) && (
           <>
             {/* ── SUMMARY SCORE CARDS ──────────────────────────────────────── */}
             {mode === 'ai' && overview && (
