@@ -116,8 +116,10 @@ export default function AnalysisPage() {
   const [naiveOverview, setNaiveOverview] = useState<NaiveOverview | null>(null)
   const [pullbackOverview, setPullbackOverview] = useState<PullbackOverview | null>(null)
   const [distRatio, setDistRatio] = useState<DistRatioData | null>(null)
+  const [pullbackDistRatio, setPullbackDistRatio] = useState<DistRatioData | null>(null)
   const [scoring,   setScoring]   = useState<ScoringData | null>(null)
   const [naiveScoring, setNaiveScoring] = useState<ScoringData | null>(null)
+  const [pullbackScoring, setPullbackScoring] = useState<ScoringData | null>(null)
   const [deltaData, setDeltaData] = useState<DeltaData | null>(null)
   const [cumR,      setCumR]      = useState<CumRData | null>(null)
   const [naiveCumR, setNaiveCumR] = useState<CumRData | null>(null)
@@ -136,6 +138,7 @@ export default function AnalysisPage() {
   const [pullbackWeekly, setPullbackWeekly] = useState<WeeklyData | null>(null)
   const [zlemaAI,    setZlemaAI]    = useState<ZlemaData | null>(null)
   const [zlemaNaive, setZlemaNaive] = useState<ZlemaData | null>(null)
+  const [zlemaPullback, setZlemaPullback] = useState<ZlemaData | null>(null)
   const [analyses,  setAnalyses]  = useState<UniversalAnalysisRow[]>([])
   const [loading,   setLoading]   = useState(true)
   const [filterOpen, setFilterOpen] = useState(false)
@@ -247,21 +250,23 @@ export default function AnalysisPage() {
         setLoading(false)
       })
     } else {
-      // Pullback -- WP kalibrasyonu, dist_ratio, ZLEMA breakdown ve RSI-only
-      // scoring henüz pullback'e özel değil (backend route'ları yok); bu
-      // yüzden ilgili state'ler bilerek set edilmiyor, activeScoring/activeZlema
-      // pullback modunda null döner (aşağıda), naif verisi sızmaz.
       Promise.all([
-        fetch(`/api/insights-overview-pullback${qs}`, { cache: 'no-store' }).then(r => r.json()),
-        fetch(`/api/insights-cumr-pullback${qs}`,     { cache: 'no-store' }).then(r => r.json()),
-        fetch(`/api/insights-weekly-pullback${qs}`,   { cache: 'no-store' }).then(r => r.json()),
-        fetch(`/api/insights-tradedur-pullback${qs}`, { cache: 'no-store' }).then(r => r.json()),
-        fetch(`/api/analyses?${pView}&page=${pg}`,    { cache: 'no-store' }).then(r => r.json()),
-      ]).then(([pov, pcr, pwk, ptd, an]) => {
+        fetch(`/api/insights-overview-pullback${qs}`,  { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-pullback-distratio${qs}`, { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-cumr-pullback${qs}`,      { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-scoring-pullback${qs}`,   { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-weekly-pullback${qs}`,    { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-tradedur-pullback${qs}`,  { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-zlema${qsView}`,          { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/analyses?${pView}&page=${pg}`,     { cache: 'no-store' }).then(r => r.json()),
+      ]).then(([pov, pdr, pcr, psc, pwk, ptd, zl, an]) => {
         setPullbackOverview(pov)
+        setPullbackDistRatio(pdr)
         setPullbackCumR(pcr)
+        setPullbackScoring(psc)
         setPullbackWeekly(pwk)
         setPullbackTradeDur(ptd)
+        setZlemaPullback(zl)
         setAnalyses(an.analyses)
         setTotalPages(an.totalPages)
         setTotal(an.total)
@@ -307,13 +312,11 @@ export default function AnalysisPage() {
 
   const activeCount = activeFilterCount(appliedFilters)
   const activeCumR      = mode === 'ai' ? cumR      : mode === 'naive' ? naiveCumR      : pullbackCumR
-  // scoring/zlema pullback icin backend route'u henuz yok -- naive verisine
-  // dusmesin diye (yanlislikla "pullback" etiketiyle naif verisi gostermek)
-  // pullback modunda bilerek null.
-  const activeScoring    = mode === 'ai' ? scoring    : mode === 'naive' ? naiveScoring    : null
+  const activeScoring    = mode === 'ai' ? scoring    : mode === 'naive' ? naiveScoring    : pullbackScoring
   const activeWeekly     = mode === 'ai' ? weekly     : mode === 'naive' ? naiveWeekly     : pullbackWeekly
   const activeTradeDur   = mode === 'ai' ? tradeDur   : mode === 'naive' ? naiveTradeDur   : pullbackTradeDur
-  const activeZlema      = mode === 'ai' ? zlemaAI    : mode === 'naive' ? zlemaNaive      : null
+  const activeZlema      = mode === 'ai' ? zlemaAI    : mode === 'naive' ? zlemaNaive      : zlemaPullback
+  const activeDistRatio  = mode === 'naive' ? distRatio : mode === 'pullback' ? pullbackDistRatio : null
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 64 }}>
@@ -911,11 +914,11 @@ export default function AnalysisPage() {
               </div>
             )}
 
-            {/* ── DIST RATIO CALIBRATION (sadece Naif) ─────────────────────── */}
-            {mode === 'naive' && distRatio && distRatio.buckets.length > 0 && (
+            {/* ── DIST RATIO CALIBRATION (Naif + Pullback, paylaşılan cluster metriği) ── */}
+            {activeDistRatio && activeDistRatio.buckets.length > 0 && (
               <div style={{ marginBottom: 16 }}>
                 <div className="mono" style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.08em', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                  DIST RATIO CALIBRATION — Naif (far/near cluster distance ratio)
+                  DIST RATIO CALIBRATION — {mode === 'pullback' ? 'Pullback' : 'Naif'} (far/near cluster distance ratio)
                 </div>
                 <div className="card" style={{ padding: 16, overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, fontFamily: 'DM Mono, monospace' }}>
@@ -930,7 +933,7 @@ export default function AnalysisPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {distRatio.buckets.map((b, i) => (
+                      {activeDistRatio.buckets.map((b, i) => (
                         <tr key={i} style={{ borderTop: '1px solid var(--border)' }}>
                           <td style={{ padding: '6px 0', color: 'var(--text-2)' }}>{b.bucket}</td>
                           <td style={{ padding: '6px 4px', textAlign: 'right', color: 'var(--text-3)' }}>{b.avg_dist_ratio != null ? `${Number(b.avg_dist_ratio).toFixed(2)}x` : '—'}</td>
