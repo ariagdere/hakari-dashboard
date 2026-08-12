@@ -6,15 +6,17 @@ export const dynamic = 'force-dynamic'
 // ZLEMA Ribbon w/ Kalman — 4H zone kalibrasyon tablosu.
 // ?view=ai (varsayılan) -> direction/sim_result/sim_r_multiple bazlı
 // ?view=naive           -> naive_direction/sim_result_naive/naive_sim_r_multiple bazlı
+// ?view=pullback        -> naive_direction (paylaşılan yön) / sim_result_pullback/pullback_sim_r_multiple bazlı
 
 export async function GET(req: NextRequest) {
-  const view = req.nextUrl.searchParams.get('view') === 'naive' ? 'naive' : 'ai'
+  const v = req.nextUrl.searchParams.get('view')
+  const view = v === 'naive' ? 'naive' : v === 'pullback' ? 'pullback' : 'ai'
   const { where, params } = buildInsightsWhere(req, view)
   const base = where ? `${where} AND` : 'WHERE'
 
-  const dirCol    = view === 'naive' ? 'naive_direction'       : 'direction'
-  const resultCol = view === 'naive' ? 'sim_result_naive'      : 'sim_result'
-  const rCol      = view === 'naive' ? 'naive_sim_r_multiple'  : 'sim_r_multiple'
+  const dirCol    = view === 'ai' ? 'direction' : 'naive_direction'
+  const resultCol = view === 'ai' ? 'sim_result' : view === 'naive' ? 'sim_result_naive' : 'sim_result_pullback'
+  const rCol      = view === 'ai' ? 'sim_r_multiple' : view === 'naive' ? 'naive_sim_r_multiple' : 'pullback_sim_r_multiple'
 
   const { rows } = await pool.query(`
     SELECT
