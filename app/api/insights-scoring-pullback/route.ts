@@ -1,0 +1,137 @@
+import { NextResponse, NextRequest } from 'next/server'
+import pool from '@/lib/db'
+import { buildInsightsWhere } from '@/lib/insightsFilter'
+
+export const dynamic = 'force-dynamic'
+
+// insights-scoring'in pullback paraleli — sadece RSI kısmı (market_score_value /
+// confidence_value AI'a özel alanlar, naifte karşılığı yok). Aynı response
+// şekli (by_rsi/by_rsi_long/by_rsi_short/by_rsi30/...) — frontend'de aynı
+// render kodu paylaşılabilsin diye.
+
+const RSI_CASE = `
+  CASE
+    WHEN rsi_4h < 30 THEN 'Aşırı Satım (<30)'
+    WHEN rsi_4h BETWEEN 30 AND 45 THEN 'Zayıf (30-45)'
+    WHEN rsi_4h BETWEEN 45 AND 55 THEN 'Nötr (45-55)'
+    WHEN rsi_4h BETWEEN 55 AND 70 THEN 'Güçlü (55-70)'
+    WHEN rsi_4h > 70 THEN 'Aşırı Alım (>70)'
+  END
+`
+const RSI_ORDER = `
+  CASE
+    WHEN rsi_4h < 30 THEN 1
+    WHEN rsi_4h BETWEEN 30 AND 45 THEN 2
+    WHEN rsi_4h BETWEEN 45 AND 55 THEN 3
+    WHEN rsi_4h BETWEEN 55 AND 70 THEN 4
+    WHEN rsi_4h > 70 THEN 5
+  END
+`
+const RSI30_CASE = `
+  CASE
+    WHEN rsi_30m < 30 THEN 'Aşırı Satım (<30)'
+    WHEN rsi_30m BETWEEN 30 AND 45 THEN 'Zayıf (30-45)'
+    WHEN rsi_30m BETWEEN 45 AND 55 THEN 'Nötr (45-55)'
+    WHEN rsi_30m BETWEEN 55 AND 70 THEN 'Güçlü (55-70)'
+    WHEN rsi_30m > 70 THEN 'Aşırı Alım (>70)'
+  END
+`
+const RSI30_ORDER = `
+  CASE
+    WHEN rsi_30m < 30 THEN 1
+    WHEN rsi_30m BETWEEN 30 AND 45 THEN 2
+    WHEN rsi_30m BETWEEN 45 AND 55 THEN 3
+    WHEN rsi_30m BETWEEN 55 AND 70 THEN 4
+    WHEN rsi_30m > 70 THEN 5
+  END
+`
+
+export async function GET(req: NextRequest) {
+  const { where, params } = buildInsightsWhere(req, 'pullback')
+  const base = where ? `${where} AND` : 'WHERE'
+
+  const [rsiRows, rsiLongRows, rsiShortRows, rsi30Rows, rsi30LongRows, rsi30ShortRows] = await Promise.all([
+    pool.query(`
+      SELECT ${RSI_CASE} AS rsi_zone, ${RSI_ORDER} AS sort_order,
+        COUNT(*) FILTER (WHERE sim_result_pullback IN ('TP_HIT','SL_HIT')) AS total,
+        COUNT(*) FILTER (WHERE sim_result_pullback = 'TP_HIT') AS wins,
+        ROUND(COUNT(*) FILTER (WHERE sim_result_pullback = 'TP_HIT') * 100.0 /
+          NULLIF(COUNT(*) FILTER (WHERE sim_result_pullback IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate,
+        ROUND(SUM(pullback_sim_r_multiple) FILTER (WHERE sim_result_pullback IN ('TP_HIT','SL_HIT')), 2) AS total_r
+      FROM btc_analysis
+      ${base} rsi_4h IS NOT NULL
+      GROUP BY rsi_zone, sort_order ORDER BY sort_order
+    `, params),
+
+    pool.query(`
+      SELECT ${RSI_CASE} AS rsi_zone, ${RSI_ORDER} AS sort_order,
+        COUNT(*) FILTER (WHERE sim_result_pullback IN ('TP_HIT','SL_HIT')) AS total,
+        COUNT(*) FILTER (WHERE sim_result_pullback = 'TP_HIT') AS wins,
+        ROUND(COUNT(*) FILTER (WHERE sim_result_pullback = 'TP_HIT') * 100.0 /
+          NULLIF(COUNT(*) FILTER (WHERE sim_result_pullback IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate,
+        ROUND(SUM(pullback_sim_r_multiple) FILTER (WHERE sim_result_pullback IN ('TP_HIT','SL_HIT')), 2) AS total_r
+      FROM btc_analysis
+      ${base} rsi_4h IS NOT NULL AND naive_direction = 'LONG'
+      GROUP BY rsi_zone, sort_order ORDER BY sort_order
+    `, params),
+
+    pool.query(`
+      SELECT ${RSI_CASE} AS rsi_zone, ${RSI_ORDER} AS sort_order,
+        COUNT(*) FILTER (WHERE sim_result_pullback IN ('TP_HIT','SL_HIT')) AS total,
+        COUNT(*) FILTER (WHERE sim_result_pullback = 'TP_HIT') AS wins,
+        ROUND(COUNT(*) FILTER (WHERE sim_result_pullback = 'TP_HIT') * 100.0 /
+          NULLIF(COUNT(*) FILTER (WHERE sim_result_pullback IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate,
+        ROUND(SUM(pullback_sim_r_multiple) FILTER (WHERE sim_result_pullback IN ('TP_HIT','SL_HIT')), 2) AS total_r
+      FROM btc_analysis
+      ${base} rsi_4h IS NOT NULL AND naive_direction = 'SHORT'
+      GROUP BY rsi_zone, sort_order ORDER BY sort_order
+    `, params),
+
+    pool.query(`
+      SELECT ${RSI30_CASE} AS rsi_zone, ${RSI30_ORDER} AS sort_order,
+        COUNT(*) FILTER (WHERE sim_result_pullback IN ('TP_HIT','SL_HIT')) AS total,
+        COUNT(*) FILTER (WHERE sim_result_pullback = 'TP_HIT') AS wins,
+        ROUND(COUNT(*) FILTER (WHERE sim_result_pullback = 'TP_HIT') * 100.0 /
+          NULLIF(COUNT(*) FILTER (WHERE sim_result_pullback IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate,
+        ROUND(SUM(pullback_sim_r_multiple) FILTER (WHERE sim_result_pullback IN ('TP_HIT','SL_HIT')), 2) AS total_r
+      FROM btc_analysis
+      ${base} rsi_30m IS NOT NULL
+      GROUP BY rsi_zone, sort_order ORDER BY sort_order
+    `, params),
+
+    pool.query(`
+      SELECT ${RSI30_CASE} AS rsi_zone, ${RSI30_ORDER} AS sort_order,
+        COUNT(*) FILTER (WHERE sim_result_pullback IN ('TP_HIT','SL_HIT')) AS total,
+        COUNT(*) FILTER (WHERE sim_result_pullback = 'TP_HIT') AS wins,
+        ROUND(COUNT(*) FILTER (WHERE sim_result_pullback = 'TP_HIT') * 100.0 /
+          NULLIF(COUNT(*) FILTER (WHERE sim_result_pullback IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate,
+        ROUND(SUM(pullback_sim_r_multiple) FILTER (WHERE sim_result_pullback IN ('TP_HIT','SL_HIT')), 2) AS total_r
+      FROM btc_analysis
+      ${base} rsi_30m IS NOT NULL AND naive_direction = 'LONG'
+      GROUP BY rsi_zone, sort_order ORDER BY sort_order
+    `, params),
+
+    pool.query(`
+      SELECT ${RSI30_CASE} AS rsi_zone, ${RSI30_ORDER} AS sort_order,
+        COUNT(*) FILTER (WHERE sim_result_pullback IN ('TP_HIT','SL_HIT')) AS total,
+        COUNT(*) FILTER (WHERE sim_result_pullback = 'TP_HIT') AS wins,
+        ROUND(COUNT(*) FILTER (WHERE sim_result_pullback = 'TP_HIT') * 100.0 /
+          NULLIF(COUNT(*) FILTER (WHERE sim_result_pullback IN ('TP_HIT','SL_HIT')), 0), 1) AS win_rate,
+        ROUND(SUM(pullback_sim_r_multiple) FILTER (WHERE sim_result_pullback IN ('TP_HIT','SL_HIT')), 2) AS total_r
+      FROM btc_analysis
+      ${base} rsi_30m IS NOT NULL AND naive_direction = 'SHORT'
+      GROUP BY rsi_zone, sort_order ORDER BY sort_order
+    `, params),
+  ])
+
+  return NextResponse.json({
+    by_score:       [],
+    by_confidence:  [],
+    by_rsi:         rsiRows.rows,
+    by_rsi_long:    rsiLongRows.rows,
+    by_rsi_short:   rsiShortRows.rows,
+    by_rsi30:       rsi30Rows.rows,
+    by_rsi30_long:  rsi30LongRows.rows,
+    by_rsi30_short: rsi30ShortRows.rows,
+  })
+}
