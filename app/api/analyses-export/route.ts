@@ -4,7 +4,8 @@ import { buildInsightsWhere } from '@/lib/insightsFilter'
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
-  const view = req.nextUrl.searchParams.get('view') === 'naive' ? 'naive' : 'ai'
+  const viewParam = req.nextUrl.searchParams.get('view')
+  const view = viewParam === 'naive' ? 'naive' : viewParam === 'pullback' ? 'pullback' : 'ai'
   const { where, params } = buildInsightsWhere(req, view)
   const query = `
     SELECT
@@ -53,6 +54,18 @@ export async function GET(req: NextRequest) {
       naive_duration_mins,
       sim_result_naive,
       naive_sim_r_multiple,
+      pullback_direction,
+      pullback_entry_target,
+      pullback_tp,
+      pullback_sl,
+      pullback_rr,
+      pullback_atr_5m,
+      pullback_pos_size,
+      pullback_wait_mins,
+      pullback_duration_mins,
+      pullback_entry_triggered_at,
+      sim_result_pullback,
+      pullback_sim_r_multiple,
       ROUND((h1_ls_ratio_current    - h1_ls_ratio_start)::numeric, 4)             AS h1_ls_delta,
       ROUND((h1_tt_positions_current- h1_tt_positions_start)::numeric, 4)         AS h1_tt_positions_delta,
       ROUND((h1_tt_accounts_current - h1_tt_accounts_start)::numeric, 4)          AS h1_tt_accounts_delta,
@@ -95,6 +108,9 @@ export async function GET(req: NextRequest) {
     'naive_direction', 'naive_entry', 'naive_tp', 'naive_sl', 'naive_rr',
     'naive_dist_ratio', 'naive_pos_size', 'naive_duration_mins',
     'sim_result_naive', 'naive_sim_r',
+    'pullback_direction', 'pullback_entry_target', 'pullback_tp', 'pullback_sl', 'pullback_rr',
+    'pullback_atr_5m', 'pullback_pos_size', 'pullback_wait_mins', 'pullback_duration_mins',
+    'pullback_entry_triggered_at', 'sim_result_pullback', 'pullback_sim_r',
     'h1_ls_delta', 'h1_tt_positions_delta', 'h1_tt_accounts_delta', 'h1_oi_delta', 'h1_oi_mcap_delta',
     'm5_ls_delta', 'm5_tt_positions_delta', 'm5_tt_accounts_delta', 'm5_oi_delta', 'm5_oi_mcap_delta',
     'sent_synthesis_mtf', 'sent_synthesis_h1', 'sent_synthesis_m5', 'sent_liquidity',
@@ -140,6 +156,9 @@ export async function GET(req: NextRequest) {
       r.naive_direction, r.naive_entry, r.naive_tp, r.naive_sl, r.naive_rr,
       r.naive_dist_ratio, r.naive_pos_size, r.naive_duration_mins,
       r.sim_result_naive, r.naive_sim_r_multiple,
+      r.pullback_direction, r.pullback_entry_target, r.pullback_tp, r.pullback_sl, r.pullback_rr,
+      r.pullback_atr_5m, r.pullback_pos_size, r.pullback_wait_mins, r.pullback_duration_mins,
+      toTR(r.pullback_entry_triggered_at), r.sim_result_pullback, r.pullback_sim_r_multiple,
       r.h1_ls_delta, r.h1_tt_positions_delta, r.h1_tt_accounts_delta, r.h1_oi_delta, r.h1_oi_mcap_delta,
       r.m5_ls_delta, r.m5_tt_positions_delta, r.m5_tt_accounts_delta, r.m5_oi_delta, r.m5_oi_mcap_delta,
       r.sent_synthesis_mtf, r.sent_synthesis_h1, r.sent_synthesis_m5, r.sent_liquidity,
