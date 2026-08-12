@@ -31,6 +31,14 @@ interface NaiveOverview {
   long_total: number; long_win_rate: number; long_tp: number; long_sl: number; long_total_r: number
   short_total: number; short_win_rate: number; short_tp: number; short_sl: number; short_total_r: number
 }
+interface PullbackOverview {
+  total_all: number; total: number; tp_count: number; sl_count: number
+  expired_count: number; no_entry_count: number; pending_count: number
+  win_rate: number; avg_r_win: number; avg_r_loss: number
+  avg_duration_mins: number; avg_wait_mins: number; total_r: number
+  long_total: number; long_win_rate: number; long_tp: number; long_sl: number; long_total_r: number
+  short_total: number; short_win_rate: number; short_tp: number; short_sl: number; short_total_r: number
+}
 interface DistRatioBucket { bucket: string; avg_dist_ratio: number; total: number; wins: number; win_rate: number; total_r: number | null; max_dd: number | null }
 interface DistRatioData { buckets: DistRatioBucket[] }
 interface ZlemaZoneRow { zone: string; total: number; wins: number; win_rate: number; total_r: number | null; long_total: number; long_win_rate: number; long_total_r: number | null; short_total: number; short_win_rate: number; short_total_r: number | null }
@@ -103,15 +111,17 @@ function WinBar({ rate, total }: { rate: number | null; total: number }) {
 
 export default function AnalysisPage() {
   const router = useRouter()
-  const [mode, setMode] = useState<'ai' | 'naive'>('ai')
+  const [mode, setMode] = useState<'ai' | 'naive' | 'pullback'>('ai')
   const [overview,  setOverview]  = useState<Overview | null>(null)
   const [naiveOverview, setNaiveOverview] = useState<NaiveOverview | null>(null)
+  const [pullbackOverview, setPullbackOverview] = useState<PullbackOverview | null>(null)
   const [distRatio, setDistRatio] = useState<DistRatioData | null>(null)
   const [scoring,   setScoring]   = useState<ScoringData | null>(null)
   const [naiveScoring, setNaiveScoring] = useState<ScoringData | null>(null)
   const [deltaData, setDeltaData] = useState<DeltaData | null>(null)
   const [cumR,      setCumR]      = useState<CumRData | null>(null)
   const [naiveCumR, setNaiveCumR] = useState<CumRData | null>(null)
+  const [pullbackCumR, setPullbackCumR] = useState<CumRData | null>(null)
   const [cumRPeriod, setCumRPeriod] = useState<'daily'|'weekly'|'monthly'>('daily')
   const [wpAll,     setWpAll]     = useState<WpAllData | null>(null)
   const [optimalR,  setOptimalR]  = useState<OptimalRData | null>(null)
@@ -119,9 +129,11 @@ export default function AnalysisPage() {
   const [entryWait, setEntryWait] = useState<EntryWaitData | null>(null)
   const [tradeDur,  setTradeDur]  = useState<TradeDurData | null>(null)
   const [naiveTradeDur, setNaiveTradeDur] = useState<TradeDurData | null>(null)
+  const [pullbackTradeDur, setPullbackTradeDur] = useState<TradeDurData | null>(null)
   const [distance,  setDistance]  = useState<DistanceData | null>(null)
   const [weekly,    setWeekly]    = useState<WeeklyData | null>(null)
   const [naiveWeekly, setNaiveWeekly] = useState<WeeklyData | null>(null)
+  const [pullbackWeekly, setPullbackWeekly] = useState<WeeklyData | null>(null)
   const [zlemaAI,    setZlemaAI]    = useState<ZlemaData | null>(null)
   const [zlemaNaive, setZlemaNaive] = useState<ZlemaData | null>(null)
   const [analyses,  setAnalyses]  = useState<UniversalAnalysisRow[]>([])
@@ -170,7 +182,7 @@ export default function AnalysisPage() {
     fetchAll(p.filters, 1, mode)
   }
 
-  const fetchAll = useCallback((f: Filters, pg = 1, m: 'ai' | 'naive' = 'ai') => {
+  const fetchAll = useCallback((f: Filters, pg = 1, m: 'ai' | 'naive' | 'pullback' = 'ai') => {
     setLoading(true)
     const p = filtersToParams(f)
     const qs = p.toString() ? `?${p}` : ''
@@ -211,7 +223,7 @@ export default function AnalysisPage() {
         setTotal(an.total)
         setLoading(false)
       })
-    } else {
+    } else if (m === 'naive') {
       Promise.all([
         fetch(`/api/insights-overview-naive${qs}`,  { cache: 'no-store' }).then(r => r.json()),
         fetch(`/api/insights-naive-distratio${qs}`, { cache: 'no-store' }).then(r => r.json()),
@@ -229,6 +241,27 @@ export default function AnalysisPage() {
         setNaiveWeekly(nwk)
         setNaiveTradeDur(ntd)
         setZlemaNaive(zl)
+        setAnalyses(an.analyses)
+        setTotalPages(an.totalPages)
+        setTotal(an.total)
+        setLoading(false)
+      })
+    } else {
+      // Pullback -- WP kalibrasyonu, dist_ratio, ZLEMA breakdown ve RSI-only
+      // scoring henüz pullback'e özel değil (backend route'ları yok); bu
+      // yüzden ilgili state'ler bilerek set edilmiyor, activeScoring/activeZlema
+      // pullback modunda null döner (aşağıda), naif verisi sızmaz.
+      Promise.all([
+        fetch(`/api/insights-overview-pullback${qs}`, { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-cumr-pullback${qs}`,     { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-weekly-pullback${qs}`,   { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/insights-tradedur-pullback${qs}`, { cache: 'no-store' }).then(r => r.json()),
+        fetch(`/api/analyses?${pView}&page=${pg}`,    { cache: 'no-store' }).then(r => r.json()),
+      ]).then(([pov, pcr, pwk, ptd, an]) => {
+        setPullbackOverview(pov)
+        setPullbackCumR(pcr)
+        setPullbackWeekly(pwk)
+        setPullbackTradeDur(ptd)
         setAnalyses(an.analyses)
         setTotalPages(an.totalPages)
         setTotal(an.total)
@@ -258,7 +291,7 @@ export default function AnalysisPage() {
     fetchAll(appliedFilters, pg, mode)
   }
 
-  const handleModeChange = (m: 'ai' | 'naive') => {
+  const handleModeChange = (m: 'ai' | 'naive' | 'pullback') => {
     if (m === mode) return
     setMode(m)
     setPage(1)
@@ -273,11 +306,14 @@ export default function AnalysisPage() {
   }, [fetchAll, appliedFilters, page, mode])
 
   const activeCount = activeFilterCount(appliedFilters)
-  const activeCumR      = mode === 'ai' ? cumR      : naiveCumR
-  const activeScoring    = mode === 'ai' ? scoring    : naiveScoring
-  const activeWeekly     = mode === 'ai' ? weekly     : naiveWeekly
-  const activeTradeDur   = mode === 'ai' ? tradeDur   : naiveTradeDur
-  const activeZlema      = mode === 'ai' ? zlemaAI    : zlemaNaive
+  const activeCumR      = mode === 'ai' ? cumR      : mode === 'naive' ? naiveCumR      : pullbackCumR
+  // scoring/zlema pullback icin backend route'u henuz yok -- naive verisine
+  // dusmesin diye (yanlislikla "pullback" etiketiyle naif verisi gostermek)
+  // pullback modunda bilerek null.
+  const activeScoring    = mode === 'ai' ? scoring    : mode === 'naive' ? naiveScoring    : null
+  const activeWeekly     = mode === 'ai' ? weekly     : mode === 'naive' ? naiveWeekly     : pullbackWeekly
+  const activeTradeDur   = mode === 'ai' ? tradeDur   : mode === 'naive' ? naiveTradeDur   : pullbackTradeDur
+  const activeZlema      = mode === 'ai' ? zlemaAI    : mode === 'naive' ? zlemaNaive      : null
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 64 }}>
@@ -298,6 +334,13 @@ export default function AnalysisPage() {
             onClick={() => handleModeChange('naive')}
           >
             NAIF
+          </button>
+          <button
+            className={`filter-btn${mode === 'pullback' ? ' active' : ''}`}
+            style={{ fontSize: 12, padding: '6px 18px' }}
+            onClick={() => handleModeChange('pullback')}
+          >
+            PULLBACK
           </button>
         </div>
 
@@ -480,6 +523,61 @@ export default function AnalysisPage() {
                 <div className="stat-card">
                   <div className="col-label" style={{ marginBottom: 4 }}>EXPIRED</div>
                   <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--amber)' }}>{naiveOverview.expired_count}</div>
+                </div>
+              </div>
+            )}
+
+            {mode === 'pullback' && pullbackOverview && (
+              <div className="stat-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(9, minmax(0, 1fr))', gap: 8, marginBottom: 16 }}>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>TOTAL</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{pullbackOverview.total_all}</div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:{pullbackOverview.long_total}</span>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>S:{pullbackOverview.short_total}</span>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>SIMULATED</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500 }}>{pullbackOverview.total}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>WIN RATE</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: winColor(Number(pullbackOverview.win_rate)) }}>%{Number(pullbackOverview.win_rate).toFixed(1)}</div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>L:%{Number(pullbackOverview.long_win_rate).toFixed(1)}</span>
+                    <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>S:%{Number(pullbackOverview.short_win_rate).toFixed(1)}</span>
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>AVG WIN R</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>
+                    {pullbackOverview.avg_r_win != null ? `+${Number(pullbackOverview.avg_r_win).toFixed(2)}R` : '—'}
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>TOTAL R</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: Number(pullbackOverview.total_r) >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                    {pullbackOverview.total_r != null ? `${Number(pullbackOverview.total_r) > 0 ? '+' : ''}${Number(pullbackOverview.total_r).toFixed(2)}R` : '—'}
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>AVG WAIT</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--text-2)' }}>
+                    {pullbackOverview.avg_wait_mins != null ? `${Math.round(Number(pullbackOverview.avg_wait_mins))}dk` : '—'}
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>TP HIT</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--green)' }}>{pullbackOverview.tp_count}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>SL HIT</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--red)' }}>{pullbackOverview.sl_count}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="col-label" style={{ marginBottom: 4 }}>NO ENTRY</div>
+                  <div className="mono" style={{ fontSize: 18, fontWeight: 500, color: 'var(--text-3)' }}>{pullbackOverview.no_entry_count}</div>
                 </div>
               </div>
             )}
