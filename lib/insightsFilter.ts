@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 
 export function buildInsightsWhere(
   req: NextRequest,
-  mode: 'ai' | 'naive' = 'ai'
+  mode: 'ai' | 'naive' | 'pullback' = 'ai'
 ): { where: string; params: any[] } {
   const s = req.nextUrl.searchParams
   const conditions: string[] = []
@@ -19,8 +19,8 @@ export function buildInsightsWhere(
     if (mx !== defaultMax) { conditions.push(`${col} <= $${i++}`); params.push(mx) }
   }
 
-  const directionCol = mode === 'naive' ? 'naive_direction'  : 'direction'
-  const resultCol    = mode === 'naive' ? 'sim_result_naive' : 'sim_result'
+  const directionCol = mode === 'naive' ? 'naive_direction' : mode === 'pullback' ? 'pullback_direction' : 'direction'
+  const resultCol    = mode === 'naive' ? 'sim_result_naive' : mode === 'pullback' ? 'sim_result_pullback' : 'sim_result'
   p(directionCol,       s.get('direction'))
   p(resultCol,          s.get('sim_result'))
   p('order_type',       s.get('order_type'))
@@ -148,20 +148,21 @@ export function buildInsightsWhere(
 
   const tpDistMin = s.get('tp_dist_min'); const tpDistMax = s.get('tp_dist_max')
   const slDistMin = s.get('sl_dist_min'); const slDistMax = s.get('sl_dist_max')
-  const tpCol = mode === 'naive' ? 'naive_tp' : 'tp'
-  const slCol = mode === 'naive' ? 'naive_sl' : 'sl'
-  const entryCol = mode === 'naive' ? 'naive_entry' : 'entry'
+  const tpCol = mode === 'naive' ? 'naive_tp' : mode === 'pullback' ? 'pullback_tp' : 'tp'
+  const slCol = mode === 'naive' ? 'naive_sl' : mode === 'pullback' ? 'pullback_sl' : 'sl'
+  const entryCol = mode === 'naive' ? 'naive_entry' : mode === 'pullback' ? 'pullback_entry_target' : 'entry'
   if (tpDistMin && Number(tpDistMin) > 0)    { conditions.push(`ABS(${tpCol} - ${entryCol}) >= $${i++}`); params.push(Number(tpDistMin)) }
   if (tpDistMax && Number(tpDistMax) < 4000) { conditions.push(`ABS(${tpCol} - ${entryCol}) <= $${i++}`); params.push(Number(tpDistMax)) }
   if (slDistMin && Number(slDistMin) > 0)    { conditions.push(`ABS(${slCol} - ${entryCol}) >= $${i++}`); params.push(Number(slDistMin)) }
   if (slDistMax && Number(slDistMax) < 1500) { conditions.push(`ABS(${slCol} - ${entryCol}) <= $${i++}`); params.push(Number(slDistMax)) }
 
   const tradeDurMin = s.get('trade_dur_min'); const tradeDurMax = s.get('trade_dur_max')
-  const durCol = mode === 'naive' ? 'naive_duration_mins' : 'sim_entry_to_result_minutes'
+  const durCol = mode === 'naive' ? 'naive_duration_mins' : mode === 'pullback' ? 'pullback_duration_mins' : 'sim_entry_to_result_minutes'
   if (tradeDurMin && Number(tradeDurMin) > 0)    { conditions.push(`${durCol} >= $${i++}`); params.push(Number(tradeDurMin)) }
   if (tradeDurMax && Number(tradeDurMax) < 4320) { conditions.push(`${durCol} <= $${i++}`); params.push(Number(tradeDurMax)) }
 
-  // Entry bekleme filtresi — sadece AI modda anlamlı (naif entry = anlık fiyat, bekleme yok)
+  // Entry bekleme filtresi — AI'da hesaplanmış EPOCH farkı, Pullback'te hazır kolon.
+  // Naif'te anlamsız (entry = anlık fiyat, bekleme yok), o yüzden atlanır.
   if (mode === 'ai') {
     const waitMin = s.get('wait_min'); const waitMax = s.get('wait_max')
     if (waitMin && Number(waitMin) > 0) {
@@ -172,12 +173,19 @@ export function buildInsightsWhere(
       conditions.push(`EXTRACT(EPOCH FROM (sim_entry_triggered_at - analyzed_at)) / 60 <= $${i++}`)
       params.push(Number(waitMax))
     }
+  } else if (mode === 'pullback') {
+    const waitMin = s.get('wait_min'); const waitMax = s.get('wait_max')
+    if (waitMin && Number(waitMin) > 0)    { conditions.push(`pullback_wait_mins >= $${i++}`); params.push(Number(waitMin)) }
+    if (waitMax && Number(waitMax) < 4320) { conditions.push(`pullback_wait_mins <= $${i++}`); params.push(Number(waitMax)) }
   }
 
   const rMin = s.get('r_min'); const rMax = s.get('r_max')
   if (mode === 'naive') {
     if (rMin && Number(rMin) > 0)   { conditions.push(`naive_rr >= $${i++}`); params.push(Number(rMin)) }
     if (rMax && Number(rMax) < 10)  { conditions.push(`naive_rr <= $${i++}`); params.push(Number(rMax)) }
+  } else if (mode === 'pullback') {
+    if (rMin && Number(rMin) > 0)   { conditions.push(`pullback_rr >= $${i++}`); params.push(Number(rMin)) }
+    if (rMax && Number(rMax) < 10)  { conditions.push(`pullback_rr <= $${i++}`); params.push(Number(rMax)) }
   } else {
     if (rMin && Number(rMin) > 0)   { conditions.push(`SPLIT_PART(rr, ':', 2)::numeric >= $${i++}`); params.push(Number(rMin)) }
     if (rMax && Number(rMax) < 10)  { conditions.push(`SPLIT_PART(rr, ':', 2)::numeric <= $${i++}`); params.push(Number(rMax)) }
