@@ -39,6 +39,8 @@ export interface Filters {
   wait_min: number; wait_max: number
   trade_dur_min: number; trade_dur_max: number
   r_min: number; r_max: number
+  pullback_direction: string; pullback_result: string
+  pullback_r_min: number; pullback_r_max: number
 }
 
 export interface Preset { name: string; filters: Filters }
@@ -80,6 +82,8 @@ export const DEFAULT_FILTERS: Filters = {
   wait_min: 0, wait_max: 4320,
   trade_dur_min: 0, trade_dur_max: 4320,
   r_min: 0, r_max: 10,
+  pullback_direction: '', pullback_result: '',
+  pullback_r_min: 0, pullback_r_max: 10,
 }
 
 export const FILTERS_STORAGE_KEY = 'hakari_filters'
@@ -144,6 +148,9 @@ export function filtersToParams(f: Filters): URLSearchParams {
   p.set('wait_min', String(f.wait_min));           p.set('wait_max', String(f.wait_max))
   p.set('trade_dur_min', String(f.trade_dur_min)); p.set('trade_dur_max', String(f.trade_dur_max))
   p.set('r_min', String(f.r_min));                 p.set('r_max', String(f.r_max))
+  if (f.pullback_direction) p.set('pullback_direction', f.pullback_direction)
+  if (f.pullback_result)    p.set('pullback_result', f.pullback_result)
+  p.set('pullback_r_min', String(f.pullback_r_min)); p.set('pullback_r_max', String(f.pullback_r_max))
   return p
 }
 
@@ -186,5 +193,7 @@ export function activeFilterCount(f: Filters): number {
   if (f.wait_min > 0 || f.wait_max < 4320) n++
   if (f.trade_dur_min > 0 || f.trade_dur_max < 4320) n++
   if (f.r_min > 0 || f.r_max < 10) n++
+  if (f.pullback_direction) n++; if (f.pullback_result) n++
+  if (f.pullback_r_min > 0 || f.pullback_r_max < 10) n++
   return n
 }
