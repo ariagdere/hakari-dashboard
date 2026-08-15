@@ -247,8 +247,8 @@ function computeStats(historyRows: Order[], liveRows: Order[]): Stats {
 
 function computeStrategyComparison(orders: Order[], history: Order[]): StrategyRow[] {
   const labels = new Set<string>()
-  orders.forEach((o) => { if (o.strategy_label !== 'MANUAL') labels.add(o.strategy_label) })
-  history.forEach((o) => { if (o.strategy_label !== 'MANUAL') labels.add(o.strategy_label) })
+  orders.forEach((o) => labels.add(o.strategy_label))
+  history.forEach((o) => labels.add(o.strategy_label))
 
   return Array.from(labels).map((label) => {
     const liveRows = orders.filter((o) => o.strategy_label === label)
