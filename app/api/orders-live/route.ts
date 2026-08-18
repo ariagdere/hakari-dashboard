@@ -13,7 +13,7 @@ export async function GET() {
         o.r_target, o.r_risk,
         o.status, o.created_at, o.opened_at,
         a.position_size_btc, a.win_probability_v6, a.win_probability_v6_reverse,
-        a.analyzed_at, a.rr AS analysis_rr, a.sim_result
+        a.analyzed_at, a.rr AS analysis_rr
       FROM orders o
       LEFT JOIN btc_analysis a ON a.id = o.analysis_id
       WHERE o.status IN ('PENDING', 'OPEN')
