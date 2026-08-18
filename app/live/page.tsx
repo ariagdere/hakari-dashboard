@@ -40,7 +40,6 @@ interface Order {
   win_probability_v6_reverse: number | null
   analyzed_at: string | null
   analysis_rr: string | null
-  sim_result: string | null
 }
 
 interface Price { bid: number; ask: number; time: string }
@@ -82,6 +81,20 @@ function isLong(direction: string): boolean {
   return direction === 'BUY' || direction === 'LONG'
 }
 
+// Her order'in R-multiple'ini KENDI gercek entry/sl/close_price'indan hesaplar.
+// orders.r_target/r_risk'e (sadece analiz-bagli/algo order'lar icin dolu, MANUAL
+// order'larda hep null/varsayilan oldugu icin yanlis sonuc verir -- kazanan
+// MANUAL trade R=0, kaybeden sabit R=-1 gosteriyordu) ARTIK GUVENILMIYOR.
+// R sabit bir deger degil, HER order kendi risk mesafesine gore ayri hesaplanir.
+function calcOrderR(o: Order): number | null {
+  if (o.sl == null || o.close_price == null) return null
+  const entry = o.fill_price ?? o.entry_price
+  const riskDist = Math.abs(entry - o.sl)
+  if (riskDist <= 0) return null
+  const priceMove = isLong(o.direction) ? (o.close_price - entry) : (entry - o.close_price)
+  return priceMove / riskDist
+}
+
 function calcPnL(order: Order, bid: number, ask: number, volume: number): number {
   const entry = order.fill_price ?? order.entry_price
   if (isLong(order.direction)) {
@@ -117,14 +130,6 @@ const wpColor = (v: number | null) => {
   if (n >= 50) return 'var(--amber)'
   return 'var(--red)'
 }
-const simBadge = (r: string | null) => {
-  if (!r) return <span className="badge badge-pend">—</span>
-  if (r === 'TP_HIT') return <span className="badge badge-tp">TP</span>
-  if (r === 'SL_HIT') return <span className="badge badge-sl">SL</span>
-  if (r === 'EXPIRED') return <span className="badge badge-exp">EXP</span>
-  if (r === 'NO_ENTRY') return <span className="badge badge-ne">N/E</span>
-  return <span className="badge badge-wait">{r}</span>
-}
 const fmtDate = (s: string | null | undefined) => {
   if (!s) return '—'
   return new Date(s).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
@@ -140,15 +145,17 @@ const fmtDuration = (mins: number) => {
   const m = Math.round(mins % 60)
   return h > 0 ? `${h}s ${m}dk` : `${m}dk`
 }
-// RR gosterimi: r_risk:r_target oranini oldugu gibi gosterir
-// (normal trade'de r_risk=1 oldugu icin otomatik "1:2.14" gibi cikar,
-//  inverse trade'de r_risk=6, r_target=1 ise "6:1" cikar)
+// RR gosterimi: gercek SL/TP mesafesinden hesaplanan HEDEF risk/odul orani.
+// r_target/r_risk'e artik bagimli degil (MANUAL order'larda hep null oldugu
+// icin "-" gosteriyordu) -- entry/sl/tp'den dogrudan, her order icin ayri
+// hesaplaniyor, hem acik hem kapali order'larda calisir.
 const fmtRR = (order: Order) => {
-  const target = order.r_target
-  const risk = order.r_risk ?? 1
-  if (target == null) return '—'
-  const fmtNum = (n: number) => (Number.isInteger(n) ? n.toString() : n.toFixed(2))
-  return `${fmtNum(risk)}:${fmtNum(target)}`
+  if (order.sl == null || order.tp == null) return '—'
+  const entry = order.fill_price ?? order.entry_price
+  const riskDist = Math.abs(entry - order.sl)
+  const rewardDist = Math.abs(order.tp - entry)
+  if (riskDist <= 0) return '—'
+  return `1:${(rewardDist / riskDist).toFixed(2)}`
 }
 
 // lightweight-charts UTC gosterir; tarayicinin yerel offsetini ekleyerek
@@ -201,20 +208,12 @@ function computeStats(historyRows: Order[], liveRows: Order[]): Stats {
 
     totalPnl += o.realized_pnl ?? 0
 
-    const rTarget = o.r_target
-    const rRisk = o.r_risk ?? 1
-    let rVal = 0
-    if (o.exit_reason === 'TP' && rTarget != null) {
-      rVal = rTarget
-      totalR += rTarget
-      winRSum += rTarget
-      winCount++
-    } else if (o.exit_reason === 'SL') {
-      rVal = -rRisk
-      totalR += -rRisk
+    const rVal = calcOrderR(o)
+    if (rVal != null) {
+      totalR += rVal
+      if (rVal > 0) { winRSum += rVal; winCount++ }
+      if (o.closed_at) closedSeries.push({ t: new Date(o.closed_at).getTime(), r: rVal })
     }
-
-    if (o.closed_at) closedSeries.push({ t: new Date(o.closed_at).getTime(), r: rVal })
   })
 
   const totalOrders = liveRows.length + historyRows.length
@@ -446,9 +445,8 @@ function computeBucketRSums(rows: Order[], period: EquityPeriod): Map<string, nu
     if (o.status !== 'CLOSED') continue
     if (o.exit_reason !== 'TP' && o.exit_reason !== 'SL') continue
     if (!o.closed_at) continue
-    const rTarget = o.r_target
-    const rRisk = o.r_risk ?? 1
-    const r = o.exit_reason === 'TP' ? (rTarget ?? 0) : -rRisk
+    const r = calcOrderR(o)
+    if (r == null) continue
     const key = bucketKey(new Date(o.closed_at), period)
     map.set(key, (map.get(key) ?? 0) + r)
   }
@@ -1017,7 +1015,7 @@ export default function LivePositionsPage() {
                   <thead>
                     <tr>
                       <th style={{ width: 28, paddingBottom: 8 }} />
-                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Sim', 'Volume', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'RR', 'WP V6', 'WP V6 Rev', 'PnL ($)'].map((h, i) => (
+                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Volume', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'RR', 'WP V6', 'WP V6 Rev', 'PnL ($)'].map((h, i) => (
                         <th key={h} style={{ textAlign: i <= 3 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
@@ -1036,7 +1034,6 @@ export default function LivePositionsPage() {
                           <td style={{ padding: '6px 0', color: 'var(--text-2)' }}>{order.strategy_label}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right' }}>{rowBadge(order)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right' }}>{dirBadge(order.direction)}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right' }}>{simBadge(order.sim_result)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{displayVolume}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtPrice(order.entry_price)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-3)' }}>{fmtPrice(order.fill_price)}</td>
@@ -1067,7 +1064,6 @@ export default function LivePositionsPage() {
                           <SelectDot selected={selected} />
                           {dirBadge(order.direction)}
                           {rowBadge(order)}
-                          {simBadge(order.sim_result)}
                         </div>
                         <span className={`mono ${pnl.cls}`} style={{ fontSize: 13, fontWeight: 600 }}>
                           {pnl.text === '—' ? '—' : `${pnl.text.startsWith('-') ? '-' : '+'}$${pnl.text.replace(/^[+-]/, '')}`}
