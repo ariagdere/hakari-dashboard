@@ -64,7 +64,7 @@ export default function FvgLabParamPanel({ params, onChange, onReset }: Props) {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
         <Group title="Swing Tespiti">
-          <NumberField label="Swing lookback" value={params.swingLookback} min={1} max={15} onChange={v => set('swingLookback', v)} />
+          <NumberField label="Swing lookback" value={params.swingLookback} min={1} max={25} onChange={v => set('swingLookback', v)} />
           <NumberField label="Swing arama penceresi" value={params.swingSearchWindow} min={1} max={60} onChange={v => set('swingSearchWindow', v)} />
           <SelectField label="Seçim modu" value={params.swingSelectMode}
             options={[{ value: 'nearest', label: 'En yakın' }, { value: 'extreme', label: 'En uç' }]}
