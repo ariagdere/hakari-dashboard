@@ -52,6 +52,7 @@ export interface FvgParams {
   tpTargetPct: number;
   tpZonePct: number;
   maxTradeDurationCandles: number; // yeni -- outcome simulasyonu icin ust sinir
+  sequentialTradesOnly: boolean; // aciksa, bir trade aktifken zaman olarak cakisan sonraki trade'ler iptal edilir
 }
 
 export const DEFAULT_PARAMS: FvgParams = {
@@ -76,6 +77,7 @@ export const DEFAULT_PARAMS: FvgParams = {
   tpTargetPct: 0.75,
   tpZonePct: 0.70,
   maxTradeDurationCandles: 288, // 5dk mumda ~24 saat
+  sequentialTradesOnly: false,
 };
 
 export type FvgStatus = 'open' | 'filled' | 'expired';
@@ -437,6 +439,31 @@ export function simulateTradeOutcome(
 }
 
 // ── Ana tespit dongusu ────────────────────────────────────────────────────
+// ── Sequential trade filtresi ─────────────────────────────────────────────
+// Aciksa: zaman sirasiyla gecilir, bir trade "acik" oldugu surece (entry'den
+// outcome'un closeTime'ina kadar) o pencereye denk gelen SONRAKI trade'ler
+// iptal edilir (tradeSetup.valid=false + aciklayici reason, outcome=null).
+// ifvgScore KORUNUR -- kullanici "kriterleri gecmisti ama sequential mode
+// yuzunden alinmadi" bilgisini hala gorebilsin diye.
+function applySequentialFilter(fvgs: Fvg[], candles: Candle[]): void {
+  const withSetup = fvgs
+    .filter(f => f.tradeSetup?.valid && f.outcome != null && f.filledIdx != null)
+    .sort((a, b) => candles[a.filledIdx as number].time - candles[b.filledIdx as number].time);
+
+  let openUntilTime = -Infinity;
+
+  for (const fvg of withSetup) {
+    const entryTime = candles[fvg.filledIdx as number].time;
+    if (entryTime < openUntilTime) {
+      (fvg.tradeSetup as TradeSetup).valid = false;
+      (fvg.tradeSetup as TradeSetup).reason = 'Sequential trade modu: bu noktada başka bir işlem zaten açıktı';
+      fvg.outcome = null;
+      continue;
+    }
+    openUntilTime = fvg.outcome?.closeTime ?? entryTime;
+  }
+}
+
 export function detectFVGs(candles: Candle[], p: FvgParams): Fvg[] {
   const fvgs: Fvg[] = [];
   for (let i = 1; i < candles.length - 1; i++) {
@@ -481,5 +508,10 @@ export function detectFVGs(candles: Candle[], p: FvgParams): Fvg[] {
       fvg.outcome = null;
     }
   }
+
+  if (p.sequentialTradesOnly) {
+    applySequentialFilter(fvgs, candles);
+  }
+
   return fvgs;
 }
