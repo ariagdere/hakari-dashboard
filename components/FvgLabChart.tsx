@@ -129,7 +129,21 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg }:
         grid: { vertLines: { color: '#242424' }, horzLines: { color: '#242424' } },
         crosshair: { mode: CrosshairMode.Normal },
         rightPriceScale: { borderColor: '#242424' },
-        timeScale: { borderColor: '#242424', timeVisible: true, secondsVisible: false },
+        timeScale: {
+          borderColor: '#242424', timeVisible: true, secondsVisible: false,
+          tickMarkFormatter: (timestamp: number) => {
+            const d = new Date((timestamp + 3 * 3600) * 1000)
+            const pad = (n: number) => String(n).padStart(2, '0')
+            return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`
+          },
+        },
+        localization: {
+          timeFormatter: (timestamp: number) => {
+            const d = new Date((timestamp + 3 * 3600) * 1000)
+            const pad = (n: number) => String(n).padStart(2, '0')
+            return `${pad(d.getUTCDate())}.${pad(d.getUTCMonth() + 1)} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`
+          },
+        },
       })
       chartRef.current = chart
 
