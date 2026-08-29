@@ -16,6 +16,7 @@ interface SimulateResponse {
   trades: SimTrade[]
   candles: Candle[]
   fvgs: Fvg[]
+  params: FvgParams
 }
 
 function todayIso() { return new Date().toISOString().slice(0, 10) }
@@ -137,6 +138,7 @@ export default function FvgLabPage() {
             fvgs={result.fvgs}
             selectedIdx={selectedFvgIdx}
             onSelectFvg={setSelectedFvgIdx}
+            params={result.params}
           />
 
           {selectedFvg && (
