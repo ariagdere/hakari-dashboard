@@ -54,6 +54,10 @@ export async function POST(req: NextRequest) {
       candleCount: candles.length,
       dateRangeStart, dateRangeEnd,
       metrics, equityCurve, trades,
+      // Grafik + detay paneli icin TAM veri -- candles ve fvgs (kriterler/
+      // setup/outcome dahil TUM tespit edilenler, sadece gecerli trade'ler
+      // degil, kullanici acik/gecersiz FVG'leri de gorebilsin diye).
+      candles, fvgs,
     })
   } catch (err: any) {
     console.error('simulate error:', err?.message || err)
