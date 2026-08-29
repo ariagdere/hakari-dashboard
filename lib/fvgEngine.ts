@@ -56,7 +56,7 @@ export interface FvgParams {
 }
 
 export const DEFAULT_PARAMS: FvgParams = {
-  swingLookback: 10,
+  swingLookback: 18,
   swingSearchWindow: 36,
   swingSelectMode: 'extreme',
   sweepProximityPct: 0.90,
