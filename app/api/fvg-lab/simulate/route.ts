@@ -58,6 +58,10 @@ export async function POST(req: NextRequest) {
       // setup/outcome dahil TUM tespit edilenler, sadece gecerli trade'ler
       // degil, kullanici acik/gecersiz FVG'leri de gorebilsin diye).
       candles, fvgs,
+      // Bu sonucu ureten TAM parametre seti -- grafigin swing katmani BUNU
+      // kullanmali, kullanicinin panelde SONRADAN degistirdigi (henuz
+      // "Calistir"a basilmamis) canli state'i DEGIL.
+      params,
     })
   } catch (err: any) {
     console.error('simulate error:', err?.message || err)
