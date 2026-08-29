@@ -4,6 +4,8 @@ import { DEFAULT_PARAMS, FvgParams, Candle, Fvg } from '@/lib/fvgEngine'
 import { SimMetrics, SimTrade, EquityCurve } from '@/lib/fvgBacktest'
 import FvgLabChart from '@/components/FvgLabChart'
 import FvgLabParamPanel from '@/components/FvgLabParamPanel'
+import FvgLabTradeTable from '@/components/FvgLabTradeTable'
+import FvgLabEquityChart from '@/components/FvgLabEquityChart'
 
 interface SimulateResponse {
   candleCount: number
@@ -26,6 +28,9 @@ export default function FvgLabPage() {
   const [result, setResult] = useState<SimulateResponse | null>(null)
   const [selectedFvgIdx, setSelectedFvgIdx] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
+  const [label, setLabel] = useState('')
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [savedRunId, setSavedRunId] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   async function runSimulation() {
@@ -41,10 +46,38 @@ export default function FvgLabPage() {
       if (!res.ok) { setError(data.error || 'Bilinmeyen hata'); setResult(null); return }
       setResult(data)
       setSelectedFvgIdx(null)
+      setSaveStatus('idle')
+      setSavedRunId(null)
     } catch (err: any) {
       setError(String(err?.message || err))
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function saveRun() {
+    if (!result) return
+    setSaveStatus('saving')
+    try {
+      const res = await fetch('/api/fvg-lab/save-run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          label: label || null,
+          params,
+          dateRangeStart: `${dateStart}T00:00:00Z`,
+          dateRangeEnd: `${dateEnd}T23:59:59Z`,
+          metrics: result.metrics,
+          equityCurve: result.equityCurve,
+          trades: result.trades,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setSaveStatus('error'); return }
+      setSaveStatus('saved')
+      setSavedRunId(data.runId)
+    } catch {
+      setSaveStatus('error')
     }
   }
 
@@ -72,6 +105,17 @@ export default function FvgLabPage() {
           {loading ? 'Çalışıyor...' : 'Çalıştır'}
         </button>
         {error && <span style={{ fontSize: 12, color: 'var(--red)' }}>{error}</span>}
+        {result && (
+          <>
+            <input type="text" placeholder="İsim (opsiyonel)" value={label} onChange={e => setLabel(e.target.value)}
+              style={{ background: 'var(--bg-3)', border: '1px solid var(--border)', color: 'var(--text)', padding: '6px 10px', borderRadius: 4, fontSize: 12, width: 160 }} />
+            <button onClick={saveRun} disabled={saveStatus === 'saving'} className="filter-btn" style={{ fontSize: 12, padding: '7px 16px' }}>
+              {saveStatus === 'saving' ? 'Kaydediliyor...' : 'Kaydet'}
+            </button>
+            {saveStatus === 'saved' && <span style={{ fontSize: 12, color: 'var(--green)' }}>Kaydedildi (run #{savedRunId})</span>}
+            {saveStatus === 'error' && <span style={{ fontSize: 12, color: 'var(--red)' }}>Kaydetme başarısız</span>}
+          </>
+        )}
       </div>
 
       <div style={{ marginBottom: 20 }}>
@@ -124,6 +168,16 @@ export default function FvgLabPage() {
               )}
             </div>
           )}
+
+          <div style={{ marginTop: 24, background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 8, padding: 16 }}>
+            <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 12 }}>Equity Curve</div>
+            <FvgLabEquityChart equityCurve={result.equityCurve} />
+          </div>
+
+          <div style={{ marginTop: 24 }}>
+            <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 12 }}>İşlemler ({result.trades.length})</div>
+            <FvgLabTradeTable trades={result.trades} selectedIdx={selectedFvgIdx} onSelect={setSelectedFvgIdx} />
+          </div>
         </>
       )}
     </div>
