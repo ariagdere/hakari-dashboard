@@ -5,6 +5,7 @@
 import { Fvg, Candle } from './fvgEngine';
 
 export interface SimTrade {
+  fvgIndex: number; // fvgs[] dizisindeki orijinal indeks -- tablo tiklamasini grafik secimine baglamak icin
   fvgType: string;
   direction: string;
   formedAt: number;
@@ -38,9 +39,12 @@ export interface SimMetrics {
 }
 
 export function extractTrades(fvgs: Fvg[], candles: Candle[]): SimTrade[] {
-  return fvgs
-    .filter(f => f.tradeSetup?.valid && f.outcome != null)
-    .map(f => ({
+  const trades: SimTrade[] = [];
+  for (let i = 0; i < fvgs.length; i++) {
+    const f = fvgs[i];
+    if (!f.tradeSetup?.valid || f.outcome == null) continue;
+    trades.push({
+      fvgIndex: i,
       fvgType: f.type,
       direction: f.tradeSetup!.direction as string,
       formedAt: candles[f.formedIdx].time,
@@ -55,7 +59,9 @@ export function extractTrades(fvgs: Fvg[], candles: Candle[]): SimTrade[] {
       result: f.outcome!.result,
       rMultiple: f.outcome!.rMultiple,
       closedAt: f.outcome!.closeTime,
-    }));
+    });
+  }
+  return trades;
 }
 
 export function computeMetrics(trades: SimTrade[]): SimMetrics {
