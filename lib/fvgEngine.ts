@@ -181,7 +181,7 @@ export function selectRelevantSwing(
 }
 
 // ── Kriter 1: Likidite Alimi ────────────────────────────────────────────
-function getSweepRange(fvg: Fvg, candlesLength: number, p: FvgParams): { rangeStart: number; rangeEnd: number } {
+export function getSweepRange(fvg: Fvg, candlesLength: number, p: FvgParams): { rangeStart: number; rangeEnd: number } {
   const rangeStart = fvg.formedIdx - 1;
   let rangeEnd: number;
   if (fvg.status === 'filled') rangeEnd = fvg.filledIdx as number;
