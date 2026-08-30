@@ -13,7 +13,8 @@ export interface SimTrade {
   sweepPass: boolean | null;
   bosPass: boolean | null;
   displacementPass: boolean | null;
-  zlemaPass: boolean | null;
+  zlema1hPass: boolean | null;
+  zlema4hPass: boolean | null;
   entry: number;
   sl: number;
   tp: number;
@@ -55,7 +56,8 @@ export function extractTrades(fvgs: Fvg[], candles: Candle[]): SimTrade[] {
       sweepPass: f.ifvgScore?.sweep ?? null,
       bosPass: f.ifvgScore?.bosApplicable ? f.ifvgScore.bos : null,
       displacementPass: f.ifvgScore?.displacement ?? null,
-      zlemaPass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlemaAligned : null,
+      zlema1hPass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema1hAligned : null,
+      zlema4hPass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema4hAligned : null,
       entry: f.tradeSetup!.entry as number,
       sl: f.tradeSetup!.sl as number,
       tp: f.tradeSetup!.tp as number,
