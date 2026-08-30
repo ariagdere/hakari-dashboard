@@ -22,6 +22,9 @@ interface SimulateResponse {
 }
 
 function todayIso() { return new Date().toISOString().slice(0, 10) }
+const equityGranularityLabel: Record<'raw' | 'daily' | 'weekly' | 'monthly', string> = {
+  raw: 'Trade', daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly',
+}
 function daysAgoIso(n: number) { return new Date(Date.now() - n * 86400000).toISOString().slice(0, 10) }
 
 export default function FvgLabPage() {
@@ -31,6 +34,7 @@ export default function FvgLabPage() {
   const [result, setResult] = useState<SimulateResponse | null>(null)
   const [selectedFvgIdx, setSelectedFvgIdx] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
+  const [equityGranularity, setEquityGranularity] = useState<'raw' | 'daily' | 'weekly' | 'monthly'>('daily')
   const [label, setLabel] = useState('')
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [savedRunId, setSavedRunId] = useState<number | null>(null)
@@ -87,6 +91,22 @@ export default function FvgLabPage() {
   const selectedFvg = result && selectedFvgIdx != null ? result.fvgs[selectedFvgIdx] : null
 
   const dayBreakdown = useMemo(() => result ? computeDayOfWeekBreakdown(result.trades) : [], [result])
+
+  const currentEquitySeries = useMemo(() => {
+    if (!result) return []
+    return equityGranularity === 'raw' ? result.equityCurve.raw : result.equityCurve[equityGranularity]
+  }, [result, equityGranularity])
+
+  // Max DD, agregasyon seviyesine GORE DEGISIR (gunluk/haftalik/aylik
+  // agregasyon, gun/hafta/ay ICINDEKI inis-cikisi netleyip GIZLEYEBILIR) --
+  // bu yuzden TEK yerde hesaplanip hem skorkarta hem grafige AYNI deger
+  // olarak veriliyor, iki ayri (birbirinden sapabilecek) hesap yerine.
+  const currentMaxDD = useMemo(() => {
+    if (currentEquitySeries.length === 0) return 0
+    let peak = -Infinity, dd = 0
+    for (const p of currentEquitySeries) { if (p.cumR > peak) peak = p.cumR; dd = Math.max(dd, peak - p.cumR) }
+    return Math.round(dd * 100) / 100
+  }, [currentEquitySeries])
   const hourBreakdown = useMemo(() => result ? computeHourOfDayBreakdown(result.trades) : [], [result])
 
   return (
@@ -135,7 +155,7 @@ export default function FvgLabPage() {
             <MetricCard label="Win Rate" value={`%${result.metrics.winRate}`} />
             <MetricCard label="Toplam R" value={`${result.metrics.totalR >= 0 ? '+' : ''}${result.metrics.totalR}`}
               color={result.metrics.totalR >= 0 ? 'var(--green)' : 'var(--red)'} />
-            <MetricCard label="Max DD" value={`-${result.metrics.maxDD}R`} color="var(--red)" />
+            <MetricCard label={`Max DD (${equityGranularityLabel[equityGranularity]})`} value={`-${currentMaxDD}R`} color="var(--red)" />
             <MetricCard label="Consecutive Win" value={String(result.metrics.maxConsecutiveWins)} color="var(--green)" />
             <MetricCard label="Aynı Anda Aktif Max Trade" value={String(result.metrics.maxConcurrentTrades)} />
           </div>
@@ -181,7 +201,12 @@ export default function FvgLabPage() {
           )}
 
           <div style={{ marginTop: 24, background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 8, padding: 16 }}>
-            <FvgLabEquityChart equityCurve={result.equityCurve} />
+            <FvgLabEquityChart
+              equityCurve={result.equityCurve}
+              granularity={equityGranularity}
+              onGranularityChange={setEquityGranularity}
+              maxDD={currentMaxDD}
+            />
           </div>
 
           <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
