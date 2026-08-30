@@ -141,7 +141,7 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
         const wx1 = coordOrEdge(winStartTime, 0)
         const wx2 = gx2
         const chartH = containerRef.current?.clientHeight ?? 460
-        const bracketY = chartH - 24
+        const bracketY = chartH - 62
         console.log('[FVGLAB-DEBUG] winStartTime(sn):', winStartTime, ' HAM rawWx1:', rawWx1, ' SONUC wx1:', wx1, ' wx2:', wx2, ' bracketY:', bracketY, ' chartH:', chartH)
         if (wx2 > wx1) {
           svg += `<line x1="${wx1}" y1="${bracketY}" x2="${wx2}" y2="${bracketY}" stroke="#a78bfa" stroke-width="1.5"/>`
@@ -164,6 +164,23 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
         bosCandidates.forEach(sw => drawSwingMarker(sw, false, '#60a5fa'))
 
         const s = selFvg.ifvgScore
+        // Secilen swing'in kendi LOOKBACK onay bolgesi -- "bu nokta,
+        // kendisinden ONCEKI ve SONRAKI kac muma kiyasla swing sayildi"
+        // sorusunun gorsel cevabi. Standalone araçtaki AYNI mantik.
+        const drawLookbackBand = (swIdx: number, color: string) => {
+          const bandStartIdx = Math.max(0, swIdx - p.swingLookback)
+          const bandEndIdx = Math.min(lastIdx, swIdx + p.swingLookback)
+          const bandStartTime = Math.floor(candlesRef.current[bandStartIdx].time / 1000)
+          const bandEndTime = Math.floor(candlesRef.current[bandEndIdx].time / 1000)
+          const bx1 = coordOrEdge(bandStartTime, 0)
+          const bx2 = coordOrEdge(bandEndTime, chartWidth)
+          if (bx2 > bx1) {
+            svg += `<rect x="${bx1}" y="0" width="${bx2 - bx1}" height="100%" fill="${color}" opacity="0.35"/>`
+          }
+        }
+        if (s.sweepSwingIdx != null) drawLookbackBand(s.sweepSwingIdx, 'rgba(251,191,36,0.12)')
+        if (s.bosSwingIdx != null) drawLookbackBand(s.bosSwingIdx, 'rgba(96,165,250,0.12)')
+
         if (s.sweepSwingIdx != null && s.sweepSwingPrice != null) {
           drawSwingMarker({ idx: s.sweepSwingIdx, price: s.sweepSwingPrice, type: sweepSwingType }, true, '#fbbf24')
           const ly = series.priceToCoordinate(s.sweepSwingPrice)
