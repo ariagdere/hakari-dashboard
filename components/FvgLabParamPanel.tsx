@@ -86,9 +86,15 @@ export default function FvgLabParamPanel({ params, onChange, onReset }: Props) {
           <CheckField label="Likidite Alımı" checked={params.useSweepCriterion} onChange={v => set('useSweepCriterion', v)} />
           <CheckField label="BOS Örtüşmesi" checked={params.useBosCriterion} onChange={v => set('useBosCriterion', v)} />
           <CheckField label="Displacement" checked={params.useDisplacementCriterion} onChange={v => set('useDisplacementCriterion', v)} />
+          <CheckField label="ZLEMA (1H+4H) Hizalanması" checked={params.useZlemaCriterion} onChange={v => set('useZlemaCriterion', v)} />
           <SelectField label="Trade alma koşulu" value={params.tradeConditionMode}
             options={[{ value: 'all', label: 'Hepsi geçmeli' }, { value: 'any', label: 'Biri yeter' }, { value: 'always', label: 'Her zaman al' }]}
             onChange={v => set('tradeConditionMode', v)} />
+        </Group>
+
+        <Group title="ZLEMA Periyotları">
+          <NumberField label="Hızlı periyot" value={params.zlemaFastPeriod} min={2} max={50} onChange={v => set('zlemaFastPeriod', v)} />
+          <NumberField label="Yavaş periyot" value={params.zlemaSlowPeriod} min={2} max={100} onChange={v => set('zlemaSlowPeriod', v)} />
         </Group>
 
         <Group title="FVG Yaşlanması">
