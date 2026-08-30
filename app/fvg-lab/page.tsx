@@ -158,9 +158,8 @@ export default function FvgLabPage() {
                   <span>Likidite: {selectedFvg.ifvgScore.sweep ? '✓' : '✗'}</span>
                   <span>BOS: {selectedFvg.ifvgScore.bosApplicable ? (selectedFvg.ifvgScore.bos ? '✓' : '✗') : 'N/A'}</span>
                   <span>Displacement: {selectedFvg.ifvgScore.displacementApplicable ? (selectedFvg.ifvgScore.displacement ? '✓' : '✗') : 'N/A'}</span>
-                  <span>ZLEMA: {selectedFvg.ifvgScore.zlemaApplicable ? (selectedFvg.ifvgScore.zlemaAligned ? '✓' : '✗') : 'N/A'}
-                    {selectedFvg.ifvgScore.zlemaApplicable && ` (1H:${selectedFvg.ifvgScore.zlema1h ?? '—'} 4H:${selectedFvg.ifvgScore.zlema4h ?? '—'})`}
-                  </span>
+                  <span>ZLEMA 1H: {selectedFvg.ifvgScore.zlemaApplicable ? (selectedFvg.ifvgScore.zlema1hAligned ? '✓' : '✗') : 'N/A'}{selectedFvg.ifvgScore.zlemaApplicable && ` (${selectedFvg.ifvgScore.zlema1h ?? '—'})`}</span>
+                  <span>ZLEMA 4H: {selectedFvg.ifvgScore.zlemaApplicable ? (selectedFvg.ifvgScore.zlema4hAligned ? '✓' : '✗') : 'N/A'}{selectedFvg.ifvgScore.zlemaApplicable && ` (${selectedFvg.ifvgScore.zlema4h ?? '—'})`}</span>
                   <span>Skor: {selectedFvg.ifvgScore.total}/{selectedFvg.ifvgScore.maxScore}</span>
                 </div>
               )}
