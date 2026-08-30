@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 import type { FvgParams } from '@/lib/fvgEngine'
 
 interface Props {
@@ -56,6 +57,25 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 export default function FvgLabParamPanel({ params, onChange, onReset }: Props) {
   const set = <K extends keyof FvgParams>(k: K, v: FvgParams[K]) => onChange({ ...params, [k]: v })
 
+  // TP arama penceresi, teorik olarak swing arama penceresiyle AYNI olmali
+  // -- varsayilan olarak KILITLI: swingSearchWindow degistiginde otomatik
+  // senkronlanir. Kullanici kilidi ACARSA, TP penceresini BAGIMSIZ ayarlayabilir.
+  const [tpWindowLocked, setTpWindowLocked] = useState(true)
+
+  const handleSwingSearchWindowChange = (v: number) => {
+    const updates: Partial<FvgParams> = { swingSearchWindow: v }
+    if (tpWindowLocked) updates.tpSwingSearchWindow = v
+    onChange({ ...params, ...updates })
+  }
+
+  const toggleTpWindowLock = () => {
+    const nextLocked = !tpWindowLocked
+    setTpWindowLocked(nextLocked)
+    // Kilitlenirken ANINDA senkronla -- "kilitli" durumu HER ZAMAN esitligi
+    // garanti etmeli, sadece bundan sonraki degisikliklerde degil.
+    if (nextLocked) set('tpSwingSearchWindow', params.swingSearchWindow)
+  }
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -65,7 +85,7 @@ export default function FvgLabParamPanel({ params, onChange, onReset }: Props) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
         <Group title="Swing Tespiti">
           <NumberField label="Swing lookback" value={params.swingLookback} min={1} max={25} onChange={v => set('swingLookback', v)} />
-          <NumberField label="Swing arama penceresi" value={params.swingSearchWindow} min={1} max={60} onChange={v => set('swingSearchWindow', v)} />
+          <NumberField label="Swing arama penceresi" value={params.swingSearchWindow} min={1} max={60} onChange={handleSwingSearchWindowChange} />
           <SelectField label="Seçim modu" value={params.swingSelectMode}
             options={[{ value: 'nearest', label: 'En yakın' }, { value: 'extreme', label: 'En uç' }]}
             onChange={v => set('swingSelectMode', v)} />
@@ -112,7 +132,21 @@ export default function FvgLabParamPanel({ params, onChange, onReset }: Props) {
             onChange={v => set('tpPlacementMode', v)} />
           <NumberField label="TP yüzdesi" value={params.tpTargetPct} min={0.1} max={1.2} step={0.05} onChange={v => set('tpTargetPct', v)} />
           <NumberField label="TP bölge yüzdesi" value={params.tpZonePct} min={0.1} max={0.99} step={0.05} onChange={v => set('tpZonePct', v)} />
-          <NumberField label="TP arama penceresi" value={params.tpSwingSearchWindow} min={1} max={200} onChange={v => set('tpSwingSearchWindow', v)} />
+          <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: 'var(--text-3)', marginBottom: 7, gap: 8 }}>
+            <span>
+              TP arama penceresi
+              <button type="button" onClick={toggleTpWindowLock}
+                title={tpWindowLocked ? 'Kilidi aç, bağımsız ayarla' : 'Swing arama penceresiyle kilitle'}
+                style={{ marginLeft: 6, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 10, color: tpWindowLocked ? 'var(--amber)' : 'var(--text-3)', textDecoration: 'underline' }}>
+                {tpWindowLocked ? '🔒 kilitli' : '🔓 bağımsız'}
+              </button>
+            </span>
+            <input type="number" value={tpWindowLocked ? params.swingSearchWindow : params.tpSwingSearchWindow}
+              min={1} max={200} disabled={tpWindowLocked}
+              onChange={e => set('tpSwingSearchWindow', Number(e.target.value))}
+              className="mono"
+              style={{ width: 72, background: tpWindowLocked ? 'var(--bg-2)' : 'var(--bg-3)', border: '1px solid var(--border)', color: tpWindowLocked ? 'var(--text-3)' : 'var(--text)', fontSize: 11, padding: '4px 6px', borderRadius: 4, opacity: tpWindowLocked ? 0.7 : 1 }} />
+          </label>
           <SelectField label="TP bulunamazsa" value={params.tpFallbackMode}
             options={[{ value: 'no_trade', label: 'İşlem yok' }, { value: '1R', label: '1R' }, { value: '2R', label: '2R' }, { value: '3R', label: '3R' }]}
             onChange={v => set('tpFallbackMode', v)} />
