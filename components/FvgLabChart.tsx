@@ -370,19 +370,20 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [candles])
 
-  // FVG listesi veya secim degistiginde overlay'i (chart'i yeniden kurmadan) guncelle
+  // FVG listesi veya secim degistiginde: ONCE (bir secim varsa) grafigi o
+  // trade'e odakla (gorunur araligi degistirir), SONRA overlay'i o YENI
+  // araliga gore yeniden ciz, en son SL/TP/Entry cizgilerini ve isaretleri
+  // guncelle. SIRALAMA KRITIK -- redrawOverlay, focusOnSelection'DAN SONRA
+  // calismali, aksi halde SVG hala ESKI (yakinlasmamis) koordinatlarla
+  // cizilir. Iki ayri useEffect'e guvenmek yerine (React'in efekt sirasina
+  // bagimli, subscribeVisibleTimeRangeChange'in senkron tetiklenmesine
+  // guvenmeden) TEK efektte ACIKCA sirali cagriliyor.
   useEffect(() => {
+    if (selectedIdx != null) focusOnSelection()
     redrawOverlay()
-  }, [fvgs, selectedIdx, redrawOverlay])
-
-  // Secili FVG veya fvg listesi degistiginde SL/TP/Entry cizgilerini VE
-  // entry/exit isaretlerini guncelle, VE (bir secim varsa) grafigi o
-  // trade'in ilgili araligina odakla.
-  useEffect(() => {
     updatePriceLines()
     updateMarkers()
-    if (selectedIdx != null) focusOnSelection()
-  }, [selectedIdx, fvgs, updatePriceLines, updateMarkers, focusOnSelection])
+  }, [fvgs, selectedIdx, focusOnSelection, redrawOverlay, updatePriceLines, updateMarkers])
 
   return (
     <div style={{ position: 'relative', border: '1px solid #242424', borderRadius: 8, overflow: 'hidden' }}>
