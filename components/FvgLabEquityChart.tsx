@@ -1,5 +1,4 @@
 'use client'
-import { useState } from 'react'
 import { Chart as ChartJS, Tooltip, LineElement, PointElement, LinearScale, CategoryScale, BarElement, Filler } from 'chart.js'
 import { Chart } from 'react-chartjs-2'
 import type { EquityCurve, EquityPoint } from '@/lib/fvgBacktest'
@@ -11,24 +10,25 @@ ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale,
 // tutarlilik icin, kendi ozel stilim DEGIL.
 const axisStyle = { grid: { color: '#1a1a1a' }, ticks: { color: '#555', font: { family: 'DM Mono', size: 10 } }, border: { color: '#242424' } }
 
-interface Props { equityCurve: EquityCurve }
-type Granularity = 'daily' | 'weekly' | 'monthly'
-const periodLabel: Record<Granularity, string> = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' }
+export type EquityGranularity = 'raw' | 'daily' | 'weekly' | 'monthly'
+const periodLabel: Record<EquityGranularity, string> = { raw: 'Trade', daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' }
 
-export default function FvgLabEquityChart({ equityCurve }: Props) {
-  const [granularity, setGranularity] = useState<Granularity>('daily')
-  const series: EquityPoint[] = equityCurve[granularity]
+interface Props {
+  equityCurve: EquityCurve
+  granularity: EquityGranularity
+  onGranularityChange: (g: EquityGranularity) => void
+  maxDD: number // ust seviyede (page.tsx) TEK yerde hesaplanir -- skorkartla
+                 // AYNI degeri gostersin diye, burada AYRICA hesaplanmaz.
+}
+
+export default function FvgLabEquityChart({ equityCurve, granularity, onGranularityChange, maxDD }: Props) {
+  const series: EquityPoint[] = granularity === 'raw' ? equityCurve.raw : equityCurve[granularity]
 
   if (series.length === 0) {
     return <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-3)', fontSize: 12 }}>Equity curve için yeterli veri yok.</div>
   }
 
   const finalR = series[series.length - 1].cumR
-  const maxDD = (() => {
-    let peak = -Infinity, dd = 0
-    for (const p of series) { if (p.cumR > peak) peak = p.cumR; dd = Math.max(dd, peak - p.cumR) }
-    return dd
-  })()
   const lineColor = finalR >= 0 ? '#4ade80' : '#f87171'
 
   return (
@@ -37,8 +37,8 @@ export default function FvgLabEquityChart({ equityCurve }: Props) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div className="col-label">Cumulative R</div>
           <div style={{ display: 'flex', gap: 4 }}>
-            {(['daily', 'weekly', 'monthly'] as Granularity[]).map(g => (
-              <button key={g} className={`filter-btn${granularity === g ? ' active' : ''}`} style={{ fontSize: 9, padding: '2px 8px' }} onClick={() => setGranularity(g)}>
+            {(['raw', 'daily', 'weekly', 'monthly'] as EquityGranularity[]).map(g => (
+              <button key={g} className={`filter-btn${granularity === g ? ' active' : ''}`} style={{ fontSize: 9, padding: '2px 8px' }} onClick={() => onGranularityChange(g)}>
                 {periodLabel[g]}
               </button>
             ))}
@@ -54,6 +54,7 @@ export default function FvgLabEquityChart({ equityCurve }: Props) {
           labels: series.map(p => {
             const d = new Date(p.t)
             if (granularity === 'monthly') return d.toLocaleDateString('tr-TR', { month: 'short', year: '2-digit', timeZone: 'UTC' })
+            if (granularity === 'raw') return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
             return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', timeZone: 'UTC' })
           }),
           datasets: [
@@ -71,7 +72,7 @@ export default function FvgLabEquityChart({ equityCurve }: Props) {
                   const p = series[ctx.dataIndex]
                   if (ctx.datasetIndex === 0) return [
                     `Cum: ${p.cumR >= 0 ? '+' : ''}${p.cumR.toFixed(2)}R`,
-                    `Period R: ${p.periodR >= 0 ? '+' : ''}${p.periodR.toFixed(2)}R`,
+                    `${granularity === 'raw' ? 'Trade' : 'Period'} R: ${p.periodR >= 0 ? '+' : ''}${p.periodR.toFixed(2)}R`,
                   ]
                   return `Trades: ${p.tradeCount}`
                 },
