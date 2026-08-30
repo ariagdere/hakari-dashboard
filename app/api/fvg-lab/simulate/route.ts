@@ -2,8 +2,16 @@ import { NextResponse, NextRequest } from 'next/server'
 import pool from '@/lib/db'
 import { detectFVGs, FvgParams, Candle } from '@/lib/fvgEngine'
 import { extractTrades, computeMetrics, computeEquityCurve } from '@/lib/fvgBacktest'
+import { buildZlemaLookup } from '@/lib/htfZlema'
 
 export const dynamic = 'force-dynamic'
+
+// ZLEMA (ozellikle 4H, period=21 varsayilaniyla ~84 saat = 3.5 gun) icin
+// ISINMA suresi gerekir -- kullanicinin sectigi araligin HEMEN basinda bile
+// dogru zone degerleri olsun diye, bu kadar ONCESINE kadar EKSTRA mum
+// cekilir. Bu ekstra veri SADECE ZLEMA hesabi icindir, FVG TESPITINE
+// (detectFVGs'e giden candles) DAHIL EDILMEZ.
+const ZLEMA_WARMUP_MS = 15 * 24 * 3600 * 1000 // 15 gun -- guvenli tampon
 
 // Bu route SADECE hesaplar ve sonucu doner -- DB'ye HICBIR SEY YAZMAZ.
 // Kaydetme, kullanicinin ayrica /api/fvg-lab/save-run'i cagirmasiyla,
@@ -45,7 +53,21 @@ export async function POST(req: NextRequest) {
       open: Number(r.open), high: Number(r.high), low: Number(r.low), close: Number(r.close),
     }))
 
-    const fvgs = detectFVGs(candles, params)
+    let zlemaLookup: ReturnType<typeof buildZlemaLookup> | undefined
+    if (params.useZlemaCriterion) {
+      const { rows: warmupRows } = await pool.query(
+        `SELECT open_time, open, high, low, close FROM btcusdt_5m_candles
+         WHERE open_time BETWEEN $1 AND $2 ORDER BY open_time ASC`,
+        [startMs - ZLEMA_WARMUP_MS, endMs]
+      )
+      const warmupCandles: Candle[] = warmupRows.map((r) => ({
+        time: Number(r.open_time),
+        open: Number(r.open), high: Number(r.high), low: Number(r.low), close: Number(r.close),
+      }))
+      zlemaLookup = buildZlemaLookup(warmupCandles, params.zlemaFastPeriod, params.zlemaSlowPeriod)
+    }
+
+    const fvgs = detectFVGs(candles, params, zlemaLookup)
     const trades = extractTrades(fvgs, candles)
     const metrics = computeMetrics(trades)
     const equityCurve = computeEquityCurve(trades)
