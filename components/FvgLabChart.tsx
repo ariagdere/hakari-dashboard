@@ -99,20 +99,25 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
 
     // Swing tanilama katmani -- SADECE tek bir FVG seciliyken ve skoru varsa.
     // Standalone araçtaki diagOverlay mantiginin BIREBIR ayni portu.
+    console.log('[FVGLAB-DEBUG] redrawOverlay cagrildi, selectedIdx =', selectedIdxRef.current)
     if (selectedIdxRef.current != null) {
       const selFvg = fvgsRef.current[selectedIdxRef.current]
+      console.log('[FVGLAB-DEBUG] selFvg bulundu mu:', !!selFvg, ' ifvgScore var mi:', !!selFvg?.ifvgScore)
       if (selFvg?.ifvgScore) {
         const p = paramsRef.current
         const allSwings = swingsRef.current
+        console.log('[FVGLAB-DEBUG] swingsRef.current uzunlugu:', allSwings.length, ' params.swingSearchWindow:', p.swingSearchWindow)
         const sweepSwingType: 'high' | 'low' = selFvg.type === 'bullish' ? 'high' : 'low'
         const bosSwingType: 'high' | 'low' = selFvg.type === 'bullish' ? 'low' : 'high'
         const { rangeStart, rangeEnd } = getSweepRange(selFvg, candlesRef.current.length, p)
         const windowStart = Math.max(0, rangeEnd - p.swingSearchWindow)
+        console.log('[FVGLAB-DEBUG] rangeStart:', rangeStart, 'rangeEnd:', rangeEnd, 'windowStart:', windowStart, 'candles.length:', candlesRef.current.length)
 
         const sweepCandidates = allSwings.filter(sw => sw.type === sweepSwingType && sw.idx >= windowStart && sw.idx < rangeEnd)
         const bosCandidates = selFvg.status === 'filled'
           ? allSwings.filter(sw => sw.type === bosSwingType && sw.idx >= windowStart && sw.idx < rangeEnd)
           : []
+        console.log('[FVGLAB-DEBUG] sweepCandidates:', sweepCandidates.length, 'bosCandidates:', bosCandidates.length)
 
         // 1) Likidite arama araligi -- tam yukseklikte amber serit. Gorunur
         // alanin disina tasarsa bile KENARA SIKISTIRILARAK cizilir (tamamen
@@ -166,7 +171,9 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
       }
     }
 
+    console.log('[FVGLAB-DEBUG] uretilen svg string uzunlugu:', svg.length, ' overlay elementi var mi:', !!overlay, ' overlay boyutu (w x h):', overlay.clientWidth, 'x', overlay.clientHeight)
     overlay.innerHTML = `<svg width="100%" height="100%" style="position:absolute;top:0;left:0;pointer-events:none">${svg}</svg>`
+    console.log('[FVGLAB-DEBUG] innerHTML atandiktan SONRA overlay.innerHTML.length:', overlay.innerHTML.length)
   }, [])
 
   const updatePriceLines = useCallback(() => {
