@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     }))
 
     let zlemaLookup: ReturnType<typeof buildZlemaLookup> | undefined
-    if (params.useZlemaCriterion) {
+    if (params.useZlema1hCriterion || params.useZlema4hCriterion) {
       const { rows: warmupRows } = await pool.query(
         `SELECT open_time, open, high, low, close FROM btcusdt_5m_candles
          WHERE open_time BETWEEN $1 AND $2 ORDER BY open_time ASC`,
