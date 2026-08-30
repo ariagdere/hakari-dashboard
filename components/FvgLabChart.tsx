@@ -12,9 +12,12 @@ interface Props {
 }
 
 // FVG'nin gorsel bant araligi -- olustugu andan, dolmus/gecersiz/acik
-// durumuna gore bitis noktasina kadar.
+// durumuna gore bitis noktasina kadar. formedIdx, ONAY mumunun (c2, 3.
+// mum) indeksidir -- ama fvg.top/fvg.bottom'un bir kenarini FIILEN
+// OLUSTURAN mum c0 (1. mum, formedIdx-2)'dir, ORTA mum (formedIdx-1)
+// DEGIL. Bandin gorsel baslangici bu yuzden formedIdx-2 olmali.
 function fvgBandRange(fvg: Fvg, lastIdx: number): { startIdx: number; endIdx: number } {
-  const startIdx = Math.max(0, fvg.formedIdx - 1)
+  const startIdx = Math.max(0, fvg.formedIdx - 2)
   let endIdx: number
   if (fvg.status === 'filled' && fvg.filledIdx != null) endIdx = fvg.filledIdx
   else if (fvg.status === 'expired' && fvg.expiredAtIdx != null) endIdx = fvg.expiredAtIdx
@@ -99,50 +102,38 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
 
     // Swing tanilama katmani -- SADECE tek bir FVG seciliyken ve skoru varsa.
     // Standalone araçtaki diagOverlay mantiginin BIREBIR ayni portu.
-    console.log('[FVGLAB-DEBUG] redrawOverlay cagrildi, selectedIdx =', selectedIdxRef.current)
     if (selectedIdxRef.current != null) {
       const selFvg = fvgsRef.current[selectedIdxRef.current]
-      console.log('[FVGLAB-DEBUG] selFvg bulundu mu:', !!selFvg, ' ifvgScore var mi:', !!selFvg?.ifvgScore)
       if (selFvg?.ifvgScore) {
         const p = paramsRef.current
         const allSwings = swingsRef.current
-        console.log('[FVGLAB-DEBUG] swingsRef.current uzunlugu:', allSwings.length, ' params.swingSearchWindow:', p.swingSearchWindow)
         const sweepSwingType: 'high' | 'low' = selFvg.type === 'bullish' ? 'high' : 'low'
         const bosSwingType: 'high' | 'low' = selFvg.type === 'bullish' ? 'low' : 'high'
         const { rangeStart, rangeEnd } = getSweepRange(selFvg, candlesRef.current.length, p)
         const windowStart = Math.max(0, rangeEnd - p.swingSearchWindow)
-        console.log('[FVGLAB-DEBUG] rangeStart:', rangeStart, 'rangeEnd:', rangeEnd, 'windowStart:', windowStart, 'candles.length:', candlesRef.current.length)
 
         const sweepCandidates = allSwings.filter(sw => sw.type === sweepSwingType && sw.idx >= windowStart && sw.idx < rangeEnd)
         const bosCandidates = selFvg.status === 'filled'
           ? allSwings.filter(sw => sw.type === bosSwingType && sw.idx >= windowStart && sw.idx < rangeEnd)
           : []
-        console.log('[FVGLAB-DEBUG] sweepCandidates:', sweepCandidates.length, 'bosCandidates:', bosCandidates.length)
 
         // 1) Likidite arama araligi -- tam yukseklikte amber serit. Gorunur
         // alanin disina tasarsa bile KENARA SIKISTIRILARAK cizilir (tamamen
         // kaybolmasin diye) -- bandin BIR KISMI hala gorunur olabilir.
         const grabStartTime = Math.floor(candlesRef.current[rangeStart + 1].time / 1000)
         const grabEndTime = Math.floor(candlesRef.current[rangeEnd].time / 1000)
-        const rawGx1 = ts.timeToCoordinate(grabStartTime as any)
-        const rawGx2 = ts.timeToCoordinate(grabEndTime as any)
         const gx1 = coordOrEdge(grabStartTime, 0)
         const gx2 = coordOrEdge(grabEndTime, chartWidth)
-        console.log('[FVGLAB-DEBUG] grabStartTime(sn):', grabStartTime, ' grabEndTime(sn):', grabEndTime, ' chartWidth:', chartWidth)
-        console.log('[FVGLAB-DEBUG] HAM rawGx1:', rawGx1, ' rawGx2:', rawGx2, ' (null ise fallback kullanildi)')
-        console.log('[FVGLAB-DEBUG] SONUC gx1:', gx1, ' gx2:', gx2)
         if (gx2 > gx1) {
           svg += `<rect x="${gx1}" y="0" width="${gx2 - gx1}" height="100%" fill="rgba(251,191,36,0.15)" stroke="rgba(251,191,36,0.7)" stroke-width="1.5" stroke-dasharray="2,2"/>`
         }
 
         // 2) Swing arama penceresi -- x-ekseninin hemen altinda mor koseli ayrac
         const winStartTime = Math.floor(candlesRef.current[windowStart].time / 1000)
-        const rawWx1 = ts.timeToCoordinate(winStartTime as any)
         const wx1 = coordOrEdge(winStartTime, 0)
         const wx2 = gx2
         const chartH = containerRef.current?.clientHeight ?? 460
         const bracketY = chartH - 62
-        console.log('[FVGLAB-DEBUG] winStartTime(sn):', winStartTime, ' HAM rawWx1:', rawWx1, ' SONUC wx1:', wx1, ' wx2:', wx2, ' bracketY:', bracketY, ' chartH:', chartH)
         if (wx2 > wx1) {
           svg += `<line x1="${wx1}" y1="${bracketY}" x2="${wx2}" y2="${bracketY}" stroke="#a78bfa" stroke-width="1.5"/>`
           svg += `<line x1="${wx1}" y1="${bracketY - 4}" x2="${wx1}" y2="${bracketY + 4}" stroke="#a78bfa" stroke-width="1.5"/>`
@@ -194,10 +185,7 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
         }
       }
     }
-
-    console.log('[FVGLAB-DEBUG] uretilen svg string uzunlugu:', svg.length, ' overlay elementi var mi:', !!overlay, ' overlay boyutu (w x h):', overlay.clientWidth, 'x', overlay.clientHeight)
     overlay.innerHTML = `<svg width="100%" height="100%" style="position:absolute;top:0;left:0;pointer-events:none">${svg}</svg>`
-    console.log('[FVGLAB-DEBUG] innerHTML atandiktan SONRA overlay.innerHTML.length:', overlay.innerHTML.length)
   }, [])
 
   const updatePriceLines = useCallback(() => {
