@@ -33,7 +33,7 @@ export default function FvgLabTradeTable({ trades, selectedIdx, onSelect }: Prop
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
         <thead>
           <tr style={{ borderBottom: '1px solid var(--border)' }}>
-            {['Yön', 'Kırılma', 'Likidite', 'BOS', 'Displ.', 'Entry', 'SL', 'TP', 'RR', 'Sonuç', 'R'].map(h => (
+            {['Yön', 'Kırılma', 'Likidite', 'BOS', 'Displ.', 'ZLEMA', 'Entry', 'SL', 'TP', 'RR', 'Sonuç', 'R'].map(h => (
               <th key={h} style={{ textAlign: 'left', padding: '7px 10px', color: 'var(--text-3)', fontWeight: 400, fontSize: 10, letterSpacing: '0.04em' }}>{h}</th>
             ))}
           </tr>
@@ -54,6 +54,7 @@ export default function FvgLabTradeTable({ trades, selectedIdx, onSelect }: Prop
                 <td style={{ padding: '7px 10px' }}><Dot v={t.sweepPass} /></td>
                 <td style={{ padding: '7px 10px' }}><Dot v={t.bosPass} /></td>
                 <td style={{ padding: '7px 10px' }}><Dot v={t.displacementPass} /></td>
+                <td style={{ padding: '7px 10px' }}><Dot v={t.zlemaPass} /></td>
                 <td style={{ padding: '7px 10px', color: 'var(--text-2)' }} className="mono">{t.entry.toFixed(1)}</td>
                 <td style={{ padding: '7px 10px', color: 'var(--text-2)' }} className="mono">{t.sl.toFixed(1)}</td>
                 <td style={{ padding: '7px 10px', color: 'var(--text-2)' }} className="mono">{t.tp.toFixed(1)}</td>
