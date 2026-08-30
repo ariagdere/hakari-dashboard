@@ -18,6 +18,11 @@ export interface SwingPoint {
   idx: number;
   type: 'high' | 'low';
   price: number;
+  // Bu adayi ILK GECERSIZ kilan (esit ya da daha yuksek/dusuk) ileri
+  // yondeki mumun indeksi. null = lookback penceresi icinde hicbir mum
+  // gecersiz kilmadi (KALICI olarak onaylanmis). Herhangi bir "asOfIdx"
+  // icin gecerlilik: invalidatedAtIdx===null || asOfIdx < invalidatedAtIdx.
+  invalidatedAtIdx: number | null;
 }
 
 export interface SelectedSwing extends SwingPoint {
@@ -148,26 +153,56 @@ export interface Fvg {
 }
 
 // ── Swing tespiti ────────────────────────────────────────────────────────
+// ONEMLI: forward (ileri yon) kontrolu ARTIK "tam lookback ZORUNLU" degil.
+// Bir aday, backward (geriye yon) kontrolunu HER ZAMAN tam lookback ile
+// gecmelidir (bu guvenlidir -- gecmis veri, asla "henuz gorulmemis" degildir).
+// Ileri yonde ise, adayi GECERSIZ kilan ILK mumun indeksi (varsa) kaydedilir
+// -- boylece herhangi bir degerlendirme anina (asOfIdx) gore "o an hala
+// gecerli miydi" sorusu, TUM veriyi kullanan (ileriye-bakis sizintili) bir
+// "evet/hayir" yerine, DOGRU sekilde nokta-zamanli olarak cevaplanabilir.
 export function findSwingPoints(candles: Candle[], lookback: number): SwingPoint[] {
   const swings: SwingPoint[] = [];
-  for (let i = lookback; i < candles.length - lookback; i++) {
-    let isHigh = true, isLow = true;
+  for (let i = lookback; i < candles.length; i++) {
+    let backwardHighOk = true, backwardLowOk = true;
     for (let k = 1; k <= lookback; k++) {
-      if (candles[i].high <= candles[i - k].high || candles[i].high <= candles[i + k].high) isHigh = false;
-      if (candles[i].low >= candles[i - k].low || candles[i].low >= candles[i + k].low) isLow = false;
+      if (candles[i].high <= candles[i - k].high) backwardHighOk = false;
+      if (candles[i].low >= candles[i - k].low) backwardLowOk = false;
     }
-    if (isHigh) swings.push({ idx: i, type: 'high', price: candles[i].high });
-    if (isLow) swings.push({ idx: i, type: 'low', price: candles[i].low });
+
+    if (backwardHighOk) {
+      let invalidatedAtIdx: number | null = null;
+      for (let k = 1; k <= lookback && i + k < candles.length; k++) {
+        if (candles[i].high <= candles[i + k].high) { invalidatedAtIdx = i + k; break; }
+      }
+      swings.push({ idx: i, type: 'high', price: candles[i].high, invalidatedAtIdx });
+    }
+    if (backwardLowOk) {
+      let invalidatedAtIdx: number | null = null;
+      for (let k = 1; k <= lookback && i + k < candles.length; k++) {
+        if (candles[i].low >= candles[i + k].low) { invalidatedAtIdx = i + k; break; }
+      }
+      swings.push({ idx: i, type: 'low', price: candles[i].low, invalidatedAtIdx });
+    }
   }
   return swings;
 }
+
+// Bir swing adayinin, verilen degerlendirme anina (asOfIdx) gore HALA
+// gecerli olup olmadigini kontrol eder -- invalidation TAM asOfIdx'te
+// olsa bile (o mumun kendi verisi ARTIK bilindigi icin) gecersiz sayilir.
+export function isSwingValidAsOf(sw: SwingPoint, asOfIdx: number): boolean {
+  return sw.invalidatedAtIdx === null || sw.invalidatedAtIdx > asOfIdx;
+}
+
 
 export function selectRelevantSwing(
   swings: SwingPoint[], beforeIdx: number, type: 'high' | 'low',
   mode: SwingSelectMode, window: number
 ): SelectedSwing | null {
   const windowStart = Math.max(0, beforeIdx - window);
-  const candidates = swings.filter(s => s.type === type && s.idx >= windowStart && s.idx < beforeIdx);
+  const candidates = swings.filter(s =>
+    s.type === type && s.idx >= windowStart && s.idx < beforeIdx && isSwingValidAsOf(s, beforeIdx)
+  );
   if (candidates.length === 0) return null;
   let chosen: SwingPoint;
   if (mode === 'extreme') {
@@ -368,7 +403,10 @@ export function computeTradeSetup(candles: Candle[], fvg: Fvg, swings: SwingPoin
 
   const tpSwingType: 'high' | 'low' = isShort ? 'low' : 'high';
   const tpWindowStart = Math.max(0, fvg.filledIdx - p.tpSwingSearchWindow);
-  const candidates = swings.filter(s => s.type === tpSwingType && s.idx >= tpWindowStart && s.idx < (fvg.filledIdx as number));
+  const candidates = swings.filter(s =>
+    s.type === tpSwingType && s.idx >= tpWindowStart && s.idx < (fvg.filledIdx as number) &&
+    isSwingValidAsOf(s, fvg.filledIdx as number)
+  );
 
   let tp: number, tpSwingIdx: number | null = null, tpFallbackUsed = false, tpZoneTouchCount: number | null = null;
   if (candidates.length > 0) {
