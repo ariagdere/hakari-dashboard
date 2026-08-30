@@ -121,6 +121,9 @@ export default function FvgLabParamPanel({ params, onChange, onReset }: Props) {
         <Group title="Simülasyon Davranışı">
           <NumberField label="Maks. işlem süresi (mum)" value={params.maxTradeDurationCandles} min={1} max={5000} onChange={v => set('maxTradeDurationCandles', v)} />
           <CheckField label="Sequential trade (üst üste açma)" checked={params.sequentialTradesOnly} onChange={v => set('sequentialTradesOnly', v)} />
+          <NumberField label="Maks. eşzamanlı trade (0=sınırsız)" value={params.maxConcurrentTrades ?? 0} min={0} max={50}
+            onChange={v => onChange({ ...params, maxConcurrentTrades: v <= 0 ? null : v })} />
+          <NumberField label="Min RR (0=filtre yok)" value={params.minRR} min={0} max={20} step={0.1} onChange={v => set('minRR', v)} />
         </Group>
       </div>
     </div>
