@@ -1,11 +1,12 @@
 'use client'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { DEFAULT_PARAMS, FvgParams, Candle, Fvg } from '@/lib/fvgEngine'
-import { SimMetrics, SimTrade, EquityCurve } from '@/lib/fvgBacktest'
+import { SimMetrics, SimTrade, EquityCurve, computeDayOfWeekBreakdown, computeHourOfDayBreakdown } from '@/lib/fvgBacktest'
 import FvgLabChart from '@/components/FvgLabChart'
 import FvgLabParamPanel from '@/components/FvgLabParamPanel'
 import FvgLabTradeTable from '@/components/FvgLabTradeTable'
 import FvgLabEquityChart from '@/components/FvgLabEquityChart'
+import FvgLabBreakdownTable from '@/components/FvgLabBreakdownTable'
 
 interface SimulateResponse {
   candleCount: number
@@ -84,6 +85,9 @@ export default function FvgLabPage() {
 
   const selectedFvg = result && selectedFvgIdx != null ? result.fvgs[selectedFvgIdx] : null
 
+  const dayBreakdown = useMemo(() => result ? computeDayOfWeekBreakdown(result.trades) : [], [result])
+  const hourBreakdown = useMemo(() => result ? computeHourOfDayBreakdown(result.trades) : [], [result])
+
   return (
     <div className="container" style={{ padding: '24px 24px 60px' }}>
       <h1 style={{ fontSize: 18, fontWeight: 500, marginBottom: 4 }}>FVG / IFVG Simülasyon Laboratuvarı</h1>
@@ -131,6 +135,8 @@ export default function FvgLabPage() {
             <MetricCard label="Toplam R" value={`${result.metrics.totalR >= 0 ? '+' : ''}${result.metrics.totalR}`}
               color={result.metrics.totalR >= 0 ? 'var(--green)' : 'var(--red)'} />
             <MetricCard label="Max DD" value={`-${result.metrics.maxDD}R`} color="var(--red)" />
+            <MetricCard label="Consecutive Win" value={String(result.metrics.maxConsecutiveWins)} color="var(--green)" />
+            <MetricCard label="Aynı Anda Aktif Max Trade" value={String(result.metrics.maxConcurrentTrades)} />
           </div>
 
           <FvgLabChart
@@ -172,8 +178,12 @@ export default function FvgLabPage() {
           )}
 
           <div style={{ marginTop: 24, background: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: 8, padding: 16 }}>
-            <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 12 }}>Equity Curve</div>
             <FvgLabEquityChart equityCurve={result.equityCurve} />
+          </div>
+
+          <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+            <FvgLabBreakdownTable title="Haftanın Günü" buckets={dayBreakdown} />
+            <FvgLabBreakdownTable title="Günün Saati (UTC+3)" buckets={hourBreakdown} />
           </div>
 
           <div style={{ marginTop: 24 }}>
