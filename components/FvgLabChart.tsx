@@ -132,7 +132,7 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
         console.log('[FVGLAB-DEBUG] HAM rawGx1:', rawGx1, ' rawGx2:', rawGx2, ' (null ise fallback kullanildi)')
         console.log('[FVGLAB-DEBUG] SONUC gx1:', gx1, ' gx2:', gx2)
         if (gx2 > gx1) {
-          svg += `<rect x="${gx1}" y="0" width="${gx2 - gx1}" height="100%" fill="rgba(251,191,36,0.06)" stroke="rgba(251,191,36,0.35)" stroke-width="1" stroke-dasharray="2,2"/>`
+          svg += `<rect x="${gx1}" y="0" width="${gx2 - gx1}" height="100%" fill="rgba(251,191,36,0.15)" stroke="rgba(251,191,36,0.7)" stroke-width="1.5" stroke-dasharray="2,2"/>`
         }
 
         // 2) Swing arama penceresi -- x-ekseninin hemen altinda mor koseli ayrac
@@ -388,7 +388,7 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
   return (
     <div style={{ position: 'relative', border: '1px solid #242424', borderRadius: 8, overflow: 'hidden' }}>
       <div ref={containerRef} style={{ width: '100%' }} />
-      <div ref={overlayRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }} />
+      <div ref={overlayRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 100 }} />
     </div>
   )
 }
