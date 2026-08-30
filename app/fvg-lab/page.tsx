@@ -34,7 +34,7 @@ export default function FvgLabPage() {
   const [result, setResult] = useState<SimulateResponse | null>(null)
   const [selectedFvgIdx, setSelectedFvgIdx] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
-  const [equityGranularity, setEquityGranularity] = useState<'raw' | 'daily' | 'weekly' | 'monthly'>('daily')
+  const [equityGranularity, setEquityGranularity] = useState<'raw' | 'daily' | 'weekly' | 'monthly'>('raw')
   const [label, setLabel] = useState('')
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [savedRunId, setSavedRunId] = useState<number | null>(null)
