@@ -35,6 +35,13 @@ export type TpFallbackMode = 'no_trade' | '1R' | '2R' | '3R';
 export type TradeConditionMode = 'all' | 'any' | 'always';
 export type TpPlacementMode = 'exact' | 'percentage' | 'dynamic_zone';
 
+// ZLEMA bolge tipleri -- htfZlema.ts bu arayuze YAPISAL olarak uyar, import
+// ETMEZ (dongusel bagimlilik olmasin diye: htfZlema->fvgEngine tek yonlu).
+export type ZoneDirection = 'bullish' | 'bearish' | null;
+export interface ZlemaZoneLookup {
+  zoneAsOf: (timeMs: number) => { h1: ZoneDirection; h4: ZoneDirection };
+}
+
 export interface FvgParams {
   swingLookback: number;
   swingSearchWindow: number;
@@ -48,6 +55,9 @@ export interface FvgParams {
   useSweepCriterion: boolean;
   useBosCriterion: boolean;
   useDisplacementCriterion: boolean;
+  useZlemaCriterion: boolean;
+  zlemaFastPeriod: number;
+  zlemaSlowPeriod: number;
   slMode: SlMode;
   tpSwingSearchWindow: number;
   tpFallbackMode: TpFallbackMode;
@@ -73,6 +83,9 @@ export const DEFAULT_PARAMS: FvgParams = {
   useSweepCriterion: true,
   useBosCriterion: false,
   useDisplacementCriterion: false,
+  useZlemaCriterion: false,
+  zlemaFastPeriod: 8,
+  zlemaSlowPeriod: 21,
   slMode: 'swept_swing',
   tpSwingSearchWindow: 36,
   tpFallbackMode: '3R',
@@ -110,6 +123,10 @@ export interface IfvgScore {
   bosApplicable: boolean;
   displacement: boolean | null;
   displacementApplicable: boolean;
+  zlemaAligned: boolean | null;
+  zlemaApplicable: boolean;
+  zlema1h: ZoneDirection;
+  zlema4h: ZoneDirection;
   total: number;
   maxScore: number;
 }
@@ -317,23 +334,38 @@ export function checkDisplacementQuality(candles: Candle[], fvg: Fvg, p: FvgPara
 }
 
 // ── Skor birlestirme ──────────────────────────────────────────────────────
-export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: FvgParams): IfvgScore {
+export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: FvgParams, zlemaLookup?: ZlemaZoneLookup): IfvgScore {
   const sweep = checkLiquiditySweepOrigin(candles, fvg, swings, p);
   const isFilled = fvg.status === 'filled';
   const bos = isFilled ? checkBOSAtFill(candles, fvg, swings, p) : { pass: false, swingDistance: null, swingIdx: null, swingPrice: null };
   const displacement: boolean | null = isFilled ? checkDisplacementQuality(candles, fvg, p) : null;
+
+  // ZLEMA hizalanmasi: fill anindaki (entry noktasindaki) 1H+4H bolge yonu,
+  // trade yonuyle (bullish FVG -> LONG, bearish FVG -> SHORT) AYNI OLMALI.
+  // Ikisi de aynı yonde olmali (daha guclu/muhafazakar sinyal).
+  let zlemaAligned: boolean | null = null;
+  let zlema1h: ZoneDirection = null, zlema4h: ZoneDirection = null;
+  if (isFilled && zlemaLookup) {
+    const zone = zlemaLookup.zoneAsOf(candles[fvg.filledIdx as number].time);
+    zlema1h = zone.h1;
+    zlema4h = zone.h4;
+    const expected: ZoneDirection = fvg.type === 'bullish' ? 'bullish' : 'bearish';
+    zlemaAligned = zone.h1 === expected && zone.h4 === expected;
+  }
 
   const countedChecks: boolean[] = [];
   if (p.useSweepCriterion) countedChecks.push(sweep.pass);
   if (isFilled) {
     if (p.useBosCriterion) countedChecks.push(bos.pass);
     if (p.useDisplacementCriterion) countedChecks.push(!!displacement);
+    if (p.useZlemaCriterion) countedChecks.push(!!zlemaAligned);
   }
 
   return {
     sweep: sweep.pass, sweepDistance: sweep.swingDistance, sweepSwingIdx: sweep.swingIdx ?? null, sweepSwingPrice: sweep.swingPrice ?? null, sweepTrace: sweep.trace,
     bos: bos.pass, bosDistance: bos.swingDistance, bosSwingIdx: bos.swingIdx, bosSwingPrice: bos.swingPrice, bosApplicable: isFilled,
     displacement, displacementApplicable: isFilled,
+    zlemaAligned, zlemaApplicable: isFilled, zlema1h, zlema4h,
     total: countedChecks.filter(Boolean).length,
     maxScore: countedChecks.length,
   };
@@ -350,6 +382,7 @@ function checkTradeCondition(fvg: Fvg, p: FvgParams): GateResult {
   if (p.useSweepCriterion) relevant.push({ name: 'Likidite', val: s.sweep });
   if (p.useBosCriterion) relevant.push({ name: 'BOS', val: s.bos });
   if (p.useDisplacementCriterion) relevant.push({ name: 'Displacement', val: !!s.displacement });
+  if (p.useZlemaCriterion) relevant.push({ name: 'ZLEMA', val: !!s.zlemaAligned });
   if (relevant.length === 0) return { pass: true, reason: null };
   const pass = p.tradeConditionMode === 'all' ? relevant.every(r => r.val) : relevant.some(r => r.val);
   return {
@@ -502,7 +535,7 @@ function applySequentialFilter(fvgs: Fvg[], candles: Candle[]): void {
   }
 }
 
-export function detectFVGs(candles: Candle[], p: FvgParams): Fvg[] {
+export function detectFVGs(candles: Candle[], p: FvgParams, zlemaLookup?: ZlemaZoneLookup): Fvg[] {
   const fvgs: Fvg[] = [];
   for (let i = 1; i < candles.length - 1; i++) {
     const c0 = candles[i - 1], c2 = candles[i + 1];
@@ -534,7 +567,7 @@ export function detectFVGs(candles: Candle[], p: FvgParams): Fvg[] {
 
   const swings = findSwingPoints(candles, p.swingLookback);
   for (const fvg of fvgs) {
-    fvg.ifvgScore = scoreIFVG(candles, fvg, swings, p);
+    fvg.ifvgScore = scoreIFVG(candles, fvg, swings, p, zlemaLookup);
     fvg.tradeSetup = computeTradeSetup(candles, fvg, swings, p);
     if (fvg.tradeSetup?.valid && fvg.filledIdx != null) {
       fvg.outcome = simulateTradeOutcome(
