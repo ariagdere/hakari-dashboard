@@ -67,16 +67,16 @@ export const DEFAULT_PARAMS: FvgParams = {
   fvgMaxAgeCandles: 6,
   useSweepCriterion: true,
   useBosCriterion: false,
-  useDisplacementCriterion: true,
+  useDisplacementCriterion: false,
   slMode: 'swept_swing',
   tpSwingSearchWindow: 36,
-  tpFallbackMode: 'no_trade',
+  tpFallbackMode: '3R',
   tradeConditionMode: 'all',
   slBufferPct: 1.0,
   tpPlacementMode: 'exact',
   tpTargetPct: 0.75,
   tpZonePct: 0.70,
-  maxTradeDurationCandles: 288, // 5dk mumda ~24 saat
+  maxTradeDurationCandles: 2880, // 5dk mumda 10 gun
   sequentialTradesOnly: false,
 };
 
