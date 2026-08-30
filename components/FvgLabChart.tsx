@@ -57,6 +57,15 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
     const ts = chart.timeScale()
     const displayFvgs = selectedIdxRef.current == null ? fvgsRef.current : [fvgsRef.current[selectedIdxRef.current]]
     const lastIdx = candlesRef.current.length - 1
+    const chartWidth = containerRef.current?.clientWidth ?? 1000
+    // Bantlar/seritler (nokta isaretleri DEGIL) icin: zaman gorunur alanin
+    // DISINDAYSA null donuyor -- bunu "hic cizme" yerine "kenara sikistir"
+    // olarak ele aliyoruz, aksi halde swingSearchWindow gibi genis bir arama
+    // araligi, kullanici yakinlastirdiginda TAMAMEN sessizce kayboluyordu.
+    const coordOrEdge = (t: number, fallback: number) => {
+      const c = ts.timeToCoordinate(t as any)
+      return c == null ? fallback : c
+    }
 
     let svg = ''
     for (const fvg of displayFvgs) {
@@ -105,26 +114,28 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
           ? allSwings.filter(sw => sw.type === bosSwingType && sw.idx >= windowStart && sw.idx < rangeEnd)
           : []
 
-        // 1) Likidite arama araligi -- tam yukseklikte amber serit
+        // 1) Likidite arama araligi -- tam yukseklikte amber serit. Gorunur
+        // alanin disina tasarsa bile KENARA SIKISTIRILARAK cizilir (tamamen
+        // kaybolmasin diye) -- bandin BIR KISMI hala gorunur olabilir.
         const grabStartTime = Math.floor(candlesRef.current[rangeStart + 1].time / 1000)
         const grabEndTime = Math.floor(candlesRef.current[rangeEnd].time / 1000)
-        const gx1 = ts.timeToCoordinate(grabStartTime as any)
-        const gx2 = ts.timeToCoordinate(grabEndTime as any)
-        if (gx1 != null && gx2 != null) {
-          svg += `<rect x="${gx1}" y="0" width="${Math.max(1, gx2 - gx1)}" height="100%" fill="rgba(251,191,36,0.06)" stroke="rgba(251,191,36,0.35)" stroke-width="1" stroke-dasharray="2,2"/>`
+        const gx1 = coordOrEdge(grabStartTime, 0)
+        const gx2 = coordOrEdge(grabEndTime, chartWidth)
+        if (gx2 > gx1) {
+          svg += `<rect x="${gx1}" y="0" width="${gx2 - gx1}" height="100%" fill="rgba(251,191,36,0.06)" stroke="rgba(251,191,36,0.35)" stroke-width="1" stroke-dasharray="2,2"/>`
         }
 
         // 2) Swing arama penceresi -- x-ekseninin hemen altinda mor koseli ayrac
         const winStartTime = Math.floor(candlesRef.current[windowStart].time / 1000)
-        const wx1 = ts.timeToCoordinate(winStartTime as any)
+        const wx1 = coordOrEdge(winStartTime, 0)
         const wx2 = gx2
         const chartH = containerRef.current?.clientHeight ?? 460
         const bracketY = chartH - 24
-        if (wx1 != null && wx2 != null) {
+        if (wx2 > wx1) {
           svg += `<line x1="${wx1}" y1="${bracketY}" x2="${wx2}" y2="${bracketY}" stroke="#a78bfa" stroke-width="1.5"/>`
           svg += `<line x1="${wx1}" y1="${bracketY - 4}" x2="${wx1}" y2="${bracketY + 4}" stroke="#a78bfa" stroke-width="1.5"/>`
           svg += `<line x1="${wx2}" y1="${bracketY - 4}" x2="${wx2}" y2="${bracketY + 4}" stroke="#a78bfa" stroke-width="1.5"/>`
-          svg += `<text x="${wx1}" y="${bracketY + 14}" font-size="9" fill="#a78bfa">swing arama penceresi</text>`
+          svg += `<text x="${Math.max(2, wx1)}" y="${bracketY + 14}" font-size="9" fill="#a78bfa">swing arama penceresi</text>`
         }
 
         // 3) Swing aday ucgenleri (icibos) + secilen swing (dolu + referans cizgisi)
