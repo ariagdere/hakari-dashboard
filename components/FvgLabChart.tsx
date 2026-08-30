@@ -243,6 +243,39 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
     series.setMarkers(markers)
   }, [])
 
+  // Secilen trade'in TUM ilgili araligini (FVG olusumu + swing arama
+  // penceresi + entry + exit, tampon payiyla) kapsayacak sekilde grafigi
+  // OTOMATIK yakinlastirir. Prod ortaminda binlerce mum ayni anda gorunur
+  // oldugu icin (standalone araçtaki 60 mumluk pencereden farkli), bu
+  // OLMADAN swing/likidite tanilama katmani gorsel olarak fark edilemeyecek
+  // kadar dar (birkaç piksel) kaliyordu.
+  const focusOnSelection = useCallback(() => {
+    const chart = chartRef.current
+    if (!chart) return
+    const idx = selectedIdxRef.current
+    const fvg = idx != null ? fvgsRef.current[idx] : null
+    if (!fvg || candlesRef.current.length === 0) return
+
+    const p = paramsRef.current
+    const { rangeEnd } = getSweepRange(fvg, candlesRef.current.length, p)
+    const windowStart = Math.max(0, rangeEnd - p.swingSearchWindow)
+
+    let endIdx = fvg.filledIdx ?? fvg.formedIdx
+    if (fvg.outcome?.closeTime != null) {
+      const closeIdx = candlesRef.current.findIndex(c => c.time >= (fvg.outcome!.closeTime as number))
+      if (closeIdx >= 0) endIdx = Math.max(endIdx, closeIdx)
+    }
+
+    const PADDING_CANDLES = 8
+    const lastIdx = candlesRef.current.length - 1
+    const startIdx = Math.max(0, windowStart - PADDING_CANDLES)
+    const finalEndIdx = Math.min(lastIdx, endIdx + PADDING_CANDLES)
+
+    const fromTime = Math.floor(candlesRef.current[startIdx].time / 1000)
+    const toTime = Math.floor(candlesRef.current[finalEndIdx].time / 1000)
+    chart.timeScale().setVisibleRange({ from: fromTime as any, to: toTime as any })
+  }, [])
+
   // FVG hedef bul: verilen (zaman-saniye, fiyat) noktasini iceren bir FVG bandi var mi
   const findFvgAtPoint = useCallback((timeSec: number, price: number): number | null => {
     const lastIdx = candlesRef.current.length - 1
@@ -343,11 +376,13 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
   }, [fvgs, selectedIdx, redrawOverlay])
 
   // Secili FVG veya fvg listesi degistiginde SL/TP/Entry cizgilerini VE
-  // entry/exit isaretlerini guncelle
+  // entry/exit isaretlerini guncelle, VE (bir secim varsa) grafigi o
+  // trade'in ilgili araligina odakla.
   useEffect(() => {
     updatePriceLines()
     updateMarkers()
-  }, [selectedIdx, fvgs, updatePriceLines, updateMarkers])
+    if (selectedIdx != null) focusOnSelection()
+  }, [selectedIdx, fvgs, updatePriceLines, updateMarkers, focusOnSelection])
 
   return (
     <div style={{ position: 'relative', border: '1px solid #242424', borderRadius: 8, overflow: 'hidden' }}>
