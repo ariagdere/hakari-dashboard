@@ -124,18 +124,25 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
         // kaybolmasin diye) -- bandin BIR KISMI hala gorunur olabilir.
         const grabStartTime = Math.floor(candlesRef.current[rangeStart + 1].time / 1000)
         const grabEndTime = Math.floor(candlesRef.current[rangeEnd].time / 1000)
+        const rawGx1 = ts.timeToCoordinate(grabStartTime as any)
+        const rawGx2 = ts.timeToCoordinate(grabEndTime as any)
         const gx1 = coordOrEdge(grabStartTime, 0)
         const gx2 = coordOrEdge(grabEndTime, chartWidth)
+        console.log('[FVGLAB-DEBUG] grabStartTime(sn):', grabStartTime, ' grabEndTime(sn):', grabEndTime, ' chartWidth:', chartWidth)
+        console.log('[FVGLAB-DEBUG] HAM rawGx1:', rawGx1, ' rawGx2:', rawGx2, ' (null ise fallback kullanildi)')
+        console.log('[FVGLAB-DEBUG] SONUC gx1:', gx1, ' gx2:', gx2)
         if (gx2 > gx1) {
           svg += `<rect x="${gx1}" y="0" width="${gx2 - gx1}" height="100%" fill="rgba(251,191,36,0.06)" stroke="rgba(251,191,36,0.35)" stroke-width="1" stroke-dasharray="2,2"/>`
         }
 
         // 2) Swing arama penceresi -- x-ekseninin hemen altinda mor koseli ayrac
         const winStartTime = Math.floor(candlesRef.current[windowStart].time / 1000)
+        const rawWx1 = ts.timeToCoordinate(winStartTime as any)
         const wx1 = coordOrEdge(winStartTime, 0)
         const wx2 = gx2
         const chartH = containerRef.current?.clientHeight ?? 460
         const bracketY = chartH - 24
+        console.log('[FVGLAB-DEBUG] winStartTime(sn):', winStartTime, ' HAM rawWx1:', rawWx1, ' SONUC wx1:', wx1, ' wx2:', wx2, ' bracketY:', bracketY, ' chartH:', chartH)
         if (wx2 > wx1) {
           svg += `<line x1="${wx1}" y1="${bracketY}" x2="${wx2}" y2="${bracketY}" stroke="#a78bfa" stroke-width="1.5"/>`
           svg += `<line x1="${wx1}" y1="${bracketY - 4}" x2="${wx1}" y2="${bracketY + 4}" stroke="#a78bfa" stroke-width="1.5"/>`
