@@ -69,6 +69,8 @@ export interface FvgParams {
   tpZonePct: number;
   maxTradeDurationCandles: number; // yeni -- outcome simulasyonu icin ust sinir
   sequentialTradesOnly: boolean; // aciksa, bir trade aktifken zaman olarak cakisan sonraki trade'ler iptal edilir
+  maxConcurrentTrades: number | null; // sequential'a ALTERNATIF: en fazla N trade ayni anda acik olabilir. sequentialTradesOnly=true ise BU YOK SAYILIR (1 zaten uygulanir).
+  minRR: number; // trade setup'un RR'si bu esigin ALTINDAYSA setup reddedilir (0 = filtre yok)
 }
 
 export const DEFAULT_PARAMS: FvgParams = {
@@ -98,6 +100,8 @@ export const DEFAULT_PARAMS: FvgParams = {
   tpZonePct: 0.70,
   maxTradeDurationCandles: 2880, // 5dk mumda 10 gun
   sequentialTradesOnly: false,
+  maxConcurrentTrades: null,
+  minRR: 0,
 };
 
 export type FvgStatus = 'open' | 'filled' | 'expired';
@@ -480,6 +484,9 @@ export function computeTradeSetup(candles: Candle[], fvg: Fvg, swings: SwingPoin
     direction: (isShort ? 'SHORT' : 'LONG') as 'LONG' | 'SHORT',
     entry, sl, tp, rr: Math.round(rr * 100) / 100, riskDist, rewardDist, tpSwingIdx, tpFallbackUsed, tpZoneTouchCount,
   };
+  if (rr < p.minRR) {
+    return { valid: false, reason: `RR (${Math.round(rr * 100) / 100}) minimum eşiğin (${p.minRR}) altında`, ...base };
+  }
   if (!gate.pass) {
     return { valid: false, reason: gate.reason ?? undefined, ...base };
   }
@@ -522,24 +529,39 @@ export function simulateTradeOutcome(
 // iptal edilir (tradeSetup.valid=false + aciklayici reason, outcome=null).
 // ifvgScore KORUNUR -- kullanici "kriterleri gecmisti ama sequential mode
 // yuzunden alinmadi" bilgisini hala gorebilsin diye.
-function applySequentialFilter(fvgs: Fvg[], candles: Candle[]): void {
+// Genellestirilmis versiyon: en fazla `maxConcurrent` trade AYNI ANDA acik
+// olabilir. maxConcurrent=1 verildiginde ESKI "sequential" davranisiyla
+// MATEMATIKSEL OLARAK AYNIDIR (tek bir "en son kabul edilenin kapanis
+// zamani" takibiyle ozdestir) -- bu yuzden applySequentialFilter YERINE
+// bu fonksiyon maxConcurrent=1 ile cagrilir, kod tekrari olmadan.
+function applyMaxConcurrentFilter(fvgs: Fvg[], candles: Candle[], maxConcurrent: number): void {
   const withSetup = fvgs
     .filter(f => f.tradeSetup?.valid && f.outcome != null && f.filledIdx != null)
     .sort((a, b) => candles[a.filledIdx as number].time - candles[b.filledIdx as number].time);
 
-  let openUntilTime = -Infinity;
+  const openCloseTimes: number[] = []; // su an ACIK olan trade'lerin kapanis zamanlari
 
   for (const fvg of withSetup) {
     const entryTime = candles[fvg.filledIdx as number].time;
-    if (entryTime < openUntilTime) {
+    // Bu entry ANINDAN ONCE (ya da TAM O ANDA) kapanmis olanlari "acik"
+    // listesinden CIKAR -- ayni sinirda kapanan bir trade, sequential
+    // filtreyle TUTARLI olarak "cakismiyor" sayilir (entryTime<openUntilTime
+    // kuraliyla AYNI sinir mantigi).
+    for (let i = openCloseTimes.length - 1; i >= 0; i--) {
+      if (openCloseTimes[i] <= entryTime) openCloseTimes.splice(i, 1);
+    }
+
+    if (openCloseTimes.length >= maxConcurrent) {
       (fvg.tradeSetup as TradeSetup).valid = false;
-      (fvg.tradeSetup as TradeSetup).reason = 'Sequential trade modu: bu noktada başka bir işlem zaten açıktı';
+      (fvg.tradeSetup as TradeSetup).reason = `Maks. eşzamanlı trade sınırı (${maxConcurrent}) doluydu`;
       fvg.outcome = null;
       continue;
     }
-    openUntilTime = fvg.outcome?.closeTime ?? entryTime;
+
+    openCloseTimes.push(fvg.outcome?.closeTime ?? entryTime);
   }
 }
+
 
 export function detectFVGs(candles: Candle[], p: FvgParams, zlemaLookup?: ZlemaZoneLookup): Fvg[] {
   const fvgs: Fvg[] = [];
@@ -586,8 +608,14 @@ export function detectFVGs(candles: Candle[], p: FvgParams, zlemaLookup?: ZlemaZ
     }
   }
 
-  if (p.sequentialTradesOnly) {
-    applySequentialFilter(fvgs, candles);
+  // sequentialTradesOnly=true HER ZAMAN oncelikli (geriye donuk uyumluluk,
+  // ayni sonuc). Kapaliysa, maxConcurrentTrades (pozitif bir sayiysa) devreye
+  // girer. Ikisi de yoksa sinir uygulanmaz (mevcut varsayilan davranis).
+  const effectiveLimit = p.sequentialTradesOnly
+    ? 1
+    : (p.maxConcurrentTrades != null && p.maxConcurrentTrades > 0 ? p.maxConcurrentTrades : null);
+  if (effectiveLimit != null) {
+    applyMaxConcurrentFilter(fvgs, candles, effectiveLimit);
   }
 
   return fvgs;
