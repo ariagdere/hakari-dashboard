@@ -157,10 +157,16 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
         const s = selFvg.ifvgScore
         // Secilen swing'in kendi LOOKBACK onay bolgesi -- "bu nokta,
         // kendisinden ONCEKI ve SONRAKI kac muma kiyasla swing sayildi"
-        // sorusunun gorsel cevabi. Standalone araçtaki AYNI mantik.
-        const drawLookbackBand = (swIdx: number, color: string) => {
+        // sorusunun gorsel cevabi. Standalone araçtaki AYNI mantik --
+        // AMA ileri yonde FVG'nin KENDI degerlendirme noktasini (evalIdx)
+        // GECMEZ: motor artik bu swing'in gecerliligini SADECE evalIdx'e
+        // kadarki veriyle degerlendiriyor (isSwingValidAsOf), bandin
+        // GORSELI de bununla TUTARLI olmali -- aksi halde "bu swing'in
+        // onaylanmasi icin FVG'DEN SONRAKI mumlara bakildi" gibi YANLIS
+        // bir izlenim verir.
+        const drawLookbackBand = (swIdx: number, evalIdx: number, color: string) => {
           const bandStartIdx = Math.max(0, swIdx - p.swingLookback)
-          const bandEndIdx = Math.min(lastIdx, swIdx + p.swingLookback)
+          const bandEndIdx = Math.min(lastIdx, swIdx + p.swingLookback, evalIdx)
           const bandStartTime = Math.floor(candlesRef.current[bandStartIdx].time / 1000)
           const bandEndTime = Math.floor(candlesRef.current[bandEndIdx].time / 1000)
           const bx1 = coordOrEdge(bandStartTime, 0)
@@ -169,8 +175,8 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
             svg += `<rect x="${bx1}" y="0" width="${bx2 - bx1}" height="100%" fill="${color}" opacity="0.35"/>`
           }
         }
-        if (s.sweepSwingIdx != null) drawLookbackBand(s.sweepSwingIdx, 'rgba(251,191,36,0.12)')
-        if (s.bosSwingIdx != null) drawLookbackBand(s.bosSwingIdx, 'rgba(96,165,250,0.12)')
+        if (s.sweepSwingIdx != null) drawLookbackBand(s.sweepSwingIdx, rangeEnd, 'rgba(251,191,36,0.12)')
+        if (s.bosSwingIdx != null && selFvg.filledIdx != null) drawLookbackBand(s.bosSwingIdx, selFvg.filledIdx, 'rgba(96,165,250,0.12)')
 
         if (s.sweepSwingIdx != null && s.sweepSwingPrice != null) {
           drawSwingMarker({ idx: s.sweepSwingIdx, price: s.sweepSwingPrice, type: sweepSwingType, invalidatedAtIdx: null }, true, '#fbbf24')
