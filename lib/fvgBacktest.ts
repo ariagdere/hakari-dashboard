@@ -4,6 +4,29 @@
 // sorumlulugundan ayri tutuluyor -- bu dosya "toplu sonuc raporlama".
 import { Fvg, Candle } from './fvgEngine';
 
+// candle_analysis_match uzerinden btc_analysis'a eslesen piyasa/likidasyon
+// baglami -- SADECE goruntuleme/analiz icindir, FVG motorunun skorlama/kapi
+// mantigina HICBIR SEKILDE dahil edilmez (motor tamamen bagimsiz kalir).
+export interface MarketContext {
+  sentSynthesisMtf: string | null;
+  sentSynthesisH1: string | null;
+  sentSynthesisM5: string | null;
+  sentLiquidity: string | null;
+  rsi4h: number | null;
+  h1LsRatioStart: number | null; h1LsRatioCurrent: number | null;
+  h1TtPositionsStart: number | null; h1TtPositionsCurrent: number | null;
+  h1TtAccountsStart: number | null; h1TtAccountsCurrent: number | null;
+  h1OiStart: number | null; h1OiCurrent: number | null;
+  h1OiMcapStart: number | null; h1OiMcapCurrent: number | null;
+  m5LsRatioStart: number | null; m5LsRatioCurrent: number | null;
+  m5TtPositionsStart: number | null; m5TtPositionsCurrent: number | null;
+  m5TtAccountsStart: number | null; m5TtAccountsCurrent: number | null;
+  m5OiStart: number | null; m5OiCurrent: number | null;
+  m5OiMcapStart: number | null; m5OiMcapCurrent: number | null;
+  matchedAnalysisId: number | null;
+  matchedDiffSeconds: number | null;
+}
+
 export interface SimTrade {
   fvgIndex: number; // fvgs[] dizisindeki orijinal indeks -- tablo tiklamasini grafik secimine baglamak icin
   fvgType: string;
@@ -15,6 +38,7 @@ export interface SimTrade {
   displacementPass: boolean | null;
   zlema1hPass: boolean | null;
   zlema4hPass: boolean | null;
+  marketContext: MarketContext | null;
   entry: number;
   sl: number;
   tp: number;
@@ -42,22 +66,24 @@ export interface SimMetrics {
   maxConcurrentTrades: number;
 }
 
-export function extractTrades(fvgs: Fvg[], candles: Candle[]): SimTrade[] {
+export function extractTrades(fvgs: Fvg[], candles: Candle[], marketContextByTime?: Map<number, MarketContext>): SimTrade[] {
   const trades: SimTrade[] = [];
   for (let i = 0; i < fvgs.length; i++) {
     const f = fvgs[i];
     if (!f.tradeSetup?.valid || f.outcome == null) continue;
+    const filledTime = candles[f.filledIdx as number].time;
     trades.push({
       fvgIndex: i,
       fvgType: f.type,
       direction: f.tradeSetup!.direction as string,
       formedAt: candles[f.formedIdx].time,
-      filledAt: candles[f.filledIdx as number].time,
+      filledAt: filledTime,
       sweepPass: f.ifvgScore?.sweep ?? null,
       bosPass: f.ifvgScore?.bosApplicable ? f.ifvgScore.bos : null,
       displacementPass: f.ifvgScore?.displacement ?? null,
       zlema1hPass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema1hAligned : null,
       zlema4hPass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema4hAligned : null,
+      marketContext: marketContextByTime ? (marketContextByTime.get(filledTime) ?? null) : null,
       entry: f.tradeSetup!.entry as number,
       sl: f.tradeSetup!.sl as number,
       tp: f.tradeSetup!.tp as number,
