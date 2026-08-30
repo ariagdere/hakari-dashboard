@@ -86,7 +86,8 @@ export default function FvgLabParamPanel({ params, onChange, onReset }: Props) {
           <CheckField label="Likidite Alımı" checked={params.useSweepCriterion} onChange={v => set('useSweepCriterion', v)} />
           <CheckField label="BOS Örtüşmesi" checked={params.useBosCriterion} onChange={v => set('useBosCriterion', v)} />
           <CheckField label="Displacement" checked={params.useDisplacementCriterion} onChange={v => set('useDisplacementCriterion', v)} />
-          <CheckField label="ZLEMA (1H+4H) Hizalanması" checked={params.useZlemaCriterion} onChange={v => set('useZlemaCriterion', v)} />
+          <CheckField label="ZLEMA 1H Hizalanması" checked={params.useZlema1hCriterion} onChange={v => set('useZlema1hCriterion', v)} />
+          <CheckField label="ZLEMA 4H Hizalanması" checked={params.useZlema4hCriterion} onChange={v => set('useZlema4hCriterion', v)} />
           <SelectField label="Trade alma koşulu" value={params.tradeConditionMode}
             options={[{ value: 'all', label: 'Hepsi geçmeli' }, { value: 'any', label: 'Biri yeter' }, { value: 'always', label: 'Her zaman al' }]}
             onChange={v => set('tradeConditionMode', v)} />
