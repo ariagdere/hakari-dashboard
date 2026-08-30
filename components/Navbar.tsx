@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { label: 'LIST', href: '/list' },
   { label: 'LIVE',      href: '/live' },
   { label: 'MKT',      href: '/mkt' },
+  { label: 'FVG-Lab',      href: '/fvg-lab' },
 ]
 export default function Navbar() {
   const pathname = usePathname()
