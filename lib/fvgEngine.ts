@@ -55,7 +55,8 @@ export interface FvgParams {
   useSweepCriterion: boolean;
   useBosCriterion: boolean;
   useDisplacementCriterion: boolean;
-  useZlemaCriterion: boolean;
+  useZlema1hCriterion: boolean;
+  useZlema4hCriterion: boolean;
   zlemaFastPeriod: number;
   zlemaSlowPeriod: number;
   slMode: SlMode;
@@ -83,7 +84,8 @@ export const DEFAULT_PARAMS: FvgParams = {
   useSweepCriterion: true,
   useBosCriterion: false,
   useDisplacementCriterion: false,
-  useZlemaCriterion: false,
+  useZlema1hCriterion: false,
+  useZlema4hCriterion: false,
   zlemaFastPeriod: 8,
   zlemaSlowPeriod: 21,
   slMode: 'swept_swing',
@@ -123,7 +125,8 @@ export interface IfvgScore {
   bosApplicable: boolean;
   displacement: boolean | null;
   displacementApplicable: boolean;
-  zlemaAligned: boolean | null;
+  zlema1hAligned: boolean | null;
+  zlema4hAligned: boolean | null;
   zlemaApplicable: boolean;
   zlema1h: ZoneDirection;
   zlema4h: ZoneDirection;
@@ -340,17 +343,18 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
   const bos = isFilled ? checkBOSAtFill(candles, fvg, swings, p) : { pass: false, swingDistance: null, swingIdx: null, swingPrice: null };
   const displacement: boolean | null = isFilled ? checkDisplacementQuality(candles, fvg, p) : null;
 
-  // ZLEMA hizalanmasi: fill anindaki (entry noktasindaki) 1H+4H bolge yonu,
-  // trade yonuyle (bullish FVG -> LONG, bearish FVG -> SHORT) AYNI OLMALI.
-  // Ikisi de aynı yonde olmali (daha guclu/muhafazakar sinyal).
-  let zlemaAligned: boolean | null = null;
+  // ZLEMA hizalanmasi: fill anindaki (entry noktasindaki) bolge yonu, trade
+  // yonuyle (bullish FVG -> LONG, bearish FVG -> SHORT) AYNI OLMALI. 1H ve
+  // 4H BAGIMSIZ kriterler -- her biri kendi basina acilip kapatilabilir.
+  let zlema1hAligned: boolean | null = null, zlema4hAligned: boolean | null = null;
   let zlema1h: ZoneDirection = null, zlema4h: ZoneDirection = null;
   if (isFilled && zlemaLookup) {
     const zone = zlemaLookup.zoneAsOf(candles[fvg.filledIdx as number].time);
     zlema1h = zone.h1;
     zlema4h = zone.h4;
     const expected: ZoneDirection = fvg.type === 'bullish' ? 'bullish' : 'bearish';
-    zlemaAligned = zone.h1 === expected && zone.h4 === expected;
+    zlema1hAligned = zone.h1 === expected;
+    zlema4hAligned = zone.h4 === expected;
   }
 
   const countedChecks: boolean[] = [];
@@ -358,14 +362,15 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
   if (isFilled) {
     if (p.useBosCriterion) countedChecks.push(bos.pass);
     if (p.useDisplacementCriterion) countedChecks.push(!!displacement);
-    if (p.useZlemaCriterion) countedChecks.push(!!zlemaAligned);
+    if (p.useZlema1hCriterion) countedChecks.push(!!zlema1hAligned);
+    if (p.useZlema4hCriterion) countedChecks.push(!!zlema4hAligned);
   }
 
   return {
     sweep: sweep.pass, sweepDistance: sweep.swingDistance, sweepSwingIdx: sweep.swingIdx ?? null, sweepSwingPrice: sweep.swingPrice ?? null, sweepTrace: sweep.trace,
     bos: bos.pass, bosDistance: bos.swingDistance, bosSwingIdx: bos.swingIdx, bosSwingPrice: bos.swingPrice, bosApplicable: isFilled,
     displacement, displacementApplicable: isFilled,
-    zlemaAligned, zlemaApplicable: isFilled, zlema1h, zlema4h,
+    zlema1hAligned, zlema4hAligned, zlemaApplicable: isFilled, zlema1h, zlema4h,
     total: countedChecks.filter(Boolean).length,
     maxScore: countedChecks.length,
   };
@@ -382,7 +387,8 @@ function checkTradeCondition(fvg: Fvg, p: FvgParams): GateResult {
   if (p.useSweepCriterion) relevant.push({ name: 'Likidite', val: s.sweep });
   if (p.useBosCriterion) relevant.push({ name: 'BOS', val: s.bos });
   if (p.useDisplacementCriterion) relevant.push({ name: 'Displacement', val: !!s.displacement });
-  if (p.useZlemaCriterion) relevant.push({ name: 'ZLEMA', val: !!s.zlemaAligned });
+  if (p.useZlema1hCriterion) relevant.push({ name: 'ZLEMA 1H', val: !!s.zlema1hAligned });
+  if (p.useZlema4hCriterion) relevant.push({ name: 'ZLEMA 4H', val: !!s.zlema4hAligned });
   if (relevant.length === 0) return { pass: true, reason: null };
   const pass = p.tradeConditionMode === 'all' ? relevant.every(r => r.val) : relevant.some(r => r.val);
   return {
