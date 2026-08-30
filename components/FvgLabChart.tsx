@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { findSwingPoints, selectRelevantSwing, getSweepRange } from '@/lib/fvgEngine'
+import { findSwingPoints, selectRelevantSwing, getSweepRange, isSwingValidAsOf } from '@/lib/fvgEngine'
 import type { Candle, Fvg, FvgParams, SwingPoint } from '@/lib/fvgEngine'
 
 interface Props {
@@ -112,9 +112,9 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
         const { rangeStart, rangeEnd } = getSweepRange(selFvg, candlesRef.current.length, p)
         const windowStart = Math.max(0, rangeEnd - p.swingSearchWindow)
 
-        const sweepCandidates = allSwings.filter(sw => sw.type === sweepSwingType && sw.idx >= windowStart && sw.idx < rangeEnd)
+        const sweepCandidates = allSwings.filter(sw => sw.type === sweepSwingType && sw.idx >= windowStart && sw.idx < rangeEnd && isSwingValidAsOf(sw, rangeEnd))
         const bosCandidates = selFvg.status === 'filled'
-          ? allSwings.filter(sw => sw.type === bosSwingType && sw.idx >= windowStart && sw.idx < rangeEnd)
+          ? allSwings.filter(sw => sw.type === bosSwingType && sw.idx >= windowStart && sw.idx < rangeEnd && isSwingValidAsOf(sw, rangeEnd))
           : []
 
         // 1) Likidite arama araligi -- tam yukseklikte amber serit. Gorunur
@@ -173,7 +173,7 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
         if (s.bosSwingIdx != null) drawLookbackBand(s.bosSwingIdx, 'rgba(96,165,250,0.12)')
 
         if (s.sweepSwingIdx != null && s.sweepSwingPrice != null) {
-          drawSwingMarker({ idx: s.sweepSwingIdx, price: s.sweepSwingPrice, type: sweepSwingType }, true, '#fbbf24')
+          drawSwingMarker({ idx: s.sweepSwingIdx, price: s.sweepSwingPrice, type: sweepSwingType, invalidatedAtIdx: null }, true, '#fbbf24')
           const ly = series.priceToCoordinate(s.sweepSwingPrice)
           const lx1 = ts.timeToCoordinate(Math.floor(candlesRef.current[s.sweepSwingIdx].time / 1000) as any)
           if (ly != null && lx1 != null && gx2 != null) {
@@ -181,7 +181,7 @@ export default function FvgLabChart({ candles, fvgs, selectedIdx, onSelectFvg, p
           }
         }
         if (s.bosSwingIdx != null && s.bosSwingPrice != null) {
-          drawSwingMarker({ idx: s.bosSwingIdx, price: s.bosSwingPrice, type: bosSwingType }, true, '#60a5fa')
+          drawSwingMarker({ idx: s.bosSwingIdx, price: s.bosSwingPrice, type: bosSwingType, invalidatedAtIdx: null }, true, '#60a5fa')
         }
       }
     }
