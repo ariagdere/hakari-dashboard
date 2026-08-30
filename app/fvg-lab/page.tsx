@@ -5,6 +5,7 @@ import { SimMetrics, SimTrade, EquityCurve, computeDayOfWeekBreakdown, computeHo
 import FvgLabChart from '@/components/FvgLabChart'
 import FvgLabParamPanel from '@/components/FvgLabParamPanel'
 import FvgLabTradeTable from '@/components/FvgLabTradeTable'
+import FvgLabOpenList from '@/components/FvgLabOpenList'
 import FvgLabEquityChart from '@/components/FvgLabEquityChart'
 import FvgLabBreakdownTable from '@/components/FvgLabBreakdownTable'
 
@@ -189,6 +190,13 @@ export default function FvgLabPage() {
           <div style={{ marginTop: 24 }}>
             <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 12 }}>İşlemler ({result.trades.length})</div>
             <FvgLabTradeTable trades={result.trades} selectedIdx={selectedFvgIdx} onSelect={setSelectedFvgIdx} />
+          </div>
+
+          <div style={{ marginTop: 24 }}>
+            <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 12 }}>
+              Açık FVG'ler ({result.fvgs.filter(f => f.status === 'open').length})
+            </div>
+            <FvgLabOpenList fvgs={result.fvgs} candles={result.candles} selectedIdx={selectedFvgIdx} onSelect={setSelectedFvgIdx} />
           </div>
         </>
       )}
