@@ -2,7 +2,7 @@
 // detectFVGs() sonuclarindan ozet backtest istatistikleri (equity curve,
 // max drawdown, win rate) uretir. fvgEngine.ts'in "tek FVG degerlendirme"
 // sorumlulugundan ayri tutuluyor -- bu dosya "toplu sonuc raporlama".
-import { Fvg, Candle } from './fvgEngine';
+import { Fvg, Candle, ZoneDirection } from './fvgEngine';
 import { ClusterSnapshotData, LiquidityContext, computeLiquidityContext } from './liquidityCluster';
 
 // candle_analysis_match uzerinden btc_analysis'a eslesen piyasa/likidasyon
@@ -41,6 +41,8 @@ export interface SimTrade {
   zlema4hPass: boolean | null;
   liqClusterNearPass: boolean | null;
   liqClusterFarPass: boolean | null;
+  zlema1hZone: ZoneDirection; // pass/fail'den FARKLI -- trade yonune BAKMADAN, o andaki HAM zone degeri (dogrulama/inceleme icin)
+  zlema4hZone: ZoneDirection;
   marketContext: MarketContext | null;
   liquidityContext: LiquidityContext | null;
   entry: number;
@@ -94,6 +96,8 @@ export function extractTrades(
       zlema4hPass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema4hAligned : null,
       liqClusterNearPass: f.ifvgScore?.liqClusterApplicable ? f.ifvgScore.liqClusterNear : null,
       liqClusterFarPass: f.ifvgScore?.liqClusterApplicable ? f.ifvgScore.liqClusterFar : null,
+      zlema1hZone: f.ifvgScore?.zlema1h ?? null,
+      zlema4hZone: f.ifvgScore?.zlema4h ?? null,
       marketContext: marketContextByTime ? (marketContextByTime.get(filledTime) ?? null) : null,
       liquidityContext: clusterSnapshotByTime
         ? computeLiquidityContext(entryPrice, clusterSnapshotByTime.get(filledTime))
