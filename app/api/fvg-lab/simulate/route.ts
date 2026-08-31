@@ -3,6 +3,7 @@ import pool from '@/lib/db'
 import { detectFVGs, FvgParams, Candle } from '@/lib/fvgEngine'
 import { extractTrades, computeMetrics, computeEquityCurve, MarketContext } from '@/lib/fvgBacktest'
 import { buildZlemaLookup } from '@/lib/htfZlema'
+import { computeClusters, extractRefPrice, ClusterSnapshotData } from '@/lib/liquidityCluster'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,6 +39,9 @@ export async function POST(req: NextRequest) {
     // candle_analysis_match + btc_analysis LEFT JOIN -- eslesme yoksa (10
     // saat toleransi asildiysa ya da piyasa verisi henuz baslamamissa) tum
     // alanlar NULL doner, candles/detectFVGs akisini HICBIR SEKILDE etkilemez.
+    // candle_heatmap_match'ten SADECE isaretci (matched_snapshot_id) cekilir
+    // -- agir heatmap_json blob'u BURADA DEGIL, asagida SADECE ihtiyac duyulan
+    // DISTINCT snapshot'lar icin AYRI bir sorguda cekilir.
     const { rows } = await pool.query(
       `SELECT c.open_time, c.open, c.high, c.low, c.close,
               cam.matched_analysis_id, cam.matched_diff_seconds,
@@ -51,10 +55,12 @@ export async function POST(req: NextRequest) {
               ba.m5_tt_positions_start, ba.m5_tt_positions_current,
               ba.m5_tt_accounts_start, ba.m5_tt_accounts_current,
               ba.m5_oi_start, ba.m5_oi_current,
-              ba.m5_oi_mcap_start, ba.m5_oi_mcap_current
+              ba.m5_oi_mcap_start, ba.m5_oi_mcap_current,
+              chm.matched_snapshot_id, chm.matched_diff_seconds AS heatmap_diff_seconds
        FROM btcusdt_5m_candles c
        LEFT JOIN candle_analysis_match cam ON cam.open_time = c.open_time
        LEFT JOIN btc_analysis ba ON ba.id = cam.matched_analysis_id
+       LEFT JOIN candle_heatmap_match chm ON chm.open_time = c.open_time
        WHERE c.open_time BETWEEN $1 AND $2
        ORDER BY c.open_time ASC`,
       [startMs, endMs]
@@ -108,6 +114,38 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    // Likidite kumesi baglami -- SADECE bu araliktaki mumlarin eslestigi
+    // DISTINCT snapshot'lar icin agir heatmap_json blob'u cekilir, HER
+    // snapshot icin computeClusters TEK SEFERDE calisir (binlerce mum,
+    // sadece dusinelerce snapshot'a esler -- N mum icin N kez cekmek yerine).
+    const neededSnapshotIds = Array.from(new Set(
+      rows.map((r) => r.matched_snapshot_id).filter((id: any) => id != null).map((id: any) => Number(id))
+    ))
+    const clusterBySnapshotId = new Map<number, { clusters: ReturnType<typeof computeClusters>; refPrice: number | null }>()
+    if (neededSnapshotIds.length > 0) {
+      const { rows: snapshotRows } = await pool.query(
+        `SELECT id, heatmap_json FROM apify_heatmap_snapshots WHERE id = ANY($1::bigint[])`,
+        [neededSnapshotIds]
+      )
+      for (const sr of snapshotRows) {
+        clusterBySnapshotId.set(Number(sr.id), {
+          clusters: computeClusters(sr.heatmap_json),
+          refPrice: extractRefPrice(sr.heatmap_json),
+        })
+      }
+    }
+    const clusterSnapshotByTime = new Map<number, ClusterSnapshotData>()
+    for (const r of rows) {
+      const snapId = r.matched_snapshot_id != null ? Number(r.matched_snapshot_id) : null
+      const cached = snapId != null ? clusterBySnapshotId.get(snapId) : undefined
+      clusterSnapshotByTime.set(Number(r.open_time), {
+        clusters: cached?.clusters ?? { cluster_up_btc: null, cluster_up_usd: null, cluster_dn_btc: null, cluster_dn_usd: null },
+        refPrice: cached?.refPrice ?? null,
+        matchedSnapshotId: snapId,
+        matchedDiffSeconds: r.heatmap_diff_seconds != null ? Number(r.heatmap_diff_seconds) : null,
+      })
+    }
+
     let zlemaLookup: ReturnType<typeof buildZlemaLookup> | undefined
     if (params.useZlema1hCriterion || params.useZlema4hCriterion) {
       const { rows: warmupRows } = await pool.query(
@@ -123,7 +161,7 @@ export async function POST(req: NextRequest) {
     }
 
     const fvgs = detectFVGs(candles, params, zlemaLookup)
-    const trades = extractTrades(fvgs, candles, marketContextByTime)
+    const trades = extractTrades(fvgs, candles, marketContextByTime, clusterSnapshotByTime)
     const metrics = computeMetrics(trades)
     const equityCurve = computeEquityCurve(trades)
 
