@@ -8,7 +8,7 @@
 import { Candle } from './fvgEngine';
 
 export type HtfTimeframe = '1h' | '4h';
-export type ZoneDirection = 'bullish' | 'bearish' | null;
+export type ZoneDirection = 'bullish' | 'bearish' | 'no_trade' | null; // null = veri yok/yetersiz warmup; 'no_trade' = ZLEMA hesaplandi ama net yon YOK
 
 const TF_MS: Record<HtfTimeframe, number> = {
   '1h': 60 * 60 * 1000,
@@ -122,9 +122,9 @@ export interface ZlemaZoneSeries {
 // Kalman-filtreli HLC3 serisi uzerinde ZLEMA(fast/slow) hesaplar, SONRA
 // canli orchestrator'in KENDI zone kuralini (3-mum ardisik yon + fast/slow
 // karsilastirmasi) uygular -- SADECE fast>slow YETERLI DEGIL, fast'in
-// KENDISI de son 3 mumda ayni yonde ilerliyor olmali. Sonuc LONG/SHORT/
-// NO_TRADE yerine, fvgEngine.ts'in BEKLEDIGI ZoneDirection tipine
-// (bullish/bearish/null) esler -- fvgEngine.ts'e HICBIR SEKILDE dokunmadan.
+// KENDISI de son 3 mumda ayni yonde ilerliyor olmali. LONG/SHORT ->
+// bullish/bearish; orchestrator'in NO_TRADE'i -> acik 'no_trade' degeri
+// (null DEGIL -- null SADECE veri yok/yetersiz warmup anlamina gelir).
 export function buildZlemaZoneSeries(candles5m: Candle[], tf: HtfTimeframe, fastPeriod: number, slowPeriod: number): ZlemaZoneSeries {
   const htfCandles = aggregateCandles(candles5m, tf);
   const hlc3 = htfCandles.map(c => (c.high + c.low + c.close) / 3);
@@ -139,7 +139,7 @@ export function buildZlemaZoneSeries(candles5m: Candle[], tf: HtfTimeframe, fast
     const dec = f0 < f1 && f1 < f2;
     if (f0 > s0 && inc) return 'bullish';
     if (f0 < s0 && dec) return 'bearish';
-    return null; // NO_TRADE
+    return 'no_trade';
   });
   return { htfCandles, fast, slow, zone };
 }
