@@ -30,7 +30,7 @@ interface SearchState {
   status: 'idle' | 'running' | 'done' | 'error'
   startedAt: number | null
   finishedAt: number | null
-  progress: { completed: number; total: number; phase: 'is' | 'oos' | null }
+  progress: { completed: number; total: number; phase: 'preparing' | 'is' | 'oos' | null }
   results: SearchResultItem[] | null
   error: string | null
   periodInfo: { globalMin: number; globalMax: number; isEndTime: number; oosStartTime: number } | null
@@ -70,21 +70,30 @@ function sampleRandomParams(): FvgParams {
   const zlemaFastPeriod = pick(SPACE.zlemaFastCandidates)
   const validSlow = SPACE.zlemaSlowCandidates.filter(s => s > zlemaFastPeriod)
   const zlemaSlowPeriod = validSlow.length > 0 ? pick(validSlow) : zlemaFastPeriod * 2
+  const tradeConditionMode = pick(SPACE.tradeConditionMode)
+  // tradeConditionMode='always' iken checkTradeCondition HICBIR kriteri
+  // kontrol etmeden pass=true doner (fvgEngine.ts'in kendi kurali) -- yani
+  // use*Criterion toggle'lari bu modda TAMAMEN ETKISIZ. Rastgele orneklemeye
+  // devam edersek, sonuc parametre dokumu "ZLEMA aligned VE reverse AYNI ANDA
+  // acik" gibi OKUNUŞTA celiskili ama aslinda ZARARSIZ (hic uygulanmamis)
+  // degerler gosterir -- kafa karistirmamak icin bu modda hepsini durustce
+  // false birakiyoruz.
+  const useCriteria = tradeConditionMode !== 'always'
   return {
     swingLookback: pick(SPACE.swingLookback), swingSearchWindow: pick(SPACE.swingSearchWindow),
     swingSelectMode: pick(SPACE.swingSelectMode), sweepProximityPct: pick(SPACE.sweepProximityPct),
     wickBodyRatioMin: pick(SPACE.wickBodyRatioMin), bodyRatioThreshold: pick(SPACE.bodyRatioThreshold),
     avgRangeLookback: pick(SPACE.avgRangeLookback), rangeMultiplier: pick(SPACE.rangeMultiplier),
     fvgMaxAgeCandles: pick(SPACE.fvgMaxAgeCandles),
-    useSweepCriterion: Math.random() < 0.5, useBosCriterion: Math.random() < 0.5,
-    useDisplacementCriterion: Math.random() < 0.5, useZlema1hCriterion: Math.random() < 0.5,
-    useZlema4hCriterion: Math.random() < 0.5, useZlema1hReverseCriterion: Math.random() < 0.5,
-    useZlema1hNoTradeCriterion: Math.random() < 0.5, useZlema4hReverseCriterion: Math.random() < 0.5,
-    useZlema4hNoTradeCriterion: Math.random() < 0.5, useLiqClusterNearCriterion: Math.random() < 0.5,
-    useLiqClusterFarCriterion: Math.random() < 0.5,
+    useSweepCriterion: useCriteria && Math.random() < 0.5, useBosCriterion: useCriteria && Math.random() < 0.5,
+    useDisplacementCriterion: useCriteria && Math.random() < 0.5, useZlema1hCriterion: useCriteria && Math.random() < 0.5,
+    useZlema4hCriterion: useCriteria && Math.random() < 0.5, useZlema1hReverseCriterion: useCriteria && Math.random() < 0.5,
+    useZlema1hNoTradeCriterion: useCriteria && Math.random() < 0.5, useZlema4hReverseCriterion: useCriteria && Math.random() < 0.5,
+    useZlema4hNoTradeCriterion: useCriteria && Math.random() < 0.5, useLiqClusterNearCriterion: useCriteria && Math.random() < 0.5,
+    useLiqClusterFarCriterion: useCriteria && Math.random() < 0.5,
     zlemaFastPeriod, zlemaSlowPeriod, slMode: pick(SPACE.slMode),
     tpSwingSearchWindow: pick(SPACE.swingSearchWindow), tpFallbackMode: pick(SPACE.tpFallbackMode),
-    tradeConditionMode: pick(SPACE.tradeConditionMode), slBufferPct: pick(SPACE.slBufferPct),
+    tradeConditionMode, slBufferPct: pick(SPACE.slBufferPct),
     tpPlacementMode: pick(SPACE.tpPlacementMode), tpTargetPct: pick(SPACE.tpTargetPct),
     tpZonePct: pick(SPACE.tpZonePct), maxTradeDurationCandles: pick(SPACE.maxTradeDurationCandles),
     sequentialTradesOnly: Math.random() < 0.5, maxConcurrentTrades: pick(SPACE.maxConcurrentTrades),
@@ -113,10 +122,13 @@ async function preparePeriodData(startMs: number, endMs: number): Promise<Period
   ))
   const clusterBySnapshotId = new Map<number, { clusters: ReturnType<typeof computeClusters>; refPrice: number | null }>()
   if (neededSnapshotIds.length > 0) {
+    console.log(`[paramSearch]   ${neededSnapshotIds.length} distinct heatmap snapshot cekiliyor (bu adim en yavas olan olabilir)...`)
+    const t0 = Date.now()
     const { rows: snapshotRows } = await pool.query(
       `SELECT id, heatmap_json FROM apify_heatmap_snapshots WHERE id = ANY($1::bigint[])`,
       [neededSnapshotIds]
     )
+    console.log(`[paramSearch]   ${snapshotRows.length} snapshot cekildi (${((Date.now() - t0) / 1000).toFixed(1)}sn).`)
     for (const sr of snapshotRows) {
       clusterBySnapshotId.set(Number(sr.id), { clusters: computeClusters(sr.heatmap_json), refPrice: extractRefPrice(sr.heatmap_json) })
     }
@@ -156,20 +168,34 @@ function runTrial(params: FvgParams, candles: Candle[], warmupCandles: Candle[],
 }
 
 // ─── Arka planda calisan asil arama -- await EDILMEDEN cagrilir, searchState'i
-// ilerledikce gunceller. ─────────────────────────────────────────────────────
+// ilerledikce gunceller. HER asamada console.log basar -- Railway loglarindan
+// "hala mi calisiyor yoksa gercekten mi durdu" ayirt edilebilsin diye. ──────
 async function runSearch(nTrials: number, topK: number, minTrades: number) {
-  const { rows: rangeRows } = await pool.query(`SELECT MIN(open_time) AS min_t, MAX(open_time) AS max_t FROM btcusdt_5m_candles`)
+  console.log(`[paramSearch] Baslatildi: nTrials=${nTrials} topK=${topK} minTrades=${minTrades}`)
+  searchState.progress = { completed: 0, total: nTrials, phase: 'preparing' }
+
+  const { rows: rangeRows } = await pool.query(`SELECT MIN(open_time) AS min_t, MAX(open_time) AS max_t, COUNT(*) AS cnt FROM btcusdt_5m_candles`)
   const globalMin = Number(rangeRows[0].min_t)
   const globalMax = Number(rangeRows[0].max_t)
+  const totalCandleCount = Number(rangeRows[0].cnt)
+  console.log(`[paramSearch] Mum araligi: ${totalCandleCount} mum, ${new Date(globalMin).toISOString()} -> ${new Date(globalMax).toISOString()}`)
 
-  const { rows: timeRows } = await pool.query(`SELECT open_time FROM btcusdt_5m_candles ORDER BY open_time ASC`)
-  const allTimes = timeRows.map((r) => Number(r.open_time))
-  const splitIdx = Math.floor(allTimes.length * IS_RATIO)
-  const isEndTime = allTimes[splitIdx - 1]
-  const oosStartTime = allTimes[splitIdx]
+  // TUM open_time'lari Node'a cekmek yerine (buyuk tablolarda yavas), split
+  // noktasini Postgres'in kendisine OFFSET/LIMIT ile buldurur -- iki sinir
+  // degeri (isEndTime, oosStartTime) TEK sorguda, ardisik satirlar olarak.
+  const splitIdx = Math.floor(totalCandleCount * IS_RATIO)
+  const { rows: splitRows } = await pool.query(
+    `SELECT open_time FROM btcusdt_5m_candles ORDER BY open_time ASC OFFSET $1 LIMIT 2`,
+    [splitIdx - 1]
+  )
+  const isEndTime = Number(splitRows[0].open_time)
+  const oosStartTime = Number(splitRows[1].open_time)
   searchState.periodInfo = { globalMin, globalMax, isEndTime, oosStartTime }
+  console.log(`[paramSearch] IS: ...->${new Date(isEndTime).toISOString()} (%${(IS_RATIO * 100).toFixed(0)}), OOS: ${new Date(oosStartTime).toISOString()}->...`)
 
+  console.log('[paramSearch] IS verisi hazirlaniyor (mumlar + likidite kumesi eslesmeleri)...')
   const isData = await preparePeriodData(globalMin, isEndTime)
+  console.log(`[paramSearch] IS verisi hazir: ${isData.candles.length} mum, ${isData.warmupCandles.length} warmup mum.`)
 
   const results: { params: FvgParams; isMetrics: SimMetrics; score: number }[] = []
   searchState.progress = { completed: 0, total: nTrials, phase: 'is' }
@@ -183,13 +209,19 @@ async function runSearch(nTrials: number, topK: number, minTrades: number) {
       // Gecersiz/celiskili parametre kombinasyonu -- bu denemeyi atla.
     }
     searchState.progress = { completed: i + 1, total: nTrials, phase: 'is' }
+    if ((i + 1) % 25 === 0) console.log(`[paramSearch] IS: ${i + 1}/${nTrials} tamamlandi (${results.length} gecerli).`)
   }
+  console.log(`[paramSearch] IS taramasi bitti: ${results.length}/${nTrials} deneme yeterli trade sayisina ulasti.`)
 
   results.sort((a, b) => b.score - a.score)
   const top = results.slice(0, topK)
 
-  searchState.progress = { completed: 0, total: top.length, phase: 'oos' }
+  console.log(`[paramSearch] Top-${top.length} icin OOS verisi hazirlaniyor...`)
+  searchState.progress = { completed: 0, total: top.length, phase: 'preparing' }
   const oosData = await preparePeriodData(oosStartTime, globalMax)
+  console.log(`[paramSearch] OOS verisi hazir: ${oosData.candles.length} mum, ${oosData.warmupCandles.length} warmup mum.`)
+
+  searchState.progress = { completed: 0, total: top.length, phase: 'oos' }
   const finalResults: SearchResultItem[] = []
   for (let i = 0; i < top.length; i++) {
     const { params, isMetrics, score } = top[i]
@@ -201,9 +233,11 @@ async function runSearch(nTrials: number, topK: number, minTrades: number) {
       overfitWarning: oosMetrics.totalTrades >= minTrades && oosScore < score * 0.3,
     })
     searchState.progress = { completed: i + 1, total: top.length, phase: 'oos' }
+    console.log(`[paramSearch] OOS: ${i + 1}/${top.length} tamamlandi.`)
   }
 
   searchState.results = finalResults
+  console.log(`[paramSearch] Tamamlandi. ${finalResults.length} sonuc.`)
   searchState.status = 'done'
   searchState.finishedAt = Date.now()
 }
