@@ -67,6 +67,22 @@ export function computeClusters(heatmap: any): ClusterResult {
   };
 }
 
+// fvgEngine.ts'teki LiquidityClusterLookup arayuzune YAPISAL olarak uyar
+// (import ETMEZ -- ZLEMA'daki AYNI dongusel-bagimlilik-onleme prensibi).
+// clusterSnapshotByTime, simulate route'unda ZATEN candle_heatmap_match
+// JOIN'inden kurulan Map -- HER candle zamanina bir giris VAR (eslesme
+// bulunamasa bile), bu yuzden dogrudan .get() yeterli, binary search
+// GEREKMEZ (ZLEMA'nin aksine, burada zaten mum-cozunurlugunde onceden
+// hesaplanmis bir tablo var).
+export function buildLiquidityClusterLookup(clusterSnapshotByTime: Map<number, ClusterSnapshotData>) {
+  return {
+    clustersAsOf: (timeMs: number): { up: number | null; dn: number | null } => {
+      const data = clusterSnapshotByTime.get(timeMs);
+      return { up: data?.clusters.cluster_up_btc ?? null, dn: data?.clusters.cluster_dn_btc ?? null };
+    },
+  };
+}
+
 export function extractRefPrice(heatmap: any): number | null {
   const candles: any[] = heatmap?.price_candlesticks;
   if (!candles?.length) return null;
