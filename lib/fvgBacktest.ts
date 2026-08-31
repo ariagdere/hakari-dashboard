@@ -3,6 +3,7 @@
 // max drawdown, win rate) uretir. fvgEngine.ts'in "tek FVG degerlendirme"
 // sorumlulugundan ayri tutuluyor -- bu dosya "toplu sonuc raporlama".
 import { Fvg, Candle } from './fvgEngine';
+import { ClusterSnapshotData, LiquidityContext, computeLiquidityContext } from './liquidityCluster';
 
 // candle_analysis_match uzerinden btc_analysis'a eslesen piyasa/likidasyon
 // baglami -- SADECE goruntuleme/analiz icindir, FVG motorunun skorlama/kapi
@@ -39,6 +40,7 @@ export interface SimTrade {
   zlema1hPass: boolean | null;
   zlema4hPass: boolean | null;
   marketContext: MarketContext | null;
+  liquidityContext: LiquidityContext | null;
   entry: number;
   sl: number;
   tp: number;
@@ -66,12 +68,17 @@ export interface SimMetrics {
   maxConcurrentTrades: number;
 }
 
-export function extractTrades(fvgs: Fvg[], candles: Candle[], marketContextByTime?: Map<number, MarketContext>): SimTrade[] {
+export function extractTrades(
+  fvgs: Fvg[], candles: Candle[],
+  marketContextByTime?: Map<number, MarketContext>,
+  clusterSnapshotByTime?: Map<number, ClusterSnapshotData>
+): SimTrade[] {
   const trades: SimTrade[] = [];
   for (let i = 0; i < fvgs.length; i++) {
     const f = fvgs[i];
     if (!f.tradeSetup?.valid || f.outcome == null) continue;
     const filledTime = candles[f.filledIdx as number].time;
+    const entryPrice = f.tradeSetup!.entry as number;
     trades.push({
       fvgIndex: i,
       fvgType: f.type,
@@ -84,7 +91,10 @@ export function extractTrades(fvgs: Fvg[], candles: Candle[], marketContextByTim
       zlema1hPass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema1hAligned : null,
       zlema4hPass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema4hAligned : null,
       marketContext: marketContextByTime ? (marketContextByTime.get(filledTime) ?? null) : null,
-      entry: f.tradeSetup!.entry as number,
+      liquidityContext: clusterSnapshotByTime
+        ? computeLiquidityContext(entryPrice, clusterSnapshotByTime.get(filledTime))
+        : null,
+      entry: entryPrice,
       sl: f.tradeSetup!.sl as number,
       tp: f.tradeSetup!.tp as number,
       rr: f.tradeSetup!.rr ?? null,
