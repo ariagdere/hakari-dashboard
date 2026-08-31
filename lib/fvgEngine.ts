@@ -490,9 +490,17 @@ export function computeTradeSetup(candles: Candle[], fvg: Fvg, swings: SwingPoin
   } else {
     const sweptPrice = fvg.ifvgScore?.sweepSwingPrice ?? null;
     if (sweptPrice == null) {
-      return { valid: false, reason: 'Süpürülen swing bulunamadı, SL hesaplanamadı (slMode=swept_swing)' };
+      // Supurulen swing bulunamadi -- FVG'yi OLUSTURAN 3 mumun (formedIdx-2,
+      // formedIdx-1, formedIdx -- detectFVGs'teki c0/orta/c2 ile AYNI, chart'taki
+      // fvgBandRange ile TUTARLI) extremumuna dus. Bu, HER ZAMAN mevcut bir
+      // referans -- "bulunamadi" durumu YOK, trade artik bu yuzden elenmez.
+      const formCandles = [candles[fvg.formedIdx - 2], candles[fvg.formedIdx - 1], candles[fvg.formedIdx]];
+      sl = isShort
+        ? Math.max(formCandles[0].high, formCandles[1].high, formCandles[2].high)
+        : Math.min(formCandles[0].low, formCandles[1].low, formCandles[2].low);
+    } else {
+      sl = entry + p.slBufferPct * (sweptPrice - entry);
     }
-    sl = entry + p.slBufferPct * (sweptPrice - entry);
   }
 
   const riskDist = Math.abs(entry - sl);
