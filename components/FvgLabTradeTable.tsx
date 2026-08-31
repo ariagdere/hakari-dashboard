@@ -20,8 +20,9 @@ function Dot({ v }: { v: boolean | null }) {
 
 // ZLEMA'nin HAM zone degeri -- pass/fail(Dot)'tan FARKLI, trade yonune
 // BAKMADAN o andaki zone'un kendisini gosterir (dogrulama amacli).
-function ZoneLabel({ v }: { v: 'bullish' | 'bearish' | null }) {
+function ZoneLabel({ v }: { v: 'bullish' | 'bearish' | 'no_trade' | null }) {
   if (v == null) return <span style={{ color: 'var(--text-3)', opacity: 0.4 }}>–</span>
+  if (v === 'no_trade') return <span style={{ color: 'var(--text-3)' }}>No Trade</span>
   return <span style={{ color: v === 'bullish' ? 'var(--green)' : 'var(--red)' }}>{v === 'bullish' ? 'Bull' : 'Bear'}</span>
 }
 
