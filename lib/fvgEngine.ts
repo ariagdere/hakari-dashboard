@@ -65,7 +65,6 @@ export interface FvgParams {
   useZlema4hCriterion: boolean;
   useLiqClusterNearCriterion: boolean;
   useLiqClusterFarCriterion: boolean;
-  liqClusterProximityPct: number; // entry, iki kume arasi TOPLAM mesafenin bu ORANI kadar (ya da daha az) bir kumeye yakinsa "near" sayilir
   zlemaFastPeriod: number;
   zlemaSlowPeriod: number;
   slMode: SlMode;
@@ -99,7 +98,6 @@ export const DEFAULT_PARAMS: FvgParams = {
   useZlema4hCriterion: false,
   useLiqClusterNearCriterion: false,
   useLiqClusterFarCriterion: false,
-  liqClusterProximityPct: 0.3,
   zlemaFastPeriod: 8,
   zlemaSlowPeriod: 21,
   slMode: 'swept_swing',
@@ -357,6 +355,15 @@ export function checkDisplacementQuality(candles: Candle[], fvg: Fvg, p: FvgPara
   return bodyRatio > p.bodyRatioThreshold && range > p.rangeMultiplier * avgRange;
 }
 
+// FVG'nin GERCEK trade yonu -- IFVG mantigi GEREGI, BULLISH bir FVG
+// kirilinca (IFVG olunca) aslinda SHORT alinir (ve tam tersi) --
+// computeTradeSetup'taki isShort ile AYNI kural, TEK KAYNAKTAN. Yon-bagimli
+// TUM kriterler (ZLEMA, likidite kumesi) BU fonksiyonu kullanmali, fvg.type'i
+// DOGRUDAN kullanmamali -- aksi halde IFVG inversiyonu yansitilmamis olur.
+function getTradeDirection(fvg: Fvg): 'LONG' | 'SHORT' {
+  return fvg.type === 'bullish' ? 'SHORT' : 'LONG';
+}
+
 // ── Skor birlestirme ──────────────────────────────────────────────────────
 export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: FvgParams, zlemaLookup?: ZlemaZoneLookup, liquidityLookup?: LiquidityClusterLookup): IfvgScore {
   const sweep = checkLiquiditySweepOrigin(candles, fvg, swings, p);
@@ -364,25 +371,29 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
   const bos = isFilled ? checkBOSAtFill(candles, fvg, swings, p) : { pass: false, swingDistance: null, swingIdx: null, swingPrice: null };
   const displacement: boolean | null = isFilled ? checkDisplacementQuality(candles, fvg, p) : null;
 
-  // ZLEMA hizalanmasi: fill anindaki (entry noktasindaki) bolge yonu, trade
-  // yonuyle (bullish FVG -> LONG, bearish FVG -> SHORT) AYNI OLMALI. 1H ve
-  // 4H BAGIMSIZ kriterler -- her biri kendi basina acilip kapatilabilir.
+  // ZLEMA hizalanmasi: fill anindaki (entry noktasindaki) bolge yonu, GERCEK
+  // trade yonuyle (getTradeDirection -- IFVG inversiyonu dahil: bullish FVG ->
+  // SHORT trade, bearish FVG -> LONG trade) AYNI OLMALI. 1H ve 4H BAGIMSIZ
+  // kriterler -- her biri kendi basina acilip kapatilabilir.
   let zlema1hAligned: boolean | null = null, zlema4hAligned: boolean | null = null;
   let zlema1h: ZoneDirection = null, zlema4h: ZoneDirection = null;
   if (isFilled && zlemaLookup) {
     const zone = zlemaLookup.zoneAsOf(candles[fvg.filledIdx as number].time);
     zlema1h = zone.h1;
     zlema4h = zone.h4;
-    const expected: ZoneDirection = fvg.type === 'bullish' ? 'bullish' : 'bearish';
+    const expected: ZoneDirection = getTradeDirection(fvg) === 'LONG' ? 'bullish' : 'bearish';
     zlema1hAligned = zone.h1 === expected;
     zlema4hAligned = zone.h4 === expected;
   }
 
-  // Likidite kumesi yakinligi: entry (fill mumunun KAPANISI -- computeTradeSetup'in
-  // BAGIMSIZ olarak kullandigi AYNI deger), iki kume arasindaki TOPLAM mesafenin
-  // ne kadarlik bir oraninda EN YAKIN kumeye duruyor. Esik altindaysa "near",
-  // ustundeyse "far". Her iki kume de bulunamadiysa (matched_snapshot yok ya da
-  // tolerans disi) uygulanamaz -- null.
+  // Likidite kumesi yakinligi: orchestrator'daki computeNaiveSetup ile
+  // BIREBIR AYNI karsilastirma -- ESIK YOK, sadece "hangi kume DAHA yakin"
+  // (rawUpDist < rawDnDist ? LONG : SHORT, ties SHORT kazanir -- orchestrator'in
+  // KENDI < operatoruyle ayni). FVG'nin GERCEK trade yonu (getTradeDirection --
+  // IFVG inversiyonu dahil), bu karsilastirmanin isaret ettigi yonle AYNIYSA
+  // "near" (trade, kumelerin gosterdigi naif yonle HIZALI); degilse "far"
+  // (trade, DAHA UZAK kumeye dogru gidiyor). Guard orchestrator'la ayni:
+  // up>entry VE dn<entry olmali, aksi halde karsilastirma anlamsiz -- uygulanamaz (null).
   let liqClusterNear: boolean | null = null, liqClusterFar: boolean | null = null;
   let liqClusterUpPrice: number | null = null, liqClusterDnPrice: number | null = null;
   if (isFilled && liquidityLookup) {
@@ -390,15 +401,13 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
     const levels = liquidityLookup.clustersAsOf(candles[fvg.filledIdx as number].time);
     liqClusterUpPrice = levels.up;
     liqClusterDnPrice = levels.dn;
-    if (levels.up != null && levels.dn != null) {
-      const distUp = Math.abs(entryPrice - levels.up);
-      const distDn = Math.abs(entryPrice - levels.dn);
-      const totalRange = distUp + distDn;
-      if (totalRange > 0) {
-        const proximityRatio = Math.min(distUp, distDn) / totalRange;
-        liqClusterNear = proximityRatio <= p.liqClusterProximityPct;
-        liqClusterFar = !liqClusterNear;
-      }
+    if (levels.up != null && levels.dn != null && levels.up > entryPrice && levels.dn < entryPrice) {
+      const rawUpDist = levels.up - entryPrice;
+      const rawDnDist = entryPrice - levels.dn;
+      const impliedDirection = rawUpDist < rawDnDist ? 'LONG' : 'SHORT';
+      const fvgDirection = getTradeDirection(fvg);
+      liqClusterNear = fvgDirection === impliedDirection;
+      liqClusterFar = !liqClusterNear;
     }
   }
 
@@ -418,7 +427,7 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
     bos: bos.pass, bosDistance: bos.swingDistance, bosSwingIdx: bos.swingIdx, bosSwingPrice: bos.swingPrice, bosApplicable: isFilled,
     displacement, displacementApplicable: isFilled,
     zlema1hAligned, zlema4hAligned, zlemaApplicable: isFilled, zlema1h, zlema4h,
-    liqClusterApplicable: isFilled && liqClusterUpPrice != null && liqClusterDnPrice != null,
+    liqClusterApplicable: liqClusterNear !== null,
     liqClusterNear, liqClusterFar, liqClusterUpPrice, liqClusterDnPrice,
     total: countedChecks.filter(Boolean).length,
     maxScore: countedChecks.length,
