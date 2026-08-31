@@ -39,6 +39,10 @@ export interface SimTrade {
   displacementPass: boolean | null;
   zlema1hPass: boolean | null;
   zlema4hPass: boolean | null;
+  zlema1hReversePass: boolean | null;
+  zlema1hNoTradePass: boolean | null;
+  zlema4hReversePass: boolean | null;
+  zlema4hNoTradePass: boolean | null;
   liqClusterNearPass: boolean | null;
   liqClusterFarPass: boolean | null;
   zlema1hZone: ZoneDirection; // pass/fail'den FARKLI -- trade yonune BAKMADAN, o andaki HAM zone degeri (dogrulama/inceleme icin)
@@ -94,6 +98,10 @@ export function extractTrades(
       displacementPass: f.ifvgScore?.displacement ?? null,
       zlema1hPass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema1hAligned : null,
       zlema4hPass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema4hAligned : null,
+      zlema1hReversePass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema1hReverse : null,
+      zlema1hNoTradePass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema1hNoTrade : null,
+      zlema4hReversePass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema4hReverse : null,
+      zlema4hNoTradePass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema4hNoTrade : null,
       liqClusterNearPass: f.ifvgScore?.liqClusterApplicable ? f.ifvgScore.liqClusterNear : null,
       liqClusterFarPass: f.ifvgScore?.liqClusterApplicable ? f.ifvgScore.liqClusterFar : null,
       zlema1hZone: f.ifvgScore?.zlema1h ?? null,
