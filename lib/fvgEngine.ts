@@ -37,7 +37,7 @@ export type TpPlacementMode = 'exact' | 'percentage' | 'dynamic_zone';
 
 // ZLEMA bolge tipleri -- htfZlema.ts bu arayuze YAPISAL olarak uyar, import
 // ETMEZ (dongusel bagimlilik olmasin diye: htfZlema->fvgEngine tek yonlu).
-export type ZoneDirection = 'bullish' | 'bearish' | null;
+export type ZoneDirection = 'bullish' | 'bearish' | 'no_trade' | null; // null = veri yok/yetersiz warmup; 'no_trade' = ZLEMA hesaplandi ama net yon YOK (orchestrator'in NO_TRADE durumu)
 export interface ZlemaZoneLookup {
   zoneAsOf: (timeMs: number) => { h1: ZoneDirection; h4: ZoneDirection };
 }
@@ -63,6 +63,10 @@ export interface FvgParams {
   useDisplacementCriterion: boolean;
   useZlema1hCriterion: boolean;
   useZlema4hCriterion: boolean;
+  useZlema1hReverseCriterion: boolean; // zone HESAPLANDI ama trade yonunun TERSI
+  useZlema1hNoTradeCriterion: boolean; // zone HESAPLANDI ama net yon YOK (orchestrator'in NO_TRADE'i)
+  useZlema4hReverseCriterion: boolean;
+  useZlema4hNoTradeCriterion: boolean;
   useLiqClusterNearCriterion: boolean;
   useLiqClusterFarCriterion: boolean;
   zlemaFastPeriod: number;
@@ -96,6 +100,10 @@ export const DEFAULT_PARAMS: FvgParams = {
   useDisplacementCriterion: false,
   useZlema1hCriterion: false,
   useZlema4hCriterion: false,
+  useZlema1hReverseCriterion: false,
+  useZlema1hNoTradeCriterion: false,
+  useZlema4hReverseCriterion: false,
+  useZlema4hNoTradeCriterion: false,
   useLiqClusterNearCriterion: false,
   useLiqClusterFarCriterion: false,
   zlemaFastPeriod: 8,
@@ -140,6 +148,10 @@ export interface IfvgScore {
   displacement: boolean | null;
   displacementApplicable: boolean;
   zlema1hAligned: boolean | null;
+  zlema1hReverse: boolean | null;
+  zlema1hNoTrade: boolean | null;
+  zlema4hReverse: boolean | null;
+  zlema4hNoTrade: boolean | null;
   zlema4hAligned: boolean | null;
   liqClusterApplicable: boolean; // her iki kume de bulunabildiyse true (aksi halde near/far anlamsiz)
   liqClusterNear: boolean | null;
@@ -372,18 +384,31 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
   const displacement: boolean | null = isFilled ? checkDisplacementQuality(candles, fvg, p) : null;
 
   // ZLEMA hizalanmasi: fill anindaki (entry noktasindaki) bolge yonu, GERCEK
-  // trade yonuyle (getTradeDirection -- IFVG inversiyonu dahil: bullish FVG ->
-  // SHORT trade, bearish FVG -> LONG trade) AYNI OLMALI. 1H ve 4H BAGIMSIZ
-  // kriterler -- her biri kendi basina acilip kapatilabilir.
-  let zlema1hAligned: boolean | null = null, zlema4hAligned: boolean | null = null;
+  // trade yonuyle (getTradeDirection -- IFVG inversiyonu dahil) AYNI OLMALI.
+  // zone HESAPLANDIYSA (veri var), UC KARSILIKLI OLASILIK var, tam olarak
+  // biri true: aligned (trade yonuyle ayni) / reverse (TAM TERSI) / noTrade
+  // (net yon YOK, orchestrator'in NO_TRADE'i). zone HIC hesaplanamadiysa
+  // (veri yok/yetersiz warmup) UCU de null -- uygulanamaz. 1H/4H BAGIMSIZ,
+  // her biri kendi basina acilip kapatilabilir.
+  let zlema1hAligned: boolean | null = null, zlema1hReverse: boolean | null = null, zlema1hNoTrade: boolean | null = null;
+  let zlema4hAligned: boolean | null = null, zlema4hReverse: boolean | null = null, zlema4hNoTrade: boolean | null = null;
   let zlema1h: ZoneDirection = null, zlema4h: ZoneDirection = null;
   if (isFilled && zlemaLookup) {
     const zone = zlemaLookup.zoneAsOf(candles[fvg.filledIdx as number].time);
     zlema1h = zone.h1;
     zlema4h = zone.h4;
     const expected: ZoneDirection = getTradeDirection(fvg) === 'LONG' ? 'bullish' : 'bearish';
-    zlema1hAligned = zone.h1 === expected;
-    zlema4hAligned = zone.h4 === expected;
+    const opposite: ZoneDirection = expected === 'bullish' ? 'bearish' : 'bullish';
+    if (zone.h1 != null) {
+      zlema1hAligned = zone.h1 === expected;
+      zlema1hReverse = zone.h1 === opposite;
+      zlema1hNoTrade = zone.h1 === 'no_trade';
+    }
+    if (zone.h4 != null) {
+      zlema4hAligned = zone.h4 === expected;
+      zlema4hReverse = zone.h4 === opposite;
+      zlema4hNoTrade = zone.h4 === 'no_trade';
+    }
   }
 
   // Likidite kumesi yakinligi: orchestrator'daki computeNaiveSetup ile
@@ -418,6 +443,10 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
     if (p.useDisplacementCriterion) countedChecks.push(!!displacement);
     if (p.useZlema1hCriterion) countedChecks.push(!!zlema1hAligned);
     if (p.useZlema4hCriterion) countedChecks.push(!!zlema4hAligned);
+    if (p.useZlema1hReverseCriterion) countedChecks.push(!!zlema1hReverse);
+    if (p.useZlema1hNoTradeCriterion) countedChecks.push(!!zlema1hNoTrade);
+    if (p.useZlema4hReverseCriterion) countedChecks.push(!!zlema4hReverse);
+    if (p.useZlema4hNoTradeCriterion) countedChecks.push(!!zlema4hNoTrade);
     if (p.useLiqClusterNearCriterion) countedChecks.push(!!liqClusterNear);
     if (p.useLiqClusterFarCriterion) countedChecks.push(!!liqClusterFar);
   }
@@ -426,7 +455,9 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
     sweep: sweep.pass, sweepDistance: sweep.swingDistance, sweepSwingIdx: sweep.swingIdx ?? null, sweepSwingPrice: sweep.swingPrice ?? null, sweepTrace: sweep.trace,
     bos: bos.pass, bosDistance: bos.swingDistance, bosSwingIdx: bos.swingIdx, bosSwingPrice: bos.swingPrice, bosApplicable: isFilled,
     displacement, displacementApplicable: isFilled,
-    zlema1hAligned, zlema4hAligned, zlemaApplicable: isFilled, zlema1h, zlema4h,
+    zlema1hAligned, zlema1hReverse, zlema1hNoTrade,
+    zlema4hAligned, zlema4hReverse, zlema4hNoTrade,
+    zlemaApplicable: isFilled, zlema1h, zlema4h,
     liqClusterApplicable: liqClusterNear !== null,
     liqClusterNear, liqClusterFar, liqClusterUpPrice, liqClusterDnPrice,
     total: countedChecks.filter(Boolean).length,
@@ -447,6 +478,10 @@ function checkTradeCondition(fvg: Fvg, p: FvgParams): GateResult {
   if (p.useDisplacementCriterion) relevant.push({ name: 'Displacement', val: !!s.displacement });
   if (p.useZlema1hCriterion) relevant.push({ name: 'ZLEMA 1H', val: !!s.zlema1hAligned });
   if (p.useZlema4hCriterion) relevant.push({ name: 'ZLEMA 4H', val: !!s.zlema4hAligned });
+  if (p.useZlema1hReverseCriterion) relevant.push({ name: 'ZLEMA 1H Ters', val: !!s.zlema1hReverse });
+  if (p.useZlema1hNoTradeCriterion) relevant.push({ name: 'ZLEMA 1H No Trade', val: !!s.zlema1hNoTrade });
+  if (p.useZlema4hReverseCriterion) relevant.push({ name: 'ZLEMA 4H Ters', val: !!s.zlema4hReverse });
+  if (p.useZlema4hNoTradeCriterion) relevant.push({ name: 'ZLEMA 4H No Trade', val: !!s.zlema4hNoTrade });
   if (p.useLiqClusterNearCriterion) relevant.push({ name: 'Liq Cluster Yakın', val: !!s.liqClusterNear });
   if (p.useLiqClusterFarCriterion) relevant.push({ name: 'Liq Cluster Uzak', val: !!s.liqClusterFar });
   if (relevant.length === 0) return { pass: true, reason: null };
