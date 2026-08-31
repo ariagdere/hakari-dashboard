@@ -3,7 +3,7 @@ import pool from '@/lib/db'
 import { detectFVGs, FvgParams, Candle } from '@/lib/fvgEngine'
 import { extractTrades, computeMetrics, computeEquityCurve, MarketContext } from '@/lib/fvgBacktest'
 import { buildZlemaLookup } from '@/lib/htfZlema'
-import { computeClusters, extractRefPrice, ClusterSnapshotData } from '@/lib/liquidityCluster'
+import { computeClusters, extractRefPrice, ClusterSnapshotData, buildLiquidityClusterLookup } from '@/lib/liquidityCluster'
 
 export const dynamic = 'force-dynamic'
 
@@ -160,7 +160,8 @@ export async function POST(req: NextRequest) {
       zlemaLookup = buildZlemaLookup(warmupCandles, params.zlemaFastPeriod, params.zlemaSlowPeriod)
     }
 
-    const fvgs = detectFVGs(candles, params, zlemaLookup)
+    const liquidityLookup = buildLiquidityClusterLookup(clusterSnapshotByTime)
+    const fvgs = detectFVGs(candles, params, zlemaLookup, liquidityLookup)
     const trades = extractTrades(fvgs, candles, marketContextByTime, clusterSnapshotByTime)
     const metrics = computeMetrics(trades)
     const equityCurve = computeEquityCurve(trades)
