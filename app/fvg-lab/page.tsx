@@ -108,6 +108,7 @@ export default function FvgLabPage() {
     return Math.round(dd * 100) / 100
   }, [currentEquitySeries])
   const hourBreakdown = useMemo(() => result ? computeHourOfDayBreakdown(result.trades) : [], [result])
+  const [breakdownOpen, setBreakdownOpen] = useState(false)
 
   return (
     <div className="container" style={{ padding: '24px 24px 60px' }}>
@@ -209,9 +210,25 @@ export default function FvgLabPage() {
             />
           </div>
 
-          <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-            <FvgLabBreakdownTable title="Haftanın Günü" buckets={dayBreakdown} />
-            <FvgLabBreakdownTable title="Günün Saati (UTC+3)" buckets={hourBreakdown} />
+          <div style={{ marginTop: 16 }}>
+            <button
+              onClick={() => setBreakdownOpen(v => !v)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
+                cursor: 'pointer', padding: '8px 0', color: 'var(--text-2)', fontSize: 11,
+              }}>
+              <span style={{
+                display: 'inline-block', fontSize: 9, color: 'var(--text-3)',
+                transform: breakdownOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s',
+              }}>▶</span>
+              Gün ve Saat Kırılımı
+            </button>
+            {breakdownOpen && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginTop: 4 }}>
+                <FvgLabBreakdownTable title="Haftanın Günü" buckets={dayBreakdown} />
+                <FvgLabBreakdownTable title="Günün Saati (UTC+3)" buckets={hourBreakdown} />
+              </div>
+            )}
           </div>
 
           <div style={{ marginTop: 24 }}>
