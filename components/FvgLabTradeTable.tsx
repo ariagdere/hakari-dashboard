@@ -18,6 +18,20 @@ function Dot({ v }: { v: boolean | null }) {
   return <span style={{ color: v ? 'var(--green)' : 'var(--text-3)' }}>{v ? '●' : '○'}</span>
 }
 
+// ZLEMA'nin HAM zone degeri -- pass/fail(Dot)'tan FARKLI, trade yonune
+// BAKMADAN o andaki zone'un kendisini gosterir (dogrulama amacli).
+function ZoneLabel({ v }: { v: 'bullish' | 'bearish' | null }) {
+  if (v == null) return <span style={{ color: 'var(--text-3)', opacity: 0.4 }}>–</span>
+  return <span style={{ color: v === 'bullish' ? 'var(--green)' : 'var(--red)' }}>{v === 'bullish' ? 'Bull' : 'Bear'}</span>
+}
+
+// Liq Cluster Yakin/Uzak -- liqClusterNearPass true/false/null'dan turetilir
+// (near ve far birbirinin ters'i oldugu icin tek kolon yeterli).
+function NearFarLabel({ v }: { v: boolean | null }) {
+  if (v == null) return <span style={{ color: 'var(--text-3)', opacity: 0.4 }}>–</span>
+  return <span style={{ color: v ? 'var(--green)' : 'var(--text-3)' }}>{v ? 'Yakın' : 'Uzak'}</span>
+}
+
 function ResultBadge({ result }: { result: string }) {
   const cls = result === 'TP_HIT' ? 'badge-tp' : result === 'SL_HIT' ? 'badge-sl' : 'badge-exp'
   const label = result === 'TP_HIT' ? 'TP' : result === 'SL_HIT' ? 'SL' : 'EXP'
@@ -33,7 +47,7 @@ export default function FvgLabTradeTable({ trades, selectedIdx, onSelect }: Prop
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
         <thead>
           <tr style={{ borderBottom: '1px solid var(--border)' }}>
-            {['Yön', 'Kırılma', 'Likidite', 'BOS', 'Displ.', 'ZLEMA1H', 'ZLEMA4H', 'Entry', 'SL', 'TP', 'RR', 'Sonuç', 'R'].map(h => (
+            {['Yön', 'Kırılma', 'Likidite', 'BOS', 'Displ.', 'Cluster↑', 'Cluster↓', 'Yakınlık', 'ZLEMA1H', 'Zone1H', 'ZLEMA4H', 'Zone4H', 'Entry', 'SL', 'TP', 'RR', 'Sonuç', 'R'].map(h => (
               <th key={h} style={{ textAlign: 'left', padding: '7px 10px', color: 'var(--text-3)', fontWeight: 400, fontSize: 10, letterSpacing: '0.04em' }}>{h}</th>
             ))}
           </tr>
@@ -54,8 +68,13 @@ export default function FvgLabTradeTable({ trades, selectedIdx, onSelect }: Prop
                 <td style={{ padding: '7px 10px' }}><Dot v={t.sweepPass} /></td>
                 <td style={{ padding: '7px 10px' }}><Dot v={t.bosPass} /></td>
                 <td style={{ padding: '7px 10px' }}><Dot v={t.displacementPass} /></td>
+                <td style={{ padding: '7px 10px', color: 'var(--text-2)' }} className="mono">{t.liquidityContext?.clusterUpPrice != null ? t.liquidityContext.clusterUpPrice.toFixed(1) : '—'}</td>
+                <td style={{ padding: '7px 10px', color: 'var(--text-2)' }} className="mono">{t.liquidityContext?.clusterDnPrice != null ? t.liquidityContext.clusterDnPrice.toFixed(1) : '—'}</td>
+                <td style={{ padding: '7px 10px' }}><NearFarLabel v={t.liqClusterNearPass} /></td>
                 <td style={{ padding: '7px 10px' }}><Dot v={t.zlema1hPass} /></td>
+                <td style={{ padding: '7px 10px' }}><ZoneLabel v={t.zlema1hZone} /></td>
                 <td style={{ padding: '7px 10px' }}><Dot v={t.zlema4hPass} /></td>
+                <td style={{ padding: '7px 10px' }}><ZoneLabel v={t.zlema4hZone} /></td>
                 <td style={{ padding: '7px 10px', color: 'var(--text-2)' }} className="mono">{t.entry.toFixed(1)}</td>
                 <td style={{ padding: '7px 10px', color: 'var(--text-2)' }} className="mono">{t.sl.toFixed(1)}</td>
                 <td style={{ padding: '7px 10px', color: 'var(--text-2)' }} className="mono">{t.tp.toFixed(1)}</td>
