@@ -108,6 +108,10 @@ export default function FvgLabParamPanel({ params, onChange, onReset }: Props) {
           <CheckField label="Displacement" checked={params.useDisplacementCriterion} onChange={v => set('useDisplacementCriterion', v)} />
           <CheckField label="ZLEMA 1H Hizalanması" checked={params.useZlema1hCriterion} onChange={v => set('useZlema1hCriterion', v)} />
           <CheckField label="ZLEMA 4H Hizalanması" checked={params.useZlema4hCriterion} onChange={v => set('useZlema4hCriterion', v)} />
+          <CheckField label="ZLEMA 1H Ters" checked={params.useZlema1hReverseCriterion} onChange={v => set('useZlema1hReverseCriterion', v)} />
+          <CheckField label="ZLEMA 1H No Trade" checked={params.useZlema1hNoTradeCriterion} onChange={v => set('useZlema1hNoTradeCriterion', v)} />
+          <CheckField label="ZLEMA 4H Ters" checked={params.useZlema4hReverseCriterion} onChange={v => set('useZlema4hReverseCriterion', v)} />
+          <CheckField label="ZLEMA 4H No Trade" checked={params.useZlema4hNoTradeCriterion} onChange={v => set('useZlema4hNoTradeCriterion', v)} />
           <CheckField label="Liq Cluster Yakın" checked={params.useLiqClusterNearCriterion} onChange={v => set('useLiqClusterNearCriterion', v)} />
           <CheckField label="Liq Cluster Uzak" checked={params.useLiqClusterFarCriterion} onChange={v => set('useLiqClusterFarCriterion', v)} />
           <SelectField label="Trade alma koşulu" value={params.tradeConditionMode}
