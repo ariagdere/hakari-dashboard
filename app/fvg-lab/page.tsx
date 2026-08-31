@@ -4,6 +4,7 @@ import { DEFAULT_PARAMS, FvgParams, Candle, Fvg } from '@/lib/fvgEngine'
 import { SimMetrics, SimTrade, EquityCurve, computeDayOfWeekBreakdown, computeHourOfDayBreakdown } from '@/lib/fvgBacktest'
 import FvgLabChart from '@/components/FvgLabChart'
 import FvgLabParamPanel from '@/components/FvgLabParamPanel'
+import FvgLabParamSearch from '@/components/FvgLabParamSearch'
 import FvgLabTradeTable from '@/components/FvgLabTradeTable'
 import FvgLabOpenList from '@/components/FvgLabOpenList'
 import FvgLabEquityChart from '@/components/FvgLabEquityChart'
@@ -147,6 +148,7 @@ export default function FvgLabPage() {
 
       <div style={{ marginBottom: 20 }}>
         <FvgLabParamPanel params={params} onChange={setParams} onReset={() => setParams(DEFAULT_PARAMS)} />
+        <FvgLabParamSearch onApplyParams={(p) => setParams(p as unknown as FvgParams)} />
       </div>
 
       {result && (
