@@ -22,7 +22,7 @@ interface SearchResultItem {
 }
 interface SearchState {
   status: 'idle' | 'running' | 'done' | 'error'
-  progress: { completed: number; total: number; phase: 'is' | 'oos' | null }
+  progress: { completed: number; total: number; phase: 'preparing' | 'is' | 'oos' | null }
   results: SearchResultItem[] | null
   error: string | null
   periodInfo: { globalMin: number; globalMax: number; isEndTime: number; oosStartTime: number } | null
@@ -37,7 +37,7 @@ function ScoreCell({ label, m, score }: { label: string; m: SimMetricsLite; scor
     <div style={{ fontSize: 10.5, lineHeight: 1.6 }}>
       <div style={{ color: 'var(--text-3)', marginBottom: 2 }}>{label}</div>
       <div className="mono" style={{ color: 'var(--text-2)' }}>
-        n={m.totalTrades} WR=%{(m.winRate * 100).toFixed(1)}
+        n={m.totalTrades} WR=%{m.winRate.toFixed(1)}
       </div>
       <div className="mono" style={{ color: m.totalR >= 0 ? 'var(--green)' : 'var(--red)' }}>
         R={m.totalR.toFixed(2)} DD={m.maxDD.toFixed(2)}
@@ -145,10 +145,16 @@ export default function FvgLabParamSearch({ onApplyParams }: { onApplyParams?: (
 
           {state.status === 'running' && (
             <div style={{ fontSize: 11, color: 'var(--text-2)' }} className="mono">
-              {state.progress.phase === 'is' ? 'IS taraması' : 'OOS doğrulaması'}: {state.progress.completed}/{state.progress.total}
-              <div style={{ marginTop: 6, height: 4, background: 'var(--bg-3)', borderRadius: 2, overflow: 'hidden', maxWidth: 360 }}>
-                <div style={{ height: '100%', background: 'var(--amber)', width: `${state.progress.total > 0 ? (state.progress.completed / state.progress.total) * 100 : 0}%`, transition: 'width 0.3s' }} />
-              </div>
+              {state.progress.phase === 'preparing' ? (
+                <div>Veri hazırlanıyor (mumlar + likidite kümesi eşleşmeleri) — bu adım, IS/OOS aralığına göre birkaç dakika sürebilir…</div>
+              ) : (
+                <>
+                  {state.progress.phase === 'is' ? 'IS taraması' : 'OOS doğrulaması'}: {state.progress.completed}/{state.progress.total}
+                  <div style={{ marginTop: 6, height: 4, background: 'var(--bg-3)', borderRadius: 2, overflow: 'hidden', maxWidth: 360 }}>
+                    <div style={{ height: '100%', background: 'var(--amber)', width: `${state.progress.total > 0 ? (state.progress.completed / state.progress.total) * 100 : 0}%`, transition: 'width 0.3s' }} />
+                  </div>
+                </>
+              )}
             </div>
           )}
 
