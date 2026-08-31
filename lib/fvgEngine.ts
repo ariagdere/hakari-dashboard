@@ -42,6 +42,12 @@ export interface ZlemaZoneLookup {
   zoneAsOf: (timeMs: number) => { h1: ZoneDirection; h4: ZoneDirection };
 }
 
+// liquidityCluster.ts bu arayuze YAPISAL olarak uyar, import ETMEZ (ZLEMA
+// ile AYNI dongusel-bagimlilik-onleme prensibi).
+export interface LiquidityClusterLookup {
+  clustersAsOf: (timeMs: number) => { up: number | null; dn: number | null };
+}
+
 export interface FvgParams {
   swingLookback: number;
   swingSearchWindow: number;
@@ -57,6 +63,9 @@ export interface FvgParams {
   useDisplacementCriterion: boolean;
   useZlema1hCriterion: boolean;
   useZlema4hCriterion: boolean;
+  useLiqClusterNearCriterion: boolean;
+  useLiqClusterFarCriterion: boolean;
+  liqClusterProximityPct: number; // entry, iki kume arasi TOPLAM mesafenin bu ORANI kadar (ya da daha az) bir kumeye yakinsa "near" sayilir
   zlemaFastPeriod: number;
   zlemaSlowPeriod: number;
   slMode: SlMode;
@@ -88,6 +97,9 @@ export const DEFAULT_PARAMS: FvgParams = {
   useDisplacementCriterion: false,
   useZlema1hCriterion: false,
   useZlema4hCriterion: false,
+  useLiqClusterNearCriterion: false,
+  useLiqClusterFarCriterion: false,
+  liqClusterProximityPct: 0.3,
   zlemaFastPeriod: 8,
   zlemaSlowPeriod: 21,
   slMode: 'swept_swing',
@@ -131,6 +143,11 @@ export interface IfvgScore {
   displacementApplicable: boolean;
   zlema1hAligned: boolean | null;
   zlema4hAligned: boolean | null;
+  liqClusterApplicable: boolean; // her iki kume de bulunabildiyse true (aksi halde near/far anlamsiz)
+  liqClusterNear: boolean | null;
+  liqClusterFar: boolean | null;
+  liqClusterUpPrice: number | null; // seffaflik icin -- o anki eslesen kume seviyeleri
+  liqClusterDnPrice: number | null;
   zlemaApplicable: boolean;
   zlema1h: ZoneDirection;
   zlema4h: ZoneDirection;
@@ -341,7 +358,7 @@ export function checkDisplacementQuality(candles: Candle[], fvg: Fvg, p: FvgPara
 }
 
 // ── Skor birlestirme ──────────────────────────────────────────────────────
-export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: FvgParams, zlemaLookup?: ZlemaZoneLookup): IfvgScore {
+export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: FvgParams, zlemaLookup?: ZlemaZoneLookup, liquidityLookup?: LiquidityClusterLookup): IfvgScore {
   const sweep = checkLiquiditySweepOrigin(candles, fvg, swings, p);
   const isFilled = fvg.status === 'filled';
   const bos = isFilled ? checkBOSAtFill(candles, fvg, swings, p) : { pass: false, swingDistance: null, swingIdx: null, swingPrice: null };
@@ -361,6 +378,30 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
     zlema4hAligned = zone.h4 === expected;
   }
 
+  // Likidite kumesi yakinligi: entry (fill mumunun KAPANISI -- computeTradeSetup'in
+  // BAGIMSIZ olarak kullandigi AYNI deger), iki kume arasindaki TOPLAM mesafenin
+  // ne kadarlik bir oraninda EN YAKIN kumeye duruyor. Esik altindaysa "near",
+  // ustundeyse "far". Her iki kume de bulunamadiysa (matched_snapshot yok ya da
+  // tolerans disi) uygulanamaz -- null.
+  let liqClusterNear: boolean | null = null, liqClusterFar: boolean | null = null;
+  let liqClusterUpPrice: number | null = null, liqClusterDnPrice: number | null = null;
+  if (isFilled && liquidityLookup) {
+    const entryPrice = candles[fvg.filledIdx as number].close;
+    const levels = liquidityLookup.clustersAsOf(candles[fvg.filledIdx as number].time);
+    liqClusterUpPrice = levels.up;
+    liqClusterDnPrice = levels.dn;
+    if (levels.up != null && levels.dn != null) {
+      const distUp = Math.abs(entryPrice - levels.up);
+      const distDn = Math.abs(entryPrice - levels.dn);
+      const totalRange = distUp + distDn;
+      if (totalRange > 0) {
+        const proximityRatio = Math.min(distUp, distDn) / totalRange;
+        liqClusterNear = proximityRatio <= p.liqClusterProximityPct;
+        liqClusterFar = !liqClusterNear;
+      }
+    }
+  }
+
   const countedChecks: boolean[] = [];
   if (p.useSweepCriterion) countedChecks.push(sweep.pass);
   if (isFilled) {
@@ -368,6 +409,8 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
     if (p.useDisplacementCriterion) countedChecks.push(!!displacement);
     if (p.useZlema1hCriterion) countedChecks.push(!!zlema1hAligned);
     if (p.useZlema4hCriterion) countedChecks.push(!!zlema4hAligned);
+    if (p.useLiqClusterNearCriterion) countedChecks.push(!!liqClusterNear);
+    if (p.useLiqClusterFarCriterion) countedChecks.push(!!liqClusterFar);
   }
 
   return {
@@ -375,6 +418,8 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
     bos: bos.pass, bosDistance: bos.swingDistance, bosSwingIdx: bos.swingIdx, bosSwingPrice: bos.swingPrice, bosApplicable: isFilled,
     displacement, displacementApplicable: isFilled,
     zlema1hAligned, zlema4hAligned, zlemaApplicable: isFilled, zlema1h, zlema4h,
+    liqClusterApplicable: isFilled && liqClusterUpPrice != null && liqClusterDnPrice != null,
+    liqClusterNear, liqClusterFar, liqClusterUpPrice, liqClusterDnPrice,
     total: countedChecks.filter(Boolean).length,
     maxScore: countedChecks.length,
   };
@@ -393,6 +438,8 @@ function checkTradeCondition(fvg: Fvg, p: FvgParams): GateResult {
   if (p.useDisplacementCriterion) relevant.push({ name: 'Displacement', val: !!s.displacement });
   if (p.useZlema1hCriterion) relevant.push({ name: 'ZLEMA 1H', val: !!s.zlema1hAligned });
   if (p.useZlema4hCriterion) relevant.push({ name: 'ZLEMA 4H', val: !!s.zlema4hAligned });
+  if (p.useLiqClusterNearCriterion) relevant.push({ name: 'Liq Cluster Yakın', val: !!s.liqClusterNear });
+  if (p.useLiqClusterFarCriterion) relevant.push({ name: 'Liq Cluster Uzak', val: !!s.liqClusterFar });
   if (relevant.length === 0) return { pass: true, reason: null };
   const pass = p.tradeConditionMode === 'all' ? relevant.every(r => r.val) : relevant.some(r => r.val);
   return {
@@ -563,7 +610,7 @@ function applyMaxConcurrentFilter(fvgs: Fvg[], candles: Candle[], maxConcurrent:
 }
 
 
-export function detectFVGs(candles: Candle[], p: FvgParams, zlemaLookup?: ZlemaZoneLookup): Fvg[] {
+export function detectFVGs(candles: Candle[], p: FvgParams, zlemaLookup?: ZlemaZoneLookup, liquidityLookup?: LiquidityClusterLookup): Fvg[] {
   const fvgs: Fvg[] = [];
   for (let i = 1; i < candles.length - 1; i++) {
     const c0 = candles[i - 1], c2 = candles[i + 1];
@@ -595,7 +642,7 @@ export function detectFVGs(candles: Candle[], p: FvgParams, zlemaLookup?: ZlemaZ
 
   const swings = findSwingPoints(candles, p.swingLookback);
   for (const fvg of fvgs) {
-    fvg.ifvgScore = scoreIFVG(candles, fvg, swings, p, zlemaLookup);
+    fvg.ifvgScore = scoreIFVG(candles, fvg, swings, p, zlemaLookup, liquidityLookup);
     fvg.tradeSetup = computeTradeSetup(candles, fvg, swings, p);
     if (fvg.tradeSetup?.valid && fvg.filledIdx != null) {
       fvg.outcome = simulateTradeOutcome(
