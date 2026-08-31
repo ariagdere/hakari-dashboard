@@ -39,6 +39,8 @@ export interface SimTrade {
   displacementPass: boolean | null;
   zlema1hPass: boolean | null;
   zlema4hPass: boolean | null;
+  liqClusterNearPass: boolean | null;
+  liqClusterFarPass: boolean | null;
   marketContext: MarketContext | null;
   liquidityContext: LiquidityContext | null;
   entry: number;
@@ -90,6 +92,8 @@ export function extractTrades(
       displacementPass: f.ifvgScore?.displacement ?? null,
       zlema1hPass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema1hAligned : null,
       zlema4hPass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema4hAligned : null,
+      liqClusterNearPass: f.ifvgScore?.liqClusterApplicable ? f.ifvgScore.liqClusterNear : null,
+      liqClusterFarPass: f.ifvgScore?.liqClusterApplicable ? f.ifvgScore.liqClusterFar : null,
       marketContext: marketContextByTime ? (marketContextByTime.get(filledTime) ?? null) : null,
       liquidityContext: clusterSnapshotByTime
         ? computeLiquidityContext(entryPrice, clusterSnapshotByTime.get(filledTime))
