@@ -146,19 +146,21 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    let zlemaLookup: ReturnType<typeof buildZlemaLookup> | undefined
-    if (params.useZlema1hCriterion || params.useZlema4hCriterion) {
-      const { rows: warmupRows } = await pool.query(
-        `SELECT open_time, open, high, low, close FROM btcusdt_5m_candles
-         WHERE open_time BETWEEN $1 AND $2 ORDER BY open_time ASC`,
-        [startMs - ZLEMA_WARMUP_MS, endMs]
-      )
-      const warmupCandles: Candle[] = warmupRows.map((r) => ({
-        time: Number(r.open_time),
-        open: Number(r.open), high: Number(r.high), low: Number(r.low), close: Number(r.close),
-      }))
-      zlemaLookup = buildZlemaLookup(warmupCandles, params.zlemaFastPeriod, params.zlemaSlowPeriod)
-    }
+    // ONCEDEN: sadece useZlema1h/4hCriterion aciksa hesaplaniyordu (gereksiz
+    // warmup sorgusundan kacinmak icin). ARTIK HER ZAMAN hesaplaniyor -- trade
+    // tablosu artik ZLEMA zone'unu DOGRULAMA amacli gosteriyor, kriter olarak
+    // SECILI olsun olmasin (Ari'nin "kriter secmesem de zone'u gormek
+    // istiyorum" geri bildirimi uzerine).
+    const { rows: warmupRows } = await pool.query(
+      `SELECT open_time, open, high, low, close FROM btcusdt_5m_candles
+       WHERE open_time BETWEEN $1 AND $2 ORDER BY open_time ASC`,
+      [startMs - ZLEMA_WARMUP_MS, endMs]
+    )
+    const warmupCandles: Candle[] = warmupRows.map((r) => ({
+      time: Number(r.open_time),
+      open: Number(r.open), high: Number(r.high), low: Number(r.low), close: Number(r.close),
+    }))
+    const zlemaLookup = buildZlemaLookup(warmupCandles, params.zlemaFastPeriod, params.zlemaSlowPeriod)
 
     const liquidityLookup = buildLiquidityClusterLookup(clusterSnapshotByTime)
     const fvgs = detectFVGs(candles, params, zlemaLookup, liquidityLookup)
