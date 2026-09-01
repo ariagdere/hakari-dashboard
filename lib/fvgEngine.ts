@@ -70,7 +70,11 @@ export interface FvgParams {
   useLiqClusterNearCriterion: boolean;
   useLiqClusterFarCriterion: boolean;
   useMinGapSizeCriterion: boolean;
-  minFvgGapUsd: number; // FVG'nin top-bottom araligi (dolar cinsinden) bu degerin ALTINDAYSA gecersiz sayilir
+  minFvgGapUsd: number;
+  useVolatilityFilterCriterion: boolean;
+  volatilityShortWindow: number; // fill'e kadarki KISA pencere (mum sayisi) -- "guncel" hareketlilik
+  volatilityBaselineWindow: number; // KARSILASTIRMA icin UZUN pencere (mum sayisi) -- "normal" hareketlilik
+  minVolatilityRatio: number; // kisaATR/baselineATR bu esigin ALTINDAYSA reddedilir (chopping/dusuk-hareketlilik filtresi) // FVG'nin top-bottom araligi (dolar cinsinden) bu degerin ALTINDAYSA gecersiz sayilir
   zlemaFastPeriod: number;
   zlemaSlowPeriod: number;
   slMode: SlMode;
@@ -110,6 +114,10 @@ export const DEFAULT_PARAMS: FvgParams = {
   useLiqClusterFarCriterion: false,
   useMinGapSizeCriterion: false,
   minFvgGapUsd: 50,
+  useVolatilityFilterCriterion: false,
+  volatilityShortWindow: 20,
+  volatilityBaselineWindow: 200,
+  minVolatilityRatio: 0.7,
   zlemaFastPeriod: 8,
   zlemaSlowPeriod: 21,
   slMode: 'swept_swing',
@@ -169,6 +177,8 @@ export interface IfvgScore {
   liqClusterDnPrice: number | null;
   minGapSizePass: boolean; // fill'i beklemez -- FVG'nin top/bottom'u olusum aninda zaten belli
   gapSize: number; // seffaflik icin -- gercek |top-bottom| degeri
+  volatilityPass: boolean | null;
+  volatilityRatio: number | null; // seffaflik icin -- kisaATR/baselineATR
   zlemaApplicable: boolean;
   zlema1h: ZoneDirection;
   zlema4h: ZoneDirection;
@@ -398,6 +408,20 @@ function getTradeDirection(fvg: Fvg): 'LONG' | 'SHORT' {
   return fvg.type === 'bullish' ? 'SHORT' : 'LONG';
 }
 
+// window buyuklugundeki, endIdx'te BITEN (dahil) mumlarin ORTALAMA True
+// Range'i. Yetersiz gecmis varsa (window kadar geriye gidilemiyorsa) null
+// doner -- "chopping" ile "henuz yeterli veri yok" birbirinden ayrilir.
+function computeAvgTrueRange(candles: Candle[], endIdx: number, window: number): number | null {
+  const startIdx = endIdx - window + 1;
+  if (startIdx < 1) return null;
+  let sum = 0;
+  for (let i = startIdx; i <= endIdx; i++) {
+    const h = candles[i].high, l = candles[i].low, pc = candles[i - 1].close;
+    sum += Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc));
+  }
+  return sum / window;
+}
+
 // ── Skor birlestirme ──────────────────────────────────────────────────────
 export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: FvgParams, zlemaLookup?: ZlemaZoneLookup, liquidityLookup?: LiquidityClusterLookup): IfvgScore {
   const sweep = checkLiquiditySweepOrigin(candles, fvg, swings, p);
@@ -464,6 +488,20 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
     }
   }
 
+  // Volatilite filtresi: fill'e KADARKI kisa pencerenin ortalama True Range'i,
+  // cok daha uzun bir baseline penceresine ORANLA. Oran esigin ALTINDAYSA,
+  // bu bolge baseline'a gore YETERINCE hareketli DEGIL demektir (chopping) --
+  // her iki pencere de tam hesaplanamiyorsa (yetersiz gecmis) uygulanamaz (null).
+  let volatilityPass: boolean | null = null, volatilityRatio: number | null = null;
+  if (isFilled) {
+    const shortAtr = computeAvgTrueRange(candles, fvg.filledIdx as number, p.volatilityShortWindow);
+    const baselineAtr = computeAvgTrueRange(candles, fvg.filledIdx as number, p.volatilityBaselineWindow);
+    if (shortAtr != null && baselineAtr != null && baselineAtr > 0) {
+      volatilityRatio = shortAtr / baselineAtr;
+      volatilityPass = volatilityRatio >= p.minVolatilityRatio;
+    }
+  }
+
   const countedChecks: boolean[] = [];
   if (p.useSweepCriterion) countedChecks.push(sweep.pass);
   if (p.useMinGapSizeCriterion) countedChecks.push(minGapSizePass);
@@ -478,6 +516,7 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
     if (p.useZlema4hNoTradeCriterion) countedChecks.push(!!zlema4hNoTrade);
     if (p.useLiqClusterNearCriterion) countedChecks.push(!!liqClusterNear);
     if (p.useLiqClusterFarCriterion) countedChecks.push(!!liqClusterFar);
+    if (p.useVolatilityFilterCriterion) countedChecks.push(!!volatilityPass);
   }
 
   return {
@@ -495,6 +534,7 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
     liqClusterApplicable: liqClusterNear !== null,
     liqClusterNear, liqClusterFar, liqClusterUpPrice, liqClusterDnPrice,
     minGapSizePass, gapSize,
+    volatilityPass, volatilityRatio,
     total: countedChecks.filter(Boolean).length,
     maxScore: countedChecks.length,
   };
@@ -520,6 +560,7 @@ function checkTradeCondition(fvg: Fvg, p: FvgParams): GateResult {
   if (p.useZlema4hNoTradeCriterion) relevant.push({ name: 'ZLEMA 4H No Trade', val: !!s.zlema4hNoTrade });
   if (p.useLiqClusterNearCriterion) relevant.push({ name: 'Liq Cluster Yakın', val: !!s.liqClusterNear });
   if (p.useLiqClusterFarCriterion) relevant.push({ name: 'Liq Cluster Uzak', val: !!s.liqClusterFar });
+  if (p.useVolatilityFilterCriterion) relevant.push({ name: 'Volatilite Filtresi', val: !!s.volatilityPass });
   if (relevant.length === 0) return { pass: true, reason: null };
   const pass = p.tradeConditionMode === 'all' ? relevant.every(r => r.val) : relevant.some(r => r.val);
   return {
