@@ -114,6 +114,7 @@ export default function FvgLabParamPanel({ params, onChange, onReset }: Props) {
           <CheckField label="ZLEMA 4H No Trade" checked={params.useZlema4hNoTradeCriterion} onChange={v => set('useZlema4hNoTradeCriterion', v)} />
           <CheckField label="Liq Cluster Yakın" checked={params.useLiqClusterNearCriterion} onChange={v => set('useLiqClusterNearCriterion', v)} />
           <CheckField label="Liq Cluster Uzak" checked={params.useLiqClusterFarCriterion} onChange={v => set('useLiqClusterFarCriterion', v)} />
+          <CheckField label="Min Gap Boyutu" checked={params.useMinGapSizeCriterion} onChange={v => set('useMinGapSizeCriterion', v)} />
           <SelectField label="Trade alma koşulu" value={params.tradeConditionMode}
             options={[{ value: 'all', label: 'Hepsi geçmeli' }, { value: 'any', label: 'Biri yeter' }, { value: 'always', label: 'Her zaman al' }]}
             onChange={v => set('tradeConditionMode', v)} />
@@ -126,6 +127,7 @@ export default function FvgLabParamPanel({ params, onChange, onReset }: Props) {
 
         <Group title="FVG Yaşlanması">
           <NumberField label="Maks. geçerlilik (mum)" value={params.fvgMaxAgeCandles} min={1} max={200} onChange={v => set('fvgMaxAgeCandles', v)} />
+          <NumberField label="Min gap aralığı ($)" value={params.minFvgGapUsd} min={0} max={1000} step={5} onChange={v => set('minFvgGapUsd', v)} />
         </Group>
 
         <Group title="Setup — SL / TP">
