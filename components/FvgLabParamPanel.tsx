@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import type { FvgParams } from '@/lib/fvgEngine'
+import FvgLabPresets from './FvgLabPresets'
 
 interface Props {
   params: FvgParams
@@ -78,9 +79,12 @@ export default function FvgLabParamPanel({ params, onChange, onReset }: Props) {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
         <div style={{ fontSize: 11, color: 'var(--text-3)' }}>Parametreler</div>
-        <button onClick={onReset} className="filter-btn" style={{ fontSize: 10, padding: '4px 10px' }}>Varsayılana dön</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <FvgLabPresets currentParams={params} onLoad={onChange} />
+          <button onClick={onReset} className="filter-btn" style={{ fontSize: 10, padding: '4px 10px' }}>Varsayılana dön</button>
+        </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
         <Group title="Swing Tespiti">
