@@ -37,12 +37,19 @@ export interface SimTrade {
   sweepPass: boolean | null;
   bosPass: boolean | null;
   displacementPass: boolean | null;
+  displacementBodyRatio: number | null;
+  displacementBodyRatioPass: boolean | null;
+  displacementRange: number | null;
+  displacementAvgRange: number | null;
+  displacementRangePass: boolean | null;
   zlema1hPass: boolean | null;
   zlema4hPass: boolean | null;
   zlema1hReversePass: boolean | null;
   zlema1hNoTradePass: boolean | null;
   zlema4hReversePass: boolean | null;
   zlema4hNoTradePass: boolean | null;
+  minGapSizePass: boolean;
+  gapSize: number;
   liqClusterNearPass: boolean | null;
   liqClusterFarPass: boolean | null;
   zlema1hZone: ZoneDirection; // pass/fail'den FARKLI -- trade yonune BAKMADAN, o andaki HAM zone degeri (dogrulama/inceleme icin)
@@ -96,12 +103,19 @@ export function extractTrades(
       sweepPass: f.ifvgScore?.sweep ?? null,
       bosPass: f.ifvgScore?.bosApplicable ? f.ifvgScore.bos : null,
       displacementPass: f.ifvgScore?.displacement ?? null,
+      displacementBodyRatio: f.ifvgScore?.displacementBodyRatio ?? null,
+      displacementBodyRatioPass: f.ifvgScore?.displacementBodyRatioPass ?? null,
+      displacementRange: f.ifvgScore?.displacementRange ?? null,
+      displacementAvgRange: f.ifvgScore?.displacementAvgRange ?? null,
+      displacementRangePass: f.ifvgScore?.displacementRangePass ?? null,
       zlema1hPass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema1hAligned : null,
       zlema4hPass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema4hAligned : null,
       zlema1hReversePass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema1hReverse : null,
       zlema1hNoTradePass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema1hNoTrade : null,
       zlema4hReversePass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema4hReverse : null,
       zlema4hNoTradePass: f.ifvgScore?.zlemaApplicable ? f.ifvgScore.zlema4hNoTrade : null,
+      minGapSizePass: f.ifvgScore?.minGapSizePass ?? false,
+      gapSize: f.ifvgScore?.gapSize ?? 0,
       liqClusterNearPass: f.ifvgScore?.liqClusterApplicable ? f.ifvgScore.liqClusterNear : null,
       liqClusterFarPass: f.ifvgScore?.liqClusterApplicable ? f.ifvgScore.liqClusterFar : null,
       zlema1hZone: f.ifvgScore?.zlema1h ?? null,
