@@ -76,6 +76,7 @@ const SPACE = {
   maxTradeDurationCandles: [720, 1440, 2160, 2880, 4320, 5760],
   maxConcurrentTrades: [null, 1, 2, 3, 5, 10] as (number | null)[],
   minRR: [0, 0.5, 1.0, 1.5, 2.0],
+  minFvgGapUsd: [10, 25, 50, 75, 100, 150],
 }
 function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)] }
 
@@ -105,6 +106,8 @@ function sampleRandomParams(): FvgParams {
     useZlema4hNoTradeCriterion: Math.random() < 0.5,
     useLiqClusterNearCriterion: Math.random() < 0.5,
     useLiqClusterFarCriterion: Math.random() < 0.5,
+    useMinGapSizeCriterion: Math.random() < 0.5,
+    minFvgGapUsd: pick(SPACE.minFvgGapUsd),
     zlemaFastPeriod, zlemaSlowPeriod,
     slMode: pick(SPACE.slMode),
     tpSwingSearchWindow: pick(SPACE.swingSearchWindow),
