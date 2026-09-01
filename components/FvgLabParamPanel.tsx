@@ -119,7 +119,7 @@ export default function FvgLabParamPanel({ params, onChange, onReset }: Props) {
           <CheckField label="Liq Cluster Yakın" checked={params.useLiqClusterNearCriterion} onChange={v => set('useLiqClusterNearCriterion', v)} />
           <CheckField label="Liq Cluster Uzak" checked={params.useLiqClusterFarCriterion} onChange={v => set('useLiqClusterFarCriterion', v)} />
           <CheckField label="Min Gap Boyutu" checked={params.useMinGapSizeCriterion} onChange={v => set('useMinGapSizeCriterion', v)} />
-          <CheckField label="Volatilite Filtresi" checked={params.useVolatilityFilterCriterion} onChange={v => set('useVolatilityFilterCriterion', v)} />
+          <CheckField label="Yön Verimliliği" checked={params.useEfficiencyRatioCriterion} onChange={v => set('useEfficiencyRatioCriterion', v)} />
           <SelectField label="Trade alma koşulu" value={params.tradeConditionMode}
             options={[{ value: 'all', label: 'Hepsi geçmeli' }, { value: 'any', label: 'Biri yeter' }, { value: 'always', label: 'Her zaman al' }]}
             onChange={v => set('tradeConditionMode', v)} />
@@ -135,10 +135,9 @@ export default function FvgLabParamPanel({ params, onChange, onReset }: Props) {
           <NumberField label="Min gap aralığı ($)" value={params.minFvgGapUsd} min={0} max={1000} step={5} onChange={v => set('minFvgGapUsd', v)} />
         </Group>
 
-        <Group title="Volatilite Filtresi">
-          <NumberField label="Kısa pencere (mum)" value={params.volatilityShortWindow} min={1} max={200} onChange={v => set('volatilityShortWindow', v)} />
-          <NumberField label="Baseline penceresi (mum)" value={params.volatilityBaselineWindow} min={1} max={2000} onChange={v => set('volatilityBaselineWindow', v)} />
-          <NumberField label="Min oran (kısa/baseline)" value={params.minVolatilityRatio} min={0} max={3} step={0.05} onChange={v => set('minVolatilityRatio', v)} />
+        <Group title="Yön Verimliliği">
+          <NumberField label="Pencere (mum)" value={params.efficiencyWindow} min={2} max={200} onChange={v => set('efficiencyWindow', v)} />
+          <NumberField label="Min oran (0-1)" value={params.minEfficiencyRatio} min={0} max={1} step={0.05} onChange={v => set('minEfficiencyRatio', v)} />
         </Group>
 
         <Group title="Setup — SL / TP">
