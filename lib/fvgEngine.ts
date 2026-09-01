@@ -580,17 +580,17 @@ export function computeTradeSetup(candles: Candle[], fvg: Fvg, swings: SwingPoin
   }
 
   const tpSwingType: 'high' | 'low' = isShort ? 'low' : 'high';
-  const tpWindowStart = Math.max(0, fvg.filledIdx - p.tpSwingSearchWindow);
-  const candidates = swings.filter(s =>
-    s.type === tpSwingType && s.idx >= tpWindowStart && s.idx < (fvg.filledIdx as number) &&
-    isSwingValidAsOf(s, fvg.filledIdx as number)
-  );
+  const tpWindowStart = Math.max(0, fvg.filledIdx - p.tpSwingSearchWindow); // dynamic_zone'da findMaxTouchLevel icin hala gerekli
+  // ONCEDEN: bu fonksiyonu HIC cagirmiyordu, kendi basina "candidates[son]"
+  // (her zaman "nearest" davranisi) mantigini TEKRARLIYORDU -- swingSelectMode
+  // (extreme/nearest) ne olursa olsun TP HER ZAMAN en son (zamanca en yakin)
+  // swing'i seciyordu. Artik SL/BOS ile AYNI, tek kaynak fonksiyonu kullanir.
+  const selectedTpSwing = selectRelevantSwing(swings, fvg.filledIdx as number, tpSwingType, p.swingSelectMode, p.tpSwingSearchWindow);
 
   let tp: number, tpSwingIdx: number | null = null, tpFallbackUsed = false, tpZoneTouchCount: number | null = null;
-  if (candidates.length > 0) {
-    const nearest = candidates[candidates.length - 1];
-    tpSwingIdx = nearest.idx;
-    const swingPrice = nearest.price;
+  if (selectedTpSwing) {
+    tpSwingIdx = selectedTpSwing.idx;
+    const swingPrice = selectedTpSwing.price;
     if (p.tpPlacementMode === 'percentage') {
       tp = entry + p.tpTargetPct * (swingPrice - entry);
     } else if (p.tpPlacementMode === 'dynamic_zone') {
