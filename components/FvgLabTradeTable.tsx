@@ -48,7 +48,7 @@ export default function FvgLabTradeTable({ trades, selectedIdx, onSelect }: Prop
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
         <thead>
           <tr style={{ borderBottom: '1px solid var(--border)' }}>
-            {['Yön', 'Kırılma', 'Likidite', 'BOS', 'Displ.', 'Gap$', 'Cluster↑', 'Cluster↓', 'Yakınlık', 'ZLEMA1H', 'Zone1H', 'ZLEMA4H', 'Zone4H', 'Entry', 'SL', 'TP', 'RR', 'Sonuç', 'R'].map(h => (
+            {['Yön', 'Kırılma', 'Likidite', 'BOS', 'Displ.', 'Gap$', 'Vol.Oran', 'Cluster↑', 'Cluster↓', 'Yakınlık', 'ZLEMA1H', 'Zone1H', 'ZLEMA4H', 'Zone4H', 'Entry', 'SL', 'TP', 'RR', 'Sonuç', 'R'].map(h => (
               <th key={h} style={{ textAlign: 'left', padding: '7px 10px', color: 'var(--text-3)', fontWeight: 400, fontSize: 10, letterSpacing: '0.04em' }}>{h}</th>
             ))}
           </tr>
@@ -71,6 +71,9 @@ export default function FvgLabTradeTable({ trades, selectedIdx, onSelect }: Prop
                 <td style={{ padding: '7px 10px' }}><Dot v={t.displacementPass} /></td>
                 <td style={{ padding: '7px 10px', color: t.minGapSizePass ? 'var(--text-2)' : 'var(--red)' }} className="mono" title="FVG'nin top-bottom aralığı (dolar)">
                   {t.gapSize.toFixed(1)}
+                </td>
+                <td style={{ padding: '7px 10px', color: t.volatilityPass === false ? 'var(--red)' : 'var(--text-2)' }} className="mono" title="Kısa pencere ATR / baseline ATR oranı">
+                  {t.volatilityRatio != null ? t.volatilityRatio.toFixed(2) : '—'}
                 </td>
                 <td style={{ padding: '7px 10px', color: 'var(--text-2)' }} className="mono">{t.liquidityContext?.clusterUpPrice != null ? t.liquidityContext.clusterUpPrice.toFixed(1) : '—'}</td>
                 <td style={{ padding: '7px 10px', color: 'var(--text-2)' }} className="mono">{t.liquidityContext?.clusterDnPrice != null ? t.liquidityContext.clusterDnPrice.toFixed(1) : '—'}</td>
