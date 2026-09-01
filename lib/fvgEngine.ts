@@ -69,6 +69,8 @@ export interface FvgParams {
   useZlema4hNoTradeCriterion: boolean;
   useLiqClusterNearCriterion: boolean;
   useLiqClusterFarCriterion: boolean;
+  useMinGapSizeCriterion: boolean;
+  minFvgGapUsd: number; // FVG'nin top-bottom araligi (dolar cinsinden) bu degerin ALTINDAYSA gecersiz sayilir
   zlemaFastPeriod: number;
   zlemaSlowPeriod: number;
   slMode: SlMode;
@@ -106,6 +108,8 @@ export const DEFAULT_PARAMS: FvgParams = {
   useZlema4hNoTradeCriterion: false,
   useLiqClusterNearCriterion: false,
   useLiqClusterFarCriterion: false,
+  useMinGapSizeCriterion: false,
+  minFvgGapUsd: 50,
   zlemaFastPeriod: 8,
   zlemaSlowPeriod: 21,
   slMode: 'swept_swing',
@@ -147,6 +151,11 @@ export interface IfvgScore {
   bosApplicable: boolean;
   displacement: boolean | null;
   displacementApplicable: boolean;
+  displacementBodyRatio: number | null;
+  displacementBodyRatioPass: boolean | null;
+  displacementRange: number | null;
+  displacementAvgRange: number | null;
+  displacementRangePass: boolean | null;
   zlema1hAligned: boolean | null;
   zlema1hReverse: boolean | null;
   zlema1hNoTrade: boolean | null;
@@ -158,6 +167,8 @@ export interface IfvgScore {
   liqClusterFar: boolean | null;
   liqClusterUpPrice: number | null; // seffaflik icin -- o anki eslesen kume seviyeleri
   liqClusterDnPrice: number | null;
+  minGapSizePass: boolean; // fill'i beklemez -- FVG'nin top/bottom'u olusum aninda zaten belli
+  gapSize: number; // seffaflik icin -- gercek |top-bottom| degeri
   zlemaApplicable: boolean;
   zlema1h: ZoneDirection;
   zlema4h: ZoneDirection;
@@ -356,15 +367,26 @@ export function checkBOSAtFill(candles: Candle[], fvg: Fvg, swings: SwingPoint[]
 }
 
 // ── Kriter 3: Displacement ───────────────────────────────────────────────
-export function checkDisplacementQuality(candles: Candle[], fvg: Fvg, p: FvgParams): boolean {
-  if (fvg.filledIdx == null) return false;
+export interface DisplacementResult {
+  pass: boolean;
+  bodyRatio: number | null; // fill mumunun govde/aralik orani (olculemiyorsa null -- range<=0)
+  bodyRatioPass: boolean;   // bodyRatio > p.bodyRatioThreshold
+  range: number | null;
+  avgRange: number | null;  // p.avgRangeLookback kadar geriye bakan ortalama aralik
+  rangePass: boolean;       // range > p.rangeMultiplier * avgRange
+}
+export function checkDisplacementQuality(candles: Candle[], fvg: Fvg, p: FvgParams): DisplacementResult {
+  const empty: DisplacementResult = { pass: false, bodyRatio: null, bodyRatioPass: false, range: null, avgRange: null, rangePass: false };
+  if (fvg.filledIdx == null) return empty;
   const c = candles[fvg.filledIdx];
   const range = c.high - c.low;
-  if (range <= 0) return false;
+  if (range <= 0) return empty;
   const bodyRatio = Math.abs(c.close - c.open) / range;
   const lookback = candles.slice(Math.max(0, fvg.filledIdx - p.avgRangeLookback), fvg.filledIdx);
   const avgRange = lookback.reduce((s, x) => s + (x.high - x.low), 0) / (lookback.length || 1);
-  return bodyRatio > p.bodyRatioThreshold && range > p.rangeMultiplier * avgRange;
+  const bodyRatioPass = bodyRatio > p.bodyRatioThreshold;
+  const rangePass = range > p.rangeMultiplier * avgRange;
+  return { pass: bodyRatioPass && rangePass, bodyRatio, bodyRatioPass, range, avgRange, rangePass };
 }
 
 // FVG'nin GERCEK trade yonu -- IFVG mantigi GEREGI, BULLISH bir FVG
@@ -379,9 +401,15 @@ function getTradeDirection(fvg: Fvg): 'LONG' | 'SHORT' {
 // ── Skor birlestirme ──────────────────────────────────────────────────────
 export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: FvgParams, zlemaLookup?: ZlemaZoneLookup, liquidityLookup?: LiquidityClusterLookup): IfvgScore {
   const sweep = checkLiquiditySweepOrigin(candles, fvg, swings, p);
+
+  // Min FVG boyutu -- sweep gibi isFilled'dan BAGIMSIZ: top/bottom olusum
+  // aninda zaten belli, fill'i beklemesi gerekmez.
+  const gapSize = Math.abs(fvg.top - fvg.bottom);
+  const minGapSizePass = gapSize >= p.minFvgGapUsd;
   const isFilled = fvg.status === 'filled';
   const bos = isFilled ? checkBOSAtFill(candles, fvg, swings, p) : { pass: false, swingDistance: null, swingIdx: null, swingPrice: null };
-  const displacement: boolean | null = isFilled ? checkDisplacementQuality(candles, fvg, p) : null;
+  const displacementResult = isFilled ? checkDisplacementQuality(candles, fvg, p) : null;
+  const displacement: boolean | null = displacementResult ? displacementResult.pass : null;
 
   // ZLEMA hizalanmasi: fill anindaki (entry noktasindaki) bolge yonu, GERCEK
   // trade yonuyle (getTradeDirection -- IFVG inversiyonu dahil) AYNI OLMALI.
@@ -438,6 +466,7 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
 
   const countedChecks: boolean[] = [];
   if (p.useSweepCriterion) countedChecks.push(sweep.pass);
+  if (p.useMinGapSizeCriterion) countedChecks.push(minGapSizePass);
   if (isFilled) {
     if (p.useBosCriterion) countedChecks.push(bos.pass);
     if (p.useDisplacementCriterion) countedChecks.push(!!displacement);
@@ -455,11 +484,17 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
     sweep: sweep.pass, sweepDistance: sweep.swingDistance, sweepSwingIdx: sweep.swingIdx ?? null, sweepSwingPrice: sweep.swingPrice ?? null, sweepTrace: sweep.trace,
     bos: bos.pass, bosDistance: bos.swingDistance, bosSwingIdx: bos.swingIdx, bosSwingPrice: bos.swingPrice, bosApplicable: isFilled,
     displacement, displacementApplicable: isFilled,
+    displacementBodyRatio: displacementResult?.bodyRatio ?? null,
+    displacementBodyRatioPass: isFilled ? (displacementResult?.bodyRatioPass ?? null) : null,
+    displacementRange: displacementResult?.range ?? null,
+    displacementAvgRange: displacementResult?.avgRange ?? null,
+    displacementRangePass: isFilled ? (displacementResult?.rangePass ?? null) : null,
     zlema1hAligned, zlema1hReverse, zlema1hNoTrade,
     zlema4hAligned, zlema4hReverse, zlema4hNoTrade,
     zlemaApplicable: isFilled, zlema1h, zlema4h,
     liqClusterApplicable: liqClusterNear !== null,
     liqClusterNear, liqClusterFar, liqClusterUpPrice, liqClusterDnPrice,
+    minGapSizePass, gapSize,
     total: countedChecks.filter(Boolean).length,
     maxScore: countedChecks.length,
   };
@@ -474,6 +509,7 @@ function checkTradeCondition(fvg: Fvg, p: FvgParams): GateResult {
   if (!s) return { pass: false, reason: 'Skor hesaplanamadı' };
   const relevant: { name: string; val: boolean }[] = [];
   if (p.useSweepCriterion) relevant.push({ name: 'Likidite', val: s.sweep });
+  if (p.useMinGapSizeCriterion) relevant.push({ name: 'Min Gap Boyutu', val: s.minGapSizePass });
   if (p.useBosCriterion) relevant.push({ name: 'BOS', val: s.bos });
   if (p.useDisplacementCriterion) relevant.push({ name: 'Displacement', val: !!s.displacement });
   if (p.useZlema1hCriterion) relevant.push({ name: 'ZLEMA 1H', val: !!s.zlema1hAligned });
