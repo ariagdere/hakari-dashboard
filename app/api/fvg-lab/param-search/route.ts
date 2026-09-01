@@ -64,9 +64,8 @@ const SPACE = {
   maxConcurrentTrades: [null, 1, 2, 3, 5, 10] as (number | null)[],
   minRR: [0, 0.5, 1.0, 1.5, 2.0],
   minFvgGapUsd: [10, 25, 50, 75, 100, 150],
-  volatilityShortWindow: [10, 15, 20, 30, 40],
-  volatilityBaselineWindow: [100, 150, 200, 300, 400],
-  minVolatilityRatio: [0.4, 0.5, 0.6, 0.7, 0.8, 1.0],
+  efficiencyWindow: [10, 15, 20, 30, 40],
+  minEfficiencyRatio: [0.15, 0.2, 0.3, 0.4, 0.5, 0.6],
 }
 function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)] }
 
@@ -97,10 +96,9 @@ function sampleRandomParams(): FvgParams {
     useLiqClusterFarCriterion: useCriteria && Math.random() < 0.5,
     useMinGapSizeCriterion: useCriteria && Math.random() < 0.5,
     minFvgGapUsd: pick(SPACE.minFvgGapUsd),
-    useVolatilityFilterCriterion: useCriteria && Math.random() < 0.5,
-    volatilityShortWindow: pick(SPACE.volatilityShortWindow),
-    volatilityBaselineWindow: pick(SPACE.volatilityBaselineWindow),
-    minVolatilityRatio: pick(SPACE.minVolatilityRatio),
+    useEfficiencyRatioCriterion: useCriteria && Math.random() < 0.5,
+    efficiencyWindow: pick(SPACE.efficiencyWindow),
+    minEfficiencyRatio: pick(SPACE.minEfficiencyRatio),
     zlemaFastPeriod, zlemaSlowPeriod, slMode: pick(SPACE.slMode),
     tpSwingSearchWindow: pick(SPACE.swingSearchWindow), tpFallbackMode: pick(SPACE.tpFallbackMode),
     tradeConditionMode, slBufferPct: pick(SPACE.slBufferPct),
