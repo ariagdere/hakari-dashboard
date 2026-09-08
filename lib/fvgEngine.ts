@@ -74,6 +74,11 @@ export interface FvgParams {
   useEfficiencyRatioCriterion: boolean;
   efficiencyWindow: number; // fill'e kadar, kac mum-mum farkinin (adimin) hesaba katilacagi
   minEfficiencyRatio: number; // |net degisim| / (adimlarin MUTLAK toplami) bu esigin ALTINDAYSA reddedilir -- yonsuz "chop" filtresi (ATR-orani DEGIL)
+  useSweepAtrRatioCriterion: boolean;
+  sweepAtrWindow: number; // sweep mumundan HEMEN ONCEKI, kac mumluk ATR baseline'i
+  minSweepAtrRatio: number; // sweep mumunun KENDI True Range'i / baseline ATR, bu esigin ALTINDAYSA reddedilir
+  usePriorCandlesDirectionCriterion: boolean;
+  priorCandlesWindow: number; // FVG'yi OLUSTURAN ILK mumdan (c0) itibaren GERIYE, kac mumun kontrol edilecegi
   zlemaFastPeriod: number;
   zlemaSlowPeriod: number;
   slMode: SlMode;
@@ -88,6 +93,8 @@ export interface FvgParams {
   sequentialTradesOnly: boolean; // aciksa, bir trade aktifken zaman olarak cakisan sonraki trade'ler iptal edilir
   maxConcurrentTrades: number | null; // sequential'a ALTERNATIF: en fazla N trade ayni anda acik olabilir. sequentialTradesOnly=true ise BU YOK SAYILIR (1 zaten uygulanir).
   minRR: number; // trade setup'un RR'si bu esigin ALTINDAYSA setup reddedilir (0 = filtre yok)
+  consecutiveLossThreshold: number; // bu KADAR ARDISIK SL_HIT sonrasi mola baslar (0 = kapali -- minRR ile AYNI konvansiyon)
+  lossBreakHours: number; // molanin KAC SAAT surecegi
 }
 
 export const DEFAULT_PARAMS: FvgParams = {
@@ -116,6 +123,11 @@ export const DEFAULT_PARAMS: FvgParams = {
   useEfficiencyRatioCriterion: false,
   efficiencyWindow: 20,
   minEfficiencyRatio: 0.3,
+  useSweepAtrRatioCriterion: false,
+  sweepAtrWindow: 14,
+  minSweepAtrRatio: 1.2,
+  usePriorCandlesDirectionCriterion: false,
+  priorCandlesWindow: 5,
   zlemaFastPeriod: 8,
   zlemaSlowPeriod: 21,
   slMode: 'swept_swing',
@@ -130,6 +142,8 @@ export const DEFAULT_PARAMS: FvgParams = {
   sequentialTradesOnly: false,
   maxConcurrentTrades: null,
   minRR: 0,
+  consecutiveLossThreshold: 0,
+  lossBreakHours: 0,
 };
 
 export type FvgStatus = 'open' | 'filled' | 'expired';
@@ -177,6 +191,9 @@ export interface IfvgScore {
   gapSize: number; // seffaflik icin -- gercek |top-bottom| degeri
   efficiencyPass: boolean | null;
   efficiencyRatio: number | null; // seffaflik icin -- |net degisim| / adimlarin mutlak toplami (0-1 arasi)
+  sweepAtrPass: boolean | null;
+  sweepAtrRatio: number | null; // seffaflik icin -- sweep mumunun True Range'i / baseline ATR
+  priorCandlesDirectionPass: boolean | null;
   zlemaApplicable: boolean;
   zlema1h: ZoneDirection;
   zlema4h: ZoneDirection;
@@ -415,6 +432,20 @@ function getTradeDirection(fvg: Fvg): 'LONG' | 'SHORT' {
 // oraninin AKSINE yonu de hesaba katar -- mum boyu buyuk olsa bile ileri-geri
 // sallaniyorsa dusuk cikar. window = kac ADIM (mum-mum farki) hesaba
 // katilacak -- pencerede window+1 mum kullanilir.
+// window buyuklugundeki, endIdx'te BITEN (dahil) mumlarin ORTALAMA True
+// Range'i. Sweep/ATR oranı kriteri icin -- sweep mumunun kendi buyuklugunu,
+// ONDAN ONCEKI "normal" hareketle karsilastirmak icin kullanilir.
+function computeAvgTrueRange(candles: Candle[], endIdx: number, window: number): number | null {
+  const startIdx = endIdx - window + 1;
+  if (startIdx < 1) return null;
+  let sum = 0;
+  for (let i = startIdx; i <= endIdx; i++) {
+    const h = candles[i].high, l = candles[i].low, pc = candles[i - 1].close;
+    sum += Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc));
+  }
+  return sum / window;
+}
+
 function computeEfficiencyRatio(candles: Candle[], endIdx: number, window: number): number | null {
   const startIdx = endIdx - window;
   if (startIdx < 0) return null;
@@ -435,6 +466,48 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
   // aninda zaten belli, fill'i beklemesi gerekmez.
   const gapSize = Math.abs(fvg.top - fvg.bottom);
   const minGapSizePass = gapSize >= p.minFvgGapUsd;
+
+  // Sweep/ATR orani: likidite alan mumun (sweep.trace'in SON -- "GECTI" --
+  // elemani) KENDI True Range'i, ONDAN HEMEN ONCEKI p.sweepAtrWindow'luk
+  // baseline ATR'a oranlanir. Sweep mumunun KENDISI baseline'a DAHIL
+  // EDILMEZ (kendi kendine kiyaslanip oranin sonucu "yumusatilmasin" diye).
+  // sweep.pass=false ise (sweep hic bulunamadiysa) uygulanamaz (null).
+  let sweepAtrPass: boolean | null = null, sweepAtrRatio: number | null = null;
+  if (sweep.pass && sweep.trace.length > 0 && typeof p.minSweepAtrRatio === 'number' && !isNaN(p.minSweepAtrRatio)) {
+    const sweepIdx = sweep.trace[sweep.trace.length - 1].idx;
+    if (sweepIdx != null && sweepIdx >= 1) {
+      const sc = candles[sweepIdx];
+      const prevClose = candles[sweepIdx - 1].close;
+      const sweepTrueRange = Math.max(sc.high - sc.low, Math.abs(sc.high - prevClose), Math.abs(sc.low - prevClose));
+      const baselineAtr = computeAvgTrueRange(candles, sweepIdx - 1, p.sweepAtrWindow);
+      if (baselineAtr != null && baselineAtr > 0) {
+        sweepAtrRatio = sweepTrueRange / baselineAtr;
+        sweepAtrPass = sweepAtrRatio >= p.minSweepAtrRatio;
+      }
+    }
+  }
+
+  // Onceki N mum FVG ile ayni yonde mi: FVG'yi OLUSTURAN ILK mumdan (c0,
+  // formedIdx-2) itibaren GERIYE p.priorCandlesWindow mum -- HEPSI
+  // fvg.type'a uygun yonde (bullish FVG -> yukselen mumlar, bearish -> dusen)
+  // OLMALI. Bilerek fvg.type kullanilir, getTradeDirection DEGIL -- bu,
+  // FVG'nin OLUSUM MOMENTUMUYLA ilgili, gercek trade yonuyle degil.
+  let priorCandlesDirectionPass: boolean | null = null;
+  if (p.priorCandlesWindow > 0) {
+    const c0Idx = fvg.formedIdx - 2;
+    const startIdx = c0Idx - p.priorCandlesWindow + 1;
+    if (startIdx >= 0) {
+      const wantBullish = fvg.type === 'bullish';
+      let allMatch = true;
+      for (let i = startIdx; i <= c0Idx; i++) {
+        const isBullishCandle = candles[i].close > candles[i].open;
+        const isBearishCandle = candles[i].close < candles[i].open;
+        if (wantBullish ? !isBullishCandle : !isBearishCandle) { allMatch = false; break; }
+      }
+      priorCandlesDirectionPass = allMatch;
+    }
+  }
+
   const isFilled = fvg.status === 'filled';
   const bos = isFilled ? checkBOSAtFill(candles, fvg, swings, p) : { pass: false, swingDistance: null, swingIdx: null, swingPrice: null };
   const displacementResult = isFilled ? checkDisplacementQuality(candles, fvg, p) : null;
@@ -511,6 +584,8 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
   const countedChecks: boolean[] = [];
   if (p.useSweepCriterion) countedChecks.push(sweep.pass);
   if (p.useMinGapSizeCriterion) countedChecks.push(minGapSizePass);
+  if (p.useSweepAtrRatioCriterion) countedChecks.push(!!sweepAtrPass);
+  if (p.usePriorCandlesDirectionCriterion) countedChecks.push(!!priorCandlesDirectionPass);
   if (isFilled) {
     if (p.useBosCriterion) countedChecks.push(bos.pass);
     if (p.useDisplacementCriterion) countedChecks.push(!!displacement);
@@ -541,6 +616,8 @@ export function scoreIFVG(candles: Candle[], fvg: Fvg, swings: SwingPoint[], p: 
     liqClusterNear, liqClusterFar, liqClusterUpPrice, liqClusterDnPrice,
     minGapSizePass, gapSize,
     efficiencyPass, efficiencyRatio,
+    sweepAtrPass, sweepAtrRatio,
+    priorCandlesDirectionPass,
     total: countedChecks.filter(Boolean).length,
     maxScore: countedChecks.length,
   };
@@ -556,6 +633,8 @@ function checkTradeCondition(fvg: Fvg, p: FvgParams): GateResult {
   const relevant: { name: string; val: boolean }[] = [];
   if (p.useSweepCriterion) relevant.push({ name: 'Likidite', val: s.sweep });
   if (p.useMinGapSizeCriterion) relevant.push({ name: 'Min Gap Boyutu', val: s.minGapSizePass });
+  if (p.useSweepAtrRatioCriterion) relevant.push({ name: 'Sweep/ATR Oranı', val: !!s.sweepAtrPass });
+  if (p.usePriorCandlesDirectionCriterion) relevant.push({ name: 'Önceki Mumlar Aynı Yön', val: !!s.priorCandlesDirectionPass });
   if (p.useBosCriterion) relevant.push({ name: 'BOS', val: s.bos });
   if (p.useDisplacementCriterion) relevant.push({ name: 'Displacement', val: !!s.displacement });
   if (p.useZlema1hCriterion) relevant.push({ name: 'ZLEMA 1H', val: !!s.zlema1hAligned });
@@ -716,6 +795,46 @@ export function simulateTradeOutcome(
 // MATEMATIKSEL OLARAK AYNIDIR (tek bir "en son kabul edilenin kapanis
 // zamani" takibiyle ozdestir) -- bu yuzden applySequentialFilter YERINE
 // bu fonksiyon maxConcurrent=1 ile cagrilir, kod tekrari olmadan.
+// N ardisik SL_HIT sonrasi, breakHours saat boyunca yeni trade alinmaz.
+// TP_HIT sayaci sifirlar; EXPIRED NOTR sayilir (ne artirir ne sifirlar --
+// "ardisik KAYIP" sadece GERCEK SL vurusu anlamina gelir). Molali donemde
+// entry'si dusen trade'ler gecersiz kilinir (ayni applyMaxConcurrentFilter
+// deseni: tradeSetup.valid=false, outcome=null).
+function applyConsecutiveLossBreak(fvgs: Fvg[], candles: Candle[], lossThreshold: number, breakHours: number): void {
+  const withSetup = fvgs
+    .filter(f => f.tradeSetup?.valid && f.outcome != null && f.filledIdx != null)
+    .sort((a, b) => candles[a.filledIdx as number].time - candles[b.filledIdx as number].time);
+
+  let consecutiveLosses = 0;
+  let blockedUntilTime: number | null = null;
+
+  for (const fvg of withSetup) {
+    const entryTime = candles[fvg.filledIdx as number].time;
+
+    if (blockedUntilTime != null) {
+      if (entryTime < blockedUntilTime) {
+        (fvg.tradeSetup as TradeSetup).valid = false;
+        (fvg.tradeSetup as TradeSetup).reason = `Ardışık kayıp molası aktif (${breakHours} saat)`;
+        fvg.outcome = null;
+        continue;
+      }
+      blockedUntilTime = null;
+    }
+
+    const result = fvg.outcome!.result;
+    if (result === 'SL_HIT') {
+      consecutiveLosses++;
+      if (consecutiveLosses >= lossThreshold) {
+        blockedUntilTime = (fvg.outcome!.closeTime ?? entryTime) + breakHours * 3600 * 1000;
+        consecutiveLosses = 0;
+      }
+    } else if (result === 'TP_HIT') {
+      consecutiveLosses = 0;
+    }
+    // EXPIRED: sayaç NOTR kalır -- ne artar ne sıfırlanır.
+  }
+}
+
 function applyMaxConcurrentFilter(fvgs: Fvg[], candles: Candle[], maxConcurrent: number): void {
   const withSetup = fvgs
     .filter(f => f.tradeSetup?.valid && f.outcome != null && f.filledIdx != null)
@@ -798,6 +917,10 @@ export function detectFVGs(candles: Candle[], p: FvgParams, zlemaLookup?: ZlemaZ
     : (p.maxConcurrentTrades != null && p.maxConcurrentTrades > 0 ? p.maxConcurrentTrades : null);
   if (effectiveLimit != null) {
     applyMaxConcurrentFilter(fvgs, candles, effectiveLimit);
+  }
+
+  if (p.consecutiveLossThreshold > 0 && p.lossBreakHours > 0) {
+    applyConsecutiveLossBreak(fvgs, candles, p.consecutiveLossThreshold, p.lossBreakHours);
   }
 
   return fvgs;
