@@ -64,6 +64,11 @@ const SPACE = {
   maxConcurrentTrades: [null, 1, 2, 3, 5, 10] as (number | null)[],
   minRR: [0, 0.5, 1.0, 1.5, 2.0],
   minFvgGapUsd: [10, 25, 50, 75, 100, 150],
+  sweepAtrWindow: [7, 10, 14, 21, 28],
+  minSweepAtrRatio: [0.8, 1.0, 1.2, 1.5, 2.0, 3.0],
+  priorCandlesWindow: [2, 3, 5, 8, 10],
+  consecutiveLossThreshold: [0, 2, 3, 4, 5],
+  lossBreakHours: [0, 2, 4, 8, 12, 24],
   efficiencyWindow: [10, 15, 20, 30, 40],
   minEfficiencyRatio: [0.15, 0.2, 0.3, 0.4, 0.5, 0.6],
 }
@@ -96,6 +101,11 @@ function sampleRandomParams(): FvgParams {
     useLiqClusterFarCriterion: useCriteria && Math.random() < 0.5,
     useMinGapSizeCriterion: useCriteria && Math.random() < 0.5,
     minFvgGapUsd: pick(SPACE.minFvgGapUsd),
+    useSweepAtrRatioCriterion: useCriteria && Math.random() < 0.5,
+    sweepAtrWindow: pick(SPACE.sweepAtrWindow),
+    minSweepAtrRatio: pick(SPACE.minSweepAtrRatio),
+    usePriorCandlesDirectionCriterion: useCriteria && Math.random() < 0.5,
+    priorCandlesWindow: pick(SPACE.priorCandlesWindow),
     useEfficiencyRatioCriterion: useCriteria && Math.random() < 0.5,
     efficiencyWindow: pick(SPACE.efficiencyWindow),
     minEfficiencyRatio: pick(SPACE.minEfficiencyRatio),
@@ -106,6 +116,8 @@ function sampleRandomParams(): FvgParams {
     tpZonePct: pick(SPACE.tpZonePct), maxTradeDurationCandles: pick(SPACE.maxTradeDurationCandles),
     sequentialTradesOnly: Math.random() < 0.5, maxConcurrentTrades: pick(SPACE.maxConcurrentTrades),
     minRR: pick(SPACE.minRR),
+    consecutiveLossThreshold: pick(SPACE.consecutiveLossThreshold),
+    lossBreakHours: pick(SPACE.lossBreakHours),
   }
 }
 
