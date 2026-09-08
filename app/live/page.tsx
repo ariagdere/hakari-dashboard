@@ -7,6 +7,8 @@ import {
   LinearScale, CategoryScale, Filler, Legend,
 } from 'chart.js'
 import { Line } from 'react-chartjs-2'
+import EditableSlTp from '@/components/EditableSlTp'
+import EditableStrategyLabel from '@/components/EditableStrategyLabel'
 
 ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, Filler, Legend)
 
@@ -588,6 +590,7 @@ function EquityCurveChart({ history, selectedStrategies, period }: { history: Or
 export default function LivePositionsPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [history, setHistory] = useState<Order[]>([])
+  const [allLabels, setAllLabels] = useState<string[]>([])
   const [price, setPrice] = useState<Price | null>(null)
   const [accountInfo, setAccountInfo] = useState<AccountInfo | null>(null)
   const [candles, setCandles] = useState<Candle[]>([])
@@ -659,6 +662,24 @@ export default function LivePositionsPage() {
     const interval = setInterval(fetchData, POLL_INTERVAL_MS)
     return () => { active = false; clearInterval(interval) }
   }, [])
+
+  useEffect(() => {
+    let active = true
+    fetch('/api/strategy-labels', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((d) => { if (active) setAllLabels(d.labels ?? []) })
+      .catch(() => {})
+    return () => { active = false }
+  }, [])
+
+  // SL/TP/strategy_label dropdown'dan bir deger secildiginde, sunucu yaziminin
+  // BASARILI oldugu ANLASILDIKTAN SONRA cagrilir -- bir sonraki 5sn'lik poll'u
+  // beklemeden ekranda ANINDA yansisin diye orders/history state'ini yerinde
+  // gunceller (DB zaten API route'ta guncellendi, burada sadece UI'i senkronize ediyoruz).
+  function applyOrderPatch(orderId: number, patch: Partial<Order>) {
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...patch } : o)))
+    setHistory((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...patch } : o)))
+  }
 
   useEffect(() => {
     let active = true
@@ -1031,15 +1052,25 @@ export default function LivePositionsPage() {
                           <td style={{ padding: '6px 0', color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{fmtDate(order.created_at)}</td>
                           <td style={{ padding: '6px 0', color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{fmtDate(order.opened_at)}</td>
                           <td style={{ padding: '6px 0', color: 'var(--text-3)', whiteSpace: 'nowrap' }}>{fmtDate(order.closed_at)}</td>
-                          <td style={{ padding: '6px 0', color: 'var(--text-2)' }}>{order.strategy_label}</td>
+                          <td style={{ padding: '6px 0', color: 'var(--text-2)' }}>
+                            <EditableStrategyLabel orderId={order.id} currentLabel={order.strategy_label} allLabels={allLabels}
+                              onUpdated={(v) => applyOrderPatch(order.id, { strategy_label: v })}
+                              onNewLabelAdded={(v) => setAllLabels((prev) => [...prev, v].sort())} />
+                          </td>
                           <td style={{ padding: '6px 0', textAlign: 'right' }}>{rowBadge(order)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right' }}>{dirBadge(order.direction)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{displayVolume}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtPrice(order.entry_price)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-3)' }}>{fmtPrice(order.fill_price)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtPrice(order.close_price)}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--red)' }}>{fmtPrice(order.sl)}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--green)' }}>{fmtPrice(order.tp)}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--red)' }}>
+                            <EditableSlTp orderId={order.id} field="sl" currentValue={order.sl} color="var(--red)" fmtPrice={fmtPrice}
+                              onUpdated={(v) => applyOrderPatch(order.id, { sl: v })} />
+                          </td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--green)' }}>
+                            <EditableSlTp orderId={order.id} field="tp" currentValue={order.tp} color="var(--green)" fmtPrice={fmtPrice}
+                              onUpdated={(v) => applyOrderPatch(order.id, { tp: v })} />
+                          </td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtRR(order)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: wpColor(order.win_probability_v6_reverse) }}>{order.win_probability_v6_reverse != null ? `%${Number(order.win_probability_v6_reverse).toFixed(0)}` : '—'}</td>
@@ -1069,14 +1100,20 @@ export default function LivePositionsPage() {
                           {pnl.text === '—' ? '—' : `${pnl.text.startsWith('-') ? '-' : '+'}$${pnl.text.replace(/^[+-]/, '')}`}
                         </span>
                       </div>
-                      <div style={{ fontSize: 11, color: 'var(--text-2)', fontFamily: 'DM Mono, monospace', marginBottom: 6 }}>{order.strategy_label}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-2)', fontFamily: 'DM Mono, monospace', marginBottom: 6 }}>
+                        <EditableStrategyLabel orderId={order.id} currentLabel={order.strategy_label} allLabels={allLabels}
+                          onUpdated={(v) => applyOrderPatch(order.id, { strategy_label: v })}
+                          onNewLabelAdded={(v) => setAllLabels((prev) => [...prev, v].sort())} />
+                      </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, fontFamily: 'DM Mono, monospace', fontSize: 11 }}>
                         <div><span className="col-label">Entry </span><span style={{ color: 'var(--text-2)' }}>{fmtPrice(order.entry_price)}</span></div>
                         <div><span className="col-label">Fill </span><span style={{ color: 'var(--text-3)' }}>{fmtPrice(order.fill_price)}</span></div>
                         <div><span className="col-label">Exit </span><span style={{ color: 'var(--text-2)' }}>{fmtPrice(order.close_price)}</span></div>
                         <div><span className="col-label">Vol </span><span style={{ color: 'var(--text-2)' }}>{displayVolume}</span></div>
-                        <div><span className="col-label">SL </span><span style={{ color: 'var(--red)' }}>{fmtPrice(order.sl)}</span></div>
-                        <div><span className="col-label">TP </span><span style={{ color: 'var(--green)' }}>{fmtPrice(order.tp)}</span></div>
+                        <div><span className="col-label">SL </span><EditableSlTp orderId={order.id} field="sl" currentValue={order.sl} color="var(--red)" fmtPrice={fmtPrice}
+                          onUpdated={(v) => applyOrderPatch(order.id, { sl: v })} /></div>
+                        <div><span className="col-label">TP </span><EditableSlTp orderId={order.id} field="tp" currentValue={order.tp} color="var(--green)" fmtPrice={fmtPrice}
+                          onUpdated={(v) => applyOrderPatch(order.id, { tp: v })} /></div>
                         <div><span className="col-label">RR </span><span style={{ color: 'var(--text-2)' }}>{fmtRR(order)}</span></div>
                         <div><span className="col-label">WP6 </span><span style={{ color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</span></div>
                         <div><span className="col-label">WP6R </span><span style={{ color: wpColor(order.win_probability_v6_reverse) }}>{order.win_probability_v6_reverse != null ? `%${Number(order.win_probability_v6_reverse).toFixed(0)}` : '—'}</span></div>
