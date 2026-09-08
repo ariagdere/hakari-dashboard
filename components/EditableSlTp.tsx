@@ -26,6 +26,7 @@ export default function EditableSlTp({ orderId, field, currentValue, color, fmtP
   const [loading, setLoading] = useState(false)
   const [values, setValues] = useState<FieldValue[]>([])
   const [saving, setSaving] = useState(false)
+  const [manualValue, setManualValue] = useState('')
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -53,9 +54,8 @@ export default function EditableSlTp({ orderId, field, currentValue, color, fmtP
     }
   }
 
-  async function handleSelect(v: number, e: React.MouseEvent) {
-    e.stopPropagation()
-    if (saving) return
+  async function saveValue(v: number) {
+    if (saving || !Number.isFinite(v)) return
     setSaving(true)
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
@@ -66,10 +66,17 @@ export default function EditableSlTp({ orderId, field, currentValue, color, fmtP
       if (res.ok) {
         onUpdated(v)
         setOpen(false)
+        setManualValue('')
       }
     } finally {
       setSaving(false)
     }
+  }
+
+  function handleManualSubmit(e: React.MouseEvent | React.KeyboardEvent) {
+    e.stopPropagation()
+    const v = Number(manualValue.replace(',', '.'))
+    if (manualValue.trim() && Number.isFinite(v)) saveValue(v)
   }
 
   return (
@@ -89,7 +96,7 @@ export default function EditableSlTp({ orderId, field, currentValue, color, fmtP
           {loading && <div style={{ padding: '8px 10px', color: 'var(--text-3)' }}>yükleniyor…</div>}
           {!loading && values.length === 0 && <div style={{ padding: '8px 10px', color: 'var(--text-3)' }}>geçmiş bulunamadı</div>}
           {!loading && values.map((v, i) => (
-            <div key={i} onClick={(e) => handleSelect(v.value, e)}
+            <div key={i} onClick={(e) => { e.stopPropagation(); saveValue(v.value) }}
               style={{
                 padding: '6px 10px', cursor: saving ? 'default' : 'pointer', display: 'flex', justifyContent: 'space-between', gap: 10,
                 background: currentValue != null && Math.abs(v.value - currentValue) < 0.01 ? 'var(--bg-3)' : 'transparent',
@@ -101,6 +108,18 @@ export default function EditableSlTp({ orderId, field, currentValue, color, fmtP
               <span style={{ color: 'var(--text-3)' }}>{fmtEventTime(v.eventTime)}</span>
             </div>
           ))}
+          {!loading && (
+            <div style={{ borderTop: '1px solid var(--border)', padding: 6, display: 'flex', gap: 4 }} onClick={(e) => e.stopPropagation()}>
+              <input
+                type="text" inputMode="decimal" value={manualValue} placeholder="manuel değer" autoFocus={values.length === 0}
+                onChange={(e) => setManualValue(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleManualSubmit(e) }}
+                style={{ flex: 1, background: 'var(--bg-3)', border: '1px solid var(--border)', color: 'var(--text)', fontSize: 11, padding: '4px 6px', borderRadius: 4, minWidth: 0 }} />
+              <button onClick={handleManualSubmit} disabled={saving || !manualValue.trim()} className="filter-btn" style={{ fontSize: 10, padding: '4px 8px' }}>
+                Kaydet
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
