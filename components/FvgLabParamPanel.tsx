@@ -120,6 +120,8 @@ export default function FvgLabParamPanel({ params, onChange, onReset }: Props) {
           <CheckField label="Liq Cluster Uzak" checked={params.useLiqClusterFarCriterion} onChange={v => set('useLiqClusterFarCriterion', v)} />
           <CheckField label="Min Gap Boyutu" checked={params.useMinGapSizeCriterion} onChange={v => set('useMinGapSizeCriterion', v)} />
           <CheckField label="Yön Verimliliği" checked={params.useEfficiencyRatioCriterion} onChange={v => set('useEfficiencyRatioCriterion', v)} />
+          <CheckField label="Sweep/ATR Oranı" checked={params.useSweepAtrRatioCriterion} onChange={v => set('useSweepAtrRatioCriterion', v)} />
+          <CheckField label="Önceki Mumlar Aynı Yön" checked={params.usePriorCandlesDirectionCriterion} onChange={v => set('usePriorCandlesDirectionCriterion', v)} />
           <SelectField label="Trade alma koşulu" value={params.tradeConditionMode}
             options={[{ value: 'all', label: 'Hepsi geçmeli' }, { value: 'any', label: 'Biri yeter' }, { value: 'always', label: 'Her zaman al' }]}
             onChange={v => set('tradeConditionMode', v)} />
@@ -138,6 +140,15 @@ export default function FvgLabParamPanel({ params, onChange, onReset }: Props) {
         <Group title="Yön Verimliliği">
           <NumberField label="Pencere (mum)" value={params.efficiencyWindow} min={2} max={200} onChange={v => set('efficiencyWindow', v)} />
           <NumberField label="Min oran (0-1)" value={params.minEfficiencyRatio} min={0} max={1} step={0.05} onChange={v => set('minEfficiencyRatio', v)} />
+        </Group>
+
+        <Group title="Sweep/ATR Oranı">
+          <NumberField label="Baseline pencere (mum)" value={params.sweepAtrWindow} min={2} max={200} onChange={v => set('sweepAtrWindow', v)} />
+          <NumberField label="Min oran" value={params.minSweepAtrRatio} min={0} max={10} step={0.1} onChange={v => set('minSweepAtrRatio', v)} />
+        </Group>
+
+        <Group title="Önceki Mumlar Aynı Yön">
+          <NumberField label="Pencere (mum)" value={params.priorCandlesWindow} min={1} max={50} onChange={v => set('priorCandlesWindow', v)} />
         </Group>
 
         <Group title="Setup — SL / TP">
@@ -176,6 +187,8 @@ export default function FvgLabParamPanel({ params, onChange, onReset }: Props) {
           <NumberField label="Maks. eşzamanlı trade (0=sınırsız)" value={params.maxConcurrentTrades ?? 0} min={0} max={50}
             onChange={v => onChange({ ...params, maxConcurrentTrades: v <= 0 ? null : v })} />
           <NumberField label="Min RR (0=filtre yok)" value={params.minRR} min={0} max={20} step={0.1} onChange={v => set('minRR', v)} />
+          <NumberField label="Ardışık kayıp eşiği (0=kapalı)" value={params.consecutiveLossThreshold} min={0} max={20} onChange={v => set('consecutiveLossThreshold', v)} />
+          <NumberField label="Mola süresi (saat)" value={params.lossBreakHours} min={0} max={168} onChange={v => set('lossBreakHours', v)} />
         </Group>
       </div>
     </div>
