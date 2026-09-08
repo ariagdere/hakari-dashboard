@@ -52,6 +52,9 @@ export interface SimTrade {
   gapSize: number;
   efficiencyPass: boolean | null;
   efficiencyRatio: number | null;
+  sweepAtrPass: boolean | null;
+  sweepAtrRatio: number | null;
+  priorCandlesDirectionPass: boolean | null;
   liqClusterNearPass: boolean | null;
   liqClusterFarPass: boolean | null;
   zlema1hZone: ZoneDirection; // pass/fail'den FARKLI -- trade yonune BAKMADAN, o andaki HAM zone degeri (dogrulama/inceleme icin)
@@ -120,6 +123,9 @@ export function extractTrades(
       gapSize: f.ifvgScore?.gapSize ?? 0,
       efficiencyPass: f.ifvgScore?.efficiencyPass ?? null,
       efficiencyRatio: f.ifvgScore?.efficiencyRatio ?? null,
+      sweepAtrPass: f.ifvgScore?.sweepAtrPass ?? null,
+      sweepAtrRatio: f.ifvgScore?.sweepAtrRatio ?? null,
+      priorCandlesDirectionPass: f.ifvgScore?.priorCandlesDirectionPass ?? null,
       liqClusterNearPass: f.ifvgScore?.liqClusterApplicable ? f.ifvgScore.liqClusterNear : null,
       liqClusterFarPass: f.ifvgScore?.liqClusterApplicable ? f.ifvgScore.liqClusterFar : null,
       zlema1hZone: f.ifvgScore?.zlema1h ?? null,
