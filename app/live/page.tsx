@@ -88,13 +88,25 @@ function isLong(direction: string): boolean {
 // order'larda hep null/varsayilan oldugu icin yanlis sonuc verir -- kazanan
 // MANUAL trade R=0, kaybeden sabit R=-1 gosteriyordu) ARTIK GUVENILMIYOR.
 // R sabit bir deger degil, HER order kendi risk mesafesine gore ayri hesaplanir.
+// 1R'i FIYAT MESAFESI olarak degil, DOLAR cinsinden risk olarak tanimlar:
+// riskUsd = |fill - sl| * volume (giris anindaki -- ya da dropdown'dan
+// DUZELTILMIS -- SL'e gore). Gerceklesen R, TOPLAM realized_pnl'in ($,
+// mt5_order_monitor.js'te KISMI+final kapanislarin hacim-agirlikli toplami
+// olarak zaten dogru hesaplaniyor) bu SABIT 1R degerine bolunmesiyle bulunur.
+// Bu yaklasim, SL sonradan (orn girise) tasinsa bile ya da islem KISMI
+// kapanislarla yonetilse bile DOGRU kalir -- cunku artik "kapanis fiyatina
+// olan mesafe"ye hic bakmiyoruz, sadece "ne kadar $ risk aldik, ne kadar $
+// kazandik/kaybettik" oranini. TEK sart: orders.sl'in GERCEK (orijinal)
+// riski yansitmasi -- degismisse, EditableSlTp dropdown'undan dogru
+// tarihsel degeri secmek bu hesabi da otomatik duzeltir.
 function calcOrderR(o: Order): number | null {
-  if (o.sl == null || o.close_price == null) return null
+  if (o.sl == null || o.realized_pnl == null) return null
   const entry = o.fill_price ?? o.entry_price
   const riskDist = Math.abs(entry - o.sl)
   if (riskDist <= 0) return null
-  const priceMove = isLong(o.direction) ? (o.close_price - entry) : (entry - o.close_price)
-  return priceMove / riskDist
+  const riskUsd = riskDist * o.volume
+  if (riskUsd <= 0) return null
+  return o.realized_pnl / riskUsd
 }
 
 function calcPnL(order: Order, bid: number, ask: number, volume: number): number {
