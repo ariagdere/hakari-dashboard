@@ -709,10 +709,18 @@ export default function LivePositionsPage() {
   const midPrice = price ? (price.bid + price.ask) / 2 : null
   const fmtMoney = (v: number) => `${v >= 0 ? '+' : '-'}$${Math.abs(v).toFixed(0)}`
 
-  // Tarihe gore filtrelenmis gecmis (skorkart/karsilastirma/equity curve icin ortak kaynak)
+  // Tarihe gore filtrelenmis liste (skorkart/karsilastirma/tablo icin ortak
+  // kaynak) -- ONCEDEN kapanis anina (closed_at) gore filtreleniyordu, artik
+  // order'in ACILDIGI ana (created_at) gore. Hem acik/pending hem kapali
+  // order'lara AYNI sekilde uygulanir -- "order date'e gore filtrele"
+  // talebiyle tutarli olmasi icin ikisi de created_at kullanir.
   const dateFilteredHistory = useMemo(
-    () => history.filter((o) => withinDateRange(o.closed_at, dateFrom, dateTo)),
+    () => history.filter((o) => withinDateRange(o.created_at, dateFrom, dateTo)),
     [history, dateFrom, dateTo]
+  )
+  const dateFilteredOrders = useMemo(
+    () => orders.filter((o) => withinDateRange(o.created_at, dateFrom, dateTo)),
+    [orders, dateFrom, dateTo]
   )
 
   const matchStrategy = (o: Order) => selectedStrategies.size === 0 || selectedStrategies.has(o.strategy_label)
@@ -722,8 +730,8 @@ export default function LivePositionsPage() {
     [dateFilteredHistory, selectedStrategies]
   )
   const strategyFilteredOrders = useMemo(
-    () => orders.filter(matchStrategy),
-    [orders, selectedStrategies]
+    () => dateFilteredOrders.filter(matchStrategy),
+    [dateFilteredOrders, selectedStrategies]
   )
 
   const stats = useMemo(
@@ -734,18 +742,22 @@ export default function LivePositionsPage() {
   // Karsilastirma tablosu her zaman TUM stratejileri gosterir (secimden bagimsiz),
   // sadece tarih filtresine uyar.
   const comparison = useMemo(
-    () => computeStrategyComparison(orders, dateFilteredHistory),
-    [orders, dateFilteredHistory]
+    () => computeStrategyComparison(dateFilteredOrders, dateFilteredHistory),
+    [dateFilteredOrders, dateFilteredHistory]
   )
 
-  // Acik pozisyonlarin toplam unrealized PnL'i (strateji secimine uyar)
+  // Acik pozisyonlarin toplam unrealized PnL'i (strateji secimine uyar) --
+  // KASITLI olarak tarih filtresinden BAGIMSIZ: "su an piyasada ne var"
+  // sorusuna cevap veren anlik bir ozet, "bu tarih araliginda ACILAN
+  // pozisyonlarin riski" degil.
   const totalUnrealized =
     price !== null
       ? orders.filter((o) => o.status === 'OPEN' && matchStrategy(o))
           .reduce((sum, o) => sum + calcPnL(o, price.bid, price.ask, getDisplayVolume(o)), 0)
       : null
 
-  // Acik pozisyonlarin toplam Value at Risk'i
+  // Acik pozisyonlarin toplam Value at Risk'i -- ayni sekilde tarih
+  // filtresinden bagimsiz, anlik bir ozet.
   const totalValueAtRisk = orders
     .filter((o) => o.status === 'OPEN' && matchStrategy(o))
     .reduce((sum, o) => {
@@ -753,8 +765,9 @@ export default function LivePositionsPage() {
       return sum + Math.abs(entry - o.sl) * getDisplayVolume(o)
     }, 0)
 
-  // Birlesik liste: acik/pending (tarih filtresinden bagimsiz, her zaman guncel) + tarihe gore filtrelenmis gecmis
-  const stratRows = [...orders, ...dateFilteredHistory].filter(matchStrategy)
+  // Birlesik liste: artik acik/pending de HER IKISI de created_at'e gore
+  // ayni tarih filtresine tabi.
+  const stratRows = [...dateFilteredOrders, ...dateFilteredHistory].filter(matchStrategy)
   const selectedOrders = stratRows.filter((o) => selectedIds.has(o.id))
 
   const filtered = stratRows.filter((o) => {
