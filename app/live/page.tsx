@@ -1048,7 +1048,7 @@ export default function LivePositionsPage() {
                   <thead>
                     <tr>
                       <th style={{ width: 28, paddingBottom: 8 }} />
-                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Volume', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'RR', 'WP V6', 'WP V6 Rev', 'PnL ($)'].map((h, i) => (
+                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Volume', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'RR', 'WP V6', 'WP V6 Rev', 'PnL ($)', 'Gerç. R'].map((h, i) => (
                         <th key={h} style={{ textAlign: i <= 3 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
@@ -1058,6 +1058,7 @@ export default function LivePositionsPage() {
                       const selected = selectedIds.has(order.id)
                       const displayVolume = getDisplayVolume(order)
                       const pnl = rowPnl(order)
+                      const rVal = calcOrderR(order)
                       return (
                         <tr key={order.id} onClick={() => toggleSelect(order.id)} style={{ borderTop: '1px solid var(--border)', cursor: 'pointer', background: selected ? 'var(--bg-3)' : 'transparent' }}>
                           <td style={{ padding: '6px 0', textAlign: 'center' }}><SelectDot selected={selected} /></td>
@@ -1087,6 +1088,9 @@ export default function LivePositionsPage() {
                           <td style={{ padding: '6px 0', textAlign: 'right', color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: wpColor(order.win_probability_v6_reverse) }}>{order.win_probability_v6_reverse != null ? `%${Number(order.win_probability_v6_reverse).toFixed(0)}` : '—'}</td>
                           <td className={`mono ${pnl.cls}`} style={{ padding: '6px 0', textAlign: 'right' }}>{pnl.text}</td>
+                          <td className="mono" style={{ padding: '6px 0', textAlign: 'right', color: rVal == null ? 'var(--text-3)' : moneyColor(rVal) }}>
+                            {rVal != null ? `${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R` : '—'}
+                          </td>
                         </tr>
                       )
                     })}
@@ -1100,6 +1104,7 @@ export default function LivePositionsPage() {
                   const selected = selectedIds.has(order.id)
                   const displayVolume = getDisplayVolume(order)
                   const pnl = rowPnl(order)
+                  const rVal = calcOrderR(order)
                   return (
                     <div key={order.id} className={`live-mcard${selected ? ' selected' : ''}`} onClick={() => toggleSelect(order.id)}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -1127,6 +1132,7 @@ export default function LivePositionsPage() {
                         <div><span className="col-label">TP </span><EditableSlTp orderId={order.id} field="tp" currentValue={order.tp} color="var(--green)" fmtPrice={fmtPrice}
                           onUpdated={(v) => applyOrderPatch(order.id, { tp: v })} /></div>
                         <div><span className="col-label">RR </span><span style={{ color: 'var(--text-2)' }}>{fmtRR(order)}</span></div>
+                        <div><span className="col-label">Gerç. R </span><span style={{ color: rVal == null ? 'var(--text-3)' : moneyColor(rVal) }}>{rVal != null ? `${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R` : '—'}</span></div>
                         <div><span className="col-label">WP6 </span><span style={{ color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</span></div>
                         <div><span className="col-label">WP6R </span><span style={{ color: wpColor(order.win_probability_v6_reverse) }}>{order.win_probability_v6_reverse != null ? `%${Number(order.win_probability_v6_reverse).toFixed(0)}` : '—'}</span></div>
                         <div><span className="col-label">Order D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.created_at)}</span></div>
