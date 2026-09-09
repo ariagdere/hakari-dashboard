@@ -1061,7 +1061,7 @@ export default function LivePositionsPage() {
                   <thead>
                     <tr>
                       <th style={{ width: 28, paddingBottom: 8 }} />
-                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Volume', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'RR', 'WP V6', 'WP V6 Rev', 'PnL ($)', 'Gerç. R'].map((h, i) => (
+                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Volume', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'RR', 'PnL ($)', 'Gerç. R'].map((h, i) => (
                         <th key={h} style={{ textAlign: i <= 3 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
@@ -1098,8 +1098,6 @@ export default function LivePositionsPage() {
                               onUpdated={(v) => applyOrderPatch(order.id, { tp: v })} />
                           </td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtRR(order)}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right', color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right', color: wpColor(order.win_probability_v6_reverse) }}>{order.win_probability_v6_reverse != null ? `%${Number(order.win_probability_v6_reverse).toFixed(0)}` : '—'}</td>
                           <td className={`mono ${pnl.cls}`} style={{ padding: '6px 0', textAlign: 'right' }}>{pnl.text}</td>
                           <td className="mono" style={{ padding: '6px 0', textAlign: 'right', color: rVal == null ? 'var(--text-3)' : moneyColor(rVal) }}>
                             {rVal != null ? `${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R` : '—'}
@@ -1146,8 +1144,6 @@ export default function LivePositionsPage() {
                           onUpdated={(v) => applyOrderPatch(order.id, { tp: v })} /></div>
                         <div><span className="col-label">RR </span><span style={{ color: 'var(--text-2)' }}>{fmtRR(order)}</span></div>
                         <div><span className="col-label">Gerç. R </span><span style={{ color: rVal == null ? 'var(--text-3)' : moneyColor(rVal) }}>{rVal != null ? `${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R` : '—'}</span></div>
-                        <div><span className="col-label">WP6 </span><span style={{ color: wpColor(order.win_probability_v6) }}>{order.win_probability_v6 != null ? `%${Number(order.win_probability_v6).toFixed(0)}` : '—'}</span></div>
-                        <div><span className="col-label">WP6R </span><span style={{ color: wpColor(order.win_probability_v6_reverse) }}>{order.win_probability_v6_reverse != null ? `%${Number(order.win_probability_v6_reverse).toFixed(0)}` : '—'}</span></div>
                         <div><span className="col-label">Order D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.created_at)}</span></div>
                         <div><span className="col-label">Entry D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.opened_at)}</span></div>
                         <div><span className="col-label">Close D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.closed_at)}</span></div>
