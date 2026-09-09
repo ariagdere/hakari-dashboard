@@ -195,6 +195,18 @@ function withinDateRange(dateStr: string | null | undefined, from: string, to: s
   return true
 }
 
+// Istanbul (UTC+3, 2016'dan beri DST yok -- sabit kayma yeterli) saatine
+// gore gunun haftaici/haftasonu oldugunu belirler -- proje genelinde
+// kullanilan UTC+3 kuraliyla tutarli (bkz. naif_orchestrator.ts).
+function matchesDow(dateStr: string | null | undefined, filter: 'all' | 'weekday' | 'weekend'): boolean {
+  if (filter === 'all') return true
+  if (!dateStr) return true
+  const istanbulMs = new Date(dateStr).getTime() + 3 * 60 * 60 * 1000
+  const dow = new Date(istanbulMs).getUTCDay() // 0=Pazar ... 6=Cumartesi
+  const isWeekend = dow === 0 || dow === 6
+  return filter === 'weekend' ? isWeekend : !isWeekend
+}
+
 // -------------------- CLIENT-SIDE AGGREGATION --------------------
 // Skorkartlar ve strateji karsilastirmasi artik sunucudan degil, zaten yuklu olan
 // orders+history dizilerinden hesaplaniyor. Bu sayede 3 farkli strateji secici
@@ -632,6 +644,7 @@ export default function LivePositionsPage() {
   // Genel tarih filtresi (gecmis/kapanan kayitlara uygulanir)
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [dowFilter, setDowFilter] = useState<'all' | 'weekday' | 'weekend'>('all')
 
   const toggleSelect = (id: number) => {
     setSelectedIds((prev) => {
@@ -713,14 +726,15 @@ export default function LivePositionsPage() {
   // kaynak) -- ONCEDEN kapanis anina (closed_at) gore filtreleniyordu, artik
   // order'in ACILDIGI ana (created_at) gore. Hem acik/pending hem kapali
   // order'lara AYNI sekilde uygulanir -- "order date'e gore filtrele"
-  // talebiyle tutarli olmasi icin ikisi de created_at kullanir.
+  // talebiyle tutarli olmasi icin ikisi de created_at kullanir. dowFilter
+  // (haftaici/haftasonu), tarih araligina EK bir kisit olarak uygulanir.
   const dateFilteredHistory = useMemo(
-    () => history.filter((o) => withinDateRange(o.created_at, dateFrom, dateTo)),
-    [history, dateFrom, dateTo]
+    () => history.filter((o) => withinDateRange(o.created_at, dateFrom, dateTo) && matchesDow(o.created_at, dowFilter)),
+    [history, dateFrom, dateTo, dowFilter]
   )
   const dateFilteredOrders = useMemo(
-    () => orders.filter((o) => withinDateRange(o.created_at, dateFrom, dateTo)),
-    [orders, dateFrom, dateTo]
+    () => orders.filter((o) => withinDateRange(o.created_at, dateFrom, dateTo) && matchesDow(o.created_at, dowFilter)),
+    [orders, dateFrom, dateTo, dowFilter]
   )
 
   const matchStrategy = (o: Order) => selectedStrategies.size === 0 || selectedStrategies.has(o.strategy_label)
@@ -847,12 +861,24 @@ export default function LivePositionsPage() {
           <input type="date" className="live-date-input" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1) }} />
           <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>–</span>
           <input type="date" className="live-date-input" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1) }} />
-          {(dateFrom || dateTo) && (
-            <button className="filter-btn" style={{ fontSize: 10, padding: '3px 10px' }} onClick={() => { setDateFrom(''); setDateTo(''); setPage(1) }}>
+          <div style={{ display: 'flex', gap: 4, marginLeft: 4 }}>
+            {(['all', 'weekday', 'weekend'] as const).map((f) => (
+              <button
+                key={f}
+                className="filter-btn"
+                style={{ fontSize: 10, padding: '3px 10px', background: dowFilter === f ? 'var(--bg-3)' : undefined }}
+                onClick={() => { setDowFilter(f); setPage(1) }}
+              >
+                {f === 'all' ? 'Tümü' : f === 'weekday' ? 'Haftaiçi' : 'Haftasonu'}
+              </button>
+            ))}
+          </div>
+          {(dateFrom || dateTo || dowFilter !== 'all') && (
+            <button className="filter-btn" style={{ fontSize: 10, padding: '3px 10px' }} onClick={() => { setDateFrom(''); setDateTo(''); setDowFilter('all'); setPage(1) }}>
               Clear
             </button>
           )}
-          <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>(applies to closed trades; open/pending always shown)</span>
+          <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>(order date'e göre — hem açık/pending hem kapalı; haftaiçi/haftasonu İstanbul saatine göre)</span>
         </div>
 
         {/* Strategy toggle bar */}
