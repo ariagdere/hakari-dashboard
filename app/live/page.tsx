@@ -645,6 +645,19 @@ export default function LivePositionsPage() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [dowFilter, setDowFilter] = useState<'all' | 'weekday' | 'weekend'>('all')
+  const [reconcileState, setReconcileState] = useState<{ loading: boolean; result: any | null; error: string | null }>({ loading: false, result: null, error: null })
+
+  async function runReconcile() {
+    setReconcileState({ loading: true, result: null, error: null })
+    try {
+      const res = await fetch('/api/reconcile?hours=24', { cache: 'no-store' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Bilinmeyen hata')
+      setReconcileState({ loading: false, result: data, error: null })
+    } catch (err: any) {
+      setReconcileState({ loading: false, result: null, error: err.message || 'Mutabakat kontrolü başarısız' })
+    }
+  }
 
   const toggleSelect = (id: number) => {
     setSelectedIds((prev) => {
@@ -879,6 +892,36 @@ export default function LivePositionsPage() {
             </button>
           )}
           <span className="mono" style={{ fontSize: 9, color: 'var(--text-3)' }}>(order date'e göre — hem açık/pending hem kapalı; haftaiçi/haftasonu İstanbul saatine göre)</span>
+        </div>
+
+        {/* Mutabakat kontrolu -- MT5'in kendi deal gecmisini (son 24 saat)
+            orders tablosuyla karsilastirir, streaming/resync mekanizmasindan
+            BAGIMSIZ bir dogrulama katmani. */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+          <button className="filter-btn" style={{ fontSize: 10, padding: '3px 10px' }} onClick={runReconcile} disabled={reconcileState.loading}>
+            {reconcileState.loading ? 'Kontrol ediliyor…' : 'Mutabakat Kontrolü (son 24 saat)'}
+          </button>
+          {reconcileState.error && (
+            <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>Hata: {reconcileState.error}</span>
+          )}
+          {reconcileState.result && reconcileState.result.discrepancies.length === 0 && (
+            <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>
+              ✓ Sorun yok — {reconcileState.result.dealCount} kapanış deal'i kontrol edildi, hepsi tutarlı.
+            </span>
+          )}
+          {reconcileState.result && reconcileState.result.discrepancies.length > 0 && (
+            <div className="mono" style={{ fontSize: 10, color: 'var(--red)', width: '100%' }}>
+              <div style={{ marginBottom: 4 }}>⚠ {reconcileState.result.discrepancies.length} tutarsızlık bulundu ({reconcileState.result.dealCount} deal içinde):</div>
+              {reconcileState.result.discrepancies.map((d: any, i: number) => (
+                <div key={i} style={{ padding: '4px 8px', background: 'var(--bg-2)', borderRadius: 4, marginBottom: 4 }}>
+                  {d.type === 'ORDER_MISSING'
+                    ? `MT5 position ${d.mt5PositionId} (${d.symbol ?? '?'}) kapandı (hacim ${d.mt5TotalClosedVolume}), ama sistemde HİÇ order kaydı yok.`
+                    : `Order #${d.orderId} (position ${d.mt5PositionId}, ${d.symbol ?? '?'}) MT5'te tam kapanmış (${d.mt5TotalClosedVolume}/${d.orderVolume}), ama sistemde hâlâ status='${d.orderStatus}'.`}
+                  {' '}<span style={{ color: 'var(--text-3)' }}>({d.lastDealTime})</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Strategy toggle bar */}
