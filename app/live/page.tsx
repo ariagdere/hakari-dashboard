@@ -685,6 +685,24 @@ export default function LivePositionsPage() {
     }
   }
 
+  async function fixOpenOrder(positionId: string) {
+    setFixingIds((prev) => new Set(prev).add(positionId))
+    try {
+      const res = await fetch('/api/reconcile/fix-open', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ positionId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Bilinmeyen hata')
+      setFixedIds((prev) => new Set(prev).add(positionId))
+    } catch (err: any) {
+      alert(`Senkronize edilemedi (position ${positionId}): ${err.message || 'bilinmeyen hata'}`)
+    } finally {
+      setFixingIds((prev) => { const next = new Set(prev); next.delete(positionId); return next })
+    }
+  }
+
   async function runReconcile() {
     setReconcileState({ loading: true, result: null, error: null })
     try {
@@ -944,7 +962,7 @@ export default function LivePositionsPage() {
           )}
           {reconcileState.result && reconcileState.result.discrepancies.filter((d: any) => !fixedIds.has(d.mt5PositionId)).length === 0 && (
             <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>
-              ✓ Sorun yok — {reconcileState.result.dealCount} kapanış deal'i kontrol edildi, hepsi tutarlı.
+              ✓ Sorun yok — {reconcileState.result.dealCount} kapanış deal'i ve {reconcileState.result.positionCount} açık pozisyon kontrol edildi, hepsi tutarlı.
             </span>
           )}
           {reconcileState.result && reconcileState.result.discrepancies.filter((d: any) => !fixedIds.has(d.mt5PositionId)).length > 0 && (
@@ -953,9 +971,10 @@ export default function LivePositionsPage() {
               {reconcileState.result.discrepancies.filter((d: any) => !fixedIds.has(d.mt5PositionId)).map((d: any, i: number) => (
                 <div key={i} style={{ padding: '4px 8px', background: 'var(--bg-2)', borderRadius: 4, marginBottom: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                   <span>
-                    {d.type === 'ORDER_MISSING'
-                      ? `MT5 position ${d.mt5PositionId} (${d.symbol ?? '?'}) kapandı (hacim ${d.mt5TotalClosedVolume}), ama sistemde HİÇ order kaydı yok.`
-                      : `Order #${d.orderId} (position ${d.mt5PositionId}, ${d.symbol ?? '?'}) MT5'te tam kapanmış (${d.mt5TotalClosedVolume}/${d.orderVolume}), ama sistemde hâlâ status='${d.orderStatus}'.`}
+                    {d.type === 'ORDER_MISSING' && `MT5 position ${d.mt5PositionId} (${d.symbol ?? '?'}) kapandı (hacim ${d.mt5TotalClosedVolume}), ama sistemde HİÇ order kaydı yok.`}
+                    {d.type === 'SHOULD_BE_CLOSED_BUT_ISNT' && `Order #${d.orderId} (position ${d.mt5PositionId}, ${d.symbol ?? '?'}) MT5'te tam kapanmış (${d.mt5TotalClosedVolume}/${d.orderVolume}), ama sistemde hâlâ status='${d.orderStatus}'.`}
+                    {d.type === 'OPEN_POSITION_MISSING' && `MT5 position ${d.mt5PositionId} (${d.symbol ?? '?'}) şu an AÇIK, ama sistemde ${d.orderId ? `status='${d.orderStatus}' olarak kayıtlı` : 'hiç kaydı yok'}.`}
+                    {d.type === 'SL_TP_BLANK' && `Order #${d.orderId} (position ${d.mt5PositionId}, ${d.symbol ?? '?'}) açık, ama SL/TP bizde boş — MT5'te SL: ${d.mt5Sl ?? '—'}, TP: ${d.mt5Tp ?? '—'}.`}
                     {' '}<span style={{ color: 'var(--text-3)' }}>({d.lastDealTime})</span>
                   </span>
                   {d.type === 'ORDER_MISSING' && (
@@ -972,6 +991,14 @@ export default function LivePositionsPage() {
                       disabled={fixingIds.has(d.mt5PositionId)}
                       onClick={() => fixCloseOrder(d.orderId, d.mt5PositionId)}>
                       {fixingIds.has(d.mt5PositionId) ? '…' : 'Kapat'}
+                    </button>
+                  )}
+                  {(d.type === 'OPEN_POSITION_MISSING' || d.type === 'SL_TP_BLANK') && (
+                    <button
+                      className="filter-btn" style={{ fontSize: 9, padding: '2px 8px', flexShrink: 0 }}
+                      disabled={fixingIds.has(d.mt5PositionId)}
+                      onClick={() => fixOpenOrder(d.mt5PositionId)}>
+                      {fixingIds.has(d.mt5PositionId) ? '…' : 'Senkronize Et'}
                     </button>
                   )}
                 </div>
