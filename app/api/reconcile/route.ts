@@ -1,61 +1,41 @@
 import pool from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
+import { fetchDealsByTimeRange, fetchOpenPositions } from '@/lib/reconcileHelpers';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const METAAPI_TOKEN = process.env.METAAPI_TOKEN!;
-const METAAPI_ACCOUNT_ID = process.env.METAAPI_ACCOUNT_ID!;
-const METAAPI_REGION = process.env.METAAPI_REGION || 'london';
 const VOLUME_EPS = 0.001; // mt5_order_monitor.js'teki isFinalClose ile AYNI tolerans
 
-interface MetatraderDeal {
-  id: string;
-  entryType: string;
-  positionId?: string;
-  volume?: number;
-  time: string;
-  symbol?: string;
-  profit?: number;
-}
-
 interface Discrepancy {
-  type: 'ORDER_MISSING' | 'SHOULD_BE_CLOSED_BUT_ISNT';
+  type: 'ORDER_MISSING' | 'SHOULD_BE_CLOSED_BUT_ISNT' | 'OPEN_POSITION_MISSING' | 'SL_TP_BLANK';
   mt5PositionId: string;
   symbol: string | null;
-  mt5TotalClosedVolume: number;
+  mt5TotalClosedVolume: number | null;
   orderId: number | null;
   orderStatus: string | null;
   orderVolume: number | null;
   lastDealTime: string;
+  mt5Sl?: number | null;
+  mt5Tp?: number | null;
 }
 
-// MT5'teki GERCEK deal gecmisini (Read deals by time range), bizim
-// orders/order_events tablomuzla karsilastirir. mt5_order_monitor.js'in
-// streaming/resync mekanizmasina TAMAMEN BAGIMSIZ bir dogrulama katmani --
-// baglanti kopmasi ya da baska bir hata nedeniyle KACAN bir kapanisi
-// yakalamak icin.
+// MT5'teki GERCEK durumu (hem KAPANIS gecmisi hem GUNCEL acik pozisyonlar)
+// bizim orders tablomuzla karsilastirir. mt5_order_monitor.js'in
+// streaming/resync mekanizmasina TAMAMEN BAGIMSIZ bir dogrulama katmani.
 export async function GET(req: NextRequest) {
   try {
     const hours = Math.max(1, Math.min(168, Number(req.nextUrl.searchParams.get('hours') ?? '24')));
     const endTime = new Date();
     const startTime = new Date(endTime.getTime() - hours * 3600 * 1000);
-    const fmt = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '.000Z'); // MetaAPI ISO formati
 
-    const url = `https://mt-client-api-v1.${METAAPI_REGION}.agiliumtrade.ai/users/current/accounts/${METAAPI_ACCOUNT_ID}/history-deals/time/${fmt(startTime)}/${fmt(endTime)}?limit=1000`;
-    const res = await fetch(url, {
-      headers: { 'auth-token': METAAPI_TOKEN, Accept: 'application/json' },
-      cache: 'no-store',
-    });
-    if (!res.ok) {
-      return NextResponse.json({ error: `MetaApi history-deals fetch başarısız (HTTP ${res.status})` }, { status: 502 });
-    }
-    const deals: MetatraderDeal[] = await res.json();
+    const [deals, positions] = await Promise.all([fetchDealsByTimeRange(startTime, endTime), fetchOpenPositions()]);
 
-    // Sadece kapanis deal'leri (DEAL_ENTRY_OUT), positionId'ye gore grupla --
-    // ayni positionId icin BIRDEN FAZLA kismi kapanis olabilir, toplam
-    // kapatilan hacmi (mt5_order_monitor.js'teki isFinalClose ile AYNI
-    // mantikla) hesaplamamiz gerekiyor.
+    const discrepancies: Discrepancy[] = [];
+
+    // ── 1) KAPANIS kontrolu -- sadece DEAL_ENTRY_OUT, positionId'ye gore
+    // grupla, toplam kapatilan hacmi hesapla (mt5_order_monitor.js'teki
+    // isFinalClose ile AYNI mantik). ──────────────────────────────────────
     const closesByPosition = new Map<string, { totalVolume: number; symbol: string | null; lastTime: string }>();
     for (const d of deals) {
       if (d.entryType !== 'DEAL_ENTRY_OUT' || !d.positionId) continue;
@@ -69,18 +49,24 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    if (closesByPosition.size === 0) {
-      return NextResponse.json({ checkedHours: hours, dealCount: deals.length, discrepancies: [] });
+    // ── 2) ACIK POZISYON kontrolu -- MT5'te SU AN acik olan pozisyonlar,
+    // bizim orders tablomuzda ya HIC yok ya da status='OPEN' DEGIL, ya da
+    // sl/tp bizde bos ama MT5'te dolu. ────────────────────────────────────
+    const allPositionIds = Array.from(new Set([
+      ...Array.from(closesByPosition.keys()),
+      ...positions.map((p) => p.id),
+    ]));
+
+    const orderByPositionId = new Map<string, any>();
+    if (allPositionIds.length > 0) {
+      const { rows: orderRows } = await pool.query(
+        `SELECT id, mt5_position_id, status, volume, sl, tp FROM orders WHERE mt5_position_id = ANY($1::text[])`,
+        [allPositionIds]
+      );
+      orderRows.forEach((r) => orderByPositionId.set(r.mt5_position_id, r));
     }
 
-    const positionIds = Array.from(closesByPosition.keys());
-    const { rows: orderRows } = await pool.query(
-      `SELECT id, mt5_position_id, status, volume FROM orders WHERE mt5_position_id = ANY($1::text[])`,
-      [positionIds]
-    );
-    const orderByPositionId = new Map(orderRows.map((r) => [r.mt5_position_id, r]));
-
-    const discrepancies: Discrepancy[] = [];
+    // Kapanis tutarsizliklari
     Array.from(closesByPosition.entries()).forEach(([positionId, close]) => {
       const order = orderByPositionId.get(positionId);
       if (!order) {
@@ -102,7 +88,32 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    return NextResponse.json({ checkedHours: hours, dealCount: deals.length, discrepancies });
+    // Acik pozisyon tutarsizliklari
+    for (const p of positions) {
+      const order = orderByPositionId.get(p.id);
+      const sl = p.stopLoss ?? null, tp = p.takeProfit ?? null;
+      if (!order || order.status !== 'OPEN') {
+        discrepancies.push({
+          type: 'OPEN_POSITION_MISSING', mt5PositionId: p.id, symbol: p.symbol ?? null,
+          mt5TotalClosedVolume: null, orderId: order?.id ?? null, orderStatus: order?.status ?? null,
+          orderVolume: order ? Number(order.volume) : null, lastDealTime: p.time,
+          mt5Sl: sl, mt5Tp: tp,
+        });
+        continue;
+      }
+      // Order zaten var ve OPEN -- sl/tp bizde bos ama MT5'te doluysa bildir.
+      const ourSl = order.sl != null ? Number(order.sl) : null;
+      const ourTp = order.tp != null ? Number(order.tp) : null;
+      if ((ourSl == null && sl != null) || (ourTp == null && tp != null)) {
+        discrepancies.push({
+          type: 'SL_TP_BLANK', mt5PositionId: p.id, symbol: p.symbol ?? null,
+          mt5TotalClosedVolume: null, orderId: order.id, orderStatus: order.status, orderVolume: Number(order.volume),
+          lastDealTime: p.time, mt5Sl: sl, mt5Tp: tp,
+        });
+      }
+    }
+
+    return NextResponse.json({ checkedHours: hours, dealCount: deals.length, positionCount: positions.length, discrepancies });
   } catch (err) {
     console.error('reconcile error:', err);
     return NextResponse.json({ error: 'Mutabakat kontrolü başarısız' }, { status: 500 });
