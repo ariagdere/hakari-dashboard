@@ -646,6 +646,26 @@ export default function LivePositionsPage() {
   const [dateTo, setDateTo] = useState('')
   const [dowFilter, setDowFilter] = useState<'all' | 'weekday' | 'weekend'>('all')
   const [reconcileState, setReconcileState] = useState<{ loading: boolean; result: any | null; error: string | null }>({ loading: false, result: null, error: null })
+  const [fixingIds, setFixingIds] = useState<Set<string>>(new Set())
+  const [fixedIds, setFixedIds] = useState<Set<string>>(new Set())
+
+  async function fixMissingOrder(positionId: string) {
+    setFixingIds((prev) => new Set(prev).add(positionId))
+    try {
+      const res = await fetch('/api/reconcile/fix-missing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ positionId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Bilinmeyen hata')
+      setFixedIds((prev) => new Set(prev).add(positionId))
+    } catch (err: any) {
+      alert(`Order oluşturulamadı (position ${positionId}): ${err.message || 'bilinmeyen hata'}`)
+    } finally {
+      setFixingIds((prev) => { const next = new Set(prev); next.delete(positionId); return next })
+    }
+  }
 
   async function runReconcile() {
     setReconcileState({ loading: true, result: null, error: null })
@@ -904,20 +924,30 @@ export default function LivePositionsPage() {
           {reconcileState.error && (
             <span className="mono" style={{ fontSize: 10, color: 'var(--red)' }}>Hata: {reconcileState.error}</span>
           )}
-          {reconcileState.result && reconcileState.result.discrepancies.length === 0 && (
+          {reconcileState.result && reconcileState.result.discrepancies.filter((d: any) => !fixedIds.has(d.mt5PositionId)).length === 0 && (
             <span className="mono" style={{ fontSize: 10, color: 'var(--green)' }}>
               ✓ Sorun yok — {reconcileState.result.dealCount} kapanış deal'i kontrol edildi, hepsi tutarlı.
             </span>
           )}
-          {reconcileState.result && reconcileState.result.discrepancies.length > 0 && (
+          {reconcileState.result && reconcileState.result.discrepancies.filter((d: any) => !fixedIds.has(d.mt5PositionId)).length > 0 && (
             <div className="mono" style={{ fontSize: 10, color: 'var(--red)', width: '100%' }}>
-              <div style={{ marginBottom: 4 }}>⚠ {reconcileState.result.discrepancies.length} tutarsızlık bulundu ({reconcileState.result.dealCount} deal içinde):</div>
-              {reconcileState.result.discrepancies.map((d: any, i: number) => (
-                <div key={i} style={{ padding: '4px 8px', background: 'var(--bg-2)', borderRadius: 4, marginBottom: 4 }}>
-                  {d.type === 'ORDER_MISSING'
-                    ? `MT5 position ${d.mt5PositionId} (${d.symbol ?? '?'}) kapandı (hacim ${d.mt5TotalClosedVolume}), ama sistemde HİÇ order kaydı yok.`
-                    : `Order #${d.orderId} (position ${d.mt5PositionId}, ${d.symbol ?? '?'}) MT5'te tam kapanmış (${d.mt5TotalClosedVolume}/${d.orderVolume}), ama sistemde hâlâ status='${d.orderStatus}'.`}
-                  {' '}<span style={{ color: 'var(--text-3)' }}>({d.lastDealTime})</span>
+              <div style={{ marginBottom: 4 }}>⚠ {reconcileState.result.discrepancies.filter((d: any) => !fixedIds.has(d.mt5PositionId)).length} tutarsızlık bulundu ({reconcileState.result.dealCount} deal içinde):</div>
+              {reconcileState.result.discrepancies.filter((d: any) => !fixedIds.has(d.mt5PositionId)).map((d: any, i: number) => (
+                <div key={i} style={{ padding: '4px 8px', background: 'var(--bg-2)', borderRadius: 4, marginBottom: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                  <span>
+                    {d.type === 'ORDER_MISSING'
+                      ? `MT5 position ${d.mt5PositionId} (${d.symbol ?? '?'}) kapandı (hacim ${d.mt5TotalClosedVolume}), ama sistemde HİÇ order kaydı yok.`
+                      : `Order #${d.orderId} (position ${d.mt5PositionId}, ${d.symbol ?? '?'}) MT5'te tam kapanmış (${d.mt5TotalClosedVolume}/${d.orderVolume}), ama sistemde hâlâ status='${d.orderStatus}'.`}
+                    {' '}<span style={{ color: 'var(--text-3)' }}>({d.lastDealTime})</span>
+                  </span>
+                  {d.type === 'ORDER_MISSING' && (
+                    <button
+                      className="filter-btn" style={{ fontSize: 9, padding: '2px 8px', flexShrink: 0 }}
+                      disabled={fixingIds.has(d.mt5PositionId)}
+                      onClick={() => fixMissingOrder(d.mt5PositionId)}>
+                      {fixingIds.has(d.mt5PositionId) ? '…' : 'Oluştur'}
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
