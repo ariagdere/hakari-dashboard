@@ -51,6 +51,12 @@ export interface MetatraderOrder {
   time: string; doneTime?: string; magic?: number;
 }
 
+export interface MetatraderPosition {
+  id: string; type: string; symbol: string; volume: number; openPrice: number;
+  stopLoss?: number; takeProfit?: number; magic?: number; comment?: string; brokerComment?: string;
+  time: string;
+}
+
 const METAAPI_TOKEN = process.env.METAAPI_TOKEN!;
 const METAAPI_ACCOUNT_ID = process.env.METAAPI_ACCOUNT_ID!;
 const METAAPI_REGION = process.env.METAAPI_REGION || 'london';
@@ -62,6 +68,13 @@ export async function fetchMetaApi(path: string) {
   return res.json();
 }
 
+export async function fetchOpenPositions(): Promise<MetatraderPosition[]> {
+  return fetchMetaApi(`/users/current/accounts/${METAAPI_ACCOUNT_ID}/positions`);
+}
+export async function fetchDealsByTimeRange(startTime: Date, endTime: Date): Promise<MetatraderDeal[]> {
+  const fmt = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '.000Z'); // MetaAPI ISO formati
+  return fetchMetaApi(`/users/current/accounts/${METAAPI_ACCOUNT_ID}/history-deals/time/${fmt(startTime)}/${fmt(endTime)}?limit=1000`);
+}
 export async function fetchDealsByPosition(positionId: string): Promise<MetatraderDeal[]> {
   return fetchMetaApi(`/users/current/accounts/${METAAPI_ACCOUNT_ID}/history-deals/position/${positionId}`);
 }
