@@ -99,13 +99,22 @@ function isLong(direction: string): boolean {
 // kazandik/kaybettik" oranini. TEK sart: orders.sl'in GERCEK (orijinal)
 // riski yansitmasi -- degismisse, EditableSlTp dropdown'undan dogru
 // tarihsel degeri secmek bu hesabi da otomatik duzeltir.
-function calcOrderR(o: Order): number | null {
-  if (o.sl == null || o.realized_pnl == null) return null
+// 1R'nin dolar karsiligi -- |fill-sl| * volume. realized_pnl'e bagimli
+// DEGIL, bu yuzden ACIK pozisyonlar icin de anlamli ("bu SL'e vurursa
+// kac $ kaybederim" sorusuna cevap verir).
+function calcRiskUsd(o: Order): number | null {
+  if (o.sl == null) return null
   const entry = o.fill_price ?? o.entry_price
   const riskDist = Math.abs(entry - o.sl)
   if (riskDist <= 0) return null
   const riskUsd = riskDist * o.volume
-  if (riskUsd <= 0) return null
+  return riskUsd > 0 ? riskUsd : null
+}
+
+function calcOrderR(o: Order): number | null {
+  if (o.realized_pnl == null) return null
+  const riskUsd = calcRiskUsd(o)
+  if (riskUsd == null) return null
   return o.realized_pnl / riskUsd
 }
 
@@ -1213,7 +1222,7 @@ export default function LivePositionsPage() {
                   <thead>
                     <tr>
                       <th style={{ width: 28, paddingBottom: 8 }} />
-                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Volume', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'RR', 'PnL ($)', 'Gerç. R'].map((h, i) => (
+                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Volume', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'Risk$', 'RR', 'PnL ($)', 'Gerç. R'].map((h, i) => (
                         <th key={h} style={{ textAlign: i <= 3 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
@@ -1224,6 +1233,7 @@ export default function LivePositionsPage() {
                       const displayVolume = getDisplayVolume(order)
                       const pnl = rowPnl(order)
                       const rVal = calcOrderR(order)
+                      const riskUsdVal = calcRiskUsd(order)
                       return (
                         <tr key={order.id} onClick={() => toggleSelect(order.id)} style={{ borderTop: '1px solid var(--border)', cursor: 'pointer', background: selected ? 'var(--bg-3)' : 'transparent' }}>
                           <td style={{ padding: '6px 0', textAlign: 'center' }}><SelectDot selected={selected} /></td>
@@ -1249,6 +1259,7 @@ export default function LivePositionsPage() {
                             <EditableSlTp orderId={order.id} field="tp" currentValue={order.tp} color="var(--green)" fmtPrice={fmtPrice}
                               onUpdated={(v) => applyOrderPatch(order.id, { tp: v })} />
                           </td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{riskUsdVal != null ? `$${riskUsdVal.toFixed(2)}` : '—'}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtRR(order)}</td>
                           <td className={`mono ${pnl.cls}`} style={{ padding: '6px 0', textAlign: 'right' }}>{pnl.text}</td>
                           <td className="mono" style={{ padding: '6px 0', textAlign: 'right', color: rVal == null ? 'var(--text-3)' : moneyColor(rVal) }}>
@@ -1268,6 +1279,7 @@ export default function LivePositionsPage() {
                   const displayVolume = getDisplayVolume(order)
                   const pnl = rowPnl(order)
                   const rVal = calcOrderR(order)
+                  const riskUsdVal = calcRiskUsd(order)
                   return (
                     <div key={order.id} className={`live-mcard${selected ? ' selected' : ''}`} onClick={() => toggleSelect(order.id)}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -1294,6 +1306,7 @@ export default function LivePositionsPage() {
                           onUpdated={(v) => applyOrderPatch(order.id, { sl: v })} /></div>
                         <div><span className="col-label">TP </span><EditableSlTp orderId={order.id} field="tp" currentValue={order.tp} color="var(--green)" fmtPrice={fmtPrice}
                           onUpdated={(v) => applyOrderPatch(order.id, { tp: v })} /></div>
+                        <div><span className="col-label">Risk$ </span><span style={{ color: 'var(--text-2)' }}>{riskUsdVal != null ? `$${riskUsdVal.toFixed(2)}` : '—'}</span></div>
                         <div><span className="col-label">RR </span><span style={{ color: 'var(--text-2)' }}>{fmtRR(order)}</span></div>
                         <div><span className="col-label">Gerç. R </span><span style={{ color: rVal == null ? 'var(--text-3)' : moneyColor(rVal) }}>{rVal != null ? `${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R` : '—'}</span></div>
                         <div><span className="col-label">Order D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.created_at)}</span></div>
