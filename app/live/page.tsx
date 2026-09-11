@@ -667,6 +667,24 @@ export default function LivePositionsPage() {
     }
   }
 
+  async function fixCloseOrder(orderId: number, positionId: string) {
+    setFixingIds((prev) => new Set(prev).add(positionId))
+    try {
+      const res = await fetch('/api/reconcile/fix-closed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, positionId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Bilinmeyen hata')
+      setFixedIds((prev) => new Set(prev).add(positionId))
+    } catch (err: any) {
+      alert(`Order kapatılamadı (order #${orderId}): ${err.message || 'bilinmeyen hata'}`)
+    } finally {
+      setFixingIds((prev) => { const next = new Set(prev); next.delete(positionId); return next })
+    }
+  }
+
   async function runReconcile() {
     setReconcileState({ loading: true, result: null, error: null })
     try {
@@ -946,6 +964,14 @@ export default function LivePositionsPage() {
                       disabled={fixingIds.has(d.mt5PositionId)}
                       onClick={() => fixMissingOrder(d.mt5PositionId)}>
                       {fixingIds.has(d.mt5PositionId) ? '…' : 'Oluştur'}
+                    </button>
+                  )}
+                  {d.type === 'SHOULD_BE_CLOSED_BUT_ISNT' && (
+                    <button
+                      className="filter-btn" style={{ fontSize: 9, padding: '2px 8px', flexShrink: 0 }}
+                      disabled={fixingIds.has(d.mt5PositionId)}
+                      onClick={() => fixCloseOrder(d.orderId, d.mt5PositionId)}>
+                      {fixingIds.has(d.mt5PositionId) ? '…' : 'Kapat'}
                     </button>
                   )}
                 </div>
