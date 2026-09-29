@@ -43,6 +43,9 @@ interface Order {
   m5_ls_angle?: number | null
   h1_tt_pos_angle?: number | null
   m5_tt_pos_angle?: number | null
+  red_folder_same_day?: boolean | null
+  red_folder_event_name?: string | null
+  red_folder_hours_diff?: number | null
   position_size_btc: number | null
   win_probability_v6: number | null
   win_probability_v6_reverse: number | null
@@ -185,6 +188,15 @@ const fmtRR = (order: Order) => {
   const rewardDist = Math.abs(order.tp - entry)
   if (riskDist <= 0) return '—'
   return `1:${(rewardDist / riskDist).toFixed(2)}`
+}
+
+// Red folder ikonu icin tooltip metni -- yalnizca red_folder_same_day true iken cagrilir.
+const redFolderTitle = (order: Order) => {
+  const name = order.red_folder_event_name
+  const hd = order.red_folder_hours_diff
+  if (!name) return 'Red Folder haberi'
+  if (hd == null) return name
+  return `${name} — ${Math.abs(hd).toFixed(1)}sa ${hd >= 0 ? 'sonra' : 'önce'}`
 }
 
 // lightweight-charts UTC gosterir; tarayicinin yerel offsetini ekleyerek
@@ -1253,11 +1265,11 @@ export default function LivePositionsPage() {
             <>
               {/* Desktop table */}
               <div className="live-table-wrap">
-                <table className="live-table" style={{ minWidth: 1160 }}>
+                <table className="live-table" style={{ minWidth: 1190 }}>
                   <thead>
                     <tr>
                       <th style={{ width: 28, paddingBottom: 8 }} />
-                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Volume', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'Risk$', 'RR', 'PnL ($)', 'Gerç. R', '1h LS°', '5m LS°', '1h TT°', '5m TT°'].map((h, i) => (
+                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Volume', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'Risk$', 'RR', 'PnL ($)', 'Gerç. R', '1h LS°', '5m LS°', '1h TT°', '5m TT°', 'RF'].map((h, i) => (
                         <th key={h} style={{ textAlign: i <= 3 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
@@ -1305,6 +1317,9 @@ export default function LivePositionsPage() {
                               {a != null ? `${a >= 0 ? '+' : ''}${a.toFixed(1)}°` : '—'}
                             </td>
                           ))}
+                          <td style={{ padding: '6px 0', textAlign: 'right' }}>
+                            {order.red_folder_same_day && <span title={redFolderTitle(order)} style={{ cursor: 'help' }}>🔴</span>}
+                          </td>
                         </tr>
                       )
                     })}
@@ -1360,6 +1375,12 @@ export default function LivePositionsPage() {
                             </span>
                           </div>
                         ))}
+                        {order.red_folder_same_day && (
+                          <div>
+                            <span className="col-label">RF </span>
+                            <span title={redFolderTitle(order)} style={{ cursor: 'help' }}>🔴</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )
