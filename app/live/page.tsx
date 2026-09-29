@@ -103,7 +103,7 @@ function isLong(direction: string): boolean {
 // mt5_order_monitor.js'te KISMI+final kapanislarin hacim-agirlikli toplami
 // olarak zaten dogru hesaplaniyor) bu SABIT 1R degerine bolunmesiyle bulunur.
 // Bu yaklasim, SL sonradan (orn girise) tasinsa bile ya da islem KISMI
-// kapanislarla yonetilse bile DOGRU kalir -- cunku artik "kapanis fiyatina
+// kapanislarla yonetilse bile DOGRU kalir  -- cunku artik "kapanis fiyatina
 // olan mesafe"ye hic bakmiyoruz, sadece "ne kadar $ risk aldik, ne kadar $
 // kazandik/kaybettik" oranini. TEK sart: orders.sl'in GERCEK (orijinal)
 // riski yansitmasi -- degismisse, EditableSlTp dropdown'undan dogru
