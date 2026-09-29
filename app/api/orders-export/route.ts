@@ -11,7 +11,8 @@ export async function GET() {
       o.created_at, o.opened_at, o.closed_at,
       o.volume, o.entry_price, o.fill_price, o.close_price, o.sl, o.tp, o.rr,
       o.r_target, o.r_risk, o.realized_pnl, o.exit_reason, o.is_manual,
-      o.h1_ls_angle, o.m5_ls_angle, o.h1_tt_pos_angle, o.m5_tt_pos_angle
+      o.h1_ls_angle, o.m5_ls_angle, o.h1_tt_pos_angle, o.m5_tt_pos_angle,
+      o.red_folder_same_day, o.red_folder_event_name, o.red_folder_hours_diff
     FROM orders o
     ORDER BY o.created_at DESC
   `)
@@ -25,6 +26,7 @@ export async function GET() {
     'volume', 'entry_price', 'fill_price', 'close_price', 'sl', 'tp', 'rr',
     'r_target', 'r_risk', 'realized_pnl', 'exit_reason', 'is_manual',
     'h1_ls_angle', 'm5_ls_angle', 'h1_tt_pos_angle', 'm5_tt_pos_angle',
+    'red_folder_same_day', 'red_folder_event_name', 'red_folder_hours_diff',
   ]
 
   const toTR = (v: any) => {
@@ -50,6 +52,7 @@ export async function GET() {
         r.volume, r.entry_price, r.fill_price, r.close_price, r.sl, r.tp, r.rr,
         r.r_target, r.r_risk, r.realized_pnl, r.exit_reason, r.is_manual,
         r.h1_ls_angle, r.m5_ls_angle, r.h1_tt_pos_angle, r.m5_tt_pos_angle,
+        r.red_folder_same_day, r.red_folder_event_name, r.red_folder_hours_diff,
       ]
         .map(escape)
         .join(',')
