@@ -10,6 +10,7 @@ import { Line } from 'react-chartjs-2'
 import EditableSlTp from '@/components/EditableSlTp'
 import EditableStrategyLabel from '@/components/EditableStrategyLabel'
 import LsrAnglePanel from '@/components/LsrAnglePanel'
+import RedFolderBanner from '@/components/RedFolderBanner'
 
 ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, Filler, Legend)
 
@@ -1101,6 +1102,8 @@ export default function LivePositionsPage() {
         )}
 
         {error && <div className="mono" style={{ color: 'var(--red)', fontSize: 11, marginBottom: 12 }}>{error}</div>}
+
+        <RedFolderBanner />
 
         {/* Chart */}
         <div className="card" style={{ padding: 16, marginBottom: 16 }}>
