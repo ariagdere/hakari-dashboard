@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import { windowStats } from '@/lib/lsrAngle'
 
 type Period = '5m' | '1h'
 type Metric = 'global' | 'top_position'
@@ -75,6 +76,32 @@ function MiniLineChart({ candles }: { candles: LsrCandle[] }) {
       })
       series.setData(candles.map((c) => ({ time: Math.floor(c.time / 1000) as any, value: c.ratio })))
       series.createPriceLine({ price: mean, color: '#3a3a3a', lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: false })
+
+      // Açı hesabındaki DOĞRUSAL FİT çizgisi (windowStats'in aynısı, görünen pencere
+      // üzerinden) -- validasyon script'indeki gibi ham veri üzerine bindirilir.
+      // windowStats normalize edilmiş (yn=y/mean-1) seri üzerinde merkezlenmiş bir
+      // doğru fit eder; yn'nin ortalaması matematiksel olarak HER ZAMAN 0'dır, bu yüzden
+      // fit doğrusu orijinal ölçekte sade bir şekle indirgenir:
+      //   y_hat(x=0) = mean * (1 - slope/2)   [pencerenin ilk noktası]
+      //   y_hat(x=1) = mean * (1 + slope/2)   [pencerenin son noktası]
+      // (slope, windowStats'te tanımlandığı gibi pencere boyunca TOPLAM normalize
+      // değişim -- iki uç nokta arasını düz çizgiyle birleştirmek matematiksel olarak
+      // tam fit'in kendisidir, ara noktalara gerek yok.)
+      if (candles.length >= 2) {
+        const { slope } = windowStats(candles.map((c) => c.ratio))
+        const trendSeries = chart.addLineSeries({
+          color: '#fbbf24',
+          lineWidth: 1.5,
+          lineStyle: LineStyle.Dashed,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          crosshairMarkerVisible: false,
+        })
+        trendSeries.setData([
+          { time: Math.floor(candles[0].time / 1000) as any, value: mean * (1 - slope / 2) },
+          { time: Math.floor(candles[candles.length - 1].time / 1000) as any, value: mean * (1 + slope / 2) },
+        ])
+      }
 
       chart.timeScale().fitContent()
 
