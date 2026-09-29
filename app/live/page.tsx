@@ -341,7 +341,11 @@ function OpenScoreCard({ count, unrealized, valueAtRisk }: { count: number; unre
   )
 }
 
-function LiveChart({ candles, selectedOrders }: { candles: Candle[]; selectedOrders: Order[] }) {
+const INTERVAL_SEC: Record<'5m' | '15m' | '1h' | '4h' | '1d', number> = {
+  '5m': 5 * 60, '15m': 15 * 60, '1h': 60 * 60, '4h': 4 * 60 * 60, '1d': 24 * 60 * 60,
+}
+
+function LiveChart({ candles, selectedOrders, interval }: { candles: Candle[]; selectedOrders: Order[]; interval: '5m' | '15m' | '1h' | '4h' | '1d' }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
@@ -418,7 +422,7 @@ function LiveChart({ candles, selectedOrders }: { candles: Candle[]; selectedOrd
       })
     })
 
-    const CANDLE_SEC = 15 * 60
+    const CANDLE_SEC = INTERVAL_SEC[interval]
     const roundToCandle = (iso: string) => {
       const ts = Math.floor(new Date(iso).getTime() / 1000)
       const rounded = Math.floor(ts / CANDLE_SEC) * CANDLE_SEC
@@ -440,7 +444,7 @@ function LiveChart({ candles, selectedOrders }: { candles: Candle[]; selectedOrd
     })
     markers.sort((a, b) => (a.time as number) - (b.time as number))
     series.setMarkers(markers)
-  }, [selectedOrders, candles])
+  }, [selectedOrders, candles, interval])
 
   return <div ref={containerRef} style={{ width: '100%' }} />
 }
@@ -632,6 +636,7 @@ export default function LivePositionsPage() {
   const [price, setPrice] = useState<Price | null>(null)
   const [accountInfo, setAccountInfo] = useState<AccountInfo | null>(null)
   const [candles, setCandles] = useState<Candle[]>([])
+  const [chartInterval, setChartInterval] = useState<'5m' | '15m' | '1h' | '4h' | '1d'>('15m')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
@@ -793,14 +798,14 @@ export default function LivePositionsPage() {
     let active = true
     async function fetchCandles() {
       try {
-        const res = await fetch('/api/candles', { cache: 'no-store' })
+        const res = await fetch(`/api/candles?interval=${chartInterval}`, { cache: 'no-store' })
         if (res.ok && active) setCandles(await res.json())
       } catch {}
     }
     fetchCandles()
     const interval = setInterval(fetchCandles, 30000)
     return () => { active = false; clearInterval(interval) }
-  }, [])
+  }, [chartInterval])
 
   const midPrice = price ? (price.bid + price.ask) / 2 : null
   const fmtMoney = (v: number) => `${v >= 0 ? '+' : '-'}$${Math.abs(v).toFixed(0)}`
@@ -1099,14 +1104,28 @@ export default function LivePositionsPage() {
 
         {/* Chart */}
         <div className="card" style={{ padding: 16, marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
             <div className="col-label">
-              BTCUSDT — 15m
+              BTCUSDT — {chartInterval}
               {selectedOrders.length > 0 && <span style={{ color: 'var(--blue)', marginLeft: 8 }}>· {selectedOrders.length} selected</span>}
             </div>
-            {price && <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{Math.round((price.bid + price.ask) / 2)}</span>}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ display: 'flex', gap: 4 }}>
+                {(['5m', '15m', '1h', '4h', '1d'] as const).map((tf) => (
+                  <button
+                    key={tf}
+                    className={`filter-btn${chartInterval === tf ? ' active' : ''}`}
+                    style={{ fontSize: 10, padding: '2px 8px' }}
+                    onClick={() => setChartInterval(tf)}
+                  >
+                    {tf}
+                  </button>
+                ))}
+              </div>
+              {price && <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{Math.round((price.bid + price.ask) / 2)}</span>}
+            </div>
           </div>
-          <LiveChart candles={candles} selectedOrders={selectedOrders} />
+          <LiveChart candles={candles} selectedOrders={selectedOrders} interval={chartInterval} />
           <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8 }}>
             Select a position from the table below to view its zones and entry/exit markers
           </div>
