@@ -9,6 +9,7 @@ import {
 import { Line } from 'react-chartjs-2'
 import EditableSlTp from '@/components/EditableSlTp'
 import EditableStrategyLabel from '@/components/EditableStrategyLabel'
+import LsrAnglePanel from '@/components/LsrAnglePanel'
 
 ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, Filler, Legend)
 
@@ -37,6 +38,10 @@ interface Order {
   realized_pnl?: number | null
   exit_reason?: string | null
   is_manual?: boolean
+  h1_ls_angle?: number | null
+  m5_ls_angle?: number | null
+  h1_tt_pos_angle?: number | null
+  m5_tt_pos_angle?: number | null
   position_size_btc: number | null
   win_probability_v6: number | null
   win_probability_v6_reverse: number | null
@@ -1107,6 +1112,9 @@ export default function LivePositionsPage() {
           </div>
         </div>
 
+        {/* LSR açı panelleri */}
+        <LsrAnglePanel />
+
         {/* Equity curve */}
         {comparison.length > 0 && (
           <div className="card" style={{ padding: 16, marginBottom: 16 }}>
@@ -1196,17 +1204,22 @@ export default function LivePositionsPage() {
         )}
 
         {/* Status filter toggles */}
-        <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
-          {FILTERS.map((f) => (
-            <button
-              key={f.key}
-              className={`filter-btn${statusFilter === f.key ? ' active' : ''}`}
-              style={{ fontSize: 11 }}
-              onClick={() => { setStatusFilter(f.key); setPage(1) }}
-            >
-              {f.label}
-            </button>
-          ))}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {FILTERS.map((f) => (
+              <button
+                key={f.key}
+                className={`filter-btn${statusFilter === f.key ? ' active' : ''}`}
+                style={{ fontSize: 11 }}
+                onClick={() => { setStatusFilter(f.key); setPage(1) }}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          <a href="/api/orders-export" className="filter-btn" style={{ fontSize: 11, textDecoration: 'none' }}>
+            ⬇ CSV
+          </a>
         </div>
 
         {/* Unified table */}
@@ -1222,7 +1235,7 @@ export default function LivePositionsPage() {
                   <thead>
                     <tr>
                       <th style={{ width: 28, paddingBottom: 8 }} />
-                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Volume', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'Risk$', 'RR', 'PnL ($)', 'Gerç. R'].map((h, i) => (
+                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Volume', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'Risk$', 'RR', 'PnL ($)', 'Gerç. R', '1h LS°', '5m LS°', '1h TT°', '5m TT°'].map((h, i) => (
                         <th key={h} style={{ textAlign: i <= 3 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
@@ -1265,6 +1278,11 @@ export default function LivePositionsPage() {
                           <td className="mono" style={{ padding: '6px 0', textAlign: 'right', color: rVal == null ? 'var(--text-3)' : moneyColor(rVal) }}>
                             {rVal != null ? `${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R` : '—'}
                           </td>
+                          {[order.h1_ls_angle, order.m5_ls_angle, order.h1_tt_pos_angle, order.m5_tt_pos_angle].map((a, i) => (
+                            <td key={i} className="mono" style={{ padding: '6px 0', textAlign: 'right', color: a == null ? 'var(--text-3)' : (a > 5 ? 'var(--green)' : a < -5 ? 'var(--red)' : 'var(--text-2)') }}>
+                              {a != null ? `${a >= 0 ? '+' : ''}${a.toFixed(1)}°` : '—'}
+                            </td>
+                          ))}
                         </tr>
                       )
                     })}
@@ -1312,6 +1330,14 @@ export default function LivePositionsPage() {
                         <div><span className="col-label">Order D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.created_at)}</span></div>
                         <div><span className="col-label">Entry D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.opened_at)}</span></div>
                         <div><span className="col-label">Close D </span><span style={{ color: 'var(--text-3)' }}>{fmtDate(order.closed_at)}</span></div>
+                        {([['1h LS', order.h1_ls_angle], ['5m LS', order.m5_ls_angle], ['1h TT', order.h1_tt_pos_angle], ['5m TT', order.m5_tt_pos_angle]] as const).map(([label, a]) => (
+                          <div key={label}>
+                            <span className="col-label">{label} </span>
+                            <span style={{ color: a == null ? 'var(--text-3)' : (a > 5 ? 'var(--green)' : a < -5 ? 'var(--red)' : 'var(--text-2)') }}>
+                              {a != null ? `${a >= 0 ? '+' : ''}${a.toFixed(1)}°` : '—'}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )
