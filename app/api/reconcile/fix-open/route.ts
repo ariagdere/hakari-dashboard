@@ -1,6 +1,6 @@
 import pool from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
-import { parseCommentField, resolveStrategyLabel, calculateRR, fetchDealsByPosition, fetchOpenPositions } from '@/lib/reconcileHelpers';
+import { resolveDealOrigin, calculateRR, fetchDealsByPosition, fetchOpenPositions } from '@/lib/reconcileHelpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,9 +44,8 @@ export async function POST(req: NextRequest) {
     const entryPrice = Number(inDeal.price ?? position.openPrice ?? 0);
     const volume = Number(inDeal.volume ?? position.volume ?? 0);
     const magic = Number(inDeal.magic ?? position.magic ?? 0);
-    const { analysisId, apifyRunId } = parseCommentField(inDeal.comment ?? inDeal.brokerComment);
-    const strategyLabel = resolveStrategyLabel(magic);
-    const isSystem = analysisId != null || apifyRunId != null || strategyLabel != null;
+    // Panel emri ise etiket order_intents'ten, analiz/apify bagi yok (bkz. resolveDealOrigin).
+    const { analysisId, apifyRunId, strategyLabel, isSystem } = await resolveDealOrigin({ ...inDeal, magic });
     const direction = inDeal.type === 'DEAL_TYPE_BUY' ? 'BUY' : 'SELL';
 
     const { rows } = await pool.query(

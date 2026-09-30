@@ -17,7 +17,8 @@ export function getMetaApiRestConfig(): MetaApiRestConfig | null {
     token,
     accountId,
     region,
-    clientApi: `https://mt-client-api-v1.${region}.agiliumtrade.ai`,
+    // METAAPI_CLIENT_API_URL normalde tanimlanmaz; farkli bir bolge/host ya da test icin gecersiz kilar.
+    clientApi: (process.env.METAAPI_CLIENT_API_URL || `https://mt-client-api-v1.${region}.agiliumtrade.ai`).replace(/\/+$/, ''),
     // Historical market data ayri bir host'ta; london icin varsayilan Faz 0 tanilamasinda dogrulandi.
     marketDataApi: (process.env.METAAPI_MARKET_DATA_URL || `https://mt-market-data-client-api-v1.${region}.agiliumtrade.ai`).replace(/\/+$/, ''),
   }

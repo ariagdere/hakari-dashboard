@@ -11,6 +11,7 @@ import EditableSlTp from '@/components/EditableSlTp'
 import EditableStrategyLabel from '@/components/EditableStrategyLabel'
 import LsrAnglePanel from '@/components/LsrAnglePanel'
 import RedFolderBanner from '@/components/RedFolderBanner'
+import OrderPanel, { OrderDraft } from '@/components/OrderPanel'
 import { applyQuoteToBar } from '@/lib/formingCandle'
 
 ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, Filler, Legend)
@@ -361,11 +362,12 @@ const INTERVAL_SEC: Record<'5m' | '15m' | '1h' | '4h' | '1d', number> = {
   '5m': 5 * 60, '15m': 15 * 60, '1h': 60 * 60, '4h': 4 * 60 * 60, '1d': 24 * 60 * 60,
 }
 
-function LiveChart({ candles, selectedOrders, interval, quote }: { candles: Candle[]; selectedOrders: Order[]; interval: '5m' | '15m' | '1h' | '4h' | '1d'; quote: Price | null }) {
+function LiveChart({ candles, selectedOrders, interval, quote, draft }: { candles: Candle[]; selectedOrders: Order[]; interval: '5m' | '15m' | '1h' | '4h' | '1d'; quote: Price | null; draft: OrderDraft | null }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
   const priceLinesRef = useRef<any[]>([])
+  const draftLinesRef = useRef<any[]>([])
   const didInitialZoom = useRef(false)
   // Grafikteki son (olusan) mum, grafik zaman biriminde. Quote'lar bunun uzerine islenir.
   const lastBarRef = useRef<Candle | null>(null)
@@ -395,19 +397,25 @@ function LiveChart({ candles, selectedOrders, interval, quote }: { candles: Cand
     chartRef.current = chart
     seriesRef.current = series
 
+    // Emir paneli acilip kapaninca pencere degil kutu daralir -- ResizeObserver ikisini de yakalar.
     const handleResize = () => {
       if (containerRef.current && chartRef.current) {
-        chartRef.current.applyOptions({ width: containerRef.current.clientWidth })
+        const width = containerRef.current.clientWidth
+        if (width > 0) chartRef.current.applyOptions({ width })
       }
     }
+    const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(handleResize) : null
+    resizeObserver?.observe(container)
     window.addEventListener('resize', handleResize)
     requestAnimationFrame(handleResize)
 
     return () => {
+      resizeObserver?.disconnect()
       window.removeEventListener('resize', handleResize)
       chart.remove()
       chartRef.current = null
       seriesRef.current = null
+      draftLinesRef.current = []
     }
   }, [])
 
@@ -462,6 +470,42 @@ function LiveChart({ candles, selectedOrders, interval, quote }: { candles: Cand
     series.update(bar as any)
     lastBarRef.current = bar
   }, [quote, interval])
+
+  // Emir panelindeki SL/TP taslak cizgileri (kesikli). Fiyat ekseni cizgileri de kapsayacak
+  // sekilde genisler ki uzak bir SL/TP ekranin disinda kalmasin. Surukleme sonraki fazda.
+  const draftSl = draft?.sl ?? null
+  const draftTp = draft?.tp ?? null
+  useEffect(() => {
+    const series = seriesRef.current
+    if (!series) return
+    draftLinesRef.current.forEach((pl) => series.removePriceLine(pl))
+    draftLinesRef.current = []
+    const levels: number[] = []
+    const lines = [
+      { price: draftSl, color: '#f87171', title: 'SL (yeni emir)' },
+      { price: draftTp, color: '#4ade80', title: 'TP (yeni emir)' },
+    ]
+    lines.forEach((l) => {
+      if (l.price == null || !(l.price > 0)) return
+      levels.push(l.price)
+      draftLinesRef.current.push(
+        series.createPriceLine({ price: l.price, color: l.color, lineWidth: 2, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: l.title }),
+      )
+    })
+    series.applyOptions({
+      autoscaleInfoProvider: (original: () => any) => {
+        const res = original()
+        if (!res || levels.length === 0) return res
+        return {
+          ...res,
+          priceRange: {
+            minValue: Math.min(res.priceRange.minValue, ...levels),
+            maxValue: Math.max(res.priceRange.maxValue, ...levels),
+          },
+        }
+      },
+    })
+  }, [draftSl, draftTp])
 
   useEffect(() => {
     const series = seriesRef.current
@@ -712,6 +756,11 @@ export default function LivePositionsPage() {
   // Grafik mumlarinin durumu -- basliktaki "yukleniyor / tekrar deneniyor" gostergesi icin.
   const [candlesStatus, setCandlesStatus] = useState<{ loading: boolean; error: string | null }>({ loading: true, error: null })
   const [chartInterval, setChartInterval] = useState<'5m' | '15m' | '1h' | '4h' | '1d'>('15m')
+  // Emir paneli (grafigin sagi) ve paneldeki SL/TP taslagi (grafikte kesikli cizgi). Panel bir kez
+  // acildiktan sonra kapatilinca DOM'dan kalkmaz, gizlenir: yoldaki emir istegi ve sonucu kaybolmaz.
+  const [orderPanelOpen, setOrderPanelOpen] = useState(false)
+  const [orderPanelMounted, setOrderPanelMounted] = useState(false)
+  const [orderDraft, setOrderDraft] = useState<OrderDraft | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
@@ -1067,8 +1116,13 @@ export default function LivePositionsPage() {
         .live-table-wrap { overflow-x: auto; }
         .live-mobile-cards { display: none; }
         .live-date-input { background: var(--bg-3); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 10px; padding: 3px 8px; font-family: 'DM Mono', monospace; }
+        .live-chart-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; margin-bottom: 16px; }
+        .live-chart-row.with-panel { grid-template-columns: minmax(0, 1fr) 340px; }
         @media (max-width: 1200px) {
           .live-scorecards { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+        }
+        @media (max-width: 1000px) {
+          .live-chart-row.with-panel { grid-template-columns: minmax(0, 1fr); }
         }
         @media (max-width: 768px) {
           .live-scorecards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -1243,8 +1297,9 @@ export default function LivePositionsPage() {
 
         <RedFolderBanner />
 
-        {/* Chart */}
-        <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        {/* Chart + emir paneli */}
+        <div className={`live-chart-row${orderPanelOpen ? ' with-panel' : ''}`}>
+        <div className="card" style={{ padding: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
             <div className="col-label">
               BTCUSD · Axi — {chartInterval}
@@ -1257,6 +1312,13 @@ export default function LivePositionsPage() {
               {selectedOrders.length > 0 && <span style={{ color: 'var(--blue)', marginLeft: 8 }}>· {selectedOrders.length} selected</span>}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button
+                className={`filter-btn${orderPanelOpen ? ' active' : ''}`}
+                style={{ fontSize: 10, padding: '2px 10px' }}
+                onClick={() => { setOrderPanelMounted(true); setOrderPanelOpen((open) => !open) }}
+              >
+                + Create order
+              </button>
               <div style={{ display: 'flex', gap: 4 }}>
                 {(['5m', '15m', '1h', '4h', '1d'] as const).map((tf) => (
                   <button
@@ -1272,10 +1334,14 @@ export default function LivePositionsPage() {
               {price && <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{Math.round((price.bid + price.ask) / 2)}</span>}
             </div>
           </div>
-          <LiveChart candles={candles} selectedOrders={selectedOrders} interval={chartInterval} quote={price} />
+          <LiveChart candles={candles} selectedOrders={selectedOrders} interval={chartInterval} quote={price} draft={orderPanelOpen ? orderDraft : null} />
           <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8 }}>
             Select a position from the table below to view its zones and entry/exit markers
           </div>
+        </div>
+        {orderPanelMounted && (
+          <OrderPanel quote={price} labels={allLabels} hidden={!orderPanelOpen} onClose={() => setOrderPanelOpen(false)} onDraftChange={setOrderDraft} />
+        )}
         </div>
 
         {/* LSR açı panelleri */}

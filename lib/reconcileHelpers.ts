@@ -1,3 +1,6 @@
+import pool from '@/lib/db';
+import { PANEL_MAGIC, clientKeyOf } from '@/lib/panelOrder';
+
 // mt5_order_monitor.js'teki STRATEGY_MAP ile BIREBIR AYNI -- orada bir
 // strateji eklenirse burada da eklenmeli. Tek kaynak orasi; burasi sadece
 // MT5'in kendi gecmisinden order yeniden insa etmek/duzeltmek icin.
@@ -12,6 +15,20 @@ export const STRATEGY_MAP: Record<number, string> = {
 export function resolveStrategyLabel(magic: number): string | null {
   return STRATEGY_MAP[Number(magic)] || null;
 }
+
+// Panelden acilan emirler (magic 9100) strateji etiketini order_intents'ten alir --
+// mt5_order_monitor.js'teki getPanelIntent ile ayni eslestirme (clientId'nin ilk iki parcasi).
+// Tablo yoksa ya da eslesme yoksa null: cagiran taraf eski kurallarla devam eder.
+export async function resolveIntentLabel(clientId: string | null | undefined): Promise<string | null> {
+  const key = clientKeyOf(clientId);
+  if (!key) return null;
+  try {
+    const { rows } = await pool.query('SELECT strategy_label FROM order_intents WHERE client_key = $1', [key]);
+    return rows[0]?.strategy_label ?? null;
+  } catch {
+    return null;
+  }
+}
 export function parseCommentField(comment: string | null | undefined): { analysisId: number | null; apifyRunId: string | null } {
   if (comment == null) return { analysisId: null, apifyRunId: null };
   const s = String(comment).trim();
@@ -19,6 +36,21 @@ export function parseCommentField(comment: string | null | undefined): { analysi
   const n = parseInt(s, 10);
   if (!Number.isNaN(n) && String(n) === s) return { analysisId: n, apifyRunId: null };
   return { analysisId: null, apifyRunId: s };
+}
+
+// Acilis deal'inin kaynagi -- mt5_order_monitor.js'teki resolveOrigin ile AYNI kurallar.
+// Panel emri: etiket order_intents'ten; analiz/apify bagi yok (MetaApi clientId'yi MT5'in
+// comment alaninda sakladigi icin comment okunmaz, yoksa apify_run_id'ye cop yazilirdi).
+// Diger emirler: eski kurallar (comment + magic).
+export async function resolveDealOrigin(deal: { clientId?: string; magic?: number; comment?: string; brokerComment?: string }) {
+  const intentLabel = await resolveIntentLabel(deal.clientId);
+  const isPanel = intentLabel != null || clientKeyOf(deal.clientId) != null || Number(deal.magic) === PANEL_MAGIC;
+  const { analysisId, apifyRunId } = isPanel
+    ? { analysisId: null, apifyRunId: null }
+    : parseCommentField(deal.comment ?? deal.brokerComment);
+  const strategyLabel = intentLabel ?? resolveStrategyLabel(Number(deal.magic ?? 0));
+  const isSystem = analysisId != null || apifyRunId != null || strategyLabel != null;
+  return { isPanel, analysisId, apifyRunId, strategyLabel, isSystem };
 }
 function priceTolerance(price: number): number {
   return price * 0.0005; // mt5_order_monitor.js'teki priceTolerance ile BIREBIR ayni
@@ -45,6 +77,7 @@ export interface MetatraderDeal {
   id: string; entryType: string; positionId?: string; orderId?: string;
   volume?: number; price?: number; profit?: number; time: string;
   symbol?: string; magic?: number; type?: string; comment?: string; brokerComment?: string; reason?: string;
+  clientId?: string;
 }
 export interface MetatraderOrder {
   id: string; positionId?: string; stopLoss?: number; takeProfit?: number;
