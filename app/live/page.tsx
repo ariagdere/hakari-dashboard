@@ -412,14 +412,23 @@ function LiveChart({ candles, selectedOrders, interval, quote }: { candles: Cand
   }, [])
 
   // Zaman dilimi degisince eski dilimin son mumu unutulur; yeni dilimin mumlari gelene kadar
-  // quote'lar grafige islenmez (yanlis adimla mum acilmasin). Asagidaki setData efektinden
-  // ONCE tanimli olmali ki ayni render'da sirasi dogru olsun.
+  // quote'lar grafige islenmez (yanlis adimla mum acilmasin). Yeni dilimin verisi gelince
+  // gorunum yeniden en son mumlara odaklanir. Asagidaki setData efektinden ONCE tanimli
+  // olmali ki ayni render'da sirasi dogru olsun.
   useEffect(() => {
     lastBarRef.current = null
+    didInitialZoom.current = false
   }, [interval])
 
   useEffect(() => {
-    if (seriesRef.current && candles.length > 0) {
+    if (!seriesRef.current) return
+    if (candles.length === 0) {
+      // Dilim degisti ve yeni mumlar yukleniyor: eski dilimin mumlari ekranda kalmasin.
+      seriesRef.current.setData([])
+      lastBarRef.current = null
+      return
+    }
+    {
       const localCandles = candles.map((c) => ({ ...c, time: toLocalTime(c.time) }))
       seriesRef.current.setData(localCandles as any)
       lastBarRef.current = { ...localCandles[localCandles.length - 1] }
@@ -473,24 +482,37 @@ function LiveChart({ candles, selectedOrders, interval, quote }: { candles: Cand
       })
     })
 
-    const CANDLE_SEC = INTERVAL_SEC[interval]
-    const roundToCandle = (iso: string) => {
-      const ts = Math.floor(new Date(iso).getTime() / 1000)
-      const rounded = Math.floor(ts / CANDLE_SEC) * CANDLE_SEC
-      return toLocalTime(rounded)
+    // Marker'lar olayin dustugu mumun acilis zamanina oturtulur. Grafikteki mumlarin kendi
+    // zamanlarina bakiyoruz (UTC yuvarlamasi degil) -- Axi'nin 4h/1d mumlari broker saatine
+    // hizali acildigi icin (orn. 21:00Z) UTC'ye yuvarlanan zaman hicbir mumla eslesmezdi.
+    const barTimes = candles.map((c) => toLocalTime(c.time))
+    const snapToBar = (iso: string): number | null => {
+      const t = toLocalTime(Math.floor(new Date(iso).getTime() / 1000))
+      let lo = 0
+      let hi = barTimes.length - 1
+      let found = -1
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1
+        if (barTimes[mid] <= t) { found = mid; lo = mid + 1 } else { hi = mid - 1 }
+      }
+      return found >= 0 ? barTimes[found] : null
     }
     const markers: any[] = []
+    const pushMarker = (iso: string, marker: Record<string, unknown>) => {
+      const time = snapToBar(iso)
+      if (time != null) markers.push({ ...marker, time })
+    }
     selectedOrders.forEach((o) => {
       const isBuy = isLong(o.direction)
       if (o.created_at) {
-        markers.push({ time: roundToCandle(o.created_at), position: 'aboveBar', color: '#fbbf24', shape: 'square', text: `Order #${o.id}` })
+        pushMarker(o.created_at, { position: 'aboveBar', color: '#fbbf24', shape: 'square', text: `Order #${o.id}` })
       }
       if (o.opened_at) {
-        markers.push({ time: roundToCandle(o.opened_at), position: isBuy ? 'belowBar' : 'aboveBar', color: '#60a5fa', shape: isBuy ? 'arrowUp' : 'arrowDown', text: `In #${o.id}` })
+        pushMarker(o.opened_at, { position: isBuy ? 'belowBar' : 'aboveBar', color: '#60a5fa', shape: isBuy ? 'arrowUp' : 'arrowDown', text: `In #${o.id}` })
       }
       if (o.status === 'CLOSED' && o.closed_at) {
         const exitColor = o.exit_reason === 'TP' ? '#4ade80' : o.exit_reason === 'SL' ? '#f87171' : '#a0a0a0'
-        markers.push({ time: roundToCandle(o.closed_at), position: isBuy ? 'aboveBar' : 'belowBar', color: exitColor, shape: 'circle', text: `Out #${o.id} ${o.exit_reason ?? ''}` })
+        pushMarker(o.closed_at, { position: isBuy ? 'aboveBar' : 'belowBar', color: exitColor, shape: 'circle', text: `Out #${o.id} ${o.exit_reason ?? ''}` })
       }
     })
     markers.sort((a, b) => (a.time as number) - (b.time as number))
@@ -687,6 +709,8 @@ export default function LivePositionsPage() {
   const [price, setPrice] = useState<Price | null>(null)
   const [accountInfo, setAccountInfo] = useState<AccountInfo | null>(null)
   const [candles, setCandles] = useState<Candle[]>([])
+  // Grafik mumlarinin durumu -- basliktaki "yukleniyor / tekrar deneniyor" gostergesi icin.
+  const [candlesStatus, setCandlesStatus] = useState<{ loading: boolean; error: string | null }>({ loading: true, error: null })
   const [chartInterval, setChartInterval] = useState<'5m' | '15m' | '1h' | '4h' | '1d'>('15m')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -885,20 +909,41 @@ export default function LivePositionsPage() {
     setHistory((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...patch } : o)))
   }
 
-  // Grafik: Axi BTCUSD, her zaman diliminde son 1000 mum (MetaApi historical REST, sunucuda
-  // cache'li). Olusan mum araya quote'larla canli islenir (LiveChart); bu dakikalik tazeleme
-  // broker'in kesin OHLC'sini getirir.
+  // Grafik: Axi BTCUSD, her zaman diliminde son 1000 mum (sunucudaki mum deposundan,
+  // lib/axiCandles.ts). Olusan mum araya quote'larla canli islenir (LiveChart); bu dakikalik
+  // tazeleme broker'in kesin OHLC'sini getirir. Dilim degisince grafik temizlenir ve yukleniyor
+  // gosterilir; hata olursa 5 sn sonra tekrar denenir. Istekler zincirleme (setTimeout) --
+  // yavas bir yanit gelirken ikinci bir istek ust uste binmez.
   useEffect(() => {
     let active = true
+    let timer: ReturnType<typeof setTimeout> | null = null
+    setCandles([])
+    setCandlesStatus({ loading: true, error: null })
     async function fetchCandles() {
+      let ok = false
       try {
         const res = await fetch(`/api/axi-candles?interval=${chartInterval}`, { cache: 'no-store' })
-        if (res.ok && active) setCandles(await res.json())
-      } catch {}
+        if (res.ok) {
+          const data: Candle[] = await res.json()
+          ok = true
+          if (active) {
+            setCandles(data)
+            setCandlesStatus({ loading: false, error: null })
+          }
+        } else {
+          const body = await res.json().catch(() => null)
+          if (active) setCandlesStatus((prev) => ({ loading: prev.loading, error: body?.detail ?? body?.error ?? `HTTP ${res.status}` }))
+        }
+      } catch {
+        if (active) setCandlesStatus((prev) => ({ loading: prev.loading, error: 'Bağlantı hatası' }))
+      }
+      if (active) timer = setTimeout(fetchCandles, ok ? 60000 : 5000)
     }
     fetchCandles()
-    const interval = setInterval(fetchCandles, 60000)
-    return () => { active = false; clearInterval(interval) }
+    return () => {
+      active = false
+      if (timer) clearTimeout(timer)
+    }
   }, [chartInterval])
 
   const midPrice = price ? (price.bid + price.ask) / 2 : null
@@ -1015,7 +1060,7 @@ export default function LivePositionsPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 64 }}>
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .live-scorecards { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
         .live-section-title { font-size: 11px; color: var(--text-3); letter-spacing: 0.08em; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-family: 'DM Mono', monospace; }
         .live-table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: 'DM Mono', monospace; }
@@ -1032,7 +1077,7 @@ export default function LivePositionsPage() {
           .live-mcard { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; cursor: pointer; }
           .live-mcard.selected { border-color: var(--blue); background: var(--bg-3); }
         }
-      `}</style>
+      `}} />
 
       <div className="container" style={{ paddingTop: 24 }}>
         <div className="live-section-title">LIVE POSITIONS</div>
@@ -1203,6 +1248,12 @@ export default function LivePositionsPage() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
             <div className="col-label">
               BTCUSD · Axi — {chartInterval}
+              {candlesStatus.loading && !candlesStatus.error && <span style={{ color: 'var(--text-3)', marginLeft: 8 }}>· yükleniyor…</span>}
+              {candlesStatus.error && (
+                <span style={{ color: 'var(--red)', marginLeft: 8 }} title={candlesStatus.error}>
+                  · {candlesStatus.loading ? 'yüklenemedi' : 'tazelenemedi'}, tekrar deneniyor
+                </span>
+              )}
               {selectedOrders.length > 0 && <span style={{ color: 'var(--blue)', marginLeft: 8 }}>· {selectedOrders.length} selected</span>}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

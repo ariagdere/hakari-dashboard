@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isBasicAuthConfigured, AUTH_NOT_CONFIGURED_MESSAGE } from '@/lib/authConfig'
 import { AXI_SYMBOL, TIMEFRAMES, TIMEFRAME_MS } from '@/lib/axiMarket'
+import { getAxiCandleStoreStatus } from '@/lib/axiCandles'
 import { getMetaApiRestConfig } from '@/lib/metaapiRest'
 import { ensureMarketStream, getStreamStatus } from '@/lib/metaapiStream'
 
@@ -196,6 +197,17 @@ export async function GET(req: NextRequest) {
   }
   summary.push("NOT  clientId deal'lerde görünüyor mu: Faz 2'nin ilk emrinde doğrulanacak")
 
+  // /live grafiginin sunucu tarafi mum deposu (lib/axiCandles.ts)
+  const candleStore = getAxiCandleStoreStatus()
+  summary.push(
+    'INFO Grafik mum deposu: ' +
+      TIMEFRAMES.map((tf) => {
+        const c = candleStore[tf] as any
+        if (!c?.candles) return `${tf} ${c?.lastError ? 'hata: ' + c.lastError : 'henüz yüklenmedi'}`
+        return `${tf} ${c.candles}${c.complete ? '' : ' (yedek)'}${c.lastFullLoadMs != null ? ` ${c.lastFullLoadMs} ms` : ''}`
+      }).join(' · '),
+  )
+
   return NextResponse.json(
     {
       generatedAt: new Date().toISOString(),
@@ -206,6 +218,7 @@ export async function GET(req: NextRequest) {
       historicalCandles: historical,
       credits: creditsRes.ok ? creditsRes.body : { error: errorText(creditsRes) },
       stream: { error: streamError, window: { seconds: waitSec, quotes: quotesInWindow }, status: after },
+      candleStore,
     },
     { headers: { 'Cache-Control': 'no-store' } },
   )
