@@ -523,10 +523,14 @@ export default function OrderPanel({ quote, labels, hidden, chartPick, onClose, 
           disabled={locked}
           aria-pressed={active}
           onClick={() => setPickTarget(active ? null : t)}
+          title={active ? 'Grafikte fiyata tıkla ya da çizgiyi sürükle (kapatmak için tekrar bas)' : 'Grafikten seç'}
           data-testid={`pick-${t}`}
         >
           <span style={{ color, fontWeight: 500 }}>{isSl ? 'SL' : 'TP'}</span>
-          <span style={{ color: active ? color : 'var(--text-3)' }}>{active ? '● grafikte' : '○ grafikten seç'}</span>
+          <span style={{ color: active ? color : 'var(--text-3)' }}>
+            {active ? '●' : '○'}
+            <span className="op-level-text">{active ? ' grafikte' : ' grafikten seç'}</span>
+          </span>
         </button>
         <input
           className="op-input op-level-input"
@@ -587,7 +591,7 @@ export default function OrderPanel({ quote, labels, hidden, chartPick, onClose, 
       </div>
 
       <div className="op-levels-head">
-        {sectionLabel('SL / TP', `seç, grafikte fiyata ${coarsePointer ? 'dokun' : 'tıkla'}; çizgiyi sürükle`)}
+        {sectionLabel('SL / TP', `seç, grafikte ${coarsePointer ? 'dokun' : 'tıkla'}; çizgiyi sürükle`)}
         <button type="button" className="filter-btn op-done" onClick={() => setPickTarget(null)}>
           Bitti
         </button>
@@ -654,11 +658,19 @@ export default function OrderPanel({ quote, labels, hidden, chartPick, onClose, 
           {sizing?.ok && (
             <>
               {row('Pozisyon', `${sizing.volume} lot`)}
-              {row('SL olursa', money(-sizing.riskUsd), 'var(--red)')}
+              {row(
+              'SL olursa',
+              <>
+                {money(-sizing.riskUsd)}
+                {riskUsd != null && Math.abs(riskUsd - sizing.riskUsd) >= 0.005 && (
+                  <span style={{ color: 'var(--amber)' }} title="Lot adımı yüzünden gerçek risk hedefin altında">{` (hedef $${riskUsd.toFixed(2)})`}</span>
+                )}
+              </>,
+              'var(--red)',
+            )}
               {row('TP olursa', money(sizing.rewardUsd), 'var(--green)')}
               {row('R:R', `1 : ${sizing.rr.toFixed(2)}`)}
-              {riskUsd != null && Math.abs(riskUsd - sizing.riskUsd) >= 0.005 && row('Hedef → gerçek', `$${riskUsd.toFixed(2)} → $${sizing.riskUsd.toFixed(2)}`, 'var(--amber)')}
-              {row('Spread maliyeti', `$${sizing.spreadUsd.toFixed(2)}`)}
+                {row('Spread maliyeti', `$${sizing.spreadUsd.toFixed(2)}`)}
               {swap != null && row('Swap (günlük, tahmini)', money(swap), swap < 0 ? 'var(--red)' : 'var(--green)')}
             </>
           )}
@@ -759,14 +771,11 @@ export default function OrderPanel({ quote, labels, hidden, chartPick, onClose, 
   )
 }
 
-// Panel stilleri. Telefonda: 16px girisler (iOS odaklanınca sayfayi yakinlastirmasin), en az
-// 44px dokunma alanlari, altta yapisan gonder cubugu.
+// Panel stilleri. Masaustu: panel kaydirmasiz, tum detaylar bir bakista (kompakt satirlar).
+// Telefon: 16px girisler (iOS odaklanınca sayfayi yakinlastirmasin), en az 44px dokunma
+// alanlari, ekranin altinda alt panel ve altta yapisan gonder cubugu.
 const PANEL_CSS = `
 .op-panel { padding: 14px 14px 0; font-size: 12px; align-self: start; }
-/* Masaustu: panel grafik kartiyla ayni boyda, icerik kendi icinde kayar; gonder cubugu altta sabit */
-@media (min-width: 1001px) {
-  .live-chart-row.with-panel > .op-panel { align-self: stretch; height: 0; min-height: 100%; overflow-y: auto; overscroll-behavior: contain; }
-}
 .op-section-label { font-size: 10px; margin: 12px 0 5px; color: var(--text-3); letter-spacing: 0.08em; font-family: 'DM Mono', monospace; }
 .op-hint { letter-spacing: 0; }
 .op-input { width: 100%; box-sizing: border-box; background: var(--bg-3); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 12px; padding: 5px 8px; min-height: 30px; font-family: 'DM Mono', monospace; }
@@ -788,6 +797,17 @@ const PANEL_CSS = `
 .op-grip, .op-done { display: none; }
 .op-actions-summary { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
 .op-submit { width: 100%; padding: 9px 0; border-radius: 6px; font-size: 13px; font-family: 'DM Mono', monospace; }
+@media (min-width: 769px) {
+  /* SL/TP kutusu tek satir: [SL ○][fiyat] -- aciklama bolum basliginda ve ipucunda */
+  .op-level { display: grid; grid-template-columns: auto 1fr; }
+  .op-level-head { width: auto; padding: 0 9px; gap: 6px; border-right: 1px solid var(--border); }
+  .op-level-text { display: none; }
+  .op-level-input { border-top: none; }
+  /* Etiket onerileri giris kutusunun listesinde; ozet hemen ustte oldugu icin cubukta tekrar yok */
+  .op-chips, .op-actions-summary { display: none; }
+  .op-actions { position: static; margin: 12px 0 0; padding: 0 0 14px; border-top: none; background: transparent; }
+  .op-section-label { margin-top: 10px; }
+}
 @media (max-width: 768px) {
   /* Telefonda panel ekranin altina sabit bir alt panel: grafik ustte gorunur kalir */
   .op-panel.op-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; max-height: 62vh; overflow-y: auto; overscroll-behavior: contain;
