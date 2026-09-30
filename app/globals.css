@@ -147,3 +147,11 @@ body {
   .rsi-grid { grid-template-columns: 1fr !important; }
   .delta-grid { grid-template-columns: 1fr !important; }
 }
+
+/* Telefon: ust menu tek satira sigsin, linkler parmakla rahat basilsin */
+@media (max-width: 768px) {
+  .nav-link { padding-top: 14px !important; padding-bottom: 14px !important; }
+}
+@media (max-width: 480px) {
+  .nav-link { padding-left: 8px !important; padding-right: 8px !important; }
+}

@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { computeSizing, estimateDailySwapUsd, Direction } from '@/lib/orderMath'
 import { newClientId } from '@/lib/panelOrder'
+import type { LevelTarget, PickKind } from '@/lib/chartLevelInteractions'
 
 // /live emir paneli (Faz 2): market emir, yon + strateji + SL/TP + risk, canli ozet.
 // Boyutlandirma lib/orderMath.ts'te -- sunucudaki emir route'u AYNI hesabi taze fiyatla tekrar
@@ -22,11 +23,27 @@ interface Quote {
   time: string
 }
 
+// Grafige giden taslak: SL/TP cizgileri, secili alan (grafikte tiklama/dokunma buraya yazar)
 export interface OrderDraft {
   direction: Direction | null
   sl: number | null
   tp: number | null
+  pickTarget: LevelTarget | null
+  interactive: boolean // gonderilirken ve doldu kartinda grafik etkilesimi kapali
+  slTitle: string // cizgi basligi, orn. "SL -$5.00"
+  tpTitle: string
 }
+
+// Grafikten gelen fiyat (tiklama ya da surukleme); seq her olayda artar
+export interface ChartPick {
+  target: LevelTarget
+  price: number
+  kind: PickKind
+  final: boolean
+  seq: number
+}
+
+const EMPTY_DRAFT: OrderDraft = { direction: null, sl: null, tp: null, pickTarget: null, interactive: false, slTitle: 'SL', tpTitle: 'TP' }
 
 interface ExecutionContext {
   trading: { enabled: boolean; maxRiskUsd: number; maxVolume: number }
@@ -127,17 +144,25 @@ interface Props {
   quote: Quote | null
   labels: string[]
   hidden?: boolean
+  chartPick?: ChartPick | null
   onClose: () => void
   onDraftChange: (draft: OrderDraft) => void
 }
 
-export default function OrderPanel({ quote, labels, hidden, onClose, onDraftChange }: Props) {
+export default function OrderPanel({ quote, labels, hidden, chartPick, onClose, onDraftChange }: Props) {
   const [ctx, setCtx] = useState<ExecutionContext | null>(null)
   const [ctxError, setCtxError] = useState<string | null>(null)
   const [direction, setDirection] = useState<Direction | null>(null)
   const [label, setLabel] = useState('')
   const [slText, setSlText] = useState('')
   const [tpText, setTpText] = useState('')
+  // Grafikte tiklama / dokunma hangi alana yazacak (SL ya da TP); null: grafikten secim kapali
+  const [pickTarget, setPickTarget] = useState<LevelTarget | null>(null)
+  const [coarsePointer, setCoarsePointer] = useState(false)
+  const slTextRef = useRef(slText)
+  slTextRef.current = slText
+  const tpTextRef = useRef(tpText)
+  tpTextRef.current = tpText
   const [riskChoice, setRiskChoice] = useState<number | 'custom'>(5)
   const [customRisk, setCustomRisk] = useState('')
   const [clientId, setClientId] = useState(() => newClientId())
@@ -178,18 +203,16 @@ export default function OrderPanel({ quote, labels, hidden, onClose, onDraftChan
     return () => clearInterval(t)
   }, [])
 
+  useEffect(() => {
+    setCoarsePointer(!!window.matchMedia?.('(pointer: coarse)').matches)
+  }, [])
+
   const slInput = parseAmount(slText)
   const tpInput = parseAmount(tpText)
   const riskInput = riskChoice === 'custom' ? parseAmount(customRisk) : { value: riskChoice, invalid: false }
   const sl = slInput.value
   const tp = tpInput.value
   const riskUsd = riskInput.value
-
-  // Grafikteki SL/TP cizgileri
-  useEffect(() => {
-    onDraftChange({ direction, sl, tp })
-  }, [direction, sl, tp, onDraftChange])
-  useEffect(() => () => onDraftChange({ direction: null, sl: null, tp: null }), [onDraftChange])
 
   const sizing = useMemo(() => {
     if (!ctx?.spec || !quote || !direction) return null
@@ -220,6 +243,42 @@ export default function OrderPanel({ quote, labels, hidden, onClose, onDraftChan
   const locked = busy || submit.kind === 'filled'
   const canSubmit =
     !!ctx?.trading.enabled && !!sizing?.ok && label.trim().length > 0 && !quoteStale && !riskOverLimit && !locked
+
+  // Grafikteki SL/TP cizgileri: secili alan, basliklarda $ risk / odul
+  const slTitle = sizing?.ok ? `SL -$${sizing.riskUsd.toFixed(2)}` : 'SL'
+  const tpTitle = sizing?.ok ? `TP +$${sizing.rewardUsd.toFixed(2)} · ${sizing.rr.toFixed(2)}R` : 'TP'
+  const interactive = !locked
+  useEffect(() => {
+    onDraftChange({ direction, sl, tp, pickTarget, interactive, slTitle, tpTitle })
+  }, [direction, sl, tp, pickTarget, interactive, slTitle, tpTitle, onDraftChange])
+  useEffect(() => () => onDraftChange(EMPTY_DRAFT), [onDraftChange])
+
+  // Yon secilmediyse SL/TP'nin fiyata gore yerinden cikar (SL altta + TP ustte = Long, tersi Short).
+  // Bu yerlesimde tek gecerli yon budur; kullanicinin sectigi yon asla degistirilmez.
+  const quoteRef = useRef(quote)
+  quoteRef.current = quote
+  useEffect(() => {
+    const q = quoteRef.current
+    if (direction || sl == null || tp == null || !q) return
+    if (sl < q.bid && tp > q.ask) setDirection('LONG')
+    else if (sl > q.ask && tp < q.bid) setDirection('SHORT')
+  }, [sl, tp, direction])
+
+  // Grafikten gelen fiyat: secili alana yaz. Tiklamayla SL girildiyse ve TP bossa secim TP'ye
+  // gecer (ya da tersi) -- SL, sonra TP iki dokunusta.
+  const lastPickSeq = useRef(0)
+  useEffect(() => {
+    if (!chartPick || chartPick.seq === lastPickSeq.current) return
+    lastPickSeq.current = chartPick.seq
+    if (locked) return
+    const text = String(chartPick.price)
+    if (chartPick.target === 'sl') setSlText(text)
+    else setTpText(text)
+    if (chartPick.kind === 'tap' && chartPick.final) {
+      const otherEmpty = chartPick.target === 'sl' ? !tpTextRef.current.trim() : !slTextRef.current.trim()
+      if (otherEmpty) setPickTarget(chartPick.target === 'sl' ? 'tp' : 'sl')
+    }
+  }, [chartPick, locked])
 
   // Gonderimi engelleyen ilk sebep (emir kapaliysa ayrica ustte uyari var; hesap yine gosterilir)
   let blocker: string | null = null
@@ -429,6 +488,7 @@ export default function OrderPanel({ quote, labels, hidden, onClose, onDraftChan
     if (!afterAmbiguous) {
       setSlText('')
       setTpText('')
+      setPickTarget(null)
     }
   }
 
@@ -439,28 +499,60 @@ export default function OrderPanel({ quote, labels, hidden, onClose, onDraftChan
       <span style={{ color: color ?? 'var(--text)', textAlign: 'right' }}>{v}</span>
     </div>
   )
-  const inputStyle: CSSProperties = {
-    width: '100%',
-    background: 'var(--bg-3)',
-    border: '1px solid var(--border)',
-    borderRadius: 4,
-    color: 'var(--text)',
-    fontSize: 12,
-    padding: '5px 8px',
-    fontFamily: "'DM Mono', monospace",
-  }
-  const sectionLabel = (text: string) => (
-    <div className="col-label" style={{ fontSize: 10, margin: '12px 0 5px' }}>
+  const sectionLabel = (text: string, hint?: string) => (
+    <div className="op-section-label">
       {text}
+      {hint && <span className="op-hint"> · {hint}</span>}
     </div>
   )
   const pct = (d: number, ref: number) => ((d / ref) * 100).toFixed(2)
+  const levelBox = (t: LevelTarget) => {
+    const active = pickTarget === t && !locked
+    const isSl = t === 'sl'
+    const color = isSl ? 'var(--red)' : 'var(--green)'
+    const input = isSl ? slInput : tpInput
+    return (
+      <div
+        key={t}
+        className={`op-level${active ? ' active' : ''}`}
+        style={{ borderColor: active ? color : input.invalid ? 'var(--amber)' : isSl ? 'var(--red-border)' : 'var(--green-border)' }}
+      >
+        <button
+          type="button"
+          className="op-level-head"
+          disabled={locked}
+          aria-pressed={active}
+          onClick={() => setPickTarget(active ? null : t)}
+          data-testid={`pick-${t}`}
+        >
+          <span style={{ color, fontWeight: 500 }}>{isSl ? 'SL' : 'TP'}</span>
+          <span style={{ color: active ? color : 'var(--text-3)' }}>{active ? '● grafikte' : '○ grafikten seç'}</span>
+        </button>
+        <input
+          className="op-input op-level-input"
+          inputMode="decimal"
+          placeholder={isSl ? 'SL fiyatı' : 'TP fiyatı'}
+          value={isSl ? slText : tpText}
+          disabled={locked}
+          onFocus={() => setPickTarget(t)}
+          onChange={(e) => (isSl ? setSlText(e.target.value) : setTpText(e.target.value))}
+          aria-label={isSl ? 'SL fiyatı' : 'TP fiyatı'}
+        />
+      </div>
+    )
+  }
 
   return (
-    <div className="card mono" style={{ padding: 14, fontSize: 12, alignSelf: 'start', display: hidden ? 'none' : undefined }} data-testid="order-panel">
+    <div
+      className={`card mono op-panel op-sheet${pickTarget && !locked ? ' op-compact' : ''}`}
+      style={{ display: hidden ? 'none' : undefined }}
+      data-testid="order-panel"
+    >
+      <style dangerouslySetInnerHTML={{ __html: PANEL_CSS }} />
+      <div className="op-grip" aria-hidden="true" />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: 12, letterSpacing: '0.08em' }}>MARKET ORDER · BTCUSD</span>
-        <button className="filter-btn" style={{ fontSize: 10, padding: '1px 7px' }} onClick={onClose} aria-label="Paneli kapat">
+        <span style={{ letterSpacing: '0.08em' }}>MARKET ORDER · BTCUSD</span>
+        <button className="filter-btn op-close" onClick={onClose} aria-label="Paneli kapat">
           ✕
         </button>
       </div>
@@ -471,194 +563,248 @@ export default function OrderPanel({ quote, labels, hidden, onClose, onDraftChan
         </div>
       )}
 
-      {sectionLabel('DIRECTION')}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-        {(['LONG', 'SHORT'] as const).map((d) => (
-          <button
-            key={d}
-            className="filter-btn"
-            disabled={locked}
-            onClick={() => setDirection(d)}
-            style={{
-              fontSize: 12,
-              padding: '5px 0',
-              ...(direction === d
-                ? d === 'LONG'
-                  ? { color: 'var(--green)', borderColor: 'var(--green-border)', background: 'var(--green-dim)' }
-                  : { color: 'var(--red)', borderColor: 'var(--red-border)', background: 'var(--red-dim)' }
-                : {}),
-            }}
-          >
-            {d === 'LONG' ? 'Long' : 'Short'}
-          </button>
-        ))}
+      <div className="op-full">
+        {sectionLabel('YÖN')}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+          {(['LONG', 'SHORT'] as const).map((d) => (
+            <button
+              key={d}
+              className="filter-btn op-btn"
+              disabled={locked}
+              onClick={() => setDirection(d)}
+              style={
+                direction === d
+                  ? d === 'LONG'
+                    ? { color: 'var(--green)', borderColor: 'var(--green-border)', background: 'var(--green-dim)' }
+                    : { color: 'var(--red)', borderColor: 'var(--red-border)', background: 'var(--red-dim)' }
+                  : undefined
+              }
+            >
+              {d === 'LONG' ? 'Long' : 'Short'}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {sectionLabel('STRATEJİ LABEL')}
-      <input
-        style={inputStyle}
-        list="order-panel-labels"
-        placeholder="Seç ya da yeni yaz"
-        value={label}
-        maxLength={64}
-        disabled={locked}
-        onChange={(e) => setLabel(e.target.value)}
-        aria-label="Strateji etiketi"
-      />
-      <datalist id="order-panel-labels">
-        {labels.map((l) => (
-          <option key={l} value={l} />
-        ))}
-      </datalist>
-
-      {sectionLabel('SL / TP')}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-        <input
-          style={{ ...inputStyle, borderColor: slInput.invalid ? 'var(--amber)' : 'var(--red-border)' }}
-          inputMode="decimal"
-          placeholder="SL fiyatı"
-          value={slText}
-          disabled={locked}
-          onChange={(e) => setSlText(e.target.value)}
-          aria-label="SL fiyatı"
-        />
-        <input
-          style={{ ...inputStyle, borderColor: tpInput.invalid ? 'var(--amber)' : 'var(--green-border)' }}
-          inputMode="decimal"
-          placeholder="TP fiyatı"
-          value={tpText}
-          disabled={locked}
-          onChange={(e) => setTpText(e.target.value)}
-          aria-label="TP fiyatı"
-        />
-      </div>
-
-      {sectionLabel('RİSK')}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
-        {RISK_PRESETS.map((r) => (
-          <button key={r} className={`filter-btn${riskChoice === r ? ' active' : ''}`} style={{ fontSize: 12, padding: '4px 0' }} disabled={locked} onClick={() => setRiskChoice(r)}>
-            ${r}
-          </button>
-        ))}
-        <button className={`filter-btn${riskChoice === 'custom' ? ' active' : ''}`} style={{ fontSize: 12, padding: '4px 0' }} disabled={locked} onClick={() => setRiskChoice('custom')}>
-          Özel
+      <div className="op-levels-head">
+        {sectionLabel('SL / TP', `seç, grafikte fiyata ${coarsePointer ? 'dokun' : 'tıkla'}; çizgiyi sürükle`)}
+        <button type="button" className="filter-btn op-done" onClick={() => setPickTarget(null)}>
+          Bitti
         </button>
       </div>
-      {riskChoice === 'custom' && (
-        <input
-          style={{ ...inputStyle, marginTop: 6, borderColor: riskInput.invalid ? 'var(--amber)' : 'var(--border)' }}
-          inputMode="decimal"
-          placeholder="Risk ($)"
-          value={customRisk}
-          disabled={locked}
-          onChange={(e) => setCustomRisk(e.target.value)}
-          aria-label="Özel risk"
-        />
-      )}
+      <div className="op-levels">{(['sl', 'tp'] as const).map(levelBox)}</div>
 
-      <div style={{ background: 'var(--bg-3)', borderRadius: 6, padding: '8px 10px', marginTop: 12 }} data-testid="order-summary">
-        {row('Bid / Ask', quote ? `${price2(quote.bid)} / ${price2(quote.ask)}` : '—')}
-        {quote && row('Spread', `$${(quote.ask - quote.bid).toFixed(2)}`)}
-        {sizing && sizing.slDistance > 0 && row('Giriş (market)', price2(sizing.refPrice))}
-        {sizing && sizing.slDistance > 0 && sl != null && row('SL', `${price2(sl)} · $${sizing.slDistance.toFixed(2)} · %${pct(sizing.slDistance, sizing.refPrice)}`, 'var(--red)')}
-        {sizing && sizing.tpDistance > 0 && tp != null && row('TP', `${price2(tp)} · $${sizing.tpDistance.toFixed(2)} · %${pct(sizing.tpDistance, sizing.refPrice)}`, 'var(--green)')}
-        {sizing?.ok && (
-          <>
-            {row('Pozisyon', `${sizing.volume} lot`)}
-            {row('SL olursa', money(-sizing.riskUsd), 'var(--red)')}
-            {row('TP olursa', money(sizing.rewardUsd), 'var(--green)')}
-            {row('R:R', `1 : ${sizing.rr.toFixed(2)}`)}
-            {riskUsd != null && Math.abs(riskUsd - sizing.riskUsd) >= 0.005 && row('Hedef risk', `$${riskUsd.toFixed(2)} → lot adımı yüzünden $${sizing.riskUsd.toFixed(2)}`, 'var(--amber)')}
-            {row('Spread maliyeti', `$${sizing.spreadUsd.toFixed(2)}`)}
-            {swap != null && row('Swap (günlük, tahmini)', money(swap), swap < 0 ? 'var(--red)' : 'var(--green)')}
-          </>
-        )}
-      </div>
-
-      {blocker && submit.kind !== 'filled' && (
-        <div style={{ color: 'var(--amber)', fontSize: 11, marginTop: 8 }} data-testid="order-blocker">
-          {blocker}
+      <div className="op-full">
+        {sectionLabel('RİSK')}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
+          {RISK_PRESETS.map((r) => (
+            <button key={r} className={`filter-btn op-btn${riskChoice === r ? ' active' : ''}`} disabled={locked} onClick={() => setRiskChoice(r)}>
+              ${r}
+            </button>
+          ))}
+          <button className={`filter-btn op-btn${riskChoice === 'custom' ? ' active' : ''}`} disabled={locked} onClick={() => setRiskChoice('custom')}>
+            Özel
+          </button>
         </div>
-      )}
-      {submit.kind === 'notice' && (
-        <div style={{ color: submit.tone === 'error' ? 'var(--red)' : 'var(--amber)', fontSize: 11, marginTop: 8 }} data-testid="order-notice">
-          {submit.message}
-          {submit.ambiguous && (
-            <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-              <button className="filter-btn" style={{ fontSize: 11, flex: 1 }} onClick={checkStatus}>
-                Durumu kontrol et
+        {riskChoice === 'custom' && (
+          <input
+            className="op-input"
+            style={{ marginTop: 6, borderColor: riskInput.invalid ? 'var(--amber)' : undefined }}
+            inputMode="decimal"
+            placeholder="Risk ($)"
+            value={customRisk}
+            disabled={locked}
+            onChange={(e) => setCustomRisk(e.target.value)}
+            aria-label="Özel risk"
+          />
+        )}
+
+        {sectionLabel('STRATEJİ')}
+        {labels.length > 0 && (
+          <div className="op-chips">
+            {labels.map((l) => (
+              <button key={l} type="button" className={`op-chip${label === l ? ' active' : ''}`} disabled={locked} onClick={() => setLabel(l)}>
+                {l}
               </button>
-              <button className="filter-btn" style={{ fontSize: 11, flex: 1 }} onClick={() => newOrder(true)}>
-                Yeni emir
-              </button>
-            </div>
+            ))}
+          </div>
+        )}
+        <input
+          className="op-input"
+          list="order-panel-labels"
+          placeholder={labels.length > 0 ? 'ya da yeni etiket yaz' : 'Strateji etiketi'}
+          value={label}
+          maxLength={64}
+          disabled={locked}
+          onChange={(e) => setLabel(e.target.value)}
+          aria-label="Strateji etiketi"
+        />
+        <datalist id="order-panel-labels">
+          {labels.map((l) => (
+            <option key={l} value={l} />
+          ))}
+        </datalist>
+
+        <div style={{ background: 'var(--bg-3)', borderRadius: 6, padding: '8px 10px', marginTop: 12 }} data-testid="order-summary">
+          {row('Bid / Ask', quote ? `${price2(quote.bid)} / ${price2(quote.ask)}` : '—')}
+          {quote && row('Spread', `$${(quote.ask - quote.bid).toFixed(2)}`)}
+          {sizing && sizing.slDistance > 0 && row('Giriş (market)', price2(sizing.refPrice))}
+          {sizing && sizing.slDistance > 0 && sl != null && row('SL', `${price2(sl)} · $${sizing.slDistance.toFixed(2)} · %${pct(sizing.slDistance, sizing.refPrice)}`, 'var(--red)')}
+          {sizing && sizing.tpDistance > 0 && tp != null && row('TP', `${price2(tp)} · $${sizing.tpDistance.toFixed(2)} · %${pct(sizing.tpDistance, sizing.refPrice)}`, 'var(--green)')}
+          {sizing?.ok && (
+            <>
+              {row('Pozisyon', `${sizing.volume} lot`)}
+              {row('SL olursa', money(-sizing.riskUsd), 'var(--red)')}
+              {row('TP olursa', money(sizing.rewardUsd), 'var(--green)')}
+              {row('R:R', `1 : ${sizing.rr.toFixed(2)}`)}
+              {riskUsd != null && Math.abs(riskUsd - sizing.riskUsd) >= 0.005 && row('Hedef → gerçek', `$${riskUsd.toFixed(2)} → $${sizing.riskUsd.toFixed(2)}`, 'var(--amber)')}
+              {row('Spread maliyeti', `$${sizing.spreadUsd.toFixed(2)}`)}
+              {swap != null && row('Swap (günlük, tahmini)', money(swap), swap < 0 ? 'var(--red)' : 'var(--green)')}
+            </>
           )}
         </div>
-      )}
-      {submit.kind === 'unresolved' && (
-        <div style={{ color: 'var(--amber)', fontSize: 11, marginTop: 8 }} data-testid="order-unresolved">
-          {submit.message}
-          {submit.intents.map((i) => (
-            <div key={i.clientId} style={{ color: 'var(--text-2)', marginTop: 4 }}>
-              {intentLine(i)}
-            </div>
-          ))}
-          <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-            <button className="filter-btn" style={{ fontSize: 11, flex: 1 }} onClick={() => checkUnresolved(submit.intents)}>
-              Önceki emri kontrol et
-            </button>
-            {!submit.inFlight && (
-              <button className="filter-btn" style={{ fontSize: 11, flex: 1 }} onClick={() => sendAnyway(submit.intents)} disabled={!canSubmit}>
-                Yine de gönder
-              </button>
+      </div>
+
+      {/* Telefonda ekranin altina yapisir: grafikte SL/TP secerken lot, risk ve gonder hep gorunur */}
+      <div className="op-actions" data-testid="order-actions">
+        {sizing?.ok && submit.kind !== 'filled' && (
+          <div className="op-actions-summary">
+            <span>{sizing.volume} lot</span>
+            <span style={{ color: 'var(--red)' }}>{money(-sizing.riskUsd)}</span>
+            <span style={{ color: 'var(--green)' }}>{money(sizing.rewardUsd)}</span>
+            <span>1:{sizing.rr.toFixed(2)}</span>
+          </div>
+        )}
+        {blocker && submit.kind !== 'filled' && (
+          <div style={{ color: 'var(--amber)', fontSize: 11, marginBottom: 8 }} data-testid="order-blocker">
+            {blocker}
+          </div>
+        )}
+        {submit.kind === 'notice' && (
+          <div style={{ color: submit.tone === 'error' ? 'var(--red)' : 'var(--amber)', fontSize: 11, marginBottom: 8 }} data-testid="order-notice">
+            {submit.message}
+            {submit.ambiguous && (
+              <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                <button className="filter-btn op-btn" style={{ flex: 1 }} onClick={checkStatus}>
+                  Durumu kontrol et
+                </button>
+                <button className="filter-btn op-btn" style={{ flex: 1 }} onClick={() => newOrder(true)}>
+                  Yeni emir
+                </button>
+              </div>
             )}
           </div>
-        </div>
-      )}
-
-      {submit.kind === 'filled' ? (
-        <div style={{ border: '1px solid var(--green-border)', background: 'var(--green-dim)', borderRadius: 6, padding: '8px 10px', marginTop: 12 }} data-testid="order-filled">
-          <div style={{ color: 'var(--green)', marginBottom: 4 }}>
-            Emir doldu{submit.result.positionId ? ` · pozisyon #${submit.result.positionId}` : ''}
+        )}
+        {submit.kind === 'unresolved' && (
+          <div style={{ color: 'var(--amber)', fontSize: 11, marginBottom: 8 }} data-testid="order-unresolved">
+            {submit.message}
+            {submit.intents.map((i) => (
+              <div key={i.clientId} style={{ color: 'var(--text-2)', marginTop: 4 }}>
+                {intentLine(i)}
+              </div>
+            ))}
+            <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+              <button className="filter-btn op-btn" style={{ flex: 1 }} onClick={() => checkUnresolved(submit.intents)}>
+                Önceki emri kontrol et
+              </button>
+              {!submit.inFlight && (
+                <button className="filter-btn op-btn" style={{ flex: 1 }} onClick={() => sendAnyway(submit.intents)} disabled={!canSubmit}>
+                  Yine de gönder
+                </button>
+              )}
+            </div>
           </div>
-          {submit.result.stopsAttached === false && (
-            <div style={{ color: 'var(--red)', margin: '4px 0' }}>SL/TP pozisyona eklenmemiş görünüyor — MT5'te hemen kontrol et!</div>
-          )}
-          {submit.result.matchedByFallback && (
-            <div style={{ color: 'var(--amber)', margin: '4px 0' }}>Pozisyon clientId ile değil yön/lot/zamanla eşleşti — MT5'te doğrula.</div>
-          )}
-          {row('Dolum', price2(submit.result.fillPrice))}
-          {row('Lot', `${submit.result.volume}`)}
-          {row('SL / TP', `${price2(submit.result.sl)} / ${price2(submit.result.tp)}`)}
-          {submit.result.actualRiskUsd != null && row('Gerçek risk', money(-submit.result.actualRiskUsd), 'var(--red)')}
-          {submit.result.slippageAdverse != null &&
-            row('Kayma', submit.result.slippageAdverse === 0 ? '$0.00' : `${submit.result.slippageAdverse > 0 ? 'aleyhe' : 'lehe'} $${Math.abs(submit.result.slippageAdverse).toFixed(2)}`)}
-          <div style={{ color: 'var(--text-3)', fontSize: 10, marginTop: 4 }}>Pozisyon birkaç saniye içinde tabloda görünür.</div>
-          <button className="filter-btn" style={{ width: '100%', marginTop: 8, fontSize: 12 }} onClick={() => newOrder(false)}>
-            Yeni emir
+        )}
+
+        {submit.kind === 'filled' ? (
+          <div style={{ border: '1px solid var(--green-border)', background: 'var(--green-dim)', borderRadius: 6, padding: '8px 10px' }} data-testid="order-filled">
+            <div style={{ color: 'var(--green)', marginBottom: 4 }}>
+              Emir doldu{submit.result.positionId ? ` · pozisyon #${submit.result.positionId}` : ''}
+            </div>
+            {submit.result.stopsAttached === false && (
+              <div style={{ color: 'var(--red)', margin: '4px 0' }}>SL/TP pozisyona eklenmemiş görünüyor — MT5'te hemen kontrol et!</div>
+            )}
+            {submit.result.matchedByFallback && (
+              <div style={{ color: 'var(--amber)', margin: '4px 0' }}>Pozisyon clientId ile değil yön/lot/zamanla eşleşti — MT5'te doğrula.</div>
+            )}
+            {row('Dolum', price2(submit.result.fillPrice))}
+            {row('Lot', `${submit.result.volume}`)}
+            {row('SL / TP', `${price2(submit.result.sl)} / ${price2(submit.result.tp)}`)}
+            {submit.result.actualRiskUsd != null && row('Gerçek risk', money(-submit.result.actualRiskUsd), 'var(--red)')}
+            {submit.result.slippageAdverse != null &&
+              row('Kayma', submit.result.slippageAdverse === 0 ? '$0.00' : `${submit.result.slippageAdverse > 0 ? 'aleyhe' : 'lehe'} $${Math.abs(submit.result.slippageAdverse).toFixed(2)}`)}
+            <div style={{ color: 'var(--text-3)', fontSize: 10, marginTop: 4 }}>Pozisyon birkaç saniye içinde tabloda görünür.</div>
+            <button className="filter-btn op-btn" style={{ width: '100%', marginTop: 8 }} onClick={() => newOrder(false)}>
+              Yeni emir
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => submitOrder()}
+            disabled={!canSubmit}
+            data-testid="order-submit"
+            className="op-submit"
+            style={{
+              cursor: canSubmit ? 'pointer' : 'not-allowed',
+              border: `1px solid ${canSubmit ? dirColor : 'var(--border)'}`,
+              background: canSubmit ? (direction === 'LONG' ? 'var(--green-dim)' : 'var(--red-dim)') : 'transparent',
+              color: canSubmit ? dirColor : 'var(--text-3)',
+            }}
+          >
+            {busy ? submit.label : sizing?.ok && direction ? `${direction === 'LONG' ? 'Long' : 'Short'} ${sizing.volume} lot · market` : 'Market emir'}
           </button>
-        </div>
-      ) : (
-        <button
-          onClick={() => submitOrder()}
-          disabled={!canSubmit}
-          data-testid="order-submit"
-          style={{
-            width: '100%',
-            marginTop: 12,
-            padding: '8px 0',
-            borderRadius: 4,
-            fontSize: 13,
-            cursor: canSubmit ? 'pointer' : 'not-allowed',
-            fontFamily: "'DM Mono', monospace",
-            border: `1px solid ${canSubmit ? dirColor : 'var(--border)'}`,
-            background: canSubmit ? (direction === 'LONG' ? 'var(--green-dim)' : 'var(--red-dim)') : 'transparent',
-            color: canSubmit ? dirColor : 'var(--text-3)',
-          }}
-        >
-          {busy ? submit.label : sizing?.ok && direction ? `${direction === 'LONG' ? 'Long' : 'Short'} ${sizing.volume} lot · market` : 'Market emir'}
-        </button>
-      )}
+        )}
+      </div>
     </div>
   )
 }
+
+// Panel stilleri. Telefonda: 16px girisler (iOS odaklanınca sayfayi yakinlastirmasin), en az
+// 44px dokunma alanlari, altta yapisan gonder cubugu.
+const PANEL_CSS = `
+.op-panel { padding: 14px 14px 0; font-size: 12px; align-self: start; }
+/* Masaustu: panel grafik kartiyla ayni boyda, icerik kendi icinde kayar; gonder cubugu altta sabit */
+@media (min-width: 1001px) {
+  .live-chart-row.with-panel > .op-panel { align-self: stretch; height: 0; min-height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+}
+.op-section-label { font-size: 10px; margin: 12px 0 5px; color: var(--text-3); letter-spacing: 0.08em; font-family: 'DM Mono', monospace; }
+.op-hint { letter-spacing: 0; }
+.op-input { width: 100%; box-sizing: border-box; background: var(--bg-3); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 12px; padding: 5px 8px; min-height: 30px; font-family: 'DM Mono', monospace; }
+.op-btn { font-size: 12px; padding: 5px 0; }
+.op-close { font-size: 10px; padding: 1px 7px; }
+.op-levels { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.op-level { border: 1px solid var(--border); border-radius: 6px; background: var(--bg-3); overflow: hidden; }
+.op-level-head { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 6px; background: transparent; border: none; padding: 6px 8px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-3); }
+.op-level-head:disabled { cursor: default; }
+.op-level.active .op-level-head { background: rgba(255,255,255,0.04); }
+.op-level-input { border: none; border-top: 1px solid var(--border); border-radius: 0; background: var(--bg-2); }
+.op-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.op-chips::-webkit-scrollbar { display: none; }
+.op-chip { flex: none; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text-3); font-family: 'DM Mono', monospace; font-size: 11px; cursor: pointer; white-space: nowrap; }
+.op-chip.active { color: var(--text); border-color: var(--border-3); background: var(--bg-3); }
+.op-actions { position: sticky; bottom: 0; z-index: 4; background: var(--bg-2); margin: 12px -14px 0; padding: 10px 14px 14px; border-top: 1px solid var(--border); border-radius: 0 0 8px 8px; }
+.op-levels-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 8px; }
+.op-levels-head .op-section-label { flex: 1; }
+.op-grip, .op-done { display: none; }
+.op-actions-summary { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.op-submit { width: 100%; padding: 9px 0; border-radius: 6px; font-size: 13px; font-family: 'DM Mono', monospace; }
+@media (max-width: 768px) {
+  /* Telefonda panel ekranin altina sabit bir alt panel: grafik ustte gorunur kalir */
+  .op-panel.op-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; max-height: 62vh; overflow-y: auto; overscroll-behavior: contain;
+    border-radius: 14px 14px 0 0; border-bottom: none; padding-top: 8px; box-shadow: 0 -12px 32px rgba(0,0,0,0.7); }
+  .op-sheet .op-grip { display: block; width: 40px; height: 4px; border-radius: 2px; background: var(--border-3); margin: 0 auto 8px; }
+  /* SL/TP secerken sadece SL/TP kutulari ve gonder cubugu: grafik icin en fazla alan */
+  .op-panel.op-compact .op-full { display: none; }
+  .op-panel.op-compact .op-done { display: inline-block; min-height: 36px; font-size: 13px; padding: 4px 14px; margin-bottom: 5px; }
+  .op-actions { border-radius: 0; }
+  .op-panel { font-size: 13px; }
+  .op-section-label { font-size: 11px; margin-top: 14px; }
+  .op-input { font-size: 16px; min-height: 44px; padding: 8px 10px; }
+  .op-btn { min-height: 44px; font-size: 14px; }
+  .op-close { min-width: 40px; min-height: 36px; font-size: 13px; }
+  .op-level-head { min-height: 40px; font-size: 13px; }
+  .op-chip { font-size: 13px; padding: 9px 14px; }
+  .op-submit { min-height: 52px; font-size: 15px; }
+  .op-actions { padding-bottom: calc(14px + env(safe-area-inset-bottom)); box-shadow: 0 -10px 24px rgba(0,0,0,0.6); }
+}
+`
