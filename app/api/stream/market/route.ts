@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { isBasicAuthConfigured, AUTH_NOT_CONFIGURED_MESSAGE } from '@/lib/authConfig'
-import { ensureMarketStream, getAccountSnapshot, getMarketStream, getStreamStatus, Quote, StreamCandle } from '@/lib/metaapiStream'
+import { ensureMarketStream, getAccountSnapshot, getMarketStream, getStreamStatus, Quote } from '@/lib/metaapiStream'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -8,9 +8,8 @@ export const runtime = 'nodejs'
 // Canli Axi market data akisi (Server-Sent Events).
 //
 // Olaylar:
-//   hello   -> baglanti acilinca bir kez: stream durumu + son quote + son mumlar + hesap
+//   hello   -> baglanti acilinca bir kez: stream durumu + son quote + hesap
 //   quote   -> {bid, ask, time, brokerTime}
-//   candle  -> {timeframe, time, open, high, low, close, tickVolume} (olusan mum dahil)
 //   account -> 2 sn'de bir {balance, equity, margin, freeMargin, ...}
 //   status  -> baglanti henuz hazir degilse ya da hata varsa 5 sn'de bir
 // Railway/proxy bosta baglantiyi kesmesin diye 15 sn'de bir yorum satiri (ping) gider.
@@ -41,13 +40,10 @@ export async function GET(req: NextRequest) {
       }
       const send = (event: string, data: unknown) => write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
 
-      const lastCandles = Object.fromEntries(Object.entries(s.candles).map(([tf, c]) => [tf, c.last]))
-      send('hello', { stream: getStreamStatus(), lastQuote: s.lastQuote, lastCandles, account: getAccountSnapshot() })
+      send('hello', { stream: getStreamStatus(), lastQuote: s.lastQuote, account: getAccountSnapshot() })
 
       const onQuote = (q: Quote) => send('quote', q)
-      const onCandle = (c: StreamCandle) => send('candle', c)
       s.emitter.on('quote', onQuote)
-      s.emitter.on('candle', onCandle)
 
       const accountTimer = setInterval(() => {
         const account = getAccountSnapshot()
@@ -62,7 +58,6 @@ export async function GET(req: NextRequest) {
         if (closed) return
         closed = true
         s.emitter.off('quote', onQuote)
-        s.emitter.off('candle', onCandle)
         clearInterval(accountTimer)
         clearInterval(statusTimer)
         clearInterval(pingTimer)

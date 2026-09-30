@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isBasicAuthConfigured, AUTH_NOT_CONFIGURED_MESSAGE } from '@/lib/authConfig'
-import { AXI_SYMBOL, TIMEFRAMES, TIMEFRAME_MS, ensureMarketStream, getStreamStatus } from '@/lib/metaapiStream'
+import { AXI_SYMBOL, TIMEFRAMES, TIMEFRAME_MS } from '@/lib/axiMarket'
+import { getMetaApiRestConfig } from '@/lib/metaapiRest'
+import { ensureMarketStream, getStreamStatus } from '@/lib/metaapiStream'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-// Faz 0 tanilama -- tarayicida ac: /api/diagnostics/metaapi  (istege bagli ?wait=40)
+// MetaApi tanilama -- tarayicida ac: /api/diagnostics/metaapi  (istege bagli ?wait=40)
 //
 // Kontroller:
 //   1. Hesap tipi (DEMO/REAL), sunucu, para birimi, kaldirac          -- REST, 50 kredi
 //   2. BTCUSD spec: contractSize, min/max lot, lot adimi, stopsLevel  -- REST, 50 kredi
-//   3. Historical market data host'u (london) her TF icin + 15m'de limit=1000 -- ~1 kredi
-//   4. CPU kredi kullanimi (perAccount/perUser/perServer)
-//   5. Streaming: baglanti, quote akisi, OLUSAN mumun stream'de gelip gelmedigi
-// clientId burada test EDILMEZ (emir acmayi gerektirir) -- Faz 2'nin ilk demo emrinde.
+//   3. Historical market data host'u her TF icin + 15m'de limit=1000  -- ~1 kredi
+//   4. CPU kredi kotasi ve kullanimi (perUser/perAccount/perServer)
+//   5. Streaming: baglanti ve quote akisi
+// clientId burada test EDILMEZ (emir acmayi gerektirir) -- Faz 2'nin ilk emrinde.
 // Yanit hicbir gizli bilgi icermez (token, login, isim yok).
 
 interface RestResult {
@@ -70,9 +72,15 @@ function summarizeCandles(r: RestResult, tf: keyof typeof TIMEFRAME_MS) {
     returnedOrder: Date.parse(arr[0].time) <= Date.parse(arr[arr.length - 1].time) ? 'eski→yeni' : 'yeni→eski',
     oldest: { time: oldest.time, brokerTime: oldest.brokerTime },
     newest: { time: newest.time, brokerTime: newest.brokerTime, close: newest.close },
-    // Son mumun kapanis anı henuz gelmediyse, REST olusan mumu da donduruyor demektir.
+    // Son mumun kapanis ani henuz gelmediyse, REST olusan mumu da donduruyor demektir.
     newestIsForming: Date.parse(newest.time) + TIMEFRAME_MS[tf] > Date.now(),
   }
+}
+
+// credits yaniti: { perUser: [{period, total, available}], perAccount: [...], perServer: [...] }
+function creditWindow(body: any, scope: string, period: string): string | null {
+  const w = Array.isArray(body?.[scope]) ? body[scope].find((x: any) => x?.period === period) : null
+  return w ? `${w.available}/${w.total}` : null
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -87,15 +95,10 @@ function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
 export async function GET(req: NextRequest) {
   if (!isBasicAuthConfigured()) return new Response(AUTH_NOT_CONFIGURED_MESSAGE, { status: 503 })
 
-  const token = process.env.METAAPI_TOKEN
-  const accountId = process.env.METAAPI_ACCOUNT_ID
-  if (!token || !accountId) {
-    return NextResponse.json({ error: 'METAAPI_TOKEN / METAAPI_ACCOUNT_ID tanımlı değil' }, { status: 500 })
-  }
-  const region = process.env.METAAPI_REGION || 'london'
-  const clientApi = `https://mt-client-api-v1.${region}.agiliumtrade.ai`
-  const marketDataApi = (process.env.METAAPI_MARKET_DATA_URL || `https://mt-market-data-client-api-v1.${region}.agiliumtrade.ai`).replace(/\/+$/, '')
-  const acc = `/users/current/accounts/${accountId}`
+  const cfg = getMetaApiRestConfig()
+  if (!cfg) return NextResponse.json({ error: 'METAAPI_TOKEN / METAAPI_ACCOUNT_ID tanımlı değil' }, { status: 500 })
+  const { token, clientApi, marketDataApi, region } = cfg
+  const acc = `/users/current/accounts/${cfg.accountId}`
   const waitParam = Number(req.nextUrl.searchParams.get('wait') ?? '20')
   const waitSec = Math.min(40, Math.max(0, Number.isFinite(waitParam) ? Math.round(waitParam) : 20))
 
@@ -121,20 +124,12 @@ export async function GET(req: NextRequest) {
   const full15m = await metaGet(marketDataApi, `${acc}/historical-market-data/symbols/${AXI_SYMBOL}/timeframes/15m/candles?limit=1000`, token)
   historical['15m_limit1000'] = summarizeCandles(full15m, '15m')
 
-  // 5) Streaming -- hazir olunca waitSec boyunca ornekle
+  // 5) Streaming -- hazir olunca waitSec boyunca quote'lari say
   const streamError = await streamErrorPromise
   const before = getStreamStatus()
   if (!streamError && waitSec > 0) await sleep(waitSec * 1000)
   const after = getStreamStatus()
-  const perTf: Record<string, { updates: number; sameBarUpdates: number }> = {}
-  for (const tf of TIMEFRAMES) {
-    const b = before.candles[tf] as { updates: number; sameBarUpdates: number }
-    const a = after.candles[tf] as { updates: number; sameBarUpdates: number }
-    perTf[tf] = { updates: a.updates - b.updates, sameBarUpdates: a.sameBarUpdates - b.sameBarUpdates }
-  }
   const quotesInWindow = after.quoteCount - before.quoteCount
-  const sameBarTotal = Object.values(perTf).reduce((sum, x) => sum + x.sameBarUpdates, 0)
-  const candleTotal = Object.values(perTf).reduce((sum, x) => sum + x.updates, 0)
 
   // Ozet satirlari
   const summary: string[] = []
@@ -178,28 +173,28 @@ export async function GET(req: NextRequest) {
     const failed = TIMEFRAMES.filter((tf) => !(historical[tf] as any)?.ok)
     summary.push(
       `FAIL Historical host (${marketDataApi}) ${failed.join(', ') || '15m limit=1000'} için başarısız. ` +
-        `MetaApi uygulamasındaki API access sayfasından london market data URL'sini alıp METAAPI_MARKET_DATA_URL olarak tanımla.`,
+        `MetaApi uygulamasındaki API access sayfasından market data URL'sini alıp METAAPI_MARKET_DATA_URL olarak tanımla.`,
     )
   }
 
   if (streamError) {
     summary.push(`FAIL Streaming: ${streamError}`)
   } else {
-    summary.push(`OK   Streaming hazır; ${waitSec} sn içinde ${quotesInWindow} quote, ${candleTotal} mum güncellemesi`)
-    if (sameBarTotal > 0) {
-      summary.push(`OK   Oluşan mum stream'de geliyor (aynı mum ${sameBarTotal} kez güncellendi)`)
-    } else if (candleTotal > 0) {
-      summary.push(`?    Mum güncellemesi var ama aynı mumun tekrar güncellendiği görülmedi — ?wait=40 ile tekrar dene`)
-    } else {
-      summary.push(`?    ${waitSec} sn içinde mum güncellemesi gelmedi — piyasa kısa arada olabilir, ?wait=40 ile tekrar dene`)
-    }
+    summary.push(`OK   Streaming hazır; ${waitSec} sn içinde ${quotesInWindow} quote`)
+    if (after.subscribeWarning) summary.push(`?    Abonelik uyarısı: ${after.subscribeWarning}`)
   }
-  summary.push(
-    creditsRes.ok
-      ? 'INFO Kredi durumu aşağıda "credits" alanında'
-      : `FAIL Kredi durumu: ${errorText(creditsRes)}`,
-  )
-  summary.push("NOT  clientId deal'lerde görünüyor mu: Faz 2'nin ilk demo emrinde doğrulanacak")
+
+  if (creditsRes.ok) {
+    const b = creditsRes.body
+    summary.push(
+      `INFO Kredi (kalan/toplam) — kullanıcı: 1 dk ${creditWindow(b, 'perUser', '1m') ?? '?'}, 1 sa ${creditWindow(b, 'perUser', '1h') ?? '?'}; ` +
+        `sunucu: 1 dk ${creditWindow(b, 'perServer', '1m') ?? '?'}, 1 sa ${creditWindow(b, 'perServer', '1h') ?? '?'}; ` +
+        `hesap: 10 sn ${creditWindow(b, 'perAccount', '10s') ?? '?'}`,
+    )
+  } else {
+    summary.push(`FAIL Kredi durumu: ${errorText(creditsRes)}`)
+  }
+  summary.push("NOT  clientId deal'lerde görünüyor mu: Faz 2'nin ilk emrinde doğrulanacak")
 
   return NextResponse.json(
     {
@@ -210,7 +205,7 @@ export async function GET(req: NextRequest) {
       spec,
       historicalCandles: historical,
       credits: creditsRes.ok ? creditsRes.body : { error: errorText(creditsRes) },
-      stream: { error: streamError, window: { seconds: waitSec, quotes: quotesInWindow, perTimeframe: perTf }, status: after },
+      stream: { error: streamError, window: { seconds: waitSec, quotes: quotesInWindow }, status: after },
     },
     { headers: { 'Cache-Control': 'no-store' } },
   )

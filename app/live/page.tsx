@@ -11,6 +11,7 @@ import EditableSlTp from '@/components/EditableSlTp'
 import EditableStrategyLabel from '@/components/EditableStrategyLabel'
 import LsrAnglePanel from '@/components/LsrAnglePanel'
 import RedFolderBanner from '@/components/RedFolderBanner'
+import { applyQuoteToBar } from '@/lib/formingCandle'
 
 ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, Filler, Legend)
 
@@ -84,6 +85,8 @@ interface StrategyRow {
 }
 
 const POLL_INTERVAL_MS = 5000
+// Bu kadar sure SSE'den quote gelmezse fiyat/hesap bilgisi yedek REST poll'una duser.
+const STREAM_STALE_MS = 20000
 
 function getDisplayVolume(order: Order): number {
   return order.volume
@@ -358,12 +361,17 @@ const INTERVAL_SEC: Record<'5m' | '15m' | '1h' | '4h' | '1d', number> = {
   '5m': 5 * 60, '15m': 15 * 60, '1h': 60 * 60, '4h': 4 * 60 * 60, '1d': 24 * 60 * 60,
 }
 
-function LiveChart({ candles, selectedOrders, interval }: { candles: Candle[]; selectedOrders: Order[]; interval: '5m' | '15m' | '1h' | '4h' | '1d' }) {
+function LiveChart({ candles, selectedOrders, interval, quote }: { candles: Candle[]; selectedOrders: Order[]; interval: '5m' | '15m' | '1h' | '4h' | '1d'; quote: Price | null }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
   const priceLinesRef = useRef<any[]>([])
   const didInitialZoom = useRef(false)
+  // Grafikteki son (olusan) mum, grafik zaman biriminde. Quote'lar bunun uzerine islenir.
+  const lastBarRef = useRef<Candle | null>(null)
+  // En son gelen quote -- REST tazelemesi (setData) sonrasi hemen yeniden uygulanir ki
+  // cache'ten gelen (en fazla ~20 sn eski) kapanis fiyati ekranda geri gitmesin.
+  const latestQuoteRef = useRef<Price | null>(null)
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -403,10 +411,26 @@ function LiveChart({ candles, selectedOrders, interval }: { candles: Candle[]; s
     }
   }, [])
 
+  // Zaman dilimi degisince eski dilimin son mumu unutulur; yeni dilimin mumlari gelene kadar
+  // quote'lar grafige islenmez (yanlis adimla mum acilmasin). Asagidaki setData efektinden
+  // ONCE tanimli olmali ki ayni render'da sirasi dogru olsun.
+  useEffect(() => {
+    lastBarRef.current = null
+  }, [interval])
+
   useEffect(() => {
     if (seriesRef.current && candles.length > 0) {
       const localCandles = candles.map((c) => ({ ...c, time: toLocalTime(c.time) }))
       seriesRef.current.setData(localCandles as any)
+      lastBarRef.current = { ...localCandles[localCandles.length - 1] }
+      const q = latestQuoteRef.current
+      if (q) {
+        const bar = applyQuoteToBar(lastBarRef.current, q.bid, toLocalTime(Math.floor(Date.parse(q.time) / 1000)), INTERVAL_SEC[interval])
+        if (bar) {
+          seriesRef.current.update(bar as any)
+          lastBarRef.current = bar
+        }
+      }
       if (!didInitialZoom.current) {
         const visibleCount = typeof window !== 'undefined' && window.innerWidth <= 768 ? 80 : 150
         const total = localCandles.length
@@ -415,6 +439,20 @@ function LiveChart({ candles, selectedOrders, interval }: { candles: Candle[]; s
       }
     }
   }, [candles])
+
+  // Canli quote (bid) ile olusan mumu guncelle ya da periyot dolduysa yeni mum ac.
+  // Dakikalik REST tazelemesi (setData) bu mumu broker'in kesin OHLC'siyle degistirir.
+  useEffect(() => {
+    latestQuoteRef.current = quote
+    const series = seriesRef.current
+    const last = lastBarRef.current
+    if (!series || !last || !quote) return
+    const quoteTime = toLocalTime(Math.floor(Date.parse(quote.time) / 1000))
+    const bar = applyQuoteToBar(last, quote.bid, quoteTime, INTERVAL_SEC[interval])
+    if (!bar) return
+    series.update(bar as any)
+    lastBarRef.current = bar
+  }, [quote, interval])
 
   useEffect(() => {
     const series = seriesRef.current
@@ -755,23 +793,63 @@ export default function LivePositionsPage() {
     })
   }
 
+  // Canli Axi fiyati ve hesap bilgisi SSE ile gelir (/api/stream/market). Akis bayatsa
+  // (STREAM_STALE_MS boyunca quote yok) asagidaki 5 sn'lik poll eski REST route'larina duser.
+  const streamQuoteAtRef = useRef(0)
+
+  useEffect(() => {
+    const es = new EventSource('/api/stream/market')
+    const onHello = ((e: MessageEvent) => {
+      try {
+        const d = JSON.parse(e.data)
+        if (d.lastQuote && typeof d.lastQuote.bid === 'number') setPrice({ bid: d.lastQuote.bid, ask: d.lastQuote.ask, time: d.lastQuote.time })
+        if (d.account && typeof d.account.balance === 'number') setAccountInfo({ balance: d.account.balance, currency: d.account.currency })
+      } catch {}
+    }) as EventListener
+    const onQuote = ((e: MessageEvent) => {
+      try {
+        const q = JSON.parse(e.data)
+        if (typeof q.bid === 'number' && typeof q.ask === 'number') {
+          streamQuoteAtRef.current = Date.now()
+          setPrice({ bid: q.bid, ask: q.ask, time: q.time })
+        }
+      } catch {}
+    }) as EventListener
+    const onAccount = ((e: MessageEvent) => {
+      try {
+        const a = JSON.parse(e.data)
+        if (typeof a.balance !== 'number') return
+        // Degismediyse ayni nesneyi dondur -- 2 sn'lik olaylar sayfayi bosuna yeniden cizdirmesin.
+        setAccountInfo((prev) => (prev && prev.balance === a.balance && prev.currency === a.currency ? prev : { balance: a.balance, currency: a.currency }))
+      } catch {}
+    }) as EventListener
+    es.addEventListener('hello', onHello)
+    es.addEventListener('quote', onQuote)
+    es.addEventListener('account', onAccount)
+    return () => es.close()
+  }, [])
+
   useEffect(() => {
     let active = true
     async function fetchData() {
       try {
-        const [ordersRes, priceRes, historyRes, accountRes] = await Promise.all([
+        const streamFresh = Date.now() - streamQuoteAtRef.current < STREAM_STALE_MS
+        const [ordersRes, historyRes, priceRes, accountRes] = await Promise.all([
           fetch('/api/orders-live', { cache: 'no-store' }),
-          fetch('/api/live-price', { cache: 'no-store' }),
           fetch('/api/orders-history', { cache: 'no-store' }),
-          fetch('/api/account-info', { cache: 'no-store' }),
+          // Yedek yol: canli akis bayatsa fiyat ve hesap bilgisi eskisi gibi REST'ten.
+          streamFresh ? null : fetch('/api/live-price', { cache: 'no-store' }),
+          streamFresh ? null : fetch('/api/account-info', { cache: 'no-store' }),
         ])
-        if (!ordersRes.ok || !priceRes.ok) throw new Error('fetch failed')
+        if (!ordersRes.ok) throw new Error('fetch failed')
         const ordersData: Order[] = await ordersRes.json()
-        const priceData: Price = await priceRes.json()
         const historyData: Order[] = historyRes.ok ? await historyRes.json() : []
-        const accountData: AccountInfo | null = accountRes.ok ? await accountRes.json() : null
+        const priceData: Price | null = priceRes && priceRes.ok ? await priceRes.json() : null
+        const accountData: AccountInfo | null = accountRes && accountRes.ok ? await accountRes.json() : null
         if (active) {
-          setOrders(ordersData); setPrice(priceData); setHistory(historyData); setAccountInfo(accountData)
+          setOrders(ordersData); setHistory(historyData)
+          if (priceData) setPrice(priceData)
+          if (accountData) setAccountInfo(accountData)
           setSelectedIds((prev) => {
             const validIds = new Set([...ordersData, ...historyData].map((o) => o.id))
             const next = new Set<number>()
@@ -807,16 +885,19 @@ export default function LivePositionsPage() {
     setHistory((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...patch } : o)))
   }
 
+  // Grafik: Axi BTCUSD, her zaman diliminde son 1000 mum (MetaApi historical REST, sunucuda
+  // cache'li). Olusan mum araya quote'larla canli islenir (LiveChart); bu dakikalik tazeleme
+  // broker'in kesin OHLC'sini getirir.
   useEffect(() => {
     let active = true
     async function fetchCandles() {
       try {
-        const res = await fetch(`/api/candles?interval=${chartInterval}`, { cache: 'no-store' })
+        const res = await fetch(`/api/axi-candles?interval=${chartInterval}`, { cache: 'no-store' })
         if (res.ok && active) setCandles(await res.json())
       } catch {}
     }
     fetchCandles()
-    const interval = setInterval(fetchCandles, 30000)
+    const interval = setInterval(fetchCandles, 60000)
     return () => { active = false; clearInterval(interval) }
   }, [chartInterval])
 
@@ -1121,7 +1202,7 @@ export default function LivePositionsPage() {
         <div className="card" style={{ padding: 16, marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
             <div className="col-label">
-              BTCUSDT — {chartInterval}
+              BTCUSD · Axi — {chartInterval}
               {selectedOrders.length > 0 && <span style={{ color: 'var(--blue)', marginLeft: 8 }}>· {selectedOrders.length} selected</span>}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1140,7 +1221,7 @@ export default function LivePositionsPage() {
               {price && <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{Math.round((price.bid + price.ask) / 2)}</span>}
             </div>
           </div>
-          <LiveChart candles={candles} selectedOrders={selectedOrders} interval={chartInterval} />
+          <LiveChart candles={candles} selectedOrders={selectedOrders} interval={chartInterval} quote={price} />
           <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8 }}>
             Select a position from the table below to view its zones and entry/exit markers
           </div>

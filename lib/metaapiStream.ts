@@ -1,9 +1,13 @@
-// Dashboard'un MetaApi market data baglantisi (Faz 0).
+// Dashboard'un MetaApi market data baglantisi.
 //
-// NEDEN STREAMING: REST current-price / account-information istekleri 50'ser CPU
-// kredisi, uygulama kotasi (tek hesap) saatte 18k. Streaming bu kotayi HIC
-// kullanmiyor (market data'nin kendi, cok daha genis kotasi var). Canli Axi
-// fiyati, mumlar ve hesap bilgisi bu yuzden tek bir uzun omurlu baglantidan gelir.
+// NEDEN STREAMING: canli Axi fiyati ve hesap bilgisi REST poll'u yerine tek bir uzun
+// omurlu baglantidan anlik gelir; streaming REST/RPC CPU kredisi de tuketmez.
+//
+// SADECE QUOTE: Faz 0 tanilamasinda mum aboneligi 20 sn'de hic veri getirmedi (SDK'nin
+// subscribeToMarketData tip tanimi da abonelik tiplerinin sunucu tarafinda tam
+// desteklenmedigini not ediyor). Bu yuzden sadece quote'lara abone olunuyor; /live
+// grafiginde olusan mum quote'lardan guncelleniyor, gecmis mumlar REST'ten geliyor
+// (lib/axiCandles.ts).
 //
 // TEK BAGLANTI: Railway'de `next start` tek bir uzun omurlu Node sureci. Baglanti
 // globalThis uzerinde singleton (route bundle'lari arasinda tekrar olusmasin diye)
@@ -20,35 +24,13 @@
 // Node'da calismiyor -- bu yuzden acikca CJS node build'i ('/node') kullaniliyor.
 import MetaApi from 'metaapi.cloud-sdk/node'
 import { EventEmitter } from 'events'
-
-export const AXI_SYMBOL = 'BTCUSD'
-export const TIMEFRAMES = ['5m', '15m', '1h', '4h', '1d'] as const
-export type Timeframe = (typeof TIMEFRAMES)[number]
-export const TIMEFRAME_MS: Record<Timeframe, number> = {
-  '5m': 5 * 60 * 1000,
-  '15m': 15 * 60 * 1000,
-  '1h': 60 * 60 * 1000,
-  '4h': 4 * 60 * 60 * 1000,
-  '1d': 24 * 60 * 60 * 1000,
-}
-const TIMEFRAME_SET = new Set<string>(TIMEFRAMES)
+import { AXI_SYMBOL } from './axiMarket'
 
 export interface Quote {
   bid: number
   ask: number
   time: string // ISO (UTC)
   brokerTime: string
-}
-
-export interface StreamCandle {
-  timeframe: Timeframe
-  time: string // acilis zamani, ISO (UTC)
-  brokerTime: string
-  open: number
-  high: number
-  low: number
-  close: number
-  tickVolume: number
 }
 
 export interface AccountSnapshot {
@@ -66,25 +48,16 @@ export interface AccountSnapshot {
 
 type Status = 'idle' | 'connecting' | 'synchronizing' | 'subscribing' | 'ready' | 'error'
 
-interface CandleStats {
-  count: number
-  last: StreamCandle | null
-  lastAt: number | null
-  // Ayni acilis zamanli mumun degisen OHLC ile tekrar gelmesi = olusan (kapanmamis)
-  // mum stream'de akiyor demek. Faz 0 dogrulamasinin asil sorusu bu.
-  sameBarUpdates: number
-}
-
 interface MarketStreamState {
   status: Status
   error: string | null
   errorAt: number | null
+  subscribeWarning: string | null
   startedAt: number | null
   readyAt: number | null
   quoteCount: number
   lastQuote: Quote | null
   lastQuoteAt: number | null
-  candles: Record<Timeframe, CandleStats>
   downgrades: string[]
   emitter: EventEmitter
   api: any | null
@@ -98,19 +71,17 @@ const g = globalThis as typeof globalThis & { __hakariMarketStream?: MarketStrea
 
 function freshState(): MarketStreamState {
   const emitter = new EventEmitter()
-  emitter.setMaxListeners(200) // her SSE istemcisi 2 dinleyici ekler
-  const candles = {} as Record<Timeframe, CandleStats>
-  for (const tf of TIMEFRAMES) candles[tf] = { count: 0, last: null, lastAt: null, sameBarUpdates: 0 }
+  emitter.setMaxListeners(200) // her SSE istemcisi bir dinleyici ekler
   return {
     status: 'idle',
     error: null,
     errorAt: null,
+    subscribeWarning: null,
     startedAt: null,
     readyAt: null,
     quoteCount: 0,
     lastQuote: null,
     lastQuoteAt: null,
-    candles,
     downgrades: [],
     emitter,
     api: null,
@@ -151,35 +122,6 @@ function createListener(s: MarketStreamState) {
       s.emitter.emit('quote', q)
     },
 
-    async onCandlesUpdated(_instanceIndex: string, candles: any[]) {
-      for (const c of candles ?? []) {
-        if (!c || c.symbol !== AXI_SYMBOL || !TIMEFRAME_SET.has(c.timeframe)) continue
-        if (![c.open, c.high, c.low, c.close].every(isNum)) continue
-        const tf = c.timeframe as Timeframe
-        const candle: StreamCandle = {
-          timeframe: tf,
-          time: toIso(c.time),
-          brokerTime: c.brokerTime,
-          open: c.open,
-          high: c.high,
-          low: c.low,
-          close: c.close,
-          tickVolume: isNum(c.tickVolume) ? c.tickVolume : 0,
-        }
-        const stats = s.candles[tf]
-        const prev = stats.last
-        if (prev && candle.time < prev.time) continue // eski replika paketi
-        if (prev && prev.time === candle.time) {
-          if (prev.open === candle.open && prev.high === candle.high && prev.low === candle.low && prev.close === candle.close) continue // kopya
-          stats.sameBarUpdates++
-        }
-        stats.last = candle
-        stats.lastAt = Date.now()
-        stats.count++
-        s.emitter.emit('candle', candle)
-      }
-    },
-
     async onSubscriptionDowngraded(_instanceIndex: string, symbol: string, updates: unknown, unsubscriptions: unknown) {
       const msg = `${new Date().toISOString()} ${symbol} ${JSON.stringify({ updates, unsubscriptions })}`
       s.downgrades = [...s.downgrades.slice(-9), msg]
@@ -205,6 +147,7 @@ async function init(s: MarketStreamState): Promise<void> {
   s.status = 'connecting'
   s.error = null
   s.errorAt = null
+  s.subscribeWarning = null
   s.startedAt = Date.now()
 
   if (!s.api) s.api = new MetaApi(token, { region })
@@ -225,19 +168,17 @@ async function init(s: MarketStreamState): Promise<void> {
 
   s.status = 'subscribing'
   try {
-    await connection.subscribeToMarketData(AXI_SYMBOL, [
-      { type: 'quotes' },
-      ...TIMEFRAMES.map((timeframe) => ({ type: 'candles', timeframe })),
-    ])
+    await connection.subscribeToMarketData(AXI_SYMBOL, [{ type: 'quotes' }])
   } catch (err: any) {
     // Axi'nin kisa gunluk/Cumartesi arasinda ilk quote beklenirken zaman asimi olabilir;
     // abonelik SDK tarafinda kayitli kalir, quote'lar piyasa acilinca akmaya baslar.
-    console.warn('[metaapiStream] subscribeToMarketData uyarisi:', err?.message ?? err)
+    s.subscribeWarning = String(err?.message ?? err)
+    console.warn('[metaapiStream] subscribeToMarketData uyarisi:', s.subscribeWarning)
   }
 
   s.status = 'ready'
   s.readyAt = Date.now()
-  console.log('[metaapiStream] hazir:', AXI_SYMBOL, 'quotes +', TIMEFRAMES.join('/'), 'mumlari')
+  console.log('[metaapiStream] hazir:', AXI_SYMBOL, 'quote akisi')
 }
 
 // Baglantiyi (gerekirse) baslatir; zaten baslamissa ayni promise'i doner.
@@ -288,27 +229,15 @@ export function getAccountSnapshot(): AccountSnapshot | null {
 export function getStreamStatus() {
   const s = getMarketStream()
   const now = Date.now()
-  const candles: Record<string, unknown> = {}
-  for (const tf of TIMEFRAMES) {
-    const c = s.candles[tf]
-    candles[tf] = {
-      updates: c.count,
-      sameBarUpdates: c.sameBarUpdates,
-      lastOpenTime: c.last?.time ?? null,
-      lastClose: c.last?.close ?? null,
-      lastIsForming: c.last ? Date.parse(c.last.time) + TIMEFRAME_MS[tf] > now : null,
-      lastUpdateAgeMs: c.lastAt != null ? now - c.lastAt : null,
-    }
-  }
   return {
     status: s.status,
     error: s.error,
+    subscribeWarning: s.subscribeWarning,
     connectingForMs: s.startedAt != null && s.readyAt == null ? now - s.startedAt : null,
     readyAt: s.readyAt != null ? new Date(s.readyAt).toISOString() : null,
     quoteCount: s.quoteCount,
     lastQuote: s.lastQuote,
     lastQuoteAgeMs: s.lastQuoteAt != null ? now - s.lastQuoteAt : null,
-    candles,
     downgrades: s.downgrades,
   }
 }
