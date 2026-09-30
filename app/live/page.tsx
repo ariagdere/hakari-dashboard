@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { createChart, ColorType, IChartApi, ISeriesApi, LineStyle } from 'lightweight-charts'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createChart, ColorType, IChartApi, IPriceLine, ISeriesApi, LineStyle } from 'lightweight-charts'
 import {
   Chart as ChartJS, Tooltip, LineElement, PointElement,
   LinearScale, CategoryScale, Filler, Legend,
@@ -11,7 +11,8 @@ import EditableSlTp from '@/components/EditableSlTp'
 import EditableStrategyLabel from '@/components/EditableStrategyLabel'
 import LsrAnglePanel from '@/components/LsrAnglePanel'
 import RedFolderBanner from '@/components/RedFolderBanner'
-import OrderPanel, { OrderDraft } from '@/components/OrderPanel'
+import OrderPanel, { ChartPick, OrderDraft } from '@/components/OrderPanel'
+import { attachLevelInteractions, LevelTarget, PickKind } from '@/lib/chartLevelInteractions'
 import { applyQuoteToBar } from '@/lib/formingCandle'
 
 ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, Filler, Legend)
@@ -362,12 +363,24 @@ const INTERVAL_SEC: Record<'5m' | '15m' | '1h' | '4h' | '1d', number> = {
   '5m': 5 * 60, '15m': 15 * 60, '1h': 60 * 60, '4h': 4 * 60 * 60, '1d': 24 * 60 * 60,
 }
 
-function LiveChart({ candles, selectedOrders, interval, quote, draft }: { candles: Candle[]; selectedOrders: Order[]; interval: '5m' | '15m' | '1h' | '4h' | '1d'; quote: Price | null; draft: OrderDraft | null }) {
+function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, height }: {
+  candles: Candle[]; selectedOrders: Order[]; interval: '5m' | '15m' | '1h' | '4h' | '1d'; quote: Price | null
+  draft: OrderDraft | null
+  onPick?: (target: LevelTarget, price: number, kind: PickKind, final: boolean) => void
+  height?: number
+}) {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
   const priceLinesRef = useRef<any[]>([])
-  const draftLinesRef = useRef<any[]>([])
+  // Emir panelinin SL/TP cizgileri (surukleme sirasinda fiyatlari dogrudan guncellenir)
+  const draftLinesRef = useRef<{ sl: IPriceLine | null; tp: IPriceLine | null }>({ sl: null, tp: null })
+  const draftRef = useRef<OrderDraft | null>(draft)
+  draftRef.current = draft
+  const onPickRef = useRef(onPick)
+  onPickRef.current = onPick
+  const levelsRef = useRef<ReturnType<typeof attachLevelInteractions> | null>(null)
+  const [coarsePointer, setCoarsePointer] = useState(false)
   const didInitialZoom = useRef(false)
   // Grafikteki son (olusan) mum, grafik zaman biriminde. Quote'lar bunun uzerine islenir.
   const lastBarRef = useRef<Candle | null>(null)
@@ -385,6 +398,9 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft }: { candle
       timeScale: { borderColor: '#242424', timeVisible: true, secondsVisible: false },
       rightPriceScale: { borderColor: '#242424' },
       crosshair: { mode: 0 },
+      // Dokunmatikte dikey kaydirma sayfayi kaydirsin (grafik fiyat eksenini kaydirip otomatik
+      // olcegi kapatmasin); yatay kaydirma ve iki parmakla yakinlastirma grafikte.
+      handleScroll: { vertTouchDrag: false },
       width: container.clientWidth || 600,
       height: isMobile ? 240 : 420,
     })
@@ -396,6 +412,20 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft }: { candle
     })
     chartRef.current = chart
     seriesRef.current = series
+    setCoarsePointer(typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches)
+
+    // Emir paneli acikken: secili SL/TP'ye grafikten fiyat yazma ve cizgileri surukleme
+    levelsRef.current = attachLevelInteractions({
+      container,
+      getChart: () => chartRef.current,
+      getSeries: () => seriesRef.current,
+      getState: () => {
+        const d = draftRef.current
+        return d ? { sl: d.sl, tp: d.tp, pickTarget: d.pickTarget, interactive: d.interactive && !!onPickRef.current } : null
+      },
+      getLine: (target) => draftLinesRef.current[target],
+      onPick: (target, price, kind, final) => onPickRef.current?.(target, price, kind, final),
+    })
 
     // Emir paneli acilip kapaninca pencere degil kutu daralir -- ResizeObserver ikisini de yakalar.
     const handleResize = () => {
@@ -410,14 +440,21 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft }: { candle
     requestAnimationFrame(handleResize)
 
     return () => {
+      levelsRef.current?.detach()
+      levelsRef.current = null
       resizeObserver?.disconnect()
       window.removeEventListener('resize', handleResize)
       chart.remove()
       chartRef.current = null
       seriesRef.current = null
-      draftLinesRef.current = []
+      draftLinesRef.current = { sl: null, tp: null }
     }
   }, [])
+
+  // Telefonda emir paneli acikken grafik uzar (fiyata dokunmak icin daha fazla alan)
+  useEffect(() => {
+    if (height && chartRef.current) chartRef.current.applyOptions({ height })
+  }, [height])
 
   // Zaman dilimi degisince eski dilimin son mumu unutulur; yeni dilimin mumlari gelene kadar
   // quote'lar grafige islenmez (yanlis adimla mum acilmasin). Yeni dilimin verisi gelince
@@ -471,27 +508,38 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft }: { candle
     lastBarRef.current = bar
   }, [quote, interval])
 
-  // Emir panelindeki SL/TP taslak cizgileri (kesikli). Fiyat ekseni cizgileri de kapsayacak
-  // sekilde genisler ki uzak bir SL/TP ekranin disinda kalmasin. Surukleme sonraki fazda.
+  // Emir panelindeki SL/TP cizgileri. Secili alanin cizgisi duz, digeri kesikli; basliklarda
+  // $ risk / odul. Fiyat ekseni cizgileri kapsayacak sekilde genisler ki uzak bir SL/TP ekranin
+  // disinda kalmasin. Suruklenen cizginin fiyatina dokunulmaz (surukleme kendisi gunceller).
   const draftSl = draft?.sl ?? null
   const draftTp = draft?.tp ?? null
+  const draftPick = draft?.interactive ? draft.pickTarget : null
+  const slTitle = draft?.slTitle ?? 'SL'
+  const tpTitle = draft?.tpTitle ?? 'TP'
   useEffect(() => {
     const series = seriesRef.current
     if (!series) return
-    draftLinesRef.current.forEach((pl) => series.removePriceLine(pl))
-    draftLinesRef.current = []
     const levels: number[] = []
-    const lines = [
-      { price: draftSl, color: '#f87171', title: 'SL (yeni emir)' },
-      { price: draftTp, color: '#4ade80', title: 'TP (yeni emir)' },
-    ]
-    lines.forEach((l) => {
-      if (l.price == null || !(l.price > 0)) return
-      levels.push(l.price)
-      draftLinesRef.current.push(
-        series.createPriceLine({ price: l.price, color: l.color, lineWidth: 2, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: l.title }),
-      )
-    })
+    const spec = {
+      sl: { price: draftSl, color: '#f87171', title: slTitle },
+      tp: { price: draftTp, color: '#4ade80', title: tpTitle },
+    }
+    for (const target of ['sl', 'tp'] as const) {
+      const { price, color, title } = spec[target]
+      const line = draftLinesRef.current[target]
+      if (price == null || !(price > 0)) {
+        if (line) {
+          series.removePriceLine(line)
+          draftLinesRef.current[target] = null
+        }
+        continue
+      }
+      levels.push(price)
+      const style = { color, title, lineWidth: 2 as const, lineStyle: draftPick === target ? LineStyle.Solid : LineStyle.Dashed, axisLabelVisible: true }
+      if (!line) draftLinesRef.current[target] = series.createPriceLine({ price, ...style })
+      else if (levelsRef.current?.draggingTarget() === target) line.applyOptions(style)
+      else line.applyOptions({ price, ...style })
+    }
     series.applyOptions({
       autoscaleInfoProvider: (original: () => any) => {
         const res = original()
@@ -505,7 +553,12 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft }: { candle
         }
       },
     })
-  }, [draftSl, draftTp])
+  }, [draftSl, draftTp, draftPick, slTitle, tpTitle])
+
+  // Secim modunda imlec arti isareti (masaustu)
+  useEffect(() => {
+    containerRef.current?.classList.toggle('lc-pick', !!draftPick && !!onPick)
+  }, [draftPick, onPick])
 
   useEffect(() => {
     const series = seriesRef.current
@@ -563,7 +616,26 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft }: { candle
     series.setMarkers(markers)
   }, [selectedOrders, candles, interval])
 
-  return <div ref={containerRef} style={{ width: '100%' }} />
+  const pickHint = draftPick && onPick
+    ? `${draftPick === 'sl' ? 'SL' : 'TP'}: fiyata ${coarsePointer ? 'dokun' : 'tıkla'} · çizgiyi sürükle`
+    : null
+  return (
+    <div style={{ position: 'relative' }}>
+      <div ref={containerRef} style={{ width: '100%', touchAction: 'manipulation' }} />
+      {pickHint && (
+        <div
+          className="mono"
+          style={{
+            position: 'absolute', top: 6, left: 6, zIndex: 3, pointerEvents: 'none', fontSize: 11, padding: '3px 8px', borderRadius: 4,
+            background: 'rgba(10,10,10,0.82)', border: `1px solid ${draftPick === 'sl' ? 'var(--red-border)' : 'var(--green-border)'}`,
+            color: draftPick === 'sl' ? 'var(--red)' : 'var(--green)',
+          }}
+        >
+          {pickHint}
+        </div>
+      )}
+    </div>
+  )
 }
 
 function SelectDot({ selected }: { selected: boolean }) {
@@ -761,6 +833,44 @@ export default function LivePositionsPage() {
   const [orderPanelOpen, setOrderPanelOpen] = useState(false)
   const [orderPanelMounted, setOrderPanelMounted] = useState(false)
   const [orderDraft, setOrderDraft] = useState<OrderDraft | null>(null)
+  // Grafikten gelen SL/TP fiyati (tiklama / surukleme) -> panel; seq her olayda artar
+  const [chartPick, setChartPick] = useState<ChartPick | null>(null)
+  const chartPickSeq = useRef(0)
+  const handleChartPick = useCallback((target: LevelTarget, price: number, kind: PickKind, final: boolean) => {
+    chartPickSeq.current += 1
+    setChartPick({ target, price, kind, final, seq: chartPickSeq.current })
+  }, [])
+  // Telefon: emir paneli ekranin altinda sabit bir alt panel. Panel acikken grafik uzar ve ekranin
+  // ustune gelir; SL/TP secerken alt panel kuculur, grafik tamamen gorunur.
+  const [isMobile, setIsMobile] = useState(false)
+  const [orderChartHeight, setOrderChartHeight] = useState(340)
+  const chartCardRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)')
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener?.('change', update)
+    return () => mq.removeEventListener?.('change', update)
+  }, [])
+  const scrollChartToTop = () => {
+    const el = chartCardRef.current
+    if (el && Math.abs(el.getBoundingClientRect().top) > 4) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+  const toggleOrderPanel = () => {
+    setOrderPanelMounted(true)
+    // Telefonda grafik, ekranin ustunden SL/TP secerken kuculen alt panelin (~316px) ustune sigacak boyda
+    const card = chartCardRef.current
+    const chartEl = card?.querySelector('.tv-lightweight-charts')?.parentElement
+    const headerOffset = card && chartEl ? chartEl.getBoundingClientRect().top - card.getBoundingClientRect().top : 90
+    setOrderChartHeight(Math.max(150, Math.min(520, Math.round(window.innerHeight - 316 - headerOffset - 6))))
+    const opening = !orderPanelOpen
+    setOrderPanelOpen(opening)
+    if (opening && isMobile) requestAnimationFrame(scrollChartToTop)
+  }
+  const orderPickTarget = orderPanelOpen ? orderDraft?.pickTarget ?? null : null
+  useEffect(() => {
+    if (isMobile && orderPickTarget) scrollChartToTop()
+  }, [isMobile, orderPickTarget])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
@@ -1108,7 +1218,7 @@ export default function LivePositionsPage() {
   const equity = accountInfo != null ? accountInfo.balance + (totalUnrealized ?? 0) : null
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: 64 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingBottom: isMobile && orderPanelOpen ? '64vh' : 64 }}>
       <style dangerouslySetInnerHTML={{ __html: `
         .live-scorecards { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
         .live-section-title { font-size: 11px; color: var(--text-3); letter-spacing: 0.08em; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-family: 'DM Mono', monospace; }
@@ -1117,6 +1227,8 @@ export default function LivePositionsPage() {
         .live-mobile-cards { display: none; }
         .live-date-input { background: var(--bg-3); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 10px; padding: 3px 8px; font-family: 'DM Mono', monospace; }
         .live-chart-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; margin-bottom: 16px; }
+        .lc-pick * { cursor: crosshair !important; }
+        .lc-line-hover *, .lc-dragging * { cursor: ns-resize !important; }
         .live-chart-row.with-panel { grid-template-columns: minmax(0, 1fr) 340px; }
         @media (max-width: 1200px) {
           .live-scorecards { grid-template-columns: repeat(5, minmax(0, 1fr)); }
@@ -1126,6 +1238,10 @@ export default function LivePositionsPage() {
         }
         @media (max-width: 768px) {
           .live-scorecards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+          /* Telefon: parmakla rahat basilan butonlar; iOS 16px altindaki girislerde sayfayi yakinlastirir */
+          .filter-btn { min-height: 34px; }
+          .live-chart-card .filter-btn { min-height: 36px; }
+          .live-date-input { font-size: 16px; min-height: 36px; }
           .live-table-wrap { display: none; }
           .live-mobile-cards { display: flex; flex-direction: column; gap: 6px; }
           .live-mcard { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; cursor: pointer; }
@@ -1299,7 +1415,7 @@ export default function LivePositionsPage() {
 
         {/* Chart + emir paneli */}
         <div className={`live-chart-row${orderPanelOpen ? ' with-panel' : ''}`}>
-        <div className="card" style={{ padding: 16 }}>
+        <div className="card live-chart-card" style={{ padding: 16 }} ref={chartCardRef}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
             <div className="col-label">
               BTCUSD · Axi — {chartInterval}
@@ -1315,7 +1431,7 @@ export default function LivePositionsPage() {
               <button
                 className={`filter-btn${orderPanelOpen ? ' active' : ''}`}
                 style={{ fontSize: 10, padding: '2px 10px' }}
-                onClick={() => { setOrderPanelMounted(true); setOrderPanelOpen((open) => !open) }}
+                onClick={toggleOrderPanel}
               >
                 + Create order
               </button>
@@ -1334,13 +1450,28 @@ export default function LivePositionsPage() {
               {price && <span className="mono" style={{ fontSize: 11, color: 'var(--text-2)' }}>{Math.round((price.bid + price.ask) / 2)}</span>}
             </div>
           </div>
-          <LiveChart candles={candles} selectedOrders={selectedOrders} interval={chartInterval} quote={price} draft={orderPanelOpen ? orderDraft : null} />
+          <LiveChart
+            candles={candles}
+            selectedOrders={selectedOrders}
+            interval={chartInterval}
+            quote={price}
+            draft={orderPanelOpen ? orderDraft : null}
+            onPick={orderPanelOpen ? handleChartPick : undefined}
+            height={isMobile ? (orderPanelOpen ? orderChartHeight : 240) : undefined}
+          />
           <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8 }}>
             Select a position from the table below to view its zones and entry/exit markers
           </div>
         </div>
         {orderPanelMounted && (
-          <OrderPanel quote={price} labels={allLabels} hidden={!orderPanelOpen} onClose={() => setOrderPanelOpen(false)} onDraftChange={setOrderDraft} />
+          <OrderPanel
+            quote={price}
+            labels={allLabels}
+            hidden={!orderPanelOpen}
+            chartPick={chartPick}
+            onClose={() => setOrderPanelOpen(false)}
+            onDraftChange={setOrderDraft}
+          />
         )}
         </div>
 

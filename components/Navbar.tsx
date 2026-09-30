@@ -16,7 +16,7 @@ export default function Navbar() {
   }
   return (
     <div style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-2)', position: 'sticky', top: 0, zIndex: 20 }}>
-      <div className="container" style={{ height: 48, display: 'flex', alignItems: 'center' }}>
+      <div className="container" style={{ height: 48, display: 'flex', alignItems: 'center', overflowX: 'auto', scrollbarWidth: 'none' }}>
         <Link href="/analysis" style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--text)', marginRight: 14, textDecoration: 'none' }}>
           HAKARI
         </Link>
@@ -24,10 +24,11 @@ export default function Navbar() {
           <Link
             key={item.href}
             href={item.href}
-            className="mono"
+            className="mono nav-link"
             style={{
               fontSize: 11,
               padding: '4px 12px',
+              whiteSpace: 'nowrap',
               borderLeft: '1px solid var(--border)',
               textDecoration: 'none',
               letterSpacing: '0.06em',
