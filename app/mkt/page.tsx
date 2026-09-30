@@ -134,7 +134,7 @@ export default function MktPage() {
         })}
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes pulse-dot {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.3; }
@@ -156,7 +156,7 @@ export default function MktPage() {
             min-height: 280px;
           }
         }
-      `}</style>
+      `}} />
     </div>
   )
 }
