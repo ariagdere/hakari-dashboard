@@ -17,7 +17,7 @@ export async function GET() {
       `SELECT id, run_date::text AS run_date, generated_at, net_direction, net_direction_level,
               sentiment_score, change_24h, drivers, developments, key_development,
               divergence, divergence_note, liquidity_regime, risk_regime, conclusion,
-              bias, confidence, raw_text, model, prompt_version, source_file
+              bias, confidence, raw_text, asset_strength, model, prompt_version, source_file
        FROM btc_daily_bias
        ORDER BY generated_at DESC
        LIMIT 14`

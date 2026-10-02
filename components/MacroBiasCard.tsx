@@ -8,6 +8,17 @@ import { useEffect, useState } from 'react'
 
 type Impact = 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE'
 
+// Varlik guc siralamasi (prompt v4+). Ingest puana gore siralar ve rank'i kendisi verir.
+type AssetCode = 'BTC' | 'DXY' | 'XAUUSD' | 'VIX' | 'NASDAQ' | 'SPX' | 'BRENT'
+type Strength = {
+  rank: number
+  asset: AssetCode
+  score: number // 0..10, 5 = yatay
+  reason: string
+  chg_24h_pct: number | null
+  chg_7d_pct: number | null
+}
+
 type BiasRun = {
   id: number
   run_date: string
@@ -27,6 +38,7 @@ type BiasRun = {
   bias: 'LONG' | 'NEUTRAL' | 'SHORT'
   confidence: 'LOW' | 'MEDIUM' | 'HIGH'
   raw_text: string
+  asset_strength: Strength[] | null
   model: string | null
   prompt_version: string | null
   source_file: string
@@ -68,6 +80,22 @@ const IMPACT: Record<Impact, [string, string]> = {
 const scoreColor = (s: number) => (s >= 15 ? GREEN : s <= -15 ? RED : PLAIN)
 const fmtScore = (s: number) => `${s > 0 ? '+' : ''}${s}`
 const pick = <T extends string>(map: Record<T, [string, string]>, k: T): [string, string] => map[k] ?? [String(k), PLAIN]
+
+const ASSET_SHORT: Record<AssetCode, string> = { BTC: 'BTC', DXY: 'DXY', XAUUSD: 'XAU', VIX: 'VIX', NASDAQ: 'NDX', SPX: 'SPX', BRENT: 'BRENT' }
+const ASSET_LONG: Record<AssetCode, string> = {
+  BTC: 'Bitcoin', DXY: 'Dolar endeksi', XAUUSD: 'Altın', VIX: 'VIX', NASDAQ: 'Nasdaq 100', SPX: 'S&P 500', BRENT: 'Brent',
+}
+// Guc puani rengi: >=6.5 guclu (yesil), <=3.5 zayif (kirmizi). VIX'te ters: yuksek puan = korku artiyor.
+function strengthColor(asset: AssetCode, score: number): string {
+  const s = asset === 'VIX' ? 10 - score : score
+  return s >= 6.5 ? GREEN : s <= 3.5 ? RED : PLAIN
+}
+const fmtStrength = (s: number) => s.toFixed(1)
+const fmtPct = (v: number | null) => {
+  if (v == null) return '—'
+  const r = Math.round(v * 10) / 10
+  return r === 0 ? '0.0%' : `${r > 0 ? '+' : ''}${r.toFixed(1)}%` // sifira yuvarlanan degerde +0.0% / -0.0% yazmasin
+}
 
 // Istanbul sabit UTC+3 (sayfanin geri kalaniyla ayni varsayim)
 function fmtIst(iso: string, withDate = true): string {
@@ -220,6 +248,18 @@ export default function MacroBiasCard() {
           </div>
         </div>
 
+        {run.asset_strength && run.asset_strength.length > 0 && (
+          <div className="macro-strength-strip" title="Son 24 saat (ikincil: 7 gün) fiyat gücü, 0–10 · güçlüden zayıfa">
+            <span className="col-label" style={{ fontSize: 10 }}>GÜÇ SIRALAMASI</span>
+            {run.asset_strength.map((s) => (
+              <span key={s.asset} className={`macro-strength-chip mono${s.asset === 'BTC' ? ' is-btc' : ''}`}>
+                <span style={{ color: MUTED }}>{ASSET_SHORT[s.asset] ?? s.asset}</span>
+                <span style={{ color: strengthColor(s.asset, s.score) }}>{fmtStrength(s.score)}</span>
+              </span>
+            ))}
+          </div>
+        )}
+
         {run.drivers?.length > 0 && (
           <ul className="macro-bias-drivers">
             {run.drivers.slice(0, 4).map((d, i) => (
@@ -304,6 +344,35 @@ function MacroBiasModal({ data, now, onClose }: { data: BiasResponse; now: numbe
         {run.conclusion && (
           <Section title="BTC İÇİN SONUÇ (24–72 SA)">
             <p style={prose}>{run.conclusion}</p>
+          </Section>
+        )}
+
+        {run.asset_strength && run.asset_strength.length > 0 && (
+          <Section title="VARLIK GÜÇ SIRALAMASI (24S · 7G İKİNCİL)">
+            <div>
+              {run.asset_strength.map((s) => {
+                const color = strengthColor(s.asset, s.score)
+                return (
+                  <div key={s.asset} className={`macro-strength-row${s.asset === 'BTC' ? ' is-btc' : ''}`}>
+                    <span className="mono" style={{ gridArea: 'rank', fontSize: 11, color: MUTED }}>{s.rank}</span>
+                    <span className="mono" style={{ gridArea: 'asset', fontSize: 13, color: PLAIN, whiteSpace: 'nowrap' }}>
+                      {ASSET_LONG[s.asset] ?? s.asset}
+                    </span>
+                    <span className="macro-strength-bar" style={{ gridArea: 'bar' }}>
+                      <span style={{ width: `${Math.max(0, Math.min(10, s.score)) * 10}%`, background: color === PLAIN ? 'var(--text-3)' : color }} />
+                    </span>
+                    <span className="mono" style={{ gridArea: 'score', fontSize: 13, color, textAlign: 'right' }}>{fmtStrength(s.score)}</span>
+                    <span className="mono" style={{ gridArea: 'chg', fontSize: 11, color: MUTED, whiteSpace: 'nowrap' }} title="24 saat · 7 gün değişim">
+                      {fmtPct(s.chg_24h_pct)} · {fmtPct(s.chg_7d_pct)}
+                    </span>
+                    <span style={{ gridArea: 'reason', fontSize: 13, lineHeight: 1.5, color: PLAIN }}>{s.reason}</span>
+                  </div>
+                )
+              })}
+            </div>
+            <div className="mono" style={{ fontSize: 10, color: MUTED, marginTop: 8, lineHeight: 1.5 }}>
+              Puan 0–10 (5 = yatay), güçlüden zayıfa. Değişim: 24s · 7g. VIX'te yüksek puan korkunun arttığını gösterir; rengi bu yüzden ters.
+            </div>
           </Section>
         )}
 

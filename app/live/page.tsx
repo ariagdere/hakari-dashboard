@@ -1247,6 +1247,14 @@ export default function LivePositionsPage() {
         .macro-news-box.is-today { border-color: var(--red-border); }
         .macro-news-box.is-tomorrow { border-color: #fb923c40; }
         .macro-news-empty { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 56px; font-size: 13px; color: var(--text-3); }
+        .macro-strength-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+        .macro-strength-strip .col-label { margin-right: 4px; }
+        .macro-strength-chip { display: inline-flex; align-items: baseline; gap: 6px; padding: 3px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-3); font-size: 12px; white-space: nowrap; }
+        .macro-strength-chip.is-btc { border-color: var(--border-3); }
+        .macro-strength-row { display: grid; grid-template-columns: 18px 112px 110px 34px 118px minmax(0, 1fr); grid-template-areas: "rank asset bar score chg reason"; gap: 4px 12px; align-items: center; padding: 8px 6px; border-top: 1px solid var(--border); }
+        .macro-strength-row.is-btc { background: var(--bg-3); }
+        .macro-strength-bar { display: block; height: 4px; border-radius: 2px; background: var(--bg-4); overflow: hidden; }
+        .macro-strength-bar > span { display: block; height: 100%; border-radius: 2px; opacity: 0.85; }
         @media (max-width: 1100px) {
           .macro-bias-main { grid-template-columns: auto minmax(0, 1fr); }
           .macro-bias-fields { grid-column: 1 / -1; }
@@ -1264,6 +1272,7 @@ export default function LivePositionsPage() {
           .macro-bias-drivers { grid-template-columns: minmax(0, 1fr); }
           .macro-bias-more { display: none; }
           .macro-modal-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .macro-strength-row { grid-template-columns: 18px minmax(0, 1fr) auto 34px; grid-template-areas: "rank asset chg score" ". bar bar bar" ". reason reason reason"; }
           /* Telefon: parmakla rahat basilan butonlar; iOS 16px altindaki girislerde sayfayi yakinlastirir */
           .filter-btn { min-height: 34px; }
           .live-chart-card .filter-btn { min-height: 36px; }
