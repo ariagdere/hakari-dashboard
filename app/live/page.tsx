@@ -10,7 +10,8 @@ import { Line } from 'react-chartjs-2'
 import EditableSlTp from '@/components/EditableSlTp'
 import EditableStrategyLabel from '@/components/EditableStrategyLabel'
 import LsrAnglePanel from '@/components/LsrAnglePanel'
-import RedFolderBanner from '@/components/RedFolderBanner'
+import MacroBiasCard from '@/components/MacroBiasCard'
+import NewsBox from '@/components/NewsBox'
 import OrderPanel, { ChartPick, OrderDraft } from '@/components/OrderPanel'
 import { attachLevelInteractions, LevelTarget, PickKind } from '@/lib/chartLevelInteractions'
 import { applyQuoteToBar } from '@/lib/formingCandle'
@@ -1230,6 +1231,26 @@ export default function LivePositionsPage() {
         .lc-pick * { cursor: crosshair !important; }
         .lc-line-hover *, .lc-dragging * { cursor: ns-resize !important; }
         .live-chart-row.with-panel { grid-template-columns: minmax(0, 1fr) 340px; }
+        /* Makro bias + haber satiri */
+        .live-macro-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 8px; margin-bottom: 16px; }
+        .macro-bias-card { cursor: pointer; min-width: 0; }
+        .macro-bias-card:hover { border-color: var(--border-3); }
+        .macro-bias-card:focus-visible { outline: 1px solid var(--border-3); outline-offset: 2px; }
+        .macro-bias-main { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.15fr); gap: 14px 28px; align-items: center; }
+        .macro-bias-headline { min-width: 92px; }
+        .macro-bias-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 20px; }
+        .macro-bias-drivers { list-style: none; margin: 14px 0 0; padding: 12px 0 0; border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 24px; }
+        .macro-bias-drivers li { position: relative; padding-left: 12px; font-size: 12px; line-height: 1.45; color: var(--text-3); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .macro-bias-drivers li::before { content: ''; position: absolute; left: 0; top: 7px; width: 4px; height: 4px; border-radius: 50%; background: var(--border-3); }
+        .macro-modal-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px 20px; margin-top: 20px; align-items: end; }
+        .macro-news-box { display: flex; flex-direction: column; min-width: 0; }
+        .macro-news-box.is-today { border-color: var(--red-border); }
+        .macro-news-box.is-tomorrow { border-color: #fb923c40; }
+        .macro-news-empty { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 56px; font-size: 13px; color: var(--text-3); }
+        @media (max-width: 1100px) {
+          .macro-bias-main { grid-template-columns: auto minmax(0, 1fr); }
+          .macro-bias-fields { grid-column: 1 / -1; }
+        }
         @media (max-width: 1200px) {
           .live-scorecards { grid-template-columns: repeat(5, minmax(0, 1fr)); }
         }
@@ -1238,6 +1259,11 @@ export default function LivePositionsPage() {
         }
         @media (max-width: 768px) {
           .live-scorecards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+          .live-macro-row { grid-template-columns: minmax(0, 1fr); }
+          .macro-bias-main { gap: 14px 18px; }
+          .macro-bias-drivers { grid-template-columns: minmax(0, 1fr); }
+          .macro-bias-more { display: none; }
+          .macro-modal-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
           /* Telefon: parmakla rahat basilan butonlar; iOS 16px altindaki girislerde sayfayi yakinlastirir */
           .filter-btn { min-height: 34px; }
           .live-chart-card .filter-btn { min-height: 36px; }
@@ -1411,7 +1437,11 @@ export default function LivePositionsPage() {
 
         {error && <div className="mono" style={{ color: 'var(--red)', fontSize: 11, marginBottom: 12 }}>{error}</div>}
 
-        <RedFolderBanner />
+        {/* Makro bias (2/3) + haberler (1/3) -- eski RedFolderBanner'in yeri */}
+        <div className="live-macro-row">
+          <MacroBiasCard />
+          <NewsBox />
+        </div>
 
         {/* Chart + emir paneli */}
         <div className={`live-chart-row${orderPanelOpen ? ' with-panel' : ''}`}>
