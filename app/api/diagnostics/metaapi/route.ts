@@ -204,15 +204,21 @@ export async function GET(req: NextRequest) {
   }
   summary.push("NOT  clientId deal'lerde görünüyor mu: Faz 2'nin ilk emrinde doğrulanacak")
 
-  // /live grafiginin sunucu tarafi mum deposu (lib/axiCandles.ts)
+  // /live grafiginin sunucu tarafi mum deposu (lib/axiCandles.ts, DB destekli)
   const candleStore = getAxiCandleStoreStatus()
   summary.push(
     'INFO Grafik mum deposu: ' +
       TIMEFRAMES.map((tf) => {
         const c = candleStore[tf] as any
         if (!c?.candles) return `${tf} ${c?.lastError ? 'hata: ' + c.lastError : 'henüz yüklenmedi'}`
-        return `${tf} ${c.candles}${c.complete ? '' : ' (yedek)'}${c.lastFullLoadMs != null ? ` ${c.lastFullLoadMs} ms` : ''}`
+        return `${tf} ${c.candles}${c.complete ? '' : ' (eksik)'}${c.source ? ` [${c.source}]` : ''}${c.behind ? ' geride' : ''}`
       }).join(' · '),
+  )
+  const candleDb = candleStore.db as any
+  summary.push(
+    candleDb?.available && !candleDb?.lastError
+      ? `OK   Axi mum geçmişi DB'de (candles, symbol ${candleDb.symbol}); bu süreçte ${candleDb.writes} yazma`
+      : `FAIL Axi mum geçmişi DB'ye yazılamıyor: ${candleDb?.lastError ?? 'bilinmiyor'} — grafik yine çalışır ama her restart'ta MetaApi'den yüklenir`,
   )
 
   return NextResponse.json(
