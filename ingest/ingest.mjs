@@ -36,6 +36,55 @@ const BIAS = { 'long': 'LONG', 'neutral': 'NEUTRAL', 'notr': 'NEUTRAL', 'short':
 const CONFIDENCE = { 'dusuk': 'LOW', 'low': 'LOW', 'orta': 'MEDIUM', 'medium': 'MEDIUM', 'yuksek': 'HIGH', 'high': 'HIGH' }
 const IMPACT = { 'pozitif': 'POSITIVE', 'positive': 'POSITIVE', 'notr': 'NEUTRAL', 'neutral': 'NEUTRAL', 'negatif': 'NEGATIVE', 'negative': 'NEGATIVE' }
 
+// Varlik guc siralamasi: 7 varligin hepsi, her biri bir kez. Anahtarlar fold() sonrasi yazimlar.
+const ASSET_ORDER = ['BTC', 'DXY', 'XAUUSD', 'VIX', 'NASDAQ', 'SPX', 'BRENT']
+const ASSETS = {
+  'btc': 'BTC', 'bitcoin': 'BTC', 'btcusd': 'BTC', 'btc/usd': 'BTC', 'btcusdt': 'BTC',
+  'dxy': 'DXY', 'dolar endeksi': 'DXY', 'dollar index': 'DXY', 'us dollar index': 'DXY',
+  'xauusd': 'XAUUSD', 'xau/usd': 'XAUUSD', 'xau': 'XAUUSD', 'altin': 'XAUUSD', 'gold': 'XAUUSD',
+  'vix': 'VIX',
+  'nasdaq': 'NASDAQ', 'nasdaq 100': 'NASDAQ', 'nasdaq100': 'NASDAQ', 'ndx': 'NASDAQ', 'nq': 'NASDAQ', 'ixic': 'NASDAQ', 'nasdaq composite': 'NASDAQ',
+  'spx': 'SPX', 's&p 500': 'SPX', 's&p500': 'SPX', 'sp500': 'SPX', 'sp 500': 'SPX', 'es': 'SPX',
+  'brent': 'BRENT', 'brent petrol': 'BRENT', 'brent crude': 'BRENT', 'brent oil': 'BRENT', 'ukoil': 'BRENT',
+}
+
+function validateStrength(list, errors) {
+  if (list == null) return null // eski calismalarda alan yok
+  if (!Array.isArray(list)) { errors.push('asset_strength dizi olmali'); return null }
+  const seen = new Set()
+  const items = []
+  list.forEach((a, i) => {
+    const f = `asset_strength[${i}]`
+    const asset = ASSETS[fold(a?.asset)]
+    if (!asset) { errors.push(`${f}.asset: gecersiz varlik ${JSON.stringify(a?.asset)} (beklenen: ${ASSET_ORDER.join(', ')})`); return }
+    if (seen.has(asset)) errors.push(`${f}.asset: ${asset} birden fazla kez var`)
+    seen.add(asset)
+    const score = Number(a?.score)
+    if (a?.score == null || a?.score === '' || typeof a?.score === 'boolean' || !Number.isFinite(score) || score < 0 || score > 10)
+      errors.push(`${f}.score (${asset}): 0..10 arasi sayi olmali`)
+    const reason = typeof a?.reason === 'string' ? a.reason.trim() : ''
+    if (!reason) errors.push(`${f}.reason (${asset}): tek cumlelik gerekce zorunlu`)
+    const pct = (v, name) => {
+      if (v == null || v === '') return null
+      const n = Number(v)
+      if (typeof v === 'boolean' || !Number.isFinite(n)) { errors.push(`${f}.${name} (${asset}): sayi ya da null olmali`); return null }
+      return Math.round(n * 100) / 100
+    }
+    items.push({
+      asset,
+      score: Math.round(score * 10) / 10,
+      reason,
+      chg_24h_pct: pct(a?.chg_24h_pct, 'chg_24h_pct'),
+      chg_7d_pct: pct(a?.chg_7d_pct, 'chg_7d_pct'),
+    })
+  })
+  const missing = ASSET_ORDER.filter((a) => !seen.has(a))
+  if (missing.length) errors.push(`asset_strength: eksik varlik(lar): ${missing.join(', ')}`)
+  // Sirayi model degil puan belirler (gucluden zayifa); esit puanda modelin sirasi korunur (stable sort).
+  items.sort((x, y) => y.score - x.score)
+  return items.map((it, i) => ({ rank: i + 1, ...it }))
+}
+
 function pick(map, value, field, errors) {
   const v = map[fold(value)]
   if (v === undefined) errors.push(`${field}: gecersiz deger ${JSON.stringify(value)} (beklenen: ${Object.keys(map).join(' | ')})`)
@@ -65,6 +114,7 @@ function validate(file, j) {
     else developments = j.developments.map((d, i) => ({ item: String(d?.item ?? '').trim(), impact: pick(IMPACT, d?.impact, `developments[${i}].impact`, errors) }))
   }
   if (typeof j.raw_text !== 'string' || j.raw_text.trim().length < 50) errors.push(`raw_text task'in tam metin ciktisi olmali`)
+  const strength = validateStrength(j.asset_strength, errors)
 
   const row = {
     run_date: j.run_date,
@@ -84,6 +134,7 @@ function validate(file, j) {
     bias: pick(BIAS, j.bias, 'bias', errors),
     confidence: pick(CONFIDENCE, j.confidence, 'confidence', errors),
     raw_text: j.raw_text,
+    asset_strength: strength ? JSON.stringify(strength) : null,
     model: j.model ?? null,
     prompt_version: j.prompt_version ?? null,
     source_file: path.relative(ROOT, file),
@@ -104,7 +155,8 @@ for (const file of files) {
   const { row, errors } = validate(file, j)
   if (errors.length) { console.error(`✗ ${path.relative(ROOT, file)}\n  - ${errors.join('\n  - ')}`); bad++; continue }
   rows.push(row)
-  console.log(`✓ ${path.basename(file)}  ${row.bias.padEnd(7)} ${row.confidence.padEnd(6)} skor=${row.sentiment_score}  (${row.net_direction})`)
+  const top = row.asset_strength ? JSON.parse(row.asset_strength).map((a) => `${a.asset} ${a.score}`).join(' > ') : '-'
+  console.log(`✓ ${path.basename(file)}  ${row.bias.padEnd(7)} ${row.confidence.padEnd(6)} skor=${row.sentiment_score}  (${row.net_direction})  guc: ${top}`)
 }
 console.log(`${rows.length} gecerli, ${bad} hatali dosya.`)
 

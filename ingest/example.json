@@ -21,6 +21,15 @@
   "bias": "LONG",
   "confidence": "Orta",
   "raw_text": "BTC Makro Sentiment\n\nNet yön: Hafif Pozitif\n\nSentiment skoru: +22\n\n(ÖRNEK — task'in tam metin çıktısı buraya birebir gelir.)",
+  "asset_strength": [
+    { "asset": "NASDAQ", "score": 7.5, "reason": "ÖRNEK: Teknoloji alımlarıyla 24 saatte güçlü, haftalık eğilim de yukarı.", "chg_24h_pct": 1.1, "chg_7d_pct": 2.9 },
+    { "asset": "BTC", "score": 6.5, "reason": "ÖRNEK: ETF girişleriyle yükseldi ama haftalık kazanç sınırlı.", "chg_24h_pct": 1.4, "chg_7d_pct": 0.8 },
+    { "asset": "SPX", "score": 6.5, "reason": "ÖRNEK: Geniş tabanlı ılımlı yükseliş.", "chg_24h_pct": 0.6, "chg_7d_pct": 1.5 },
+    { "asset": "XAUUSD", "score": 5, "reason": "ÖRNEK: Güvenli liman talebi dengede, fiyat yatay.", "chg_24h_pct": 0.1, "chg_7d_pct": -0.3 },
+    { "asset": "BRENT", "score": 4, "reason": "ÖRNEK: Arz endişeleri azaldı, iki günlük geri çekilme.", "chg_24h_pct": -0.9, "chg_7d_pct": -1.8 },
+    { "asset": "DXY", "score": 3, "reason": "ÖRNEK: Faiz beklentileri gevşedi, dolar haftalık bazda zayıf.", "chg_24h_pct": -0.4, "chg_7d_pct": -1.1 },
+    { "asset": "VIX", "score": 2.5, "reason": "ÖRNEK: Korku endeksi düşüyor; yüksek puan korkunun arttığını gösterirdi.", "chg_24h_pct": -6.2, "chg_7d_pct": -9.5 }
+  ],
   "model": "claude-opus-5-5",
-  "prompt_version": "v1"
+  "prompt_version": "v4"
 }

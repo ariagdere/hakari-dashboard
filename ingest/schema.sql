@@ -43,6 +43,11 @@ ALTER TABLE btc_daily_bias DROP CONSTRAINT IF EXISTS btc_daily_bias_run_date_key
 CREATE UNIQUE INDEX IF NOT EXISTS btc_daily_bias_source_file_key ON btc_daily_bias (source_file);
 CREATE INDEX IF NOT EXISTS idx_btc_daily_bias_run_date ON btc_daily_bias (run_date);
 
+-- v4: varlik guc siralamasi (BTC, DXY, XAUUSD, VIX, NASDAQ, SPX, BRENT), puana gore sirali:
+-- [{"rank":1,"asset":"BTC","score":7.5,"reason":"...","chg_24h_pct":1.2,"chg_7d_pct":4.8}, ...]
+-- Eski calismalarda NULL. View'dan once eklenmeli ki SELECT * yeni kolonu da alsin.
+ALTER TABLE btc_daily_bias ADD COLUMN IF NOT EXISTS asset_strength jsonb;
+
 -- Her gunun en son calismasi (gunluk tek deger isteyen sorgular icin).
 CREATE OR REPLACE VIEW btc_daily_bias_latest_per_day AS
 SELECT DISTINCT ON (run_date) *
