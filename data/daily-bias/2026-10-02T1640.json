@@ -1,0 +1,105 @@
+{
+  "run_date": "2026-10-02",
+  "generated_at": "2026-10-02T13:40:00Z",
+  "net_direction": "Hafif Negatif",
+  "sentiment_score": -15,
+  "change_24h": "iyileşti",
+  "drivers": [
+    "ABD 10Y ~%5.2-5.3 ile 20+ yılın zirvesinde, reel faizler yüksek; gün içinde geri çekilme",
+    "Fed Eylül'de artırdı; Ekim artırım ihtimali sert düştü ama sıkılaşma riski sürüyor",
+    "DXY ~101.8-102, dolar 4 gündür yükseliyor",
+    "Brent ~$102-106 Hürmüz/İran riski; Nasdaq/AI güçlü, VIX 16.4"
+  ],
+  "developments": [
+    {
+      "item": "ABD 10Y çok yıllık zirveden geri çekildi",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Ekim Fed artırım ihtimali sert düştü",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Spot BTC ETF 9 günlük giriş serisi bitti (IBIT/FBTC çıkışları)",
+      "impact": "Negatif"
+    },
+    {
+      "item": "DXY 4 gündür yükseliyor (~101.8)",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Brent +4.6%, Hürmüz gerilimi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "S&P 500 +0.19%, Nasdaq +0.04%, VIX 16.4",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Altın $4,208 (+0.5%)",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "Tahvil faizlerinin çok yıllık zirvelerden geri çekilmesi ve Ekim Fed artırım ihtimalinin belirgin düşmesi BTC için nefes alanı yarattı; spot BTC ETF'lerinde ise 9 günlük giriş serisi bitti (IBIT/FBTC çıkışları), bu da talebin teyit etmediğini gösteriyor.",
+  "divergence": "aligned",
+  "divergence_note": "BTC (~$85-86K, +2-3%) faiz geri çekilmesine tepki verdi ancak dolar güçlüyken ETF çıkışlarıyla sınırlı kaldı.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Nötr",
+  "conclusion": "Yüksek faiz, güçlü dolar ve petrol riski BTC alım talebini baskılıyor; faizlerdeki geri çekilme kısa vadeli toparlanmaya izin verebilir. Önümüzdeki 24-72 saatte NFP ve tahvil yönü belirleyici, makro zemin hafif negatif-nötr.",
+  "bias": "NEUTRAL",
+  "confidence": "Orta",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Hafif Negatif\n\nSentiment skoru: -15\n\nSon 24 saatte değişim: Önceki gün dosyası yok; bugünkü önceki çalışmaya (-25) göre hafif iyileşti\n\nAna sürücüler:\n- ABD 10Y ~%5.2-5.3 ile 20+ yılın zirvesinde (gün içinde geri çekilme var), reel faizler yüksek\n- Fed Eylül'de artırdı; Ekim artırım ihtimali sert düştü ama sıkılaşma riski sürüyor\n- DXY ~101.8-102, dolar 4 gündür yükseliyor\n- Brent ~$102-106, Hürmüz/İran gerilimi ve enerji enflasyonu riski; buna karşın Nasdaq/AI güçlü, VIX 16.4\n\nEn önemli yeni gelişme:\nTahvil faizlerinin çok yıllık zirvelerden geri çekilmesi ve Ekim Fed artırım ihtimalinin belirgin düşmesi BTC için nefes alanı yarattı; spot BTC ETF'lerinde ise 9 günlük giriş serisi bitti (IBIT/FBTC çıkışları), bu da talebin teyit etmediğini gösteriyor.\n\nMakro uyumsuzluk kontrolü: Aligned. BTC (~$85-86K, +2-3%) faiz geri çekilmesine tepki verdi ancak dolar güçlüyken ETF çıkışlarıyla sınırlı kaldı.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Nötr\n\nBTC için sonuç:\nYüksek faiz, güçlü dolar ve petrol riski BTC alım talebini baskılıyor; faizlerdeki geri çekilme kısa vadeli toparlanmaya izin verebilir. Önümüzdeki 24-72 saatte NFP ve tahvil yönü belirleyici, makro zemin hafif negatif-nötr.\n\nVarlık güç sıralaması:\n1. Brent — 7.5/10 — Hürmüz/İran gerilimiyle sert yükseldi. (24s: +4.6%, 7g: +5.0%)\n2. BTC — 6.5/10 — Faiz geri çekilmesiyle toparlandı, ETF akımları karışık. (24s: +2.5%, 7g: +1.0%)\n3. XAUUSD — 6/10 — Güvenli liman talebiyle istikrarlı yükseliş. (24s: +0.5%, 7g: +1.0%)\n4. SPX — 5.5/10 — AI gücü yüksek faizi dengeledi. (24s: +0.19%, 7g: +0.5%)\n5. NASDAQ — 5.5/10 — Teknoloji yatay-hafif pozitif. (24s: +0.04%, 7g: +0.5%)\n6. DXY — 5.5/10 — Dolar dört gündür yükseliyor. (24s: +0.3%, 7g: +0.8%)\n7. VIX — 4/10 — Korku düşük ve sakin. (24s: +0.3%, 7g: -3.0%)\n\nBTC Makro Bias: NEUTRAL — Orta",
+  "asset_strength": [
+    {
+      "asset": "BRENT",
+      "score": 7.5,
+      "reason": "Hürmüz/İran gerilimiyle sert yükseldi.",
+      "chg_24h_pct": 4.6,
+      "chg_7d_pct": 5.0
+    },
+    {
+      "asset": "BTC",
+      "score": 6.5,
+      "reason": "Faiz geri çekilmesiyle toparlandı, ETF akımları karışık.",
+      "chg_24h_pct": 2.5,
+      "chg_7d_pct": 1.0
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 6,
+      "reason": "Güvenli liman talebiyle istikrarlı yükseliş.",
+      "chg_24h_pct": 0.5,
+      "chg_7d_pct": 1.0
+    },
+    {
+      "asset": "SPX",
+      "score": 5.5,
+      "reason": "AI gücü yüksek faizi dengeledi.",
+      "chg_24h_pct": 0.19,
+      "chg_7d_pct": 0.5
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 5.5,
+      "reason": "Teknoloji yatay-hafif pozitif.",
+      "chg_24h_pct": 0.04,
+      "chg_7d_pct": 0.5
+    },
+    {
+      "asset": "DXY",
+      "score": 5.5,
+      "reason": "Dolar dört gündür yükseliyor.",
+      "chg_24h_pct": 0.3,
+      "chg_7d_pct": 0.8
+    },
+    {
+      "asset": "VIX",
+      "score": 4,
+      "reason": "Korku düşük ve sakin.",
+      "chg_24h_pct": 0.3,
+      "chg_7d_pct": -3.0
+    }
+  ],
+  "model": "claude-sonnet-5-5",
+  "prompt_version": "v4"
+}
