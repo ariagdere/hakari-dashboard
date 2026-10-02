@@ -1,0 +1,66 @@
+{
+  "run_date": "2026-10-02",
+  "generated_at": "2026-10-02T11:40:00Z",
+  "net_direction": "Hafif Negatif",
+  "sentiment_score": -25,
+  "change_24h": "değişmedi",
+  "drivers": [
+    "ABD 10Y faizi 5.34% ile 2002'den beri zirve, 30Y 5.63%; küresel tahvil satışı ve yüksek reel faizler",
+    "Fed Eylül'de artırdı; 28 Ekim için ~%35-47 ek artırım ihtimali, NFP kritik",
+    "WTI $92.87, Brent ~$106: Hürmüz/İran gerilimi ve enerji enflasyonu riski",
+    "Spot BTC ETF 9 günlük ~$3.1B giriş serisi -$149M ile bitti; Nasdaq/AI güçlü, VIX 16.4"
+  ],
+  "developments": [
+    {
+      "item": "ABD 10Y 5.34% (2002'den beri zirve), kapanış 5.24%",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Küresel tahvil satışı derinleşiyor, 30Y 5.63%",
+      "impact": "Negatif"
+    },
+    {
+      "item": "DXY ~101.8 (+0.3%)",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Fed Ekim artırım ihtimali ~%35-47",
+      "impact": "Negatif"
+    },
+    {
+      "item": "WTI $92.87 (+2.7%), Brent ~$106, Hürmüz gerilimi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Hang Seng -2.6%, Nikkei -0.9%; BOJ'dan 2026'da 2 artırım fiyatlanıyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "S&P 500 +0.19%, Nasdaq +0.04%, AI gücü; VIX 16.4",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Altın $4,208 (+0.5%)",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Spot BTC ETF 1 Ekim -$149M (9 günlük giriş serisi sona erdi), YTD pozitif",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Stablecoin arzı ~$300B+, zirvenin (322B) altında",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "Küresel tahvil satışı Asya/Avrupa seansına yayıldı: ABD 10Y gün içinde 5.34% ile 2002'den beri en yüksek seviyeyi gördü, kapanışta 5.24%'e döndü; DXY ~101.8 (+0.3%), Hang Seng -2.6% ve Nikkei -0.9% düştü. Piyasa bugünkü NFP'ye kilitli: zayıf veri Ekim artırım ihtimalini azaltıp faizleri rahatlatabilir (BTC için pozitif), güçlü veri artırım ve faiz şokunu büyütür. ETF giriş serisinin kırılması kısa vadeli talep ivmesinde yavaşlama işareti.",
+  "divergence": "relative strength",
+  "divergence_note": "Faizler çok yüksek, dolar güçlü ve petrol yüksekken BTC ~$85-86K'da ve 24 saatte ~%1.5-2 artıda; makro kötü olmasına rağmen dayanıklı.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Temkinli risk-off",
+  "conclusion": "Rekor yakın tahvil faizleri, güçlü dolar ve yüksek petrol makro zemini baskılıyor; BTC'nin dirençli kalması ve ETF akımlarının YTD pozitif olması dengeleyici. NFP sonrası yön belirsiz olduğundan 24-72 saat için makro bazlı net yön yok, aşağı yönlü risk hafif ağır basıyor.",
+  "bias": "NEUTRAL",
+  "confidence": "Düşük",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Hafif Negatif\n\nSentiment skoru: -25\n\nSon 24 saatte değişim: değişmedi (önceki gün kaydı yok; 10Y rekor-zirveden 5.24%'e hafif geri çekilse de küresel tahvil satışı derinleşti)\n\nAna sürücüler:\n- ABD 10Y faizi 5.34% ile 2002'den beri zirve, 30Y 5.63%; reel faizler yüksek, küresel tahvil satışı derinleşiyor (Negatif).\n- Fed'in Eylül'de faiz artırdığı, 28 Ekim için ~%35-47 ek artırım ihtimali fiyatlanıyor; bugünkü NFP (~100K, işsizlik 4.2%) kritik (Negatif/belirsiz).\n- Petrol: WTI $92.87 (+2.7%), Brent ~$106 (Hürmüz/İran gerilimi, Husi saldırıları) - enerji enflasyonu riski (Negatif).\n- Spot BTC ETF'lerinde 9 günlük ~$3.1B giriş serisi 1 Ekim'de -$149M çıkışla bitti; yine de YTD pozitif (Nötr/Pozitif). Nasdaq/AI güçlü, VIX 16.4 (Pozitif).\n\nEn önemli yeni gelişme:\nKüresel tahvil satışı Asya/Avrupa seansına yayıldı: ABD 10Y gün içinde 5.34% ile 2002'den beri en yüksek seviyeyi gördü, kapanışta 5.24%'e döndü; DXY ~101.8 (+0.3%), Hang Seng -2.6% ve Nikkei -0.9% düştü. Piyasa bugünkü NFP'ye kilitli: zayıf veri Ekim artırım ihtimalini azaltıp faizleri rahatlatabilir (BTC için pozitif), güçlü veri artırım ve faiz şokunu büyütür. ETF giriş serisinin kırılması kısa vadeli talep ivmesinde yavaşlama işareti.\n\nMakro uyumsuzluk kontrolü: relative strength - faizler çok yüksek, dolar güçlü ve petrol yüksekken BTC ~$85-86K'da ve 24 saatte ~%1.5-2 artıda; makro kötü olmasına rağmen dayanıklı.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Temkinli risk-off\n\nBTC için sonuç:\nRekor yakın tahvil faizleri, güçlü dolar ve yüksek petrol makro zemini baskılıyor; BTC'nin dirençli kalması ve ETF akımlarının YTD pozitif olması dengeleyici. NFP sonrası yön belirsiz olduğundan 24-72 saat için makro bazlı net yön yok, aşağı yönlü risk hafif ağır basıyor.\n\nBTC Makro Bias: NEUTRAL (Güven: Düşük)",
+  "model": "claude-sonnet-5-5",
+  "prompt_version": "v2"
+}
