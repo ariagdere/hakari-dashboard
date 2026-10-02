@@ -45,8 +45,10 @@ function pick(map, value, field, errors) {
 function validate(file, j) {
   const errors = []
   const base = path.basename(file, '.json')
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(base)) errors.push(`dosya adi YYYY-MM-DD.json olmali`)
-  if (j.run_date !== base) errors.push(`run_date (${j.run_date}) dosya adiyla (${base}) ayni olmali`)
+  // YYYY-MM-DD (eski, gunde tek) ya da YYYY-MM-DDTHHMM (Istanbul saati, gunde birden fazla)
+  const m = base.match(/^(\d{4}-\d{2}-\d{2})(T\d{4})?$/)
+  if (!m) errors.push(`dosya adi YYYY-MM-DDTHHMM.json (ya da eski YYYY-MM-DD.json) olmali`)
+  else if (j.run_date !== m[1]) errors.push(`run_date (${j.run_date}) dosya adindaki tarihle (${m[1]}) ayni olmali`)
   if (!j.generated_at || isNaN(Date.parse(j.generated_at))) errors.push(`generated_at gecerli bir ISO zaman olmali`)
 
   const nd = pick(NET_DIRECTION, j.net_direction, 'net_direction', errors)
@@ -102,7 +104,7 @@ for (const file of files) {
   const { row, errors } = validate(file, j)
   if (errors.length) { console.error(`✗ ${path.relative(ROOT, file)}\n  - ${errors.join('\n  - ')}`); bad++; continue }
   rows.push(row)
-  console.log(`✓ ${row.run_date}  ${row.bias.padEnd(7)} ${row.confidence.padEnd(6)} skor=${row.sentiment_score}  (${row.net_direction})`)
+  console.log(`✓ ${path.basename(file)}  ${row.bias.padEnd(7)} ${row.confidence.padEnd(6)} skor=${row.sentiment_score}  (${row.net_direction})`)
 }
 console.log(`${rows.length} gecerli, ${bad} hatali dosya.`)
 
@@ -119,10 +121,10 @@ try {
   for (const r of rows) {
     const vals = cols.map(c => r[c])
     const ph = cols.map((_, i) => `$${i + 1}`).join(', ')
-    const upd = cols.filter(c => c !== 'run_date').map(c => `${c} = EXCLUDED.${c}`).join(', ')
+    const upd = cols.filter(c => c !== 'source_file').map(c => `${c} = EXCLUDED.${c}`).join(', ')
     await client.query(
       `INSERT INTO btc_daily_bias (${cols.join(', ')}) VALUES (${ph})
-       ON CONFLICT (run_date) DO UPDATE SET ${upd}, updated_at = now()
+       ON CONFLICT (source_file) DO UPDATE SET ${upd}, updated_at = now()
        WHERE btc_daily_bias.raw_text IS DISTINCT FROM EXCLUDED.raw_text
           OR btc_daily_bias.generated_at IS DISTINCT FROM EXCLUDED.generated_at`,
       vals,

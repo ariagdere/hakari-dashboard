@@ -1,6 +1,9 @@
--- BTC Daily Bias: her sabah 09:00 (Istanbul) calisan Claude scheduled task'inin makro bias ciktisi.
+-- BTC Daily Bias: Claude routine'inin makro bias ciktisi. Gunde birden fazla calisabilir;
+-- HER CALISMA AYRI SATIR. Benzersiz anahtar source_file (dosya yolu); ayni dosya tekrar
+-- push edilirse satir guncellenir, yeni dosya yeni satir olur.
 --
--- Akis: Claude task -> bias-data branch'ine data/daily-bias/YYYY-MM-DD.json commit'ler
+-- Akis: Claude routine -> bias-data branch'ine data/daily-bias/YYYY-MM-DDTHHMM.json commit'ler
+--       (eski tek-gunluk format YYYY-MM-DD.json da gecerli)
 --       -> GitHub Action (.github/workflows/daily-bias-ingest.yml, bias-data branch'inde)
 --       -> bu tabloya UPSERT. Tabloya SADECE o Action yazar (tek yazma noktasi).
 --
@@ -9,7 +12,7 @@
 
 CREATE TABLE IF NOT EXISTS btc_daily_bias (
   id                  serial        PRIMARY KEY,
-  run_date            date          NOT NULL UNIQUE,      -- Istanbul tarihi; ayni gun tekrar calisirsa uzerine yazar
+  run_date            date          NOT NULL,             -- Istanbul tarihi (gun bazli gruplama icin; unique degil)
   generated_at        timestamptz   NOT NULL,             -- task'in analizi urettigi an
   net_direction       varchar(20)   NOT NULL,             -- 'Guclu Pozitif' ... 'Guclu Negatif' (task'in Turkce etiketi)
   net_direction_level smallint      NOT NULL CHECK (net_direction_level BETWEEN -3 AND 3),
@@ -34,3 +37,14 @@ CREATE TABLE IF NOT EXISTS btc_daily_bias (
 );
 
 CREATE INDEX IF NOT EXISTS idx_btc_daily_bias_generated_at ON btc_daily_bias (generated_at DESC);
+
+-- v1 -> v2 gecisi (idempotent): gunde tek satir kisitini kaldir, dosya basina tek satir yap.
+ALTER TABLE btc_daily_bias DROP CONSTRAINT IF EXISTS btc_daily_bias_run_date_key;
+CREATE UNIQUE INDEX IF NOT EXISTS btc_daily_bias_source_file_key ON btc_daily_bias (source_file);
+CREATE INDEX IF NOT EXISTS idx_btc_daily_bias_run_date ON btc_daily_bias (run_date);
+
+-- Her gunun en son calismasi (gunluk tek deger isteyen sorgular icin).
+CREATE OR REPLACE VIEW btc_daily_bias_latest_per_day AS
+SELECT DISTINCT ON (run_date) *
+FROM btc_daily_bias
+ORDER BY run_date, generated_at DESC;
