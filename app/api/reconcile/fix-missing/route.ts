@@ -1,7 +1,7 @@
 import pool from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 import {
-  resolveDealOrigin, classifyClose, calculateRR,
+  resolveDealOrigin, classifyClose, calculateRR, calculateRTargetRisk, resolveMt5SlTp,
   fetchDealsByPosition, fetchHistoryOrdersByPosition, summarizeCloseDeals,
 } from '@/lib/reconcileHelpers';
 
@@ -29,17 +29,11 @@ export async function POST(req: NextRequest) {
 
     const { totalPnl, avgClosePrice, lastOutDeal } = summarizeCloseDeals(outDeals);
 
-    // SL/TP: bu position'a ait TUM history order kayitlarindan, EN SON
-    // (zaman olarak en gec) olanin stopLoss/takeProfit'i.
-    let sl: number | null = null, tp: number | null = null;
-    if (orders.length > 0) {
-      const lastOrder = orders.reduce((a, b) => {
-        const at = a.doneTime || a.time, bt = b.doneTime || b.time;
-        return at > bt ? a : b;
-      });
-      sl = lastOrder.stopLoss ?? null;
-      tp = lastOrder.takeProfit ?? null;
-    }
+    // SL/TP: MT5'te tanimli deger -- once kapanis deal'i (pozisyonun son SL/TP'si, MT5 gecmisinde
+    // gorunen), yoksa acilis deal'i, o da yoksa SL/TP tasiyan en son history order (bkz. resolveMt5SlTp).
+    // (Eskiden yalnizca en son history order'a bakiliyordu; o genelde kapanis emridir ve SL/TP
+    // tasimayabilir -- SL/TP bos kalabiliyordu.)
+    const { sl, tp } = resolveMt5SlTp(deals, orders);
 
     const { exitReason, isManual } = classifyClose(lastOutDeal.reason, avgClosePrice, sl, tp, totalPnl);
 
@@ -49,13 +43,14 @@ export async function POST(req: NextRequest) {
     // Panel emri ise etiket order_intents'ten, analiz/apify bagi yok (bkz. resolveDealOrigin).
     const { analysisId, apifyRunId, strategyLabel, isSystem } = await resolveDealOrigin({ ...inDeal, magic });
     const direction = inDeal.type === 'DEAL_TYPE_BUY' ? 'BUY' : 'SELL';
+    const { rTarget, rRisk } = await calculateRTargetRisk(isSystem ? analysisId : null, entryPrice, sl, tp);
 
     const { rows } = await pool.query(
       `INSERT INTO orders
          (analysis_id, apify_run_id, mt5_order_id, mt5_position_id, magic, strategy_label, symbol, direction,
-          volume, entry_price, fill_price, sl, tp, rr, status, opened_at,
+          volume, entry_price, fill_price, sl, tp, rr, r_target, r_risk, status, opened_at,
           close_price, realized_pnl, closed_at, exit_reason, is_manual)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'CLOSED',$15,$16,$17,$18,$19,$20)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,'CLOSED',$17,$18,$19,$20,$21,$22)
        RETURNING id`,
       [
         isSystem ? analysisId : null,
@@ -71,6 +66,7 @@ export async function POST(req: NextRequest) {
         entryPrice,
         sl, tp,
         calculateRR(entryPrice, sl, tp),
+        rTarget, rRisk,
         inDeal.time,
         avgClosePrice, totalPnl, lastOutDeal.time, exitReason, isManual,
       ]

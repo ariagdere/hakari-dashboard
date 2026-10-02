@@ -1,6 +1,8 @@
 import pool from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
-import { resolveDealOrigin, calculateRR, fetchDealsByPosition, fetchOpenPositions } from '@/lib/reconcileHelpers';
+import {
+  resolveDealOrigin, calculateRR, calculateRTargetRisk, fetchDealsByPosition, fetchOpenPositions, fillBlankSlTp, positiveOrNull,
+} from '@/lib/reconcileHelpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,20 +22,22 @@ export async function POST(req: NextRequest) {
     const position = positions.find((p) => p.id === positionId);
     if (!position) return NextResponse.json({ error: 'Pozisyon MT5\'te artık açık değil (belki bu arada kapandı)' }, { status: 404 });
 
-    const { rows: existingRows } = await pool.query(`SELECT id, status, sl, tp FROM orders WHERE mt5_position_id = $1`, [positionId]);
+    const { rows: existingRows } = await pool.query(
+      `SELECT id, status, sl, tp, entry_price, fill_price, analysis_id FROM orders WHERE mt5_position_id = $1`,
+      [positionId],
+    );
     const existing = existingRows[0];
-    const sl = position.stopLoss ?? null, tp = position.takeProfit ?? null;
+    // MT5'te 0 = tanimli degil
+    const sl = positiveOrNull(position.stopLoss), tp = positiveOrNull(position.takeProfit);
 
     if (existing) {
-      // Order zaten var -- status'u OPEN'a cek (yanlissa) ve sadece BIZDE
-      // BOS olan sl/tp'yi doldur (doluysa DOKUNMA -- dropdown'la duzeltilmis olabilir).
-      const newSl = existing.sl != null ? existing.sl : sl;
-      const newTp = existing.tp != null ? existing.tp : tp;
-      await pool.query(
-        `UPDATE orders SET status='OPEN', sl=$1, tp=$2, updated_at=now() WHERE id=$3`,
-        [newSl, newTp, existing.id]
-      );
-      return NextResponse.json({ ok: true, orderId: existing.id, action: 'updated' });
+      // Order zaten var -- status'u OPEN'a cek (yanlissa) ve sadece BIZDE BOS olan sl/tp'yi doldur
+      // (doluysa DOKUNMA -- dropdown'la duzeltilmis olabilir); rr / r_target / r_risk yeniden hesaplanir.
+      if (existing.status !== 'OPEN') {
+        await pool.query(`UPDATE orders SET status='OPEN', updated_at=now() WHERE id=$1`, [existing.id]);
+      }
+      const slTpFill = await fillBlankSlTp(existing, sl, tp);
+      return NextResponse.json({ ok: true, orderId: existing.id, action: 'updated', slTpFill });
     }
 
     // Order HIC yok -- history-deals'taki giris deal'inden magic/comment/entry al.
@@ -47,12 +51,13 @@ export async function POST(req: NextRequest) {
     // Panel emri ise etiket order_intents'ten, analiz/apify bagi yok (bkz. resolveDealOrigin).
     const { analysisId, apifyRunId, strategyLabel, isSystem } = await resolveDealOrigin({ ...inDeal, magic });
     const direction = inDeal.type === 'DEAL_TYPE_BUY' ? 'BUY' : 'SELL';
+    const { rTarget, rRisk } = await calculateRTargetRisk(isSystem ? analysisId : null, entryPrice, sl, tp);
 
     const { rows } = await pool.query(
       `INSERT INTO orders
          (analysis_id, apify_run_id, mt5_order_id, mt5_position_id, magic, strategy_label, symbol, direction,
-          volume, entry_price, fill_price, sl, tp, rr, status, opened_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'OPEN',$15)
+          volume, entry_price, fill_price, sl, tp, rr, r_target, r_risk, status, opened_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,'OPEN',$17)
        RETURNING id`,
       [
         isSystem ? analysisId : null,
@@ -68,6 +73,7 @@ export async function POST(req: NextRequest) {
         entryPrice,
         sl, tp,
         calculateRR(entryPrice, sl, tp),
+        rTarget, rRisk,
         inDeal.time,
       ]
     );
