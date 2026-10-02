@@ -98,6 +98,8 @@ type SubmitState =
 
 const RISK_PRESETS = [3, 5, 10]
 const QUOTE_STALE_MS = 15_000
+// Emir ayarlari / sembol bilgisi alinamazsa otomatik tekrar deneme araliklari
+const CTX_RETRY_MS = [3_000, 5_000, 10_000, 20_000, 30_000]
 
 // Fiyat / tutar girisi: en fazla 2 ondalik (BTCUSD digits=2), binlik ayirici YOK -- "115,000"
 // gibi bir giris 115 diye okunmasin diye reddedilir. Ondalik ayirici nokta ya da virgul.
@@ -152,6 +154,9 @@ interface Props {
 export default function OrderPanel({ quote, labels, hidden, chartPick, onClose, onDraftChange }: Props) {
   const [ctx, setCtx] = useState<ExecutionContext | null>(null)
   const [ctxError, setCtxError] = useState<string | null>(null)
+  const [ctxLoading, setCtxLoading] = useState(false)
+  const [ctxRetryAt, setCtxRetryAt] = useState<number | null>(null) // bir sonraki otomatik deneme
+  const [ctxReload, setCtxReload] = useState(0) // "Şimdi dene"
   const [direction, setDirection] = useState<Direction | null>(null)
   const [label, setLabel] = useState('')
   const [slText, setSlText] = useState('')
@@ -174,22 +179,47 @@ export default function OrderPanel({ quote, labels, hidden, chartPick, onClose, 
   const [quoteReceivedAt, setQuoteReceivedAt] = useState<number | null>(null)
   const [now, setNow] = useState(() => Date.now())
 
+  // Emir ayarlari + sembol bilgisi. Alinamazsa (orn. MetaApi 504) panel 3, 5, 10, 20, 30 sn
+  // aralikla kendisi tekrar dener; "Şimdi dene" beklemeden dener. Sembol bilgisi gelince durur.
   useEffect(() => {
     let active = true
-    fetch('/api/execution/context', { cache: 'no-store' })
-      .then(async (res) => {
+    let timer: ReturnType<typeof setTimeout> | null = null
+    let failures = 0
+    const retryLater = () => {
+      const delay = CTX_RETRY_MS[Math.min(failures, CTX_RETRY_MS.length - 1)]
+      failures += 1
+      setCtxRetryAt(Date.now() + delay)
+      timer = setTimeout(load, delay)
+    }
+    async function load() {
+      setCtxLoading(true)
+      setCtxRetryAt(null)
+      try {
+        const res = await fetch('/api/execution/context', { cache: 'no-store' })
         const data = await readBody(res)
         if (!active) return
-        if (!res.ok || !data?.trading) setCtxError(data?.error || `Emir ayarları alınamadı (HTTP ${res.status})`)
-        else setCtx(data)
-      })
-      .catch(() => {
-        if (active) setCtxError('Emir ayarları alınamadı')
-      })
+        if (!res.ok || !data?.trading) {
+          setCtxError(data?.error || `Emir ayarları alınamadı (HTTP ${res.status})`)
+          retryLater()
+        } else {
+          setCtxError(null)
+          setCtx(data)
+          if (!data.spec) retryLater()
+        }
+      } catch {
+        if (!active) return
+        setCtxError('Emir ayarları alınamadı (bağlantı hatası)')
+        retryLater()
+      } finally {
+        if (active) setCtxLoading(false)
+      }
+    }
+    load()
     return () => {
       active = false
+      if (timer) clearTimeout(timer)
     }
-  }, [])
+  }, [ctxReload])
 
   // Bayatlik, fiyatin ZAMANI degistiginde sifirlanir: yedek REST yolu ayni (eski) fiyati tekrar
   // tekrar dondururse taze sayilmaz. Sunucu da emirden once fiyat yasini ayrica kontrol eder.
@@ -281,10 +311,10 @@ export default function OrderPanel({ quote, labels, hidden, chartPick, onClose, 
   }, [chartPick, locked])
 
   // Gonderimi engelleyen ilk sebep (emir kapaliysa ayrica ustte uyari var; hesap yine gosterilir)
+  const ctxProblem = ctxError ?? (ctx && !ctx.spec ? ctx.specError ?? 'Sembol bilgisi alınamadı' : null)
   let blocker: string | null = null
-  if (ctxError) blocker = ctxError
+  if (ctxProblem) blocker = ctxProblem
   else if (!ctx) blocker = 'Emir ayarları yükleniyor…'
-  else if (!ctx.spec) blocker = ctx.specError ?? 'Sembol bilgisi alınamadı'
   else if (!quote) blocker = 'Fiyat bekleniyor…'
   else if (quoteStale) blocker = 'Fiyat akışı durdu — piyasa kapalı olabilir'
   else if (slInput.invalid) blocker = 'SL geçersiz — örn. 114250.5 (binlik ayırıcı yok, en fazla 2 ondalık)'
@@ -690,6 +720,27 @@ export default function OrderPanel({ quote, labels, hidden, chartPick, onClose, 
         {blocker && submit.kind !== 'filled' && (
           <div style={{ color: 'var(--amber)', fontSize: 11, marginBottom: 8 }} data-testid="order-blocker">
             {blocker}
+            {ctxProblem && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 6 }}>
+                <span style={{ color: 'var(--text-3)' }} data-testid="ctx-retry-status">
+                  {ctxLoading
+                    ? 'tekrar deneniyor…'
+                    : ctxRetryAt != null
+                      ? `${Math.max(1, Math.ceil((ctxRetryAt - now) / 1000))} sn sonra kendiliğinden tekrar denenecek`
+                      : ''}
+                </span>
+                <button
+                  type="button"
+                  className="filter-btn op-btn"
+                  style={{ padding: '3px 12px', flex: 'none' }}
+                  disabled={ctxLoading}
+                  onClick={() => setCtxReload((n) => n + 1)}
+                  data-testid="ctx-retry"
+                >
+                  Şimdi dene
+                </button>
+              </div>
+            )}
           </div>
         )}
         {submit.kind === 'notice' && (

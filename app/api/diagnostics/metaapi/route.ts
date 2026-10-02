@@ -4,6 +4,7 @@ import { AXI_SYMBOL, TIMEFRAMES, TIMEFRAME_MS } from '@/lib/axiMarket'
 import { getAxiCandleStoreStatus } from '@/lib/axiCandles'
 import { getMetaApiRestConfig } from '@/lib/metaapiRest'
 import { ensureMarketStream, getStreamStatus } from '@/lib/metaapiStream'
+import { specFromStream } from '@/lib/metaapiTrade'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -183,6 +184,12 @@ export async function GET(req: NextRequest) {
   } else {
     summary.push(`OK   Streaming hazır; ${waitSec} sn içinde ${quotesInWindow} quote`)
     if (after.subscribeWarning) summary.push(`?    Abonelik uyarısı: ${after.subscribeWarning}`)
+    // Emir paneli sembol bilgisini once buradan okur (REST /specification yalnizca yedek)
+    summary.push(
+      specFromStream()
+        ? `OK   ${AXI_SYMBOL} sembol bilgisi akıştan okunuyor (emir paneli REST'e gitmiyor)`
+        : `?    ${AXI_SYMBOL} sembol bilgisi akışta yok — emir paneli REST yedeğini kullanır`,
+    )
   }
 
   if (creditsRes.ok) {

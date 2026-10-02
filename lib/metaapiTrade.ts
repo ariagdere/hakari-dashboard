@@ -1,4 +1,4 @@
-// MetaApi REST: BTCUSD sembol bilgisi (1 saat cache), taze fiyat, emir gonderimi, pozisyon okuma.
+// MetaApi: BTCUSD sembol bilgisi, taze fiyat, emir gonderimi (REST), pozisyon okuma (REST).
 import { AXI_SYMBOL } from './axiMarket'
 import { getMetaApiRestConfig } from './metaapiRest'
 import { getMarketStream } from './metaapiStream'
@@ -21,8 +21,17 @@ export interface FreshQuote {
   source: 'stream' | 'rest'
 }
 
+export type SpecSource = 'stream' | 'rest' | 'cache'
+
 const SPEC_TTL_MS = 60 * 60_000
-const g = globalThis as typeof globalThis & { __hakariSymbolSpec?: { at: number; spec: SymbolSpec } }
+const SPEC_REST_ATTEMPTS = 3
+const SPEC_REST_TIMEOUT_MS = 8_000
+const g = globalThis as typeof globalThis & {
+  __hakariSymbolSpec?: { at: number; spec: SymbolSpec; source: 'stream' | 'rest' }
+  __hakariSpecInflight?: Promise<SymbolSpec> | null
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function requireConfig() {
   const cfg = getMetaApiRestConfig()
@@ -51,13 +60,8 @@ function num(x: unknown): number | null {
   return typeof x === 'number' && !isNaN(x) ? x : null
 }
 
-export async function getSymbolSpec(): Promise<SymbolSpec> {
-  const hit = g.__hakariSymbolSpec
-  if (hit && Date.now() - hit.at < SPEC_TTL_MS) return hit.spec
-  const cfg = requireConfig()
-  const r = await metaApiJson(`${cfg.clientApi}/users/current/accounts/${cfg.accountId}/symbols/${AXI_SYMBOL}/specification`, cfg.token)
-  if (!r.ok || !r.body) throw new Error(`Sembol bilgisi alınamadı (HTTP ${r.status})`)
-  const b = r.body
+function toSpec(b: any): SymbolSpec | null {
+  if (!b || typeof b !== 'object') return null
   const spec: SymbolSpec = {
     contractSize: Number(b.contractSize),
     minVolume: Number(b.minVolume),
@@ -72,8 +76,80 @@ export async function getSymbolSpec(): Promise<SymbolSpec> {
     swapLong: num(b.swapLong),
     swapShort: num(b.swapShort),
   }
-  g.__hakariSymbolSpec = { at: Date.now(), spec }
-  return spec
+  // Boyutlandirmanin dayandigi alanlar eksikse bu kaynagi kullanma
+  const ok = [spec.contractSize, spec.minVolume, spec.volumeStep].every((x) => isFinite(x) && x > 0)
+  return ok ? spec : null
+}
+
+// Dashboard'un streaming baglantisi (fiyatlar da buradan geliyor): MetaApi senkronizasyonda
+// terminaldeki sembol bilgilerini de gonderiyor ve degisince guncelliyor -- REST cagrisi yok.
+export function specFromStream(): SymbolSpec | null {
+  try {
+    return toSpec(getMarketStream().connection?.terminalState?.specification?.(AXI_SYMBOL))
+  } catch {
+    return null // yeniden senkronizasyon sirasinda gecici olarak bos olabilir
+  }
+}
+
+// REST /specification. MetaApi zaman zaman 504 donuyor (terminal zamaninda yanit vermedi):
+// 5xx / 429 / zaman asiminda tekrar dene. 4xx (yetki, hesap yok) tekrar denemekle duzelmez.
+async function specFromRest(): Promise<SymbolSpec> {
+  const cfg = requireConfig()
+  const url = `${cfg.clientApi}/users/current/accounts/${cfg.accountId}/symbols/${AXI_SYMBOL}/specification`
+  let last = ''
+  for (let attempt = 1; attempt <= SPEC_REST_ATTEMPTS; attempt++) {
+    if (attempt > 1) await sleep(attempt === 2 ? 700 : 2_000)
+    try {
+      const r = await metaApiJson(url, cfg.token, {}, SPEC_REST_TIMEOUT_MS)
+      if (r.ok) {
+        const spec = toSpec(r.body)
+        if (spec) return spec
+        last = 'eksik yanıt'
+        continue
+      }
+      last = `HTTP ${r.status}`
+      if (r.status < 500 && r.status !== 429) break
+    } catch (err: any) {
+      last = err?.name === 'TimeoutError' ? 'zaman aşımı' : String(err?.message ?? err)
+    }
+  }
+  throw new Error(`Sembol bilgisi alınamadı (${last}, ${SPEC_REST_ATTEMPTS} deneme)`)
+}
+
+// BTCUSD sembol bilgisi (lot adimi, en kucuk lot, kontrat buyuklugu, stop mesafesi), bu sirayla:
+//   1) streaming baglantisi -- her zaman guncel, ek istek yok
+//   2) son 1 saatte alinmis deger
+//   3) REST (tekrar denemeli; ayni anda gelen istekler tek REST cagrisini paylasir)
+//   4) REST de basarisizsa son basarili deger (eski de olsa): sembol bilgisi neredeyse hic
+//      degismez; degismisse MT5 emri reddeder (lot/stop hatasi), zarar dogmaz.
+export async function getSymbolSpecWithSource(): Promise<{ spec: SymbolSpec; source: SpecSource }> {
+  const live = specFromStream()
+  if (live) {
+    g.__hakariSymbolSpec = { at: Date.now(), spec: live, source: 'stream' }
+    return { spec: live, source: 'stream' }
+  }
+  const hit = g.__hakariSymbolSpec
+  if (hit && Date.now() - hit.at < SPEC_TTL_MS) return { spec: hit.spec, source: 'cache' }
+  try {
+    if (!g.__hakariSpecInflight) {
+      g.__hakariSpecInflight = specFromRest().finally(() => {
+        g.__hakariSpecInflight = null
+      })
+    }
+    const spec = await g.__hakariSpecInflight
+    g.__hakariSymbolSpec = { at: Date.now(), spec, source: 'rest' }
+    return { spec, source: 'rest' }
+  } catch (err: any) {
+    if (hit) {
+      console.warn(`[metaapiTrade] ${String(err?.message ?? err)} -- ${Math.round((Date.now() - hit.at) / 60_000)} dk onceki sembol bilgisi kullaniliyor`)
+      return { spec: hit.spec, source: 'cache' }
+    }
+    throw err
+  }
+}
+
+export async function getSymbolSpec(): Promise<SymbolSpec> {
+  return (await getSymbolSpecWithSource()).spec
 }
 
 // Emir aninda kullanilacak taze fiyat: once dashboard'un streaming baglantisi (ek maliyet yok),
@@ -83,13 +159,27 @@ export async function getFreshQuote(): Promise<FreshQuote> {
   if (s.status === 'ready' && s.lastQuote && s.lastQuoteAt != null && Date.now() - s.lastQuoteAt < 10_000) {
     return { bid: s.lastQuote.bid, ask: s.lastQuote.ask, time: s.lastQuote.time, source: 'stream' }
   }
+  // REST yedegi: 5xx / zaman asiminda bir kez daha dene
   const cfg = requireConfig()
-  const r = await metaApiJson(`${cfg.clientApi}/users/current/accounts/${cfg.accountId}/symbols/${AXI_SYMBOL}/current-price`, cfg.token, {}, 10_000)
-  const bid = num(r.body?.bid)
-  const ask = num(r.body?.ask)
-  if (!r.ok || bid == null || ask == null) throw new Error(`Güncel fiyat alınamadı (HTTP ${r.status})`)
-  const time = typeof r.body.time === 'string' ? r.body.time : new Date().toISOString()
-  return { bid, ask, time, source: 'rest' }
+  const url = `${cfg.clientApi}/users/current/accounts/${cfg.accountId}/symbols/${AXI_SYMBOL}/current-price`
+  let last = ''
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    if (attempt > 1) await sleep(500)
+    try {
+      const r = await metaApiJson(url, cfg.token, {}, 6_000)
+      const bid = num(r.body?.bid)
+      const ask = num(r.body?.ask)
+      if (r.ok && bid != null && ask != null) {
+        const time = typeof r.body.time === 'string' ? r.body.time : new Date().toISOString()
+        return { bid, ask, time, source: 'rest' }
+      }
+      last = `HTTP ${r.status}`
+      if (r.ok || (r.status < 500 && r.status !== 429)) break
+    } catch (err: any) {
+      last = err?.name === 'TimeoutError' ? 'zaman aşımı' : String(err?.message ?? err)
+    }
+  }
+  throw new Error(`Güncel fiyat alınamadı (${last})`)
 }
 
 export type TradeOutcome =
