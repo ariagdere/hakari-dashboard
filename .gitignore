@@ -1,0 +1,19 @@
+# bagimliliklar
+node_modules/
+
+# Next.js build ciktisi
+.next/
+out/
+
+# TypeScript (build sirasinda uretilir)
+*.tsbuildinfo
+next-env.d.ts
+
+# gizli degerler
+.env
+.env*.local
+
+# log / isletim sistemi
+npm-debug.log*
+yarn-error.log*
+.DS_Store
