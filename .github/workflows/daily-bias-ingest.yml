@@ -1,0 +1,35 @@
+name: BTC Daily Bias -> Postgres
+
+on:
+  push:
+    branches: [bias-data]
+    paths:
+      - 'data/daily-bias/**'
+      - 'ingest/**'
+      - '.github/workflows/daily-bias-ingest.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: daily-bias-ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pg
+        working-directory: ingest
+        run: npm install --no-audit --no-fund
+
+      - name: Validate + upsert
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PGSSL: ${{ vars.PGSSL }}
+        run: node ingest/ingest.mjs

@@ -1,0 +1,26 @@
+{
+  "run_date": "2026-10-02",
+  "generated_at": "2026-10-02T06:11:40Z",
+  "net_direction": "Hafif Pozitif",
+  "sentiment_score": 22,
+  "change_24h": "iyileşti",
+  "drivers": [
+    "ÖRNEK: DXY zayıflıyor, dolar sentimenti yumuşak",
+    "ÖRNEK: Spot BTC ETF'lerinde net giriş devam ediyor"
+  ],
+  "developments": [
+    { "item": "ÖRNEK: ABD 10Y faizi geriledi", "impact": "Pozitif" },
+    { "item": "ÖRNEK: Petrol fiyatları yatay", "impact": "Nötr" }
+  ],
+  "key_development": "ÖRNEK: Bu dosya yalnızca formatı göstermek ve ingest script'ini test etmek içindir; data/daily-bias altına KOPYALANMAZ.",
+  "divergence": "aligned",
+  "divergence_note": "ÖRNEK: BTC makroyla uyumlu hareket ediyor.",
+  "liquidity_regime": "Nötr",
+  "risk_regime": "Temkinli risk-on",
+  "conclusion": "ÖRNEK: Önümüzdeki 24-72 saat için makro zemin hafif destekleyici.",
+  "bias": "LONG",
+  "confidence": "Orta",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Hafif Pozitif\n\nSentiment skoru: +22\n\n(ÖRNEK — task'in tam metin çıktısı buraya birebir gelir.)",
+  "model": "claude-opus-5-5",
+  "prompt_version": "v1"
+}
