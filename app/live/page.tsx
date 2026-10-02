@@ -364,6 +364,20 @@ const INTERVAL_SEC: Record<'5m' | '15m' | '1h' | '4h' | '1d', number> = {
   '5m': 5 * 60, '15m': 15 * 60, '1h': 60 * 60, '4h': 4 * 60 * 60, '1d': 24 * 60 * 60,
 }
 
+// Diger zaman dilimlerinin mumlarini arka planda sirayla bir kez ceker: ilk dilim gecisi de
+// aninda olsun. Hata onemsiz (gecis aninda zaten cekilir).
+async function prefetchCandles(cache: Map<string, Candle[]>, current: string) {
+  for (const tf of Object.keys(INTERVAL_SEC)) {
+    if (tf === current || cache.has(tf)) continue
+    try {
+      const res = await fetch(`/api/axi-candles?interval=${tf}`, { cache: 'no-store' })
+      if (res.ok && !cache.has(tf)) cache.set(tf, await res.json())
+    } catch {
+      // yok say
+    }
+  }
+}
+
 function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, height }: {
   candles: Candle[]; selectedOrders: Order[]; interval: '5m' | '15m' | '1h' | '4h' | '1d'; quote: Price | null
   draft: OrderDraft | null
@@ -1069,26 +1083,40 @@ export default function LivePositionsPage() {
     setHistory((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...patch } : o)))
   }
 
-  // Grafik: Axi BTCUSD, her zaman diliminde son 1000 mum (sunucudaki mum deposundan,
+  // Grafik: Axi BTCUSD, her zaman diliminde son 1000 mum (sunucudaki DB destekli mum deposundan,
   // lib/axiCandles.ts). Olusan mum araya quote'larla canli islenir (LiveChart); bu dakikalik
-  // tazeleme broker'in kesin OHLC'sini getirir. Dilim degisince grafik temizlenir ve yukleniyor
-  // gosterilir; hata olursa 5 sn sonra tekrar denenir. Istekler zincirleme (setTimeout) --
-  // yavas bir yanit gelirken ikinci bir istek ust uste binmez.
+  // tazeleme broker'in kesin OHLC'sini getirir. Her dilimin son mumlari tarayicida da tutulur:
+  // dilim degisince grafik aninda cizilir, arkadan tazelenir; ilk yuklemeden sonra diger dilimler
+  // arka planda bir kez cekilir. Sunucu verisi geride kaldiysa (X-Candles-Stale) 3 sn sonra,
+  // hata olursa 5 sn sonra tekrar denenir. Istekler zincirleme (setTimeout) -- ust uste binmez.
+  const candleCacheRef = useRef<Map<string, Candle[]>>(new Map())
+  const candlePrefetchedRef = useRef(false)
   useEffect(() => {
     let active = true
     let timer: ReturnType<typeof setTimeout> | null = null
-    setCandles([])
-    setCandlesStatus({ loading: true, error: null })
+    const cached = candleCacheRef.current.get(chartInterval)
+    if (cached && cached.length > 0) {
+      setCandles(cached)
+      setCandlesStatus({ loading: false, error: null })
+    } else {
+      setCandles([])
+      setCandlesStatus({ loading: true, error: null })
+    }
     async function fetchCandles() {
-      let ok = false
+      let next = 5000
       try {
         const res = await fetch(`/api/axi-candles?interval=${chartInterval}`, { cache: 'no-store' })
         if (res.ok) {
           const data: Candle[] = await res.json()
-          ok = true
+          candleCacheRef.current.set(chartInterval, data)
+          next = res.headers.get('x-candles-stale') ? 3000 : 60000
           if (active) {
             setCandles(data)
             setCandlesStatus({ loading: false, error: null })
+            if (!candlePrefetchedRef.current) {
+              candlePrefetchedRef.current = true
+              void prefetchCandles(candleCacheRef.current, chartInterval)
+            }
           }
         } else {
           const body = await res.json().catch(() => null)
@@ -1097,7 +1125,7 @@ export default function LivePositionsPage() {
       } catch {
         if (active) setCandlesStatus((prev) => ({ loading: prev.loading, error: 'Bağlantı hatası' }))
       }
-      if (active) timer = setTimeout(fetchCandles, ok ? 60000 : 5000)
+      if (active) timer = setTimeout(fetchCandles, next)
     }
     fetchCandles()
     return () => {
