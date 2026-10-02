@@ -913,7 +913,8 @@ export default function LivePositionsPage() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [dowFilter, setDowFilter] = useState<'all' | 'weekday' | 'weekend'>('all')
-  const [reconcileState, setReconcileState] = useState<{ loading: boolean; result: any | null; error: string | null }>({ loading: false, result: null, error: null })
+  // fill: /api/reconcile/fill-sltp sonucu (bos SL/TP'lerin MT5'ten doldurulmasi) ya da { error }
+  const [reconcileState, setReconcileState] = useState<{ loading: boolean; result: any | null; fill: any | null; error: string | null }>({ loading: false, result: null, fill: null, error: null })
   const [fixingIds, setFixingIds] = useState<Set<string>>(new Set())
   const [fixedIds, setFixedIds] = useState<Set<string>>(new Set())
 
@@ -972,14 +973,29 @@ export default function LivePositionsPage() {
   }
 
   async function runReconcile() {
-    setReconcileState({ loading: true, result: null, error: null })
+    setReconcileState({ loading: true, result: null, fill: null, error: null })
+    // 1) DB'de bos kalmis SL/TP'leri MT5'te tanimli degerle doldur (acik + son 90 gunde kapanmis
+    //    order'lar; dolu alanlara dokunulmaz). Hata olsa da 24 saatlik kontrol yine calisir.
+    let fill: any = null
+    try {
+      const res = await fetch('/api/reconcile/fill-sltp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
+      fill = data
+      for (const f of data.filled ?? []) {
+        applyOrderPatch(f.orderId, { sl: f.sl, tp: f.tp, rr: f.rr, r_target: f.rTarget, r_risk: f.rRisk })
+      }
+    } catch (err: any) {
+      fill = { error: err.message || 'Bağlantı hatası' }
+    }
+    // 2) MT5'in son 24 saatlik deal gecmisi + acik pozisyonlar <-> orders tablosu
     try {
       const res = await fetch('/api/reconcile?hours=24', { cache: 'no-store' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Bilinmeyen hata')
-      setReconcileState({ loading: false, result: data, error: null })
+      setReconcileState({ loading: false, result: data, fill, error: null })
     } catch (err: any) {
-      setReconcileState({ loading: false, result: null, error: err.message || 'Mutabakat kontrolü başarısız' })
+      setReconcileState({ loading: false, result: null, fill, error: err.message || 'Mutabakat kontrolü başarısız' })
     }
   }
 
@@ -1343,9 +1359,12 @@ export default function LivePositionsPage() {
 
         {/* Mutabakat kontrolu -- MT5'in kendi deal gecmisini (son 24 saat)
             orders tablosuyla karsilastirir, streaming/resync mekanizmasindan
-            BAGIMSIZ bir dogrulama katmani. */}
+            BAGIMSIZ bir dogrulama katmani. Once DB'de bos kalan SL/TP'leri
+            (acik + son 90 gunde kapanmis) MT5'teki degerle doldurur. */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-          <button className="filter-btn" style={{ fontSize: 10, padding: '3px 10px' }} onClick={runReconcile} disabled={reconcileState.loading}>
+          <button
+            className="filter-btn" style={{ fontSize: 10, padding: '3px 10px' }} onClick={runReconcile} disabled={reconcileState.loading}
+            title="Son 24 saatin MT5 deal'lerini ve açık pozisyonları DB ile karşılaştırır. Ayrıca açık ve son 90 günde kapanmış işlemlerde boş kalan SL/TP'yi MT5'teki değerle doldurur.">
             {reconcileState.loading ? 'Kontrol ediliyor…' : 'Mutabakat Kontrolü (son 24 saat)'}
           </button>
           {reconcileState.error && (
@@ -1394,6 +1413,29 @@ export default function LivePositionsPage() {
                   )}
                 </div>
               ))}
+            </div>
+          )}
+          {reconcileState.fill?.error && (
+            <div className="mono" data-testid="sltp-fill-error" style={{ fontSize: 10, color: 'var(--red)', width: '100%' }}>
+              Boş SL/TP doldurulamadı: {reconcileState.fill.error}
+            </div>
+          )}
+          {reconcileState.fill?.filled?.length > 0 && (
+            <div className="mono" data-testid="sltp-fill" style={{ fontSize: 10, color: 'var(--green)', width: '100%' }}>
+              <div style={{ marginBottom: 4 }}>✎ {reconcileState.fill.filled.length} işlemde boş SL/TP MT5'teki değerle dolduruldu:</div>
+              {reconcileState.fill.filled.map((f: any) => (
+                <div key={f.orderId} style={{ padding: '4px 8px', background: 'var(--bg-2)', borderRadius: 4, marginBottom: 4 }}>
+                  Order #{f.orderId} (position {f.positionId}, {f.status === 'OPEN' ? 'açık' : 'kapalı'}):
+                  {f.filledSl && ` SL → ${Number(f.sl).toFixed(2)}`}
+                  {f.filledSl && f.filledTp && ' ·'}
+                  {f.filledTp && ` TP → ${Number(f.tp).toFixed(2)}`}
+                </div>
+              ))}
+            </div>
+          )}
+          {reconcileState.fill && !reconcileState.fill.error && reconcileState.fill.notInMt5 > 0 && (
+            <div className="mono" data-testid="sltp-fill-note" style={{ fontSize: 10, color: 'var(--text-3)', width: '100%' }}>
+              {reconcileState.fill.notInMt5} işlemin boş SL/TP'si MT5'te de tanımlı değil (açık ve son {reconcileState.fill.days} günde kapanmış işlemler).
             </div>
           )}
         </div>

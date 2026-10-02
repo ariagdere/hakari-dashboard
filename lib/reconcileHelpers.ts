@@ -1,5 +1,6 @@
 import pool from '@/lib/db';
 import { PANEL_MAGIC, clientKeyOf } from '@/lib/panelOrder';
+import { getMetaApiRestConfig } from '@/lib/metaapiRest';
 
 // mt5_order_monitor.js'teki STRATEGY_MAP ile BIREBIR AYNI -- orada bir
 // strateji eklenirse burada da eklenmeli. Tek kaynak orasi; burasi sadece
@@ -73,11 +74,103 @@ export function calculateRR(entry: number | null, sl: number | null, tp: number 
   return Number((reward / risk).toFixed(2));
 }
 
+// MT5'te 0 = SL/TP tanimli degil (mt5_order_monitor.js'teki positiveOrNull ile AYNI).
+export function positiveOrNull(x: unknown): number | null {
+  const n = Number(x);
+  return x != null && Number.isFinite(n) && n > 0 ? n : null;
+}
+
+// mt5_order_monitor.js'teki calculateRTargetRisk ile BIREBIR AYNI: analysis'in orijinal entry/sl'inden
+// sizing risk mesafesi; analysis'siz order'da rTarget null, rRisk 1.
+export async function calculateRTargetRisk(
+  analysisId: number | null, entryPrice: number, sl: number | null, tp: number | null,
+): Promise<{ rTarget: number | null; rRisk: number }> {
+  if (analysisId == null) return { rTarget: null, rRisk: 1 };
+  const { rows } = await pool.query(`SELECT entry, sl FROM btc_analysis WHERE id = $1`, [analysisId]);
+  const a = rows[0];
+  if (!a || a.entry == null || a.sl == null) return { rTarget: null, rRisk: 1 };
+  const sizingRiskDistance = Math.abs(Number(a.entry) - Number(a.sl));
+  if (sizingRiskDistance === 0) return { rTarget: null, rRisk: 1 };
+  const rTarget = tp != null ? Number((Math.abs(tp - entryPrice) / sizingRiskDistance).toFixed(4)) : null;
+  const rRisk = sl != null ? Number((Math.abs(sl - entryPrice) / sizingRiskDistance).toFixed(4)) : 1;
+  return { rTarget, rRisk };
+}
+
+export type SlTpSource = 'close' | 'open' | 'order';
+const CLOSING_ENTRIES = new Set(['DEAL_ENTRY_OUT', 'DEAL_ENTRY_OUT_BY']);
+const newestFirst = (a: string | undefined, b: string | undefined) => ((a ?? '') < (b ?? '') ? 1 : (a ?? '') > (b ?? '') ? -1 : 0);
+
+// Bir pozisyonun MT5'te tanimli SL/TP'si, deal (ve istenirse history order) gecmisinden. Oncelik:
+//   1) kapanis deal'i (en son SL/TP tasiyan) -- MetaApi'ye gore pozisyonun bilinen SON SL/TP'si;
+//      MT5 gecmisinde gorunen deger budur
+//   2) acilis deal'i -- pozisyonu acan emrin SL/TP'si (kapanis deal'leri SL/TP tasimiyorsa)
+//   3) history order'lar (en son SL/TP tasiyan) -- yalnizca verilirse (deal'lerde hic yoksa)
+// SL ya da TP'den birini tasiyan kaynak esas alinir: orn. kapanis deal'inde TP var SL yoksa SL kapanista
+// tanimli degildi (kaldirilmisti) demektir; acilistaki SL'e dusulmez.
+export function resolveMt5SlTp(
+  deals: MetatraderDeal[], orders: MetatraderOrder[] = [],
+): { sl: number | null; tp: number | null; source: SlTpSource | null } {
+  const levels = (x: { stopLoss?: number; takeProfit?: number }) => {
+    const sl = positiveOrNull(x.stopLoss);
+    const tp = positiveOrNull(x.takeProfit);
+    return sl != null || tp != null ? { sl, tp } : null;
+  };
+  const closes = deals.filter((d) => CLOSING_ENTRIES.has(d.entryType)).sort((a, b) => newestFirst(a.time, b.time));
+  for (const d of closes) {
+    const v = levels(d);
+    if (v) return { ...v, source: 'close' };
+  }
+  const inDeal = deals.find((d) => d.entryType === 'DEAL_ENTRY_IN');
+  const fromOpen = inDeal ? levels(inDeal) : null;
+  if (fromOpen) return { ...fromOpen, source: 'open' };
+  const byTime = [...orders].sort((a, b) => newestFirst(a.doneTime || a.time, b.doneTime || b.time));
+  for (const o of byTime) {
+    const v = levels(o);
+    if (v) return { ...v, source: 'order' };
+  }
+  return { sl: null, tp: null, source: null };
+}
+
+export interface SlTpFillTarget {
+  id: number;
+  sl: unknown;
+  tp: unknown;
+  entry_price: unknown;
+  fill_price: unknown;
+  analysis_id: number | null;
+}
+
+// Order'in BOS olan SL/TP'sini MT5 degeriyle doldurur; dolu alana dokunmaz (EditableSlTp ile elle
+// duzeltilmis olabilir). rr / r_target / r_risk monitor'deki fillMissingSlTp ile ayni formullerle
+// yeniden hesaplanir. order_events'e yazilmaz. Doldurulacak bir sey yoksa null doner.
+export async function fillBlankSlTp(order: SlTpFillTarget, mt5Sl: number | null, mt5Tp: number | null) {
+  const curSl = order.sl != null ? Number(order.sl) : null;
+  const curTp = order.tp != null ? Number(order.tp) : null;
+  const filledSl = curSl == null && mt5Sl != null;
+  const filledTp = curTp == null && mt5Tp != null;
+  if (!filledSl && !filledTp) return null;
+  const sl = curSl ?? mt5Sl;
+  const tp = curTp ?? mt5Tp;
+  const entry = Number(order.fill_price ?? order.entry_price);
+  const rr = calculateRR(entry, sl, tp);
+  const { rTarget, rRisk } = await calculateRTargetRisk(order.analysis_id, entry, sl, tp);
+  // COALESCE + WHERE: okuma ile yazma arasinda elle girilen deger ezilmesin
+  const { rowCount } = await pool.query(
+    `UPDATE orders SET sl = COALESCE(sl, $1), tp = COALESCE(tp, $2), rr = $3, r_target = $4, r_risk = $5, updated_at = now()
+      WHERE id = $6 AND (sl IS NULL OR tp IS NULL)`,
+    [sl, tp, rr, rTarget, rRisk, order.id],
+  );
+  if (!rowCount) return null;
+  return { sl, tp, rr, rTarget, rRisk, filledSl, filledTp };
+}
+
 export interface MetatraderDeal {
   id: string; entryType: string; positionId?: string; orderId?: string;
   volume?: number; price?: number; profit?: number; time: string;
   symbol?: string; magic?: number; type?: string; comment?: string; brokerComment?: string; reason?: string;
   clientId?: string;
+  // MetaApi: acilis deal'inde pozisyonu acan emrin SL/TP'si, kapanis deal'inde pozisyonun bilinen son SL/TP'si
+  stopLoss?: number; takeProfit?: number;
 }
 export interface MetatraderOrder {
   id: string; positionId?: string; stopLoss?: number; takeProfit?: number;
@@ -90,29 +183,54 @@ export interface MetatraderPosition {
   time: string;
 }
 
-const METAAPI_TOKEN = process.env.METAAPI_TOKEN!;
-const METAAPI_ACCOUNT_ID = process.env.METAAPI_ACCOUNT_ID!;
-const METAAPI_REGION = process.env.METAAPI_REGION || 'london';
+const METAAPI_TIMEOUT_MS = 30_000;
 
-export async function fetchMetaApi(path: string) {
-  const url = `https://mt-client-api-v1.${METAAPI_REGION}.agiliumtrade.ai${path}`;
-  const res = await fetch(url, { headers: { 'auth-token': METAAPI_TOKEN, Accept: 'application/json' }, cache: 'no-store' });
-  if (!res.ok) throw new Error(`MetaApi isteği başarısız (${path}): HTTP ${res.status}`);
+// Hesaba ait MetaApi REST yolu (orn. '/positions'). Ayarlar lib/metaapiRest.ts'ten (diger route'larla ayni).
+export async function fetchMetaApi(accountPath: string) {
+  const cfg = getMetaApiRestConfig();
+  if (!cfg) throw new Error('METAAPI_TOKEN / METAAPI_ACCOUNT_ID tanımlı değil');
+  let res: Response;
+  try {
+    res = await fetch(`${cfg.clientApi}/users/current/accounts/${cfg.accountId}${accountPath}`, {
+      headers: { 'auth-token': cfg.token, Accept: 'application/json' },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(METAAPI_TIMEOUT_MS),
+    });
+  } catch (err: any) {
+    if (err?.name === 'TimeoutError') throw new Error(`MetaApi ${METAAPI_TIMEOUT_MS / 1000} sn'de yanıt vermedi (${accountPath})`);
+    throw err;
+  }
+  if (!res.ok) throw new Error(`MetaApi isteği başarısız (${accountPath}): HTTP ${res.status}`);
   return res.json();
 }
 
+const fmtTime = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '.000Z'); // MetaAPI ISO formati
+
 export async function fetchOpenPositions(): Promise<MetatraderPosition[]> {
-  return fetchMetaApi(`/users/current/accounts/${METAAPI_ACCOUNT_ID}/positions`);
+  return fetchMetaApi(`/positions`);
 }
 export async function fetchDealsByTimeRange(startTime: Date, endTime: Date): Promise<MetatraderDeal[]> {
-  const fmt = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, '.000Z'); // MetaAPI ISO formati
-  return fetchMetaApi(`/users/current/accounts/${METAAPI_ACCOUNT_ID}/history-deals/time/${fmt(startTime)}/${fmt(endTime)}?limit=1000`);
+  return fetchMetaApi(`/history-deals/time/${fmtTime(startTime)}/${fmtTime(endTime)}?limit=1000`);
+}
+// Uzun araliklar icin: 1000'lik sayfalarla hepsini ceker (en fazla maxPages sayfa).
+const DEALS_PAGE = 1000;
+export async function fetchAllDealsByTimeRange(startTime: Date, endTime: Date, maxPages = 20): Promise<MetatraderDeal[]> {
+  const out: MetatraderDeal[] = [];
+  for (let page = 0; page < maxPages; page++) {
+    const batch: MetatraderDeal[] = await fetchMetaApi(
+      `/history-deals/time/${fmtTime(startTime)}/${fmtTime(endTime)}?offset=${page * DEALS_PAGE}&limit=${DEALS_PAGE}`,
+    );
+    out.push(...batch);
+    if (batch.length < DEALS_PAGE) return out;
+  }
+  console.warn(`fetchAllDealsByTimeRange: ${maxPages * DEALS_PAGE} deal sınırına ulaşıldı, kalanlar alınmadı`);
+  return out;
 }
 export async function fetchDealsByPosition(positionId: string): Promise<MetatraderDeal[]> {
-  return fetchMetaApi(`/users/current/accounts/${METAAPI_ACCOUNT_ID}/history-deals/position/${positionId}`);
+  return fetchMetaApi(`/history-deals/position/${positionId}`);
 }
 export async function fetchHistoryOrdersByPosition(positionId: string): Promise<MetatraderOrder[]> {
-  return fetchMetaApi(`/users/current/accounts/${METAAPI_ACCOUNT_ID}/history-orders/position/${positionId}`);
+  return fetchMetaApi(`/history-orders/position/${positionId}`);
 }
 
 // Bir pozisyonun TUM DEAL_ENTRY_OUT deal'lerinden hacim-agirlikli ortalama

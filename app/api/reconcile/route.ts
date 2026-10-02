@@ -1,6 +1,6 @@
 import pool from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchDealsByTimeRange, fetchOpenPositions } from '@/lib/reconcileHelpers';
+import { fetchDealsByTimeRange, fetchOpenPositions, positiveOrNull } from '@/lib/reconcileHelpers';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -91,7 +91,7 @@ export async function GET(req: NextRequest) {
     // Acik pozisyon tutarsizliklari
     for (const p of positions) {
       const order = orderByPositionId.get(p.id);
-      const sl = p.stopLoss ?? null, tp = p.takeProfit ?? null;
+      const sl = positiveOrNull(p.stopLoss), tp = positiveOrNull(p.takeProfit); // MT5'te 0 = tanimli degil
       if (!order || order.status !== 'OPEN') {
         discrepancies.push({
           type: 'OPEN_POSITION_MISSING', mt5PositionId: p.id, symbol: p.symbol ?? null,
