@@ -1,4 +1,4 @@
-# BTC Daily Bias — routine talimatları (v4)
+# BTC Daily Bias — routine talimatları (v5)
 
 Bu dosya BTC Daily Bias routine'inin tek talimat kaynağıdır. Routine'in kendi prompt'u yalnızca
 bu dosyayı okuyup uygulamasını söyler; talimat değişiklikleri buraya commit'lenir.
@@ -101,16 +101,14 @@ parçasıdır, atlama. Görev gün içinde birden fazla kez çalışabilir; her 
 1. "Son 24 saatte değişim" için önceki günün son çalışmasıyla karşılaştır: bias-data/data/daily-bias/ altındaki
    önceki günün (ya da en son önceki günün) en geç saatli JSON dosyasına bak.
 
-2. İstanbul (UTC+3) saatine göre: RUN_DATE = YYYY-MM-DD, RUN_HHMM = şu anki saat ve dakika (örn. 0907).
-   Hesapla: `TZ=Europe/Istanbul date +%Y-%m-%d` ve `TZ=Europe/Istanbul date +%H%M`.
+2. Zaman damgalarını sen yazma: run_date, generated_at ve dosya adı 4. adımdaki script tarafından
+   sistem saatinden basılır (İstanbul, UTC+3). Saati tahmin etme.
 
-3. Dosya: bias-data/data/daily-bias/<RUN_DATE>T<RUN_HHMM>.json (örn. 2026-10-03T0907.json).
-   Format bias-data/ingest/example.json ile birebir aynı olmalı:
+3. Aşağıdaki formatta bir TASLAK JSON'u `/tmp/daily-bias-draft.json` dosyasına yaz
+   (run_date ve generated_at OLMADAN; script ekler). Son hali bias-data/ingest/example.json ile aynı formattadır:
 
    ```
    {
-     "run_date": "<RUN_DATE>",
-     "generated_at": "<şu an, ISO 8601 UTC, örn. 2026-10-03T06:11:40Z>",
      "net_direction": "Güçlü Pozitif | Pozitif | Hafif Pozitif | Nötr | Hafif Negatif | Negatif | Güçlü Negatif",
      "sentiment_score": <-100..100 tam sayı>,
      "change_24h": "iyileşti | değişmedi | kötüleşti",
@@ -130,7 +128,7 @@ parçasıdır, atlama. Görev gün içinde birden fazla kez çalışabilir; her 
         "chg_24h_pct": <yüzde, örn. -1.25; bulunamazsa null>, "chg_7d_pct": <yüzde; bulunamazsa null>}
      ],
      "model": "<senin model kimliğin>",
-     "prompt_version": "v4"
+     "prompt_version": "v5"
    }
    ```
 
@@ -144,12 +142,15 @@ parçasıdır, atlama. Görev gün içinde birden fazla kez çalışabilir; her 
 
    Değerler metin çıktısıyla tutarlı olmalı. Geçerli JSON üret (yorum satırı yok).
 
-4. Doğrula: `cd bias-data/ingest && npm install --no-audit --no-fund && cd .. && node ingest/ingest.mjs --dry-run data/daily-bias/<RUN_DATE>T<RUN_HHMM>.json`
-   Hata verirse JSON'u düzelt ve tekrar doğrula. Geçmeden commit'leme.
+4. Damgala ve doğrula:
+   `cd bias-data/ingest && npm install --no-audit --no-fund && cd .. && node ingest/stamp.mjs /tmp/daily-bias-draft.json`
+   Script dosyayı data/daily-bias/<RUN_DATE>T<RUN_HHMM>.json olarak yazar, doğrular ve çıktısının SON SATIRINDA
+   yazdığı dosyanın yolunu verir (örn. data/daily-bias/2026-10-03T0907.json) — aşağıda DOSYA bu yoldur.
+   Hata verirse taslağı düzelt ve script'i tekrar çalıştır. Başarılı olmadan commit'leme.
 
-5. Sadece o JSON dosyasını commit'le ve push'la (node_modules gitignore'da):
+5. Sadece o dosyayı commit'le ve push'la (node_modules gitignore'da). Commit mesajındaki tarih ve saat DOSYA adından:
    ```
-   git -C bias-data add data/daily-bias/<RUN_DATE>T<RUN_HHMM>.json
+   git -C bias-data add <DOSYA>
    git -C bias-data -c user.name="Claude" -c user.email="noreply@anthropic.com" commit -m "daily-bias: <RUN_DATE> <RUN_HHMM> <bias> <confidence>"
    git -C bias-data push origin bias-data
    ```
@@ -159,5 +160,5 @@ parçasıdır, atlama. Görev gün içinde birden fazla kez çalışabilir; her 
 6. Push'tan sonra GitHub Action dosyayı btc_daily_bias tablosuna ayrı bir satır olarak yazar; bunu beklemene gerek yok.
 
 Son mesajında önce metin çıktısını ver, en sona tek satır ekle:
-"DB: <RUN_DATE>T<RUN_HHMM>.json bias-data'ya push edildi (commit <kısa sha>)" ya da başarısızsa nedenini ve git'in tam
+"DB: <DOSYA> bias-data'ya push edildi (commit <kısa sha>)" ya da başarısızsa nedenini ve git'in tam
 hata mesajını yaz.

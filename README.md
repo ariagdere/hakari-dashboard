@@ -13,6 +13,7 @@ Her çalışma ayrı satırdır (anahtar: `source_file`); günün son çalışma
 - Gerekli secret: `DATABASE_URL` → Railway Postgres'in **public** bağlantı adresi (`DATABASE_PUBLIC_URL`, `*.proxy.rlwy.net`). İç adres (`postgres.railway.internal`) GitHub'dan erişilemez.
 - SSL gerekirse: repo variable `PGSSL=true` ya da URL'e `?sslmode=require`.
 - Elle doğrulama: `node ingest/ingest.mjs --dry-run`
+- Zaman damgası: routine taslağı `run_date`/`generated_at` olmadan yazar; `node ingest/stamp.mjs <taslak.json>` bunları sistem saatinden basar, doğrular ve dosyayı `data/daily-bias/`'a koyar (model saati tahmin etmesin diye).
 - Elle yeniden yükleme: Actions → "BTC Daily Bias -> Postgres" → Run workflow.
 
 ## Routine talimatları
