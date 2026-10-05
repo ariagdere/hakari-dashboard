@@ -1,0 +1,117 @@
+{
+  "run_date": "2026-10-05",
+  "generated_at": "2026-10-05T06:22:39Z",
+  "net_direction": "Nötr",
+  "sentiment_score": -5,
+  "change_24h": "iyileşti",
+  "drivers": [
+    "Eylül NFP +29K, işsizlik %4.2; Ekim Fed artırım ihtimali ~%17'ye çöktü",
+    "10Y %5.28, 2Y %4.84 ile yüksek; reel faizler sıkı, Aralık artırımı fiyatlanıyor",
+    "DXY ~102'de 3. haftalık kazanca yöneldi; USD/JPY ~158",
+    "Risk iştahı toparlanıyor: Nasdaq +1.2%, VIX 15.3; Brent ~$101'e geriledi"
+  ],
+  "developments": [
+    {
+      "item": "Eylül NFP +29K (beklenti ~84K), işsizlik %4.2",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Ekim Fed artırım ihtimali ~%17'ye düştü",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "10Y %5.28'e yükseldi, Aralık artırımı hâlâ fiyatlanıyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "DXY ~102, üçüncü haftalık kazanç",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Nasdaq +1.2%, S&P +0.7%, VIX 15.3",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Yemen'de Suudi destekli Husi karşıtı operasyon",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Suudi Asya OSP indirimi, Brent ~$101'e geriledi",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Spot BTC ETF haftalık ~+$83M (zayıf), ETH ETF -$118M",
+      "impact": "Nötr"
+    },
+    {
+      "item": "BOJ görüş özeti beklenenden az şahin, yen ~158",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Altın -0.95%, güvenli liman talebi zayıf",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "Hafta sonu Suudi destekli güçlerin Yemen'de Husi bölgelerine kapsamlı operasyon başlatması jeopolitik riski artırdı, ancak Suudi Arabistan'ın Asya'ya resmi satış fiyatını sert indirmesi Brent'i Pazartesi sabahı ~%0.9 düşürerek enerji kaynaklı enflasyon riskini dengeledi. Zayıf istihdam sonrası artırım beklentilerinin sönmesiyle Asya vadelileri yükselişe işaret ediyor; petrol yükselişe dönmezse bu, BTC için makro baskının hafiflediği bir haftaya başlangıç anlamına gelir.",
+  "divergence": "relative weakness",
+  "divergence_note": "Fed artırım ihtimali çökerken ve Nasdaq %1.2 yükselirken BTC $87K'yı yine aşamadı, hafta sonu ~$84.7K'ya geri çekilip şu an ~$85.5K'da; makro rahatlamaya tepkisi zayıf.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Temkinli risk-on",
+  "conclusion": "Fed artırım riskinin azalması ve hisselerdeki risk iştahı BTC talebini destekliyor, ancak %5.3'e yakın 10Y, güçlü dolar ve zayıf ETF akımları (haftalık yalnızca ~+$83M) yukarı yönü sınırlıyor. Önümüzdeki 24-72 saatte tahvil faizleri ve petrol geri çekilirse yukarı denemesi mümkün; makro zemin nötr, net bir yön avantajı yok.",
+  "bias": "NEUTRAL",
+  "confidence": "Orta",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Nötr\n\nSentiment skoru: -5\n\nSon 24 saatte değişim: İyileşti (önceki çalışma 2026-10-02 16:40, skor -15)\n\nAna sürücüler:\n- Eylül NFP sadece +29K (beklenti ~84K), işsizlik %4.2, revizyonlar -60K; Ekim Fed artırım ihtimali ~%17'ye çöktü (bir hafta önce ~%36, Kalshi'de ~%70)\n- Buna rağmen ABD 10Y %5.28, 2Y %4.84 ile yüksek kaldı; reel faizler sıkı, Aralık artırımı hâlâ fiyatlanıyor\n- DXY ~102 civarında 3. haftalık kazanca yöneldi; BOJ şahin sinyali zayıf kaldı, USD/JPY ~158\n- Risk iştahı toparlanıyor: Nasdaq +1.2%, S&P +0.7%, VIX 15.3; Brent Suudi fiyat indirimiyle ~$101'e geriledi, Yemen gerilimi sürüyor\n\nEn önemli yeni gelişme:\nHafta sonu Suudi destekli güçlerin Yemen'de Husi bölgelerine kapsamlı operasyon başlatması jeopolitik riski artırdı, ancak Suudi Arabistan'ın Asya'ya resmi satış fiyatını sert indirmesi Brent'i Pazartesi sabahı ~%0.9 düşürerek enerji kaynaklı enflasyon riskini dengeledi. Zayıf istihdam sonrası artırım beklentilerinin sönmesiyle Asya vadelileri yükselişe işaret ediyor; petrol yükselişe dönmezse bu, BTC için makro baskının hafiflediği bir haftaya başlangıç anlamına gelir.\n\nMakro uyumsuzluk kontrolü: Relative weakness. Fed artırım ihtimali çökerken ve Nasdaq %1.2 yükselirken BTC $87K'yı yine aşamadı, hafta sonu ~$84.7K'ya geri çekilip şu an ~$85.5K'da; makro rahatlamaya tepkisi zayıf.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Temkinli risk-on\n\nBTC için sonuç:\nFed artırım riskinin azalması ve hisselerdeki risk iştahı BTC talebini destekliyor, ancak %5.3'e yakın 10Y, güçlü dolar ve zayıf ETF akımları (haftalık yalnızca ~+$83M) yukarı yönü sınırlıyor. Önümüzdeki 24-72 saatte tahvil faizleri ve petrol geri çekilirse yukarı denemesi mümkün; makro zemin nötr, net bir yön avantajı yok.\n\nVarlık güç sıralaması:\n1. NASDAQ — 6.5/10 — Zayıf istihdam sonrası artırım beklentileri sönünce teknoloji öncülüğünde yükseldi, haftayı artıda kapattı (Nasdaq Composite verisi). (24s: +1.2%, 7g: +0.5%)\n2. SPX — 6/10 — Cuma günü güçlü toparlandı ama haftalık bazda hafif ekside kaldı. (24s: +0.7%, 7g: -0.3%)\n3. BTC — 5.5/10 — Hafta sonu $87K reddinden sonra ~$85.5K'da yatay-hafif pozitif seyrediyor. (24s: +0.8%, 7g: +3.0%)\n4. DXY — 5.5/10 — Cuma hafif geriledi ancak ~102 civarında üçüncü haftalık kazancına yöneldi. (24s: -0.2%, 7g: bulunamadı)\n5. XAUUSD — 4.5/10 — Faizlerin yüksek kalması ve risk iştahıyla güvenli liman talebi zayıfladı. (24s: -0.95%, 7g: bulunamadı)\n6. BRENT — 4.5/10 — Suudi fiyat indirimi Yemen kaynaklı jeopolitik primi bastırdı. (24s: -0.9%, 7g: bulunamadı)\n7. VIX — 3.5/10 — Korku endeksi 15.3'e geriledi, piyasada belirgin stres yok. (24s: -6.6%, 7g: bulunamadı)\n\nBTC Makro Bias: NEUTRAL — Güven: Orta",
+  "asset_strength": [
+    {
+      "asset": "NASDAQ",
+      "score": 6.5,
+      "reason": "Zayıf istihdam sonrası artırım beklentileri sönünce teknoloji öncülüğünde yükseldi, haftayı artıda kapattı (Nasdaq Composite verisi).",
+      "chg_24h_pct": 1.2,
+      "chg_7d_pct": 0.5
+    },
+    {
+      "asset": "SPX",
+      "score": 6,
+      "reason": "Cuma günü güçlü toparlandı ama haftalık bazda hafif ekside kaldı.",
+      "chg_24h_pct": 0.7,
+      "chg_7d_pct": -0.3
+    },
+    {
+      "asset": "BTC",
+      "score": 5.5,
+      "reason": "Hafta sonu $87K reddinden sonra ~$85.5K'da yatay-hafif pozitif seyrediyor.",
+      "chg_24h_pct": 0.8,
+      "chg_7d_pct": 3
+    },
+    {
+      "asset": "DXY",
+      "score": 5.5,
+      "reason": "Cuma hafif geriledi ancak ~102 civarında üçüncü haftalık kazancına yöneldi.",
+      "chg_24h_pct": -0.2,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 4.5,
+      "reason": "Faizlerin yüksek kalması ve risk iştahıyla güvenli liman talebi zayıfladı.",
+      "chg_24h_pct": -0.95,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "BRENT",
+      "score": 4.5,
+      "reason": "Suudi fiyat indirimi Yemen kaynaklı jeopolitik primi bastırdı.",
+      "chg_24h_pct": -0.9,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "VIX",
+      "score": 3.5,
+      "reason": "Korku endeksi 15.3'e geriledi, piyasada belirgin stres yok.",
+      "chg_24h_pct": -6.6,
+      "chg_7d_pct": null
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
