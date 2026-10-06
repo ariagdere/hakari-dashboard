@@ -214,6 +214,20 @@ export async function GET(req: NextRequest) {
         return `${tf} ${c.candles}${c.complete ? '' : ' (eksik)'}${c.source ? ` [${c.source}]` : ''}${c.behind ? ' geride' : ''}`
       }).join(' · '),
   )
+  // Son 72 saatteki mum bosluklari (eksik mumlar). Piyasa gercekten kapaliysa (bakim vb.) normal olabilir;
+  // MetaApi'de verisi olan bosluklar acilista ve tazelemede otomatik doldurulur.
+  const fmtTr = (iso: string) =>
+    new Date(iso).toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+  const gapParts: string[] = []
+  for (const tf of TIMEFRAMES) {
+    const gaps = ((candleStore[tf] as any)?.gaps72h ?? []) as Array<{ after: string; before: string; missing: number }>
+    for (const g of gaps.slice(-3)) gapParts.push(`${tf} ${fmtTr(g.after)} → ${fmtTr(g.before)} (${g.missing} mum)`)
+  }
+  summary.push(
+    gapParts.length === 0
+      ? 'OK   Grafik mumlarında son 3 günde boşluk yok'
+      : `INFO Grafik mumlarında boşluk (son 3 gün, İstanbul saati): ${gapParts.join(' · ')}`,
+  )
   const candleDb = candleStore.db as any
   summary.push(
     candleDb?.available && !candleDb?.lastError

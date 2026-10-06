@@ -47,6 +47,11 @@ const KEEPER_TICK_MS = 10_000
 // guncelleniyor; bu tazeleme broker'in kesin OHLC'sini ve kapanan mumlari getirir.
 const KEEP_FRESH_MS: Record<Timeframe, number> = { '5m': 20_000, '15m': 30_000, '1h': 60_000, '4h': 60_000, '1d': 60_000 }
 const MAX_CONCURRENT = 3 // MetaApi: hesap basina ayni anda en fazla 5 historical istek; pay birakiyoruz
+// Acilista (DB'den yuklemede) bu kadar geriye kadar mum bosluklari aranir ve MetaApi'den onarilir
+const REPAIR_WINDOW_SEC = 72 * 3600
+// Ardisik iki mum arasi bu kadar periyottan fazlaysa arada eksik mum var. 1,5: broker saatine hizali
+// 4h/1d mumlar yaz/kis saati gecisinde bir saat kayabiliyor (bosluk sayilmamali).
+const GAP_FACTOR = 1.5
 
 interface TfStore {
   candles: StoredCandle[]
@@ -61,6 +66,7 @@ interface TfStore {
   lastError: string | null
   lastFullMs: number | null
   gapWarnedAt: number
+  repairFrom: number | null // DB'den yuklenen veride en eski bosluktan onceki mumun zamani (onarilacak)
 }
 
 interface Globals {
@@ -88,7 +94,7 @@ function store(tf: Timeframe): TfStore {
   if (!s) {
     s = {
       candles: [], complete: false, source: null, dbChecked: false, dbLoading: null, loading: null, tailing: null,
-      attemptAt: 0, tailAt: 0, lastError: null, lastFullMs: null, gapWarnedAt: 0,
+      attemptAt: 0, tailAt: 0, lastError: null, lastFullMs: null, gapWarnedAt: 0, repairFrom: null,
     }
     G.stores.set(tf, s)
   }
@@ -137,11 +143,24 @@ export function toChartCandles(raw: unknown): StoredCandle[] {
 // Yeni mumlari depoya isler: yenilerin ilk mumundan itibaren depodakileri degistirir, yenileri
 // ekler, en fazla `max` mum tutar. Yeniler, depodaki son mumdan bir periyottan fazla ileride
 // basliyorsa arada eksik mum var demektir (gap).
+// Mum dizisindeki bosluklar (ardisik iki mum arasi > GAP_FACTOR periyot), sinceSec'ten sonrakiler.
+// after: bosluktan onceki son mum, before: bosluktan sonraki ilk mum (UTC sn), missing: eksik mum sayisi.
+export function findGaps(candles: ChartCandle[], stepSec: number, sinceSec = 0): Array<{ after: number; before: number; missing: number }> {
+  const gaps: Array<{ after: number; before: number; missing: number }> = []
+  for (let i = 1; i < candles.length; i++) {
+    const prev = candles[i - 1].time
+    const cur = candles[i].time
+    if (cur < sinceSec) continue
+    if (cur - prev > stepSec * GAP_FACTOR) gaps.push({ after: prev, before: cur, missing: Math.round((cur - prev) / stepSec) - 1 })
+  }
+  return gaps
+}
+
 export function mergeTail<T extends ChartCandle>(existing: T[], tail: T[], max: number, stepSec: number): { candles: T[]; gap: boolean } {
   if (tail.length === 0) return { candles: existing, gap: false }
   if (existing.length === 0) return { candles: tail.slice(-max), gap: false }
   const firstTail = tail[0].time
-  const gap = firstTail > existing[existing.length - 1].time + stepSec
+  const gap = firstTail - existing[existing.length - 1].time > stepSec * GAP_FACTOR
   let cut = existing.length
   while (cut > 0 && existing[cut - 1].time >= firstTail) cut--
   const merged = existing.slice(0, cut).concat(tail)
@@ -262,6 +281,13 @@ function loadFromDb(tf: Timeframe): Promise<void> {
     s.source = 'db'
     s.complete = rows.length >= FULL_LIMIT
     s.tailAt = 0 // tazeligi bilinmiyor: bakici hemen eksikleri ceker
+    // Son 72 saatte bosluk varsa ilk tazeleme o bosluktan itibaren ister (eskiden kalan eksikler onarilir)
+    const stepSec = TIMEFRAME_MS[tf] / 1000
+    const gaps = findGaps(rows, stepSec, Date.now() / 1000 - REPAIR_WINDOW_SEC)
+    s.repairFrom = gaps.length > 0 ? gaps[0].after : null
+    if (gaps.length > 0) {
+      console.log(`[axiCandles] ${tf}: DB'de son 72 saatte ${gaps.length} bosluk (${gaps.reduce((n, g) => n + g.missing, 0)} mum), MetaApi'den onarilacak`)
+    }
     if (!s.complete) s.attemptAt = 0 // 1000'e tamamlamayi hemen dene (arka planda)
   })().finally(() => {
     s.dbLoading = null
@@ -308,28 +334,41 @@ function ensureFullLoad(tf: Timeframe): Promise<void> {
 
 // Eksik mumlari ceker (+2: son kayitli mumu tamamlamak ve olusan mum icin), depoya isler,
 // DB'ye yazar. Hic reject etmez. Eksik sayisi son basarili tazelemeden bu yana gecen sureden
-// hesaplanir (tazeleme yoksa, orn. DB'den yeni yuklendiyse, depodaki son mumdan): boylece piyasa
-// kapaliyken (yeni mum olusmazken) istekler buyumez, hep birkac mumluk kalir.
+// hesaplanir (tazeleme yoksa, orn. DB'den yeni yuklendiyse, depodaki son mumdan ya da onarilacak
+// bosluktan): yeni mum gelmezken istekler buyumez, hep birkac mumluk kalir.
+// Yeni gelen mumlar depodaki son mumdan uzaksa (bosluk) aradaki mumlar bir kez daha istenir: MetaApi
+// bir sure yeni mum dondurmeyip sonra devam ettiyse eksikler boylece doldurulur. MetaApi o aralik
+// icin de mum dondurmuyorsa (piyasa gercekten kapaliydi) bosluk kalir.
 function refreshTail(tf: Timeframe): Promise<void> {
   const s = store(tf)
   if (s.tailing) return s.tailing
   s.tailing = (async () => {
     try {
-      const newest = s.candles[s.candles.length - 1]
+      const existing = s.candles
+      const newest = existing[existing.length - 1]
       const stepSec = TIMEFRAME_MS[tf] / 1000
       const nowSec = Date.now() / 1000
-      const since = !newest ? nowSec - FULL_LIMIT * stepSec : s.tailAt > 0 ? Math.max(newest.time, s.tailAt / 1000 - stepSec) : newest.time
+      let since = !newest ? nowSec - FULL_LIMIT * stepSec : s.tailAt > 0 ? Math.max(newest.time, s.tailAt / 1000 - stepSec) : newest.time
+      if (s.repairFrom != null) since = Math.min(since, s.repairFrom)
       const periods = Math.floor((nowSec - since) / stepSec)
       const limit = Math.min(FULL_LIMIT, Math.max(TAIL_MIN, periods + 2))
-      const tail = await withSlot(() => fetchCandles(tf, limit, limit > 50 ? FULL_TIMEOUT_MS : TAIL_TIMEOUT_MS))
-      const { candles, gap } = mergeTail(s.candles, tail, FULL_LIMIT, stepSec)
+      let fetched = await withSlot(() => fetchCandles(tf, limit, limit > 50 ? FULL_TIMEOUT_MS : TAIL_TIMEOUT_MS))
+      let { candles, gap } = mergeTail(existing, fetched, FULL_LIMIT, stepSec)
+      if (gap && newest) {
+        const missing = Math.floor((nowSec - newest.time) / stepSec) + 2
+        const fillLimit = Math.min(FULL_LIMIT, Math.max(limit + 1, missing))
+        console.warn(`[axiCandles] ${tf}: son mumla yeni mumlar arasinda bosluk var, aradaki ${missing - 2} mum isteniyor (limit=${fillLimit})`)
+        fetched = await withSlot(() => fetchCandles(tf, fillLimit, fillLimit > 50 ? FULL_TIMEOUT_MS : TAIL_TIMEOUT_MS))
+        ;({ candles, gap } = mergeTail(existing, fetched, FULL_LIMIT, stepSec))
+        if (gap && Date.now() - s.gapWarnedAt > 60 * 60_000) {
+          s.gapWarnedAt = Date.now()
+          console.warn(`[axiCandles] ${tf}: MetaApi bosluk araligi icin mum dondurmuyor (piyasa kapali kalmis olabilir)`)
+        }
+      }
       s.candles = candles
       s.tailAt = Date.now()
-      if (gap && Date.now() - s.gapWarnedAt > 60 * 60_000) {
-        s.gapWarnedAt = Date.now()
-        console.warn(`[axiCandles] ${tf}: son mumla yeni mumlar arasinda bosluk var (piyasa kapali kalmis ya da sunucu ${FULL_LIMIT} mumdan uzun sure kapali kalmis)`)
-      }
-      void dbSave(tf, tail)
+      s.repairFrom = null
+      void dbSave(tf, fetched)
     } catch (err: any) {
       s.lastError = String(err?.message ?? err)
     }
@@ -420,7 +459,13 @@ export function getAxiCandleStoreStatus() {
       continue
     }
     const newest = s.candles[s.candles.length - 1]
+    const stepSec = TIMEFRAME_MS[tf] / 1000
     out[tf] = {
+      gaps72h: findGaps(s.candles, stepSec, now / 1000 - REPAIR_WINDOW_SEC).map((g) => ({
+        after: new Date(g.after * 1000).toISOString(),
+        before: new Date(g.before * 1000).toISOString(),
+        missing: g.missing,
+      })),
       candles: s.candles.length,
       complete: s.complete,
       source: s.source,
