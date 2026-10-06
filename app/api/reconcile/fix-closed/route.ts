@@ -1,6 +1,6 @@
 import pool from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
-import { classifyClose, fetchDealsByPosition, fillBlankSlTp, resolveMt5SlTp, summarizeCloseDeals } from '@/lib/reconcileHelpers';
+import { classifyClose, fetchDealsByPosition, fillBlankSlTp, positionVolumes, resolveMt5SlTp, summarizeCloseDeals } from '@/lib/reconcileHelpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     if (!orderId || !positionId) return NextResponse.json({ error: 'orderId ve positionId zorunlu' }, { status: 400 });
 
     const { rows: existingRows } = await pool.query(
-      `SELECT id, status, sl, tp, entry_price, fill_price, analysis_id FROM orders WHERE id = $1`,
+      `SELECT id, status, volume, sl, tp, entry_price, fill_price, analysis_id FROM orders WHERE id = $1`,
       [orderId],
     );
     const existing = existingRows[0];
@@ -26,8 +26,16 @@ export async function POST(req: NextRequest) {
     }
 
     const deals = await fetchDealsByPosition(positionId);
-    const outDeals = deals.filter((d) => d.entryType === 'DEAL_ENTRY_OUT');
+    // Kismi kapanislar dahil TUM kapanis deal'leri (DEAL_ENTRY_OUT / OUT_BY)
+    const volumes = positionVolumes(deals, Number(existing.volume));
+    const outDeals = volumes.outs;
     if (outDeals.length === 0) return NextResponse.json({ error: 'Kapanış deal\'i bulunamadı' }, { status: 400 });
+    if (!volumes.fullyClosed) {
+      return NextResponse.json(
+        { error: `MT5'te pozisyon henüz tamamen kapanmamış (kapanan ${volumes.closedVolume.toFixed(2)} / ${volumes.openVolume} lot)` },
+        { status: 409 },
+      );
+    }
 
     const mt5 = resolveMt5SlTp(deals);
     const slTpFill = await fillBlankSlTp(existing, mt5.sl, mt5.tp);
@@ -38,7 +46,8 @@ export async function POST(req: NextRequest) {
     const { exitReason, isManual } = classifyClose(lastOutDeal.reason, avgClosePrice, sl, tp, totalPnl);
 
     await pool.query(
-      `UPDATE orders SET status='CLOSED', close_price=$1, realized_pnl=$2, closed_at=$3, exit_reason=$4, is_manual=$5, updated_at=now() WHERE id=$6`,
+      `UPDATE orders SET status='CLOSED', close_price=$1, realized_pnl=$2, closed_at=$3, exit_reason=$4, is_manual=$5, updated_at=now()
+        WHERE id=$6 AND status != 'CLOSED'`,
       [avgClosePrice, totalPnl, lastOutDeal.time, exitReason, isManual, orderId]
     );
 
