@@ -15,6 +15,7 @@ import NewsBox from '@/components/NewsBox'
 import OrderPanel, { ChartPick, OrderDraft } from '@/components/OrderPanel'
 import { attachLevelInteractions, LevelTarget, PickKind } from '@/lib/chartLevelInteractions'
 import { applyQuoteToBar } from '@/lib/formingCandle'
+import { snapToBar } from '@/lib/chartMarkers'
 
 ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, Filler, Legend)
 
@@ -407,6 +408,7 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
   const priceLinesRef = useRef<any[]>([])
+  const [unplacedMarkers, setUnplacedMarkers] = useState<string[]>([]) // mumu olmayan zamana dusen isaretler
   // Emir panelinin SL/TP cizgileri (surukleme sirasinda fiyatlari dogrudan guncellenir)
   const draftLinesRef = useRef<{ sl: IPriceLine | null; tp: IPriceLine | null }>({ sl: null, tp: null })
   const draftRef = useRef<OrderDraft | null>(draft)
@@ -616,37 +618,36 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
     // Marker'lar olayin dustugu mumun acilis zamanina oturtulur. Grafikteki mumlarin kendi
     // zamanlarina bakiyoruz (UTC yuvarlamasi degil) -- Axi'nin 4h/1d mumlari broker saatine
     // hizali acildigi icin (orn. 21:00Z) UTC'ye yuvarlanan zaman hicbir mumla eslesmezdi.
+    // Olay hicbir mumun suresine dusmuyorsa (veri boslugu / grafik disi) isaret konmaz ve
+    // grafigin altinda belirtilir -- eskiden bosluktan onceki son muma oturuyordu.
     const barTimes = candles.map((c) => toLocalTime(c.time))
-    const snapToBar = (iso: string): number | null => {
-      const t = toLocalTime(Math.floor(new Date(iso).getTime() / 1000))
-      let lo = 0
-      let hi = barTimes.length - 1
-      let found = -1
-      while (lo <= hi) {
-        const mid = (lo + hi) >> 1
-        if (barTimes[mid] <= t) { found = mid; lo = mid + 1 } else { hi = mid - 1 }
-      }
-      return found >= 0 ? barTimes[found] : null
-    }
+    // Canli fiyattan olusan mum (henuz sunucu verisinde yok) da sayilir: yeni acilan islem hemen gorunsun
+    const formingTime = lastBarRef.current?.time
+    if (typeof formingTime === 'number' && (barTimes.length === 0 || formingTime > barTimes[barTimes.length - 1])) barTimes.push(formingTime)
+    const stepSec = INTERVAL_SEC[interval]
     const markers: any[] = []
-    const pushMarker = (iso: string, marker: Record<string, unknown>) => {
-      const time = snapToBar(iso)
+    const notPlaced: string[] = []
+    const pushMarker = (iso: string, label: string, marker: Record<string, unknown>) => {
+      const time = snapToBar(barTimes, toLocalTime(Math.floor(new Date(iso).getTime() / 1000)), stepSec)
       if (time != null) markers.push({ ...marker, time })
+      else notPlaced.push(label)
     }
     selectedOrders.forEach((o) => {
       const isBuy = isLong(o.direction)
       if (o.created_at) {
-        pushMarker(o.created_at, { position: 'aboveBar', color: '#fbbf24', shape: 'square', text: `Order #${o.id}` })
+        pushMarker(o.created_at, `Order #${o.id}`, { position: 'aboveBar', color: '#fbbf24', shape: 'square', text: `Order #${o.id}` })
       }
       if (o.opened_at) {
-        pushMarker(o.opened_at, { position: isBuy ? 'belowBar' : 'aboveBar', color: '#60a5fa', shape: isBuy ? 'arrowUp' : 'arrowDown', text: `In #${o.id}` })
+        pushMarker(o.opened_at, `In #${o.id}`, { position: isBuy ? 'belowBar' : 'aboveBar', color: '#60a5fa', shape: isBuy ? 'arrowUp' : 'arrowDown', text: `In #${o.id}` })
       }
       if (o.status === 'CLOSED' && o.closed_at) {
         const exitColor = o.exit_reason === 'TP' ? '#4ade80' : o.exit_reason === 'SL' ? '#f87171' : '#a0a0a0'
-        pushMarker(o.closed_at, { position: isBuy ? 'aboveBar' : 'belowBar', color: exitColor, shape: 'circle', text: `Out #${o.id} ${o.exit_reason ?? ''}` })
+        pushMarker(o.closed_at, `Out #${o.id}`, { position: isBuy ? 'aboveBar' : 'belowBar', color: exitColor, shape: 'circle', text: `Out #${o.id} ${o.exit_reason ?? ''}` })
       }
     })
     markers.sort((a, b) => (a.time as number) - (b.time as number))
+    const nextUnplaced = candles.length > 0 ? notPlaced : []
+    setUnplacedMarkers((prev) => (prev.join('|') === nextUnplaced.join('|') ? prev : nextUnplaced))
     series.setMarkers(markers)
   }, [selectedOrders, candles, interval])
 
@@ -656,6 +657,11 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
   return (
     <div style={{ position: 'relative' }}>
       <div ref={containerRef} style={{ width: '100%', touchAction: 'manipulation' }} />
+      {unplacedMarkers.length > 0 && (
+        <div data-testid="unplaced-markers" className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 6 }}>
+          Grafikte bu zamanlara ait mum yok, işaret konmadı: {unplacedMarkers.join(', ')}
+        </div>
+      )}
       {pickHint && (
         <div
           className="mono"
