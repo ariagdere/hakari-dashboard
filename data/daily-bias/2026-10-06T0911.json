@@ -1,0 +1,121 @@
+{
+  "run_date": "2026-10-06",
+  "generated_at": "2026-10-06T06:11:50Z",
+  "net_direction": "Hafif Negatif",
+  "sentiment_score": -15,
+  "change_24h": "kötüleşti",
+  "drivers": [
+    "ABD 10Y %5.31 ile 2002'den beri zirvede; ISM hizmet fiyat endeksi 74'e çıktı, Aralık artırım ihtimali ~%67",
+    "DXY ~102.2-102.5 ile Nisan 2025'ten beri zirvede; Fransa borç krizi ve İspanya erken seçimiyle euro 17 ayın dibinde",
+    "Husilerin Riyad havalimanı ve Aramco Rabigh rafinerisine saldırısı, Hürmüz'de vurulan tankerler; Brent ~$101-103",
+    "Hisselerde risk iştahı güçlü (Nasdaq rekor, VIX ~15.5) ama spot BTC ETF'leri Pazartesi -$89.8M net çıkış"
+  ],
+  "developments": [
+    {
+      "item": "ABD 10Y +3bp ile %5.31, 2002'den beri en yüksek seviyeye yakın",
+      "impact": "Negatif"
+    },
+    {
+      "item": "ISM hizmet 54.9'a geriledi, fiyat alt endeksi 72.6'dan 74'e yükseldi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Ekim Fed artırım ihtimali ~%22'de düşük kaldı, Aralık artırımı ~%67 fiyatlanıyor",
+      "impact": "Nötr"
+    },
+    {
+      "item": "DXY ~102.5 ile 17 ayın zirvesi; euro Fransa borç krizi ve İspanya erken seçimiyle $1.116'ya düştü",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Husilerin Riyad havalimanı ve Aramco Rabigh rafinerisine füze/İHA saldırısı; Hürmüz'de 3 tanker vuruldu",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Brent Pazartesi ~$103'e çıktıktan sonra G7 stok salımı ve Hürmüz akışlarıyla ~$101'e geriledi",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Nasdaq ve Nvidia rekor kırdı, S&P 500 +%0.7; VIX ~15.5",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Spot BTC ETF Pazartesi -$89.8M (haftalık +$241M); ETH ETF haftalık -$138M",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Stablecoin arzı ~$270B'da toparlanıyor ama büyüme yavaşladı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Altın -%0.4 ile ~$4,120; aylık -%6.4, güvenli liman talebi zayıf",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Asya karışık: Nikkei +%0.3, Hang Seng +%0.8, Kospi -%0.8; USD/JPY ~158.2",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "Hafta sonu ve Pazartesi Husilerin Riyad'daki King Khalid Havalimanı ile Aramco'nun Rabigh rafinerisine balistik füze ve İHA'larla saldırması, Hürmüz'de üç tankerin vurulmasıyla birleşince Körfez'deki jeopolitik risk yeni bir seviyeye taşındı. Brent şimdilik G7 stok salımı ve toparlanan Hürmüz akışları sayesinde ~$101'de tutunuyor, ancak saldırıların Suudi üretim/ihracat altyapısına kayması petrolü yeniden $105 üzerine itebilir; bu da zaten %74'e çıkan ISM fiyat baskısı ve %5.3'lük 10Y ile birleşince Aralık artırım beklentisini kalıcı hale getirip BTC üzerindeki faiz-dolar baskısını artırabilir.",
+  "divergence": "relative weakness",
+  "divergence_note": "Nasdaq rekor kırarken ve VIX 15.5 civarında düşük kalırken BTC son 24 saatte ~%1 gerileyerek ~$85.6K'ya indi ve $86-87K direncini yine aşamadı; spot ETF'ler de çıkışa döndü. Yükselen faiz ve dolar kısmen açıklasa da risk iştahına göre zayıf kalıyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Temkinli risk-on",
+  "conclusion": "Rekor seviyedeki hisseler BTC'yi destekleyebilecek risk iştahı sağlıyor, ancak %5.3'lük 10Y, 17 ayın zirvesindeki dolar, yeniden ısınan hizmet enflasyonu ve Körfez'deki tırmanma makro zemini hafif negatife çeviriyor. Önümüzdeki 24-72 saatte Çarşamba'ki FOMC tutanakları ve petrol belirleyici olacak; şahin tutanak veya Brent'te $105 üzeri BTC'yi $82-84K bölgesine baskılayabilirken, net yön avantajı zayıf.",
+  "bias": "NEUTRAL",
+  "confidence": "Orta",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Hafif Negatif\n\nSentiment skoru: -15\n\nSon 24 saatte değişim: Kötüleşti (önceki çalışma 2026-10-05 09:22, skor -5)\n\nAna sürücüler:\n- ABD 10Y %5.31 ile 2002'den beri zirvede; ISM hizmet fiyat endeksi 74'e çıktı, Aralık artırım ihtimali ~%67\n- DXY ~102.2-102.5 ile Nisan 2025'ten beri zirvede; Fransa borç krizi ve İspanya erken seçimiyle euro 17 ayın dibinde\n- Husilerin Riyad havalimanı ve Aramco Rabigh rafinerisine saldırısı, Hürmüz'de vurulan tankerler; Brent ~$101-103\n- Hisselerde risk iştahı güçlü (Nasdaq rekor, VIX ~15.5) ama spot BTC ETF'leri Pazartesi -$89.8M net çıkış\n\nGelişmeler:\n- ABD 10Y +3bp ile %5.31, 2002'den beri en yüksek seviyeye yakın → Negatif\n- ISM hizmet 54.9'a geriledi, fiyat alt endeksi 72.6'dan 74'e yükseldi → Negatif\n- Ekim Fed artırım ihtimali ~%22'de düşük kaldı, Aralık artırımı ~%67 fiyatlanıyor → Nötr\n- DXY ~102.5 ile 17 ayın zirvesi; euro Fransa borç krizi ve İspanya erken seçimiyle $1.116'ya düştü → Negatif\n- Husilerin Riyad havalimanı ve Aramco Rabigh rafinerisine füze/İHA saldırısı; Hürmüz'de 3 tanker vuruldu → Negatif\n- Brent Pazartesi ~$103'e çıktıktan sonra G7 stok salımı ve Hürmüz akışlarıyla ~$101'e geriledi → Nötr\n- Nasdaq ve Nvidia rekor kırdı, S&P 500 +%0.7; VIX ~15.5 → Pozitif\n- Spot BTC ETF Pazartesi -$89.8M (haftalık +$241M); ETH ETF haftalık -$138M → Negatif\n- Stablecoin arzı ~$270B'da toparlanıyor ama büyüme yavaşladı → Nötr\n- Altın -%0.4 ile ~$4,120; aylık -%6.4, güvenli liman talebi zayıf → Nötr\n- Asya karışık: Nikkei +%0.3, Hang Seng +%0.8, Kospi -%0.8; USD/JPY ~158.2 → Nötr\n\nEn önemli yeni gelişme:\nHafta sonu ve Pazartesi Husilerin Riyad'daki King Khalid Havalimanı ile Aramco'nun Rabigh rafinerisine balistik füze ve İHA'larla saldırması, Hürmüz'de üç tankerin vurulmasıyla birleşince Körfez'deki jeopolitik risk yeni bir seviyeye taşındı. Brent şimdilik G7 stok salımı ve toparlanan Hürmüz akışları sayesinde ~$101'de tutunuyor, ancak saldırıların Suudi üretim/ihracat altyapısına kayması petrolü yeniden $105 üzerine itebilir; bu da zaten %74'e çıkan ISM fiyat baskısı ve %5.3'lük 10Y ile birleşince Aralık artırım beklentisini kalıcı hale getirip BTC üzerindeki faiz-dolar baskısını artırabilir.\n\nMakro uyumsuzluk kontrolü: Relative weakness. Nasdaq rekor kırarken ve VIX 15.5 civarında düşük kalırken BTC son 24 saatte ~%1 gerileyerek ~$85.6K'ya indi ve $86-87K direncini yine aşamadı; spot ETF'ler de çıkışa döndü. Yükselen faiz ve dolar kısmen açıklasa da risk iştahına göre zayıf kalıyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Temkinli risk-on\n\nBTC için sonuç:\nRekor seviyedeki hisseler BTC'yi destekleyebilecek risk iştahı sağlıyor, ancak %5.3'lük 10Y, 17 ayın zirvesindeki dolar, yeniden ısınan hizmet enflasyonu ve Körfez'deki tırmanma makro zemini hafif negatife çeviriyor. Önümüzdeki 24-72 saatte Çarşamba'ki FOMC tutanakları ve petrol belirleyici olacak; şahin tutanak veya Brent'te $105 üzeri BTC'yi $82-84K bölgesine baskılayabilirken, net yön avantajı zayıf.\n\nVarlık güç sıralaması:\n1. NASDAQ — 6.5/10 — Nvidia öncülüğünde Nasdaq 100 ~30,808 ile yeni rekora ulaştı, yüksek faizlere rağmen teknoloji güçlü. (24s: +1%, 7g: bulunamadı)\n2. SPX — 6/10 — Satın alma haberleri ve teknolojiyle yükseldi, rekora %0.3 mesafede. (24s: +0.7%, 7g: bulunamadı)\n3. DXY — 5.5/10 — Euro'daki Fransa kaynaklı çöküşle Nisan 2025'ten beri en yüksek seviyeye (~102.5) çıktı, aylık +%3. (24s: +0.2%, 7g: bulunamadı)\n4. BRENT — 5.5/10 — Husi saldırılarıyla $103'e sıçradıktan sonra G7 stok salımıyla ~$101'e geriledi, yüksek seviyede yatay. (24s: +0.5%, 7g: bulunamadı)\n5. VIX — 5/10 — Hisseler yükselirken hafifçe arttı ama ~15.5 ile düşük seviyede kaldı. (24s: +1.4%, 7g: bulunamadı)\n6. BTC — 4.5/10 — $86-87K direncini aşamayıp ~$85.6K'ya geriledi, haftalık bazda hâlâ artıda. (24s: -1%, 7g: +3%)\n7. XAUUSD — 4/10 — Yüksek reel faiz ve güçlü dolarla baskı altında, aylık ~%6 düşüşte. (24s: -0.44%, 7g: bulunamadı)\n\nBTC Makro Bias: NEUTRAL — Güven: Orta",
+  "asset_strength": [
+    {
+      "asset": "NASDAQ",
+      "score": 6.5,
+      "reason": "Nvidia öncülüğünde Nasdaq 100 ~30,808 ile yeni rekora ulaştı, yüksek faizlere rağmen teknoloji güçlü.",
+      "chg_24h_pct": 1,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "SPX",
+      "score": 6,
+      "reason": "Satın alma haberleri ve teknolojiyle yükseldi, rekora %0.3 mesafede.",
+      "chg_24h_pct": 0.7,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "DXY",
+      "score": 5.5,
+      "reason": "Euro'daki Fransa kaynaklı çöküşle Nisan 2025'ten beri en yüksek seviyeye (~102.5) çıktı, aylık +%3.",
+      "chg_24h_pct": 0.2,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "BRENT",
+      "score": 5.5,
+      "reason": "Husi saldırılarıyla $103'e sıçradıktan sonra G7 stok salımıyla ~$101'e geriledi, yüksek seviyede yatay.",
+      "chg_24h_pct": 0.5,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "VIX",
+      "score": 5,
+      "reason": "Hisseler yükselirken hafifçe arttı ama ~15.5 ile düşük seviyede kaldı.",
+      "chg_24h_pct": 1.4,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "BTC",
+      "score": 4.5,
+      "reason": "$86-87K direncini aşamayıp ~$85.6K'ya geriledi, haftalık bazda hâlâ artıda.",
+      "chg_24h_pct": -1,
+      "chg_7d_pct": 3
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 4,
+      "reason": "Yüksek reel faiz ve güçlü dolarla baskı altında, aylık ~%6 düşüşte.",
+      "chg_24h_pct": -0.44,
+      "chg_7d_pct": null
+    }
+  ],
+  "model": "claude",
+  "prompt_version": "v5"
+}
