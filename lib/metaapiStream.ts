@@ -226,6 +226,19 @@ export function getAccountSnapshot(): AccountSnapshot | null {
   }
 }
 
+// MT5'teki acik pozisyonlarin guncel hacmi (pozisyon id -> lot). Kismen kapanmis pozisyonun kalan
+// hacminin kesin kaynagi. Akis hazir degilse ya da broker baglantisi yoksa null (cagiran DB'ye duser).
+export function getOpenPositionVolumes(): Map<string, number> | null {
+  const s = getMarketStream()
+  const ts = s.connection?.terminalState
+  if (s.status !== 'ready' || !ts || ts.connectedToBroker === false || !Array.isArray(ts.positions)) return null
+  const out = new Map<string, number>()
+  for (const p of ts.positions) {
+    if (p?.id != null && isNum(p.volume)) out.set(String(p.id), p.volume)
+  }
+  return out
+}
+
 export function getStreamStatus() {
   const s = getMarketStream()
   const now = Date.now()

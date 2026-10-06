@@ -55,6 +55,11 @@ interface Order {
   win_probability_v6_reverse: number | null
   analyzed_at: string | null
   analysis_rr: string | null
+  // Acik order'in kismi kapanislari (orders-live): kapanan hacim ve gerceklesen kar/zarar
+  closed_volume?: number | null
+  partial_pnl?: number | null
+  partial_count?: number
+  remaining_volume?: number | null // MT5'teki pozisyonun guncel hacmi (akis hazirsa)
 }
 
 interface Price { bid: number; ask: number; time: string }
@@ -91,9 +96,23 @@ const POLL_INTERVAL_MS = 5000
 // Bu kadar sure SSE'den quote gelmezse fiyat/hesap bilgisi yedek REST poll'una duser.
 const STREAM_STALE_MS = 20000
 
+// Acik order kismen kapandiysa KALAN hacim (anlik PnL ve VaR bununla hesaplanir): once MT5'teki
+// pozisyonun guncel hacmi, o yoksa order hacmi - kayitli kismi kapanislar. Digerlerinde order hacmi.
 function getDisplayVolume(order: Order): number {
+  if (order.status === 'OPEN') {
+    if (order.remaining_volume != null) return order.remaining_volume
+    if (order.closed_volume) return Math.max(0, Number((order.volume - order.closed_volume).toFixed(2)))
+  }
   return order.volume
 }
+// Kismen kapanmis acik order: kapanan hacim + gerceklesen kar/zarar (kayitli kismi kapanis yoksa null)
+function partialInfo(order: Order): { closed: number; pnl: number | null } | null {
+  if (order.status !== 'OPEN') return null
+  const closed = Number((order.volume - getDisplayVolume(order)).toFixed(2))
+  if (closed <= 0) return null
+  return { closed, pnl: order.partial_count ? order.partial_pnl ?? 0 : null }
+}
+const fmtSignedUsd = (v: number) => `${v >= 0 ? '+' : '-'}$${Math.abs(v).toFixed(2)}`
 function isLong(direction: string): boolean {
   return direction === 'BUY' || direction === 'LONG'
 }
@@ -1716,6 +1735,7 @@ export default function LivePositionsPage() {
                     {paged.map((order) => {
                       const selected = selectedIds.has(order.id)
                       const displayVolume = getDisplayVolume(order)
+                      const partial = partialInfo(order)
                       const pnl = rowPnl(order)
                       const rVal = calcOrderR(order)
                       const riskUsdVal = calcRiskUsd(order)
@@ -1732,7 +1752,13 @@ export default function LivePositionsPage() {
                           </td>
                           <td style={{ padding: '6px 0', textAlign: 'right' }}>{rowBadge(order)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right' }}>{dirBadge(order.direction)}</td>
-                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{displayVolume}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>
+                            {partial ? (
+                              <span data-testid="partial-volume" title={`${partial.closed} lot kısmen kapandı${partial.pnl != null ? ` (gerçekleşen ${fmtSignedUsd(partial.pnl)})` : ''}; kalan ${displayVolume} lot`} style={{ cursor: 'help' }}>
+                                {displayVolume}<span style={{ color: 'var(--text-3)' }}>/{order.volume}</span>
+                              </span>
+                            ) : displayVolume}
+                          </td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtPrice(order.entry_price)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-3)' }}>{fmtPrice(order.fill_price)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtPrice(order.close_price)}</td>
@@ -1746,7 +1772,14 @@ export default function LivePositionsPage() {
                           </td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{riskUsdVal != null ? `$${riskUsdVal.toFixed(2)}` : '—'}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>{fmtRR(order)}</td>
-                          <td className={`mono ${pnl.cls}`} style={{ padding: '6px 0', textAlign: 'right' }}>{pnl.text}</td>
+                          <td className={`mono ${pnl.cls}`} style={{ padding: '6px 0', textAlign: 'right' }}>
+                            {pnl.text}
+                            {partial?.pnl != null && (
+                              <div data-testid="partial-pnl" title="Kısmi kapanışlardan gerçekleşen kâr/zarar" style={{ fontSize: 9, color: moneyColor(partial.pnl) }}>
+                                kısmi {fmtSignedUsd(partial.pnl)}
+                              </div>
+                            )}
+                          </td>
                           <td className="mono" style={{ padding: '6px 0', textAlign: 'right', color: rVal == null ? 'var(--text-3)' : moneyColor(rVal) }}>
                             {rVal != null ? `${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R` : '—'}
                           </td>
@@ -1770,6 +1803,7 @@ export default function LivePositionsPage() {
                 {paged.map((order) => {
                   const selected = selectedIds.has(order.id)
                   const displayVolume = getDisplayVolume(order)
+                  const partial = partialInfo(order)
                   const pnl = rowPnl(order)
                   const rVal = calcOrderR(order)
                   const riskUsdVal = calcRiskUsd(order)
@@ -1794,7 +1828,7 @@ export default function LivePositionsPage() {
                         <div><span className="col-label">Entry </span><span style={{ color: 'var(--text-2)' }}>{fmtPrice(order.entry_price)}</span></div>
                         <div><span className="col-label">Fill </span><span style={{ color: 'var(--text-3)' }}>{fmtPrice(order.fill_price)}</span></div>
                         <div><span className="col-label">Exit </span><span style={{ color: 'var(--text-2)' }}>{fmtPrice(order.close_price)}</span></div>
-                        <div><span className="col-label">Vol </span><span style={{ color: 'var(--text-2)' }}>{displayVolume}</span></div>
+                        <div><span className="col-label">Vol </span><span style={{ color: 'var(--text-2)' }}>{displayVolume}{partial && <span style={{ color: 'var(--text-3)' }}>/{order.volume}</span>}</span></div>
                         <div><span className="col-label">SL </span><EditableSlTp orderId={order.id} field="sl" currentValue={order.sl} color="var(--red)" fmtPrice={fmtPrice}
                           onUpdated={(v) => applyOrderPatch(order.id, { sl: v })} /></div>
                         <div><span className="col-label">TP </span><EditableSlTp orderId={order.id} field="tp" currentValue={order.tp} color="var(--green)" fmtPrice={fmtPrice}
@@ -1820,6 +1854,12 @@ export default function LivePositionsPage() {
                           </div>
                         )}
                       </div>
+                      {partial && (
+                        <div data-testid="partial-mobile" className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 6 }}>
+                          Kısmi kapanış: {partial.closed} lot
+                          {partial.pnl != null && <> · gerçekleşen <span style={{ color: moneyColor(partial.pnl) }}>{fmtSignedUsd(partial.pnl)}</span></>}
+                        </div>
+                      )}
                     </div>
                   )
                 })}

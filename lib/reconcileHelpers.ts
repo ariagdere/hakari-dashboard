@@ -98,6 +98,24 @@ export async function calculateRTargetRisk(
 
 export type SlTpSource = 'close' | 'open' | 'order';
 const CLOSING_ENTRIES = new Set(['DEAL_ENTRY_OUT', 'DEAL_ENTRY_OUT_BY']);
+export const isClosingDeal = (d: { entryType?: string }) => CLOSING_ENTRIES.has(d.entryType ?? '');
+export const VOLUME_EPS = 0.001; // mt5_order_monitor.js ile AYNI lot toleransi
+
+// Pozisyonun MT5 deal gecmisinden acilan / kapanan hacim (kismi kapanislar dahil). Tamamen kapanmis:
+// kapanan >= acilan (acilis deal'i yoksa order'daki hacim). mt5_order_monitor.js closeStateFromDeals ile AYNI.
+export function positionVolumes(deals: MetatraderDeal[], fallbackOpenVolume: number) {
+  const outs = deals.filter(isClosingDeal).sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
+  const inVolume = deals.filter((d) => d.entryType === 'DEAL_ENTRY_IN').reduce((s, d) => s + Number(d.volume ?? 0), 0);
+  const openVolume = inVolume > 0 ? inVolume : fallbackOpenVolume;
+  const closedVolume = outs.reduce((s, d) => s + Number(d.volume ?? 0), 0);
+  return {
+    outs,
+    openVolume,
+    closedVolume,
+    lastOut: outs.length > 0 ? outs[outs.length - 1] : null,
+    fullyClosed: outs.length > 0 && closedVolume >= openVolume - VOLUME_EPS,
+  };
+}
 const newestFirst = (a: string | undefined, b: string | undefined) => ((a ?? '') < (b ?? '') ? 1 : (a ?? '') > (b ?? '') ? -1 : 0);
 
 // Bir pozisyonun MT5'te tanimli SL/TP'si, deal (ve istenirse history order) gecmisinden. Oncelik:

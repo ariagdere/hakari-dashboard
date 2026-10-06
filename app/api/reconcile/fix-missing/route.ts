@@ -2,7 +2,7 @@ import pool from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   resolveDealOrigin, classifyClose, calculateRR, calculateRTargetRisk, resolveMt5SlTp,
-  fetchDealsByPosition, fetchHistoryOrdersByPosition, summarizeCloseDeals,
+  fetchDealsByPosition, fetchHistoryOrdersByPosition, positionVolumes, summarizeCloseDeals,
 } from '@/lib/reconcileHelpers';
 
 export const dynamic = 'force-dynamic';
@@ -23,9 +23,17 @@ export async function POST(req: NextRequest) {
     const orders = await fetchHistoryOrdersByPosition(positionId);
 
     const inDeal = deals.find((d) => d.entryType === 'DEAL_ENTRY_IN');
-    const outDeals = deals.filter((d) => d.entryType === 'DEAL_ENTRY_OUT');
     if (!inDeal) return NextResponse.json({ error: 'Açılış deal\'i (DEAL_ENTRY_IN) bulunamadı' }, { status: 404 });
+    // Kismi kapanislar dahil TUM kapanis deal'leri; pozisyon tamamen kapanmadiysa CLOSED eklenmez
+    const volumes = positionVolumes(deals, Number(inDeal.volume ?? 0));
+    const outDeals = volumes.outs;
     if (outDeals.length === 0) return NextResponse.json({ error: 'Kapanış deal\'i bulunamadı -- pozisyon henüz açık olabilir' }, { status: 400 });
+    if (!volumes.fullyClosed) {
+      return NextResponse.json(
+        { error: `Pozisyon MT5'te henüz tamamen kapanmamış (kapanan ${volumes.closedVolume.toFixed(2)} / ${volumes.openVolume} lot) -- açık pozisyon olarak senkronize edin` },
+        { status: 409 },
+      );
+    }
 
     const { totalPnl, avgClosePrice, lastOutDeal } = summarizeCloseDeals(outDeals);
 
@@ -38,7 +46,7 @@ export async function POST(req: NextRequest) {
     const { exitReason, isManual } = classifyClose(lastOutDeal.reason, avgClosePrice, sl, tp, totalPnl);
 
     const entryPrice = Number(inDeal.price ?? 0);
-    const volume = Number(inDeal.volume ?? 0);
+    const volume = volumes.openVolume; // acilis deal(ler)inin toplami
     const magic = Number(inDeal.magic ?? 0);
     // Panel emri ise etiket order_intents'ten, analiz/apify bagi yok (bkz. resolveDealOrigin).
     const { analysisId, apifyRunId, strategyLabel, isSystem } = await resolveDealOrigin({ ...inDeal, magic });
