@@ -1,0 +1,121 @@
+{
+  "run_date": "2026-10-07",
+  "generated_at": "2026-10-07T06:19:11Z",
+  "net_direction": "Hafif Negatif",
+  "sentiment_score": -12,
+  "change_24h": "değişmedi",
+  "drivers": [
+    "ABD 10Y Salı -3.6bp ile %5.275'e geriledi ama %5.3 civarında çok yüksek kalıyor; Ekim artırım ihtimali ~%20, Aralık artırımı büyük ölçüde fiyatlı",
+    "Bugün (Çarşamba 21:00 TSİ) açıklanacak FOMC tutanakları, Fed'in \"bir artırım daha\" kılavuzuna ne kadar bağlı olduğunu gösterecek",
+    "Husilerin Suudi/Aramco tesislerine saldırıları sürerken Brent Çarşamba sabahı ~%1 yükselerek ~$101.6'ya çıktı; Asya hisseleri petrol ve faizlerle geriledi",
+    "Wall Street rekorda (SPX 7,819, NDX 31,224), VIX ~15; spot BTC ETF'leri Salı +$118.8M girişe döndü ama BTC bu desteğe tepki vermiyor"
+  ],
+  "developments": [
+    {
+      "item": "ABD 10Y -3.6bp ile %5.275, 30Y %5.647; çok yıllık zirveden hafif soğuma",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Ekim FOMC artırım ihtimali ~%20'ye geriledi (bir hafta önce çok daha yüksek), Aralık artırımı büyük ölçüde fiyatlı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "FOMC (Eylül toplantısı) tutanakları bugün açıklanacak, 14 Ekim'de CPI var",
+      "impact": "Nötr"
+    },
+    {
+      "item": "S&P 500 +%0.58 ile rekor, Nasdaq 100 +%0.48 ile 31,224; VIX -%3.3 ile 15.01",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "DXY ~102.0-102.2 ile 17 ayın zirvesi yakınında yatay; Fransa/İspanya kaynaklı euro zayıflığı sürüyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Husilerin Suudi altyapısına saldırıları sürüyor; Brent Çarşamba ~$101.6 (+%1), ABD'de üretim bölgelerine yönelen fırtına arz riskini artırıyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Asya Çarşamba düştü: Nikkei ~-%1, Kospi -%1.2, Hang Seng -%0.8 (yüksek faiz ve petrol)",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Spot BTC ETF Salı +$118.8M net giriş (IBIT +$122M), Pazartesi çıkışının ardından toparlanma",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Stablecoin arzı ~$270B civarında, Mayıs'tan bu yana ~$14B kayıp; kripto likiditesi ince",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Altın ~-%0.7 ile ~$4,135; güvenli liman talebi zayıf",
+      "impact": "Nötr"
+    },
+    {
+      "item": "BTC Asya seansında 30 dakikada ~%2 düşerek ~$84.1-84.3K'ya indi; $87K direncinden üçüncü kez dönüş",
+      "impact": "Negatif"
+    }
+  ],
+  "key_development": "Son saatlerde BTC, Wall Street'in rekor kapanışına, 10Y faizdeki gerilemeye ve spot ETF'lerin girişe dönmesine rağmen Asya seansının başında 30 dakikada ~%2 düşerek ~$84.1-84.3K'ya geriledi; aynı saatlerde Asya hisseleri de %5.3'e yakın ABD faizleri ve Husi saldırılarıyla $101-102'ye tırmanan Brent nedeniyle düştü. Piyasanın henüz fiyatlamadığı ana risk bu akşamki FOMC tutanakları: Ekim artırım ihtimali ~%20'ye inmişken tutanaklar Eylül'deki şahin kılavuzu güçlü biçimde teyit ederse faiz ve dolar yeniden yükselip BTC'yi $84K altına itebilir; ılımlı bir ton ise $84-87K bandının alt kısmında rahatlama sağlayabilir.",
+  "divergence": "relative weakness",
+  "divergence_note": "Faizler hafif gerilerken, hisseler rekor kırarken, VIX 15'e inerken ve spot ETF'ler +$118.8M girişe dönmüşken BTC 24 saatte ~%1.5 düşerek $84K bölgesine indi ve $87K'yı üçüncü kez aşamadı; makro zemindeki kısmi iyileşmeye tepki vermiyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Temkinli risk-on",
+  "conclusion": "Hisselerdeki rekor risk iştahı ve faizlerdeki hafif soğumaya karşın %5.3'e yakın 10Y, 17 ayın zirvesindeki dolar, $100 üzeri Brent ve ince stablecoin likiditesi makro zemini hafif negatif tutuyor. Önümüzdeki 24-72 saatin belirleyicisi bu akşamki FOMC tutanakları ve petrol; BTC'nin göreli zayıflığı sürerse $82-84K bölgesi test edilebilir, ılımlı tutanak ise yalnızca $84-87K bandına geri dönüş sağlar. Net yön avantajı zayıf.",
+  "bias": "NEUTRAL",
+  "confidence": "Orta",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Hafif Negatif\n\nSentiment skoru: -12\n\nSon 24 saatte değişim: Değişmedi (önceki çalışma 2026-10-06 09:11, skor -15)\n\nAna sürücüler:\n- ABD 10Y Salı -3.6bp ile %5.275'e geriledi ama %5.3 civarında çok yüksek kalıyor; Ekim artırım ihtimali ~%20, Aralık artırımı büyük ölçüde fiyatlı\n- Bugün (Çarşamba 21:00 TSİ) açıklanacak FOMC tutanakları, Fed'in \"bir artırım daha\" kılavuzuna ne kadar bağlı olduğunu gösterecek\n- Husilerin Suudi/Aramco tesislerine saldırıları sürerken Brent Çarşamba sabahı ~%1 yükselerek ~$101.6'ya çıktı; Asya hisseleri petrol ve faizlerle geriledi\n- Wall Street rekorda (SPX 7,819, NDX 31,224), VIX ~15; spot BTC ETF'leri Salı +$118.8M girişe döndü ama BTC bu desteğe tepki vermiyor\n\nGelişmeler:\n- ABD 10Y -3.6bp ile %5.275, 30Y %5.647; çok yıllık zirveden hafif soğuma → Pozitif\n- Ekim FOMC artırım ihtimali ~%20'ye geriledi (bir hafta önce çok daha yüksek), Aralık artırımı büyük ölçüde fiyatlı → Nötr\n- FOMC (Eylül toplantısı) tutanakları bugün açıklanacak, 14 Ekim'de CPI var → Nötr\n- S&P 500 +%0.58 ile rekor, Nasdaq 100 +%0.48 ile 31,224; VIX -%3.3 ile 15.01 → Pozitif\n- DXY ~102.0-102.2 ile 17 ayın zirvesi yakınında yatay; Fransa/İspanya kaynaklı euro zayıflığı sürüyor → Negatif\n- Husilerin Suudi altyapısına saldırıları sürüyor; Brent Çarşamba ~$101.6 (+%1), ABD'de üretim bölgelerine yönelen fırtına arz riskini artırıyor → Negatif\n- Asya Çarşamba düştü: Nikkei ~-%1, Kospi -%1.2, Hang Seng -%0.8 (yüksek faiz ve petrol) → Negatif\n- Spot BTC ETF Salı +$118.8M net giriş (IBIT +$122M), Pazartesi çıkışının ardından toparlanma → Pozitif\n- Stablecoin arzı ~$270B civarında, Mayıs'tan bu yana ~$14B kayıp; kripto likiditesi ince → Negatif\n- Altın ~-%0.7 ile ~$4,135; güvenli liman talebi zayıf → Nötr\n- BTC Asya seansında 30 dakikada ~%2 düşerek ~$84.1-84.3K'ya indi; $87K direncinden üçüncü kez dönüş → Negatif\n\nEn önemli yeni gelişme:\nSon saatlerde BTC, Wall Street'in rekor kapanışına, 10Y faizdeki gerilemeye ve spot ETF'lerin girişe dönmesine rağmen Asya seansının başında 30 dakikada ~%2 düşerek ~$84.1-84.3K'ya geriledi; aynı saatlerde Asya hisseleri de %5.3'e yakın ABD faizleri ve Husi saldırılarıyla $101-102'ye tırmanan Brent nedeniyle düştü. Piyasanın henüz fiyatlamadığı ana risk bu akşamki FOMC tutanakları: Ekim artırım ihtimali ~%20'ye inmişken tutanaklar Eylül'deki şahin kılavuzu güçlü biçimde teyit ederse faiz ve dolar yeniden yükselip BTC'yi $84K altına itebilir; ılımlı bir ton ise $84-87K bandının alt kısmında rahatlama sağlayabilir.\n\nMakro uyumsuzluk kontrolü: Relative weakness. Faizler hafif gerilerken, hisseler rekor kırarken, VIX 15'e inerken ve spot ETF'ler +$118.8M girişe dönmüşken BTC 24 saatte ~%1.5 düşerek $84K bölgesine indi ve $87K'yı üçüncü kez aşamadı; makro zemindeki kısmi iyileşmeye tepki vermiyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Temkinli risk-on\n\nBTC için sonuç:\nHisselerdeki rekor risk iştahı ve faizlerdeki hafif soğumaya karşın %5.3'e yakın 10Y, 17 ayın zirvesindeki dolar, $100 üzeri Brent ve ince stablecoin likiditesi makro zemini hafif negatif tutuyor. Önümüzdeki 24-72 saatin belirleyicisi bu akşamki FOMC tutanakları ve petrol; BTC'nin göreli zayıflığı sürerse $82-84K bölgesi test edilebilir, ılımlı tutanak ise yalnızca $84-87K bandına geri dönüş sağlar. Net yön avantajı zayıf.\n\nVarlık güç sıralaması:\n1. NASDAQ — 6.5/10 — Nvidia ve AMD öncülüğünde Nasdaq 100 31,224 ile yeni rekor kırdı, teknoloji yüksek faize rağmen güçlü. (24s: +0.48%, 7g: bulunamadı)\n2. SPX — 6.5/10 — S&P 500 7,819 ile rekor kapanış yaptı, faizlerdeki gerilemeyle destek buldu. (24s: +0.58%, 7g: bulunamadı)\n3. BRENT — 6/10 — Husilerin Suudi altyapısına saldırıları ve ABD'deki fırtına riskiyle $101-102'de yeniden yükselişte. (24s: +1%, 7g: bulunamadı)\n4. DXY — 5/10 — 17 ayın zirvesi yakınında ~102.0-102.2'de yatay seyrediyor, Pazartesi zirvesinin hafif altında. (24s: bulunamadı, 7g: bulunamadı)\n5. XAUUSD — 4/10 — Yüksek reel faiz ve güçlü dolar baskısıyla ~$4,135'e geriledi. (24s: -0.72%, 7g: bulunamadı)\n6. VIX — 4/10 — Hisselerin rekoruyla 15.01'e geriledi, korku düşük. (24s: -3.29%, 7g: bulunamadı)\n7. BTC — 3.5/10 — $87K'dan üçüncü kez geri döndü ve Asya seansında ~$84.3K'ya düştü. (24s: -1.5%, 7g: bulunamadı)\n\nBTC Makro Bias: NEUTRAL — Güven: Orta",
+  "asset_strength": [
+    {
+      "asset": "NASDAQ",
+      "score": 6.5,
+      "reason": "Nvidia ve AMD öncülüğünde Nasdaq 100 31,224 ile yeni rekor kırdı, teknoloji yüksek faize rağmen güçlü.",
+      "chg_24h_pct": 0.48,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "SPX",
+      "score": 6.5,
+      "reason": "S&P 500 7,819 ile rekor kapanış yaptı, faizlerdeki gerilemeyle destek buldu.",
+      "chg_24h_pct": 0.58,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "BRENT",
+      "score": 6,
+      "reason": "Husilerin Suudi altyapısına saldırıları ve ABD'deki fırtına riskiyle $101-102'de yeniden yükselişte.",
+      "chg_24h_pct": 1,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "DXY",
+      "score": 5,
+      "reason": "17 ayın zirvesi yakınında ~102.0-102.2'de yatay seyrediyor, Pazartesi zirvesinin hafif altında.",
+      "chg_24h_pct": null,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 4,
+      "reason": "Yüksek reel faiz ve güçlü dolar baskısıyla ~$4,135'e geriledi.",
+      "chg_24h_pct": -0.72,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "VIX",
+      "score": 4,
+      "reason": "Hisselerin rekoruyla 15.01'e geriledi, korku düşük.",
+      "chg_24h_pct": -3.29,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "BTC",
+      "score": 3.5,
+      "reason": "$87K'dan üçüncü kez geri döndü ve Asya seansında ~$84.3K'ya düştü.",
+      "chg_24h_pct": -1.5,
+      "chg_7d_pct": null
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
