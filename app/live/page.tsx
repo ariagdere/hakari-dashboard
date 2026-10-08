@@ -225,6 +225,10 @@ const redFolderTitle = (order: Order) => {
   return `${name} — ${Math.abs(hd).toFixed(1)}sa ${hd >= 0 ? 'sonra' : 'önce'}`
 }
 
+// Mutabakat notlari icin: LSR aci kolonlarinin kisa adlari ve order durumlari
+const ANGLE_LABELS = [['1h LS', 'h1_ls_angle'], ['5m LS', 'm5_ls_angle'], ['1h TT', 'h1_tt_pos_angle'], ['5m TT', 'm5_tt_pos_angle']] as const
+const ORDER_STATUS_TR: Record<string, string> = { OPEN: 'açık', CLOSED: 'kapalı', PENDING: 'bekleyen', CANCELED: 'iptal' }
+
 // lightweight-charts UTC gosterir; tarayicinin yerel offsetini ekleyerek
 // eksen ve markerlari yerel saate hizalariz (tablo tr-TR ile tutarli olur).
 const TZ_OFFSET_SEC = -new Date().getTimezoneOffset() * 60 // İstanbul icin +10800
@@ -939,7 +943,8 @@ export default function LivePositionsPage() {
   const [dateTo, setDateTo] = useState('')
   const [dowFilter, setDowFilter] = useState<'all' | 'weekday' | 'weekend'>('all')
   // fill: /api/reconcile/fill-sltp sonucu (bos SL/TP'lerin MT5'ten doldurulmasi) ya da { error }
-  const [reconcileState, setReconcileState] = useState<{ loading: boolean; result: any | null; fill: any | null; error: string | null }>({ loading: false, result: null, fill: null, error: null })
+  // angleFill: /api/reconcile/fill-angles sonucu (bos LSR acilarinin doldurulmasi) ya da { error }
+  const [reconcileState, setReconcileState] = useState<{ loading: boolean; result: any | null; fill: any | null; angleFill: any | null; error: string | null }>({ loading: false, result: null, fill: null, angleFill: null, error: null })
   const [fixingIds, setFixingIds] = useState<Set<string>>(new Set())
   const [fixedIds, setFixedIds] = useState<Set<string>>(new Set())
 
@@ -998,7 +1003,7 @@ export default function LivePositionsPage() {
   }
 
   async function runReconcile() {
-    setReconcileState({ loading: true, result: null, fill: null, error: null })
+    setReconcileState({ loading: true, result: null, fill: null, angleFill: null, error: null })
     // 1) DB'de bos kalmis SL/TP'leri MT5'te tanimli degerle doldur (acik + son 90 gunde kapanmis
     //    order'lar; dolu alanlara dokunulmaz). Hata olsa da 24 saatlik kontrol yine calisir.
     let fill: any = null
@@ -1013,14 +1018,26 @@ export default function LivePositionsPage() {
     } catch (err: any) {
       fill = { error: err.message || 'Bağlantı hatası' }
     }
-    // 2) MT5'in son 24 saatlik deal gecmisi + acik pozisyonlar <-> orders tablosu
+    // 2) Son 90 gunde olusmus order'larin bos LSR acilarini doldur (monitor'le ayni hesap,
+    //    dolu acilara dokunulmaz). Hata olsa da kontrol devam eder.
+    let angleFill: any = null
+    try {
+      const res = await fetch('/api/reconcile/fill-angles', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
+      angleFill = data
+      for (const f of data.filled ?? []) applyOrderPatch(f.orderId, f.angles)
+    } catch (err: any) {
+      angleFill = { error: err.message || 'Bağlantı hatası' }
+    }
+    // 3) MT5'in son 24 saatlik deal gecmisi + acik pozisyonlar <-> orders tablosu
     try {
       const res = await fetch('/api/reconcile?hours=24', { cache: 'no-store' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Bilinmeyen hata')
-      setReconcileState({ loading: false, result: data, fill, error: null })
+      setReconcileState({ loading: false, result: data, fill, angleFill, error: null })
     } catch (err: any) {
-      setReconcileState({ loading: false, result: null, fill, error: err.message || 'Mutabakat kontrolü başarısız' })
+      setReconcileState({ loading: false, result: null, fill, angleFill, error: err.message || 'Mutabakat kontrolü başarısız' })
     }
   }
 
@@ -1385,11 +1402,12 @@ export default function LivePositionsPage() {
         {/* Mutabakat kontrolu -- MT5'in kendi deal gecmisini (son 24 saat)
             orders tablosuyla karsilastirir, streaming/resync mekanizmasindan
             BAGIMSIZ bir dogrulama katmani. Once DB'de bos kalan SL/TP'leri
-            (acik + son 90 gunde kapanmis) MT5'teki degerle doldurur. */}
+            (acik + son 90 gunde kapanmis) MT5'teki degerle, son 90 gunun
+            bos LSR acilarini lsr_series'ten doldurur. */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
           <button
             className="filter-btn" style={{ fontSize: 10, padding: '3px 10px' }} onClick={runReconcile} disabled={reconcileState.loading}
-            title="Son 24 saatin MT5 deal'lerini ve açık pozisyonları DB ile karşılaştırır. Ayrıca açık ve son 90 günde kapanmış işlemlerde boş kalan SL/TP'yi MT5'teki değerle doldurur.">
+            title="Son 24 saatin MT5 deal'lerini ve açık pozisyonları DB ile karşılaştırır. Ayrıca açık ve son 90 günde kapanmış işlemlerde boş kalan SL/TP'yi MT5'teki değerle doldurur, son 90 günün işlemlerinde boş kalan LSR açılarını hesaplayıp yazar.">
             {reconcileState.loading ? 'Kontrol ediliyor…' : 'Mutabakat Kontrolü (son 24 saat)'}
           </button>
           {reconcileState.error && (
@@ -1461,6 +1479,24 @@ export default function LivePositionsPage() {
           {reconcileState.fill && !reconcileState.fill.error && reconcileState.fill.notInMt5 > 0 && (
             <div className="mono" data-testid="sltp-fill-note" style={{ fontSize: 10, color: 'var(--text-3)', width: '100%' }}>
               {reconcileState.fill.notInMt5} işlemin boş SL/TP'si MT5'te de tanımlı değil (açık ve son {reconcileState.fill.days} günde kapanmış işlemler).
+            </div>
+          )}
+          {reconcileState.angleFill && (reconcileState.angleFill.error || reconcileState.angleFill.errors?.length > 0) && (
+            <div className="mono" data-testid="angle-fill-error" style={{ fontSize: 10, color: 'var(--red)', width: '100%' }}>
+              Boş LSR açıları hesaplanamadı: {reconcileState.angleFill.error ?? reconcileState.angleFill.errors.join(' · ')}
+            </div>
+          )}
+          {reconcileState.angleFill?.filled?.length > 0 && (
+            <div className="mono" data-testid="angle-fill" style={{ fontSize: 10, color: 'var(--green)', width: '100%' }}>
+              <div style={{ marginBottom: 4 }}>∠ {reconcileState.angleFill.filled.length} işlemde boş LSR açıları hesaplanıp yazıldı:</div>
+              {reconcileState.angleFill.filled.map((f: any) => (
+                <div key={f.orderId} style={{ padding: '4px 8px', background: 'var(--bg-2)', borderRadius: 4, marginBottom: 4 }}>
+                  Order #{f.orderId} ({f.positionId ? `position ${f.positionId}, ` : ''}{ORDER_STATUS_TR[f.status] ?? f.status}):{' '}
+                  {ANGLE_LABELS.filter(([, key]) => f.angles?.[key] != null)
+                    .map(([label, key]) => `${label} ${f.angles[key] >= 0 ? '+' : ''}${Number(f.angles[key]).toFixed(1)}°`)
+                    .join(' · ')}
+                </div>
+              ))}
             </div>
           )}
         </div>

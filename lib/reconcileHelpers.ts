@@ -1,6 +1,7 @@
 import pool from '@/lib/db';
 import { PANEL_MAGIC, clientKeyOf } from '@/lib/panelOrder';
 import { getMetaApiRestConfig } from '@/lib/metaapiRest';
+import { earliestMs } from '@/lib/orderAngles';
 
 // mt5_order_monitor.js'teki STRATEGY_MAP ile BIREBIR AYNI -- orada bir
 // strateji eklenirse burada da eklenmeli. Tek kaynak orasi; burasi sadece
@@ -182,6 +183,18 @@ export async function fillBlankSlTp(order: SlTpFillTarget, mt5Sl: number | null,
   return { sl, tp, rr, rTarget, rRisk, filledSl, filledTp };
 }
 
+// Order'in MT5'te olustugu an (ms): acilis deal'ini olusturan emrin verildigi an ile deal aninin
+// erkeni. Monitor islemi canli gorseydi order'i bu anda yazardi -- bekleyen emirde emir verildiginde
+// (pollOrders), piyasa emrinde acilis deal'i geldiginde (handleDealIn). Mutabakatla eklenen order'in
+// created_at'i ve LSR acilari bu ana gore yazilir. Emir bulunamazsa deal ani.
+export function mt5OrderTimeMs(
+  inDeal: { time?: unknown; orderId?: unknown },
+  orders: Array<{ id?: unknown; time?: unknown }> = [],
+): number | null {
+  const opening = inDeal.orderId != null ? orders.find((o) => String(o.id) === String(inDeal.orderId)) : undefined;
+  return earliestMs(opening?.time, inDeal.time);
+}
+
 export interface MetatraderDeal {
   id: string; entryType: string; positionId?: string; orderId?: string;
   volume?: number; price?: number; profit?: number; time: string;
@@ -204,7 +217,7 @@ export interface MetatraderPosition {
 const METAAPI_TIMEOUT_MS = 30_000;
 
 // Hesaba ait MetaApi REST yolu (orn. '/positions'). Ayarlar lib/metaapiRest.ts'ten (diger route'larla ayni).
-export async function fetchMetaApi(accountPath: string) {
+export async function fetchMetaApi(accountPath: string, timeoutMs = METAAPI_TIMEOUT_MS) {
   const cfg = getMetaApiRestConfig();
   if (!cfg) throw new Error('METAAPI_TOKEN / METAAPI_ACCOUNT_ID tanımlı değil');
   let res: Response;
@@ -212,10 +225,10 @@ export async function fetchMetaApi(accountPath: string) {
     res = await fetch(`${cfg.clientApi}/users/current/accounts/${cfg.accountId}${accountPath}`, {
       headers: { 'auth-token': cfg.token, Accept: 'application/json' },
       cache: 'no-store',
-      signal: AbortSignal.timeout(METAAPI_TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (err: any) {
-    if (err?.name === 'TimeoutError') throw new Error(`MetaApi ${METAAPI_TIMEOUT_MS / 1000} sn'de yanıt vermedi (${accountPath})`);
+    if (err?.name === 'TimeoutError') throw new Error(`MetaApi ${timeoutMs / 1000} sn'de yanıt vermedi (${accountPath})`);
     throw err;
   }
   if (!res.ok) throw new Error(`MetaApi isteği başarısız (${accountPath}): HTTP ${res.status}`);
@@ -247,8 +260,8 @@ export async function fetchAllDealsByTimeRange(startTime: Date, endTime: Date, m
 export async function fetchDealsByPosition(positionId: string): Promise<MetatraderDeal[]> {
   return fetchMetaApi(`/history-deals/position/${positionId}`);
 }
-export async function fetchHistoryOrdersByPosition(positionId: string): Promise<MetatraderOrder[]> {
-  return fetchMetaApi(`/history-orders/position/${positionId}`);
+export async function fetchHistoryOrdersByPosition(positionId: string, timeoutMs?: number): Promise<MetatraderOrder[]> {
+  return fetchMetaApi(`/history-orders/position/${positionId}`, timeoutMs);
 }
 
 // Bir pozisyonun TUM DEAL_ENTRY_OUT deal'lerinden hacim-agirlikli ortalama
