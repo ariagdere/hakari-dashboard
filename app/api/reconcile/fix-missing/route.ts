@@ -2,11 +2,15 @@ import pool from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   resolveDealOrigin, classifyClose, calculateRR, calculateRTargetRisk, resolveMt5SlTp,
-  fetchDealsByPosition, fetchHistoryOrdersByPosition, positionVolumes, summarizeCloseDeals,
+  fetchDealsByPosition, fetchHistoryOrdersByPosition, mt5OrderTimeMs, positionVolumes, summarizeCloseDeals,
 } from '@/lib/reconcileHelpers';
+import { computeOrderAngles } from '@/lib/orderAngles';
 
 export const dynamic = 'force-dynamic';
 
+// ORDER_MISSING: MT5'te kapanmis, sistemde hic kaydi olmayan pozisyon icin CLOSED order ekler.
+// Monitor'un yazacagi gibi: created_at = order'in MT5'te olustugu an (mutabakat ani degil),
+// 4 LSR acisi o ana gore (bkz. lib/orderAngles.ts).
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -52,13 +56,18 @@ export async function POST(req: NextRequest) {
     const { analysisId, apifyRunId, strategyLabel, isSystem } = await resolveDealOrigin({ ...inDeal, magic });
     const direction = inDeal.type === 'DEAL_TYPE_BUY' ? 'BUY' : 'SELL';
     const { rTarget, rRisk } = await calculateRTargetRisk(isSystem ? analysisId : null, entryPrice, sl, tp);
+    const createdMs = mt5OrderTimeMs(inDeal, orders);
+    const { angles } = await computeOrderAngles([createdMs]);
+    const a = angles[0];
 
     const { rows } = await pool.query(
       `INSERT INTO orders
          (analysis_id, apify_run_id, mt5_order_id, mt5_position_id, magic, strategy_label, symbol, direction,
           volume, entry_price, fill_price, sl, tp, rr, r_target, r_risk, status, opened_at,
-          close_price, realized_pnl, closed_at, exit_reason, is_manual)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,'CLOSED',$17,$18,$19,$20,$21,$22)
+          close_price, realized_pnl, closed_at, exit_reason, is_manual,
+          h1_ls_angle, m5_ls_angle, h1_tt_pos_angle, m5_tt_pos_angle, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,'CLOSED',$17,$18,$19,$20,$21,$22,
+               $23,$24,$25,$26,COALESCE($27::timestamptz, now()))
        RETURNING id`,
       [
         isSystem ? analysisId : null,
@@ -77,11 +86,13 @@ export async function POST(req: NextRequest) {
         rTarget, rRisk,
         inDeal.time,
         avgClosePrice, totalPnl, lastOutDeal.time, exitReason, isManual,
+        a.h1_ls_angle, a.m5_ls_angle, a.h1_tt_pos_angle, a.m5_tt_pos_angle,
+        createdMs != null ? new Date(createdMs).toISOString() : null,
       ]
     );
 
     // BILEREK: order_events'e HICBIR SEY yazilmiyor -- kullanicinin acik istegi.
-    return NextResponse.json({ ok: true, orderId: rows[0].id });
+    return NextResponse.json({ ok: true, orderId: rows[0].id, angles: a });
   } catch (err: any) {
     console.error('fix-missing error:', err);
     return NextResponse.json({ error: err.message || 'Order oluşturulamadı' }, { status: 500 });

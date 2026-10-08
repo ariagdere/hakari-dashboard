@@ -1,8 +1,9 @@
 // LSR / TT-Position "slope açısı" hesabı. metaapi-webhook/lsrAngle.js ve
 // hakari-lsr-refresher/lsrAngle.js ile BİREBİR aynı matematiğin TS portu
 // (kaynak: lsr_order_report.py, Node porta karşı sayısal olarak doğrulandı).
-// Burada yalnızca CANLI GÖSTERİM için kullanılır (chart panelindeki "şu anki açı"
-// okuması) -- order'lara yazılan kalıcı açı değerleri metaapi-webhook tarafında hesaplanır.
+// Kullanım: chart panelindeki "şu anki açı" okuması (/api/lsr-series) ve mutabakatla
+// eklenen / açısı boş kalmış order'ların açıları (lib/orderAngles.ts). Yeni order'ların
+// açılarını metaapi-webhook (mt5_order_monitor.js) kendisi yazar -- aynı hesap.
 
 export const WINDOW = 30
 export const MIN_REF_WINDOWS = 100
