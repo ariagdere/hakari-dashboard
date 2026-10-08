@@ -1,0 +1,125 @@
+{
+  "run_date": "2026-10-08",
+  "generated_at": "2026-10-08T06:13:22Z",
+  "net_direction": "Negatif",
+  "sentiment_score": -30,
+  "change_24h": "kötüleşti",
+  "drivers": [
+    "FOMC (Eylül) tutanakları şahin: katılımcıların çoğu yıl sonuna kadar bir artırım daha uygun görüyor, neredeyse hepsi enflasyon risklerini yukarı yönlü değerlendiriyor",
+    "ABD 10Y Çarşamba %5.365 ile 2002'den bu yana zirveyi gördü (30Y %5.732), güçlü ihale sonrası ~%5.29'a geriledi; DXY +%0.4 ile ~102.2-102.3, Nisan 2025 seviyelerinde",
+    "Spot BTC ETF'leri Çarşamba -$484.9M net çıkış (IBIT -$207.7M, FBTC -$105.1M, ARKB -$101.7M); ETH ETF'lerinde çıkış serisi sürüyor",
+    "Husilerin Suudi altyapısına saldırıları ve kapalı kalan Hormuz ile Brent Perşembe Asya'da +%2.2 ile ~$102.4; Asya hisseleri faiz ve petrolle düşüşte"
+  ],
+  "developments": [
+    {
+      "item": "FOMC tutanakları: çoğunluk yıl sonuna kadar bir artırım daha bekliyor, enflasyon riskleri yukarı yönlü; zamanlama sinyali yok",
+      "impact": "Negatif"
+    },
+    {
+      "item": "ABD 10Y %5.365 ile 24 yılın zirvesi, 30Y %5.732; güçlü 10Y ihalesi sonrası ~%5.29'a geri çekilme",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Ekim FOMC artırım ihtimali ~%20 civarında; zayıf Eylül istihdamı nedeniyle Ekim artırımı fiyatlanmıyor, Aralık büyük ölçüde fiyatlı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "DXY +%0.4 ile ~102.24, Nisan 2025'ten bu yana en yüksek bölge",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Wall Street rekordan geri çekildi: SPX -%0.22 (7,801.77), Nasdaq Bileşik -%0.22, Dow -%0.66; VIX 15.08 ile düşük",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Spot BTC ETF Çarşamba -$484.9M net çıkış, Salı'daki +$118.8M girişi fazlasıyla sildi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Spot ETH ETF'lerinde altı günlük çıkış serisi (~$200M+); ETH ~%6'ya varan düşüş",
+      "impact": "Negatif"
+    },
+    {
+      "item": "BTC'de ~$546M likidasyon, fiyat ~$82.8-83.4K'ya indi; iki haftalık $83-87K bandının alt sınırında",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Brent Perşembe Asya'da ~$102.4 (+%2.2); Husi saldırıları, ABD fırtına riski ve Trump'ın Hormuz önerisini reddiyle kapalı kalan boğaz",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Asya Perşembe: Nikkei -%0.9 (70,000 altı), Kospi -%0.8, Hang Seng -%0.2",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Altın ~$4,107 ile iki ayın dibine yakın; yüksek reel faiz ve güçlü dolar baskısı, güvenli liman talebi zayıf",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Stablecoin arzı ~$270B civarında yatay/zayıf; kripto likiditesi ince",
+      "impact": "Negatif"
+    }
+  ],
+  "key_development": "Son 24 saatin belirleyici gelişmesi, Eylül FOMC tutanaklarının yıl sonuna kadar bir faiz artırımının daha uygun olduğu yönündeki çoğunluk görüşünü ve yukarı yönlü enflasyon risklerini teyit etmesi oldu; aynı gün 10Y %5.365 ile 2002'den bu yana zirveyi gördü ve DXY 102.2-102.3'e çıktı. Kripto tarafında buna -$484.9M spot BTC ETF çıkışı ve ~$546M likidasyon eşlik etti, BTC $83K bölgesine, yani iki haftalık $83-87K bandının alt sınırına indi. Perşembe sabahı Brent'in Husi saldırıları ve kapalı Hormuz nedeniyle yeniden ~$102'ye çıkması enflasyon/faiz baskısını canlı tutuyor; piyasanın henüz tam fiyatlamadığı risk, $83K'nın kırılması halinde ETF çıkışlarının ve likidasyonların kendini besleyen bir satışa dönüşmesi.",
+  "divergence": "relative weakness",
+  "divergence_note": "BTC 24 saatte ~%2.4 düşerken SPX ve Nasdaq yalnızca ~%0.2 geriledi, VIX 15 civarında sabit kaldı; makro kötüleşme (şahin tutanak, rekor faiz, güçlü dolar) BTC'ye hisselerden çok daha sert yansıyor ve ETF çıkışlarıyla birleşince göreli zayıflık derinleşiyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Temkinli risk-off",
+  "conclusion": "Şahin FOMC tutanakları, 24 yılın zirvesine yakın 10Y, güçlü dolar, $100 üzeri Brent ve sert ETF çıkışları makro zemini Negatif'e çekti. Önümüzdeki 24-72 saatte $83K desteğinin kırılması halinde $80-82K bölgesi test edilebilir; tepki alımları ancak faiz ve petrolde gevşeme ile ETF akımlarının girişe dönmesiyle sürdürülebilir olur. 14 Ekim CPI öncesi aşağı yönlü risk ağır basıyor.",
+  "bias": "SHORT",
+  "confidence": "Düşük",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Negatif\n\nSentiment skoru: -30\n\nSon 24 saatte değişim: Kötüleşti (önceki çalışma 2026-10-07 09:19, skor -12)\n\nAna sürücüler:\n- FOMC (Eylül) tutanakları şahin: katılımcıların çoğu yıl sonuna kadar bir artırım daha uygun görüyor, neredeyse hepsi enflasyon risklerini yukarı yönlü değerlendiriyor\n- ABD 10Y Çarşamba %5.365 ile 2002'den bu yana zirveyi gördü (30Y %5.732), güçlü ihale sonrası ~%5.29'a geriledi; DXY +%0.4 ile ~102.2-102.3, Nisan 2025 seviyelerinde\n- Spot BTC ETF'leri Çarşamba -$484.9M net çıkış (IBIT -$207.7M, FBTC -$105.1M, ARKB -$101.7M); ETH ETF'lerinde çıkış serisi sürüyor\n- Husilerin Suudi altyapısına saldırıları ve kapalı kalan Hormuz ile Brent Perşembe Asya'da +%2.2 ile ~$102.4; Asya hisseleri faiz ve petrolle düşüşte\n\nGelişmeler:\n- FOMC tutanakları: çoğunluk yıl sonuna kadar bir artırım daha bekliyor, enflasyon riskleri yukarı yönlü; zamanlama sinyali yok → Negatif\n- ABD 10Y %5.365 ile 24 yılın zirvesi, 30Y %5.732; güçlü 10Y ihalesi sonrası ~%5.29'a geri çekilme → Negatif\n- Ekim FOMC artırım ihtimali ~%20 civarında; zayıf Eylül istihdamı nedeniyle Ekim artırımı fiyatlanmıyor, Aralık büyük ölçüde fiyatlı → Nötr\n- DXY +%0.4 ile ~102.24, Nisan 2025'ten bu yana en yüksek bölge → Negatif\n- Wall Street rekordan geri çekildi: SPX -%0.22 (7,801.77), Nasdaq Bileşik -%0.22, Dow -%0.66; VIX 15.08 ile düşük → Nötr\n- Spot BTC ETF Çarşamba -$484.9M net çıkış, Salı'daki +$118.8M girişi fazlasıyla sildi → Negatif\n- Spot ETH ETF'lerinde altı günlük çıkış serisi (~$200M+); ETH ~%6'ya varan düşüş → Negatif\n- BTC'de ~$546M likidasyon, fiyat ~$82.8-83.4K'ya indi; iki haftalık $83-87K bandının alt sınırında → Negatif\n- Brent Perşembe Asya'da ~$102.4 (+%2.2); Husi saldırıları, ABD fırtına riski ve Trump'ın Hormuz önerisini reddiyle kapalı kalan boğaz → Negatif\n- Asya Perşembe: Nikkei -%0.9 (70,000 altı), Kospi -%0.8, Hang Seng -%0.2 → Negatif\n- Altın ~$4,107 ile iki ayın dibine yakın; yüksek reel faiz ve güçlü dolar baskısı, güvenli liman talebi zayıf → Nötr\n- Stablecoin arzı ~$270B civarında yatay/zayıf; kripto likiditesi ince → Negatif\n\nEn önemli yeni gelişme:\nSon 24 saatin belirleyici gelişmesi, Eylül FOMC tutanaklarının yıl sonuna kadar bir faiz artırımının daha uygun olduğu yönündeki çoğunluk görüşünü ve yukarı yönlü enflasyon risklerini teyit etmesi oldu; aynı gün 10Y %5.365 ile 2002'den bu yana zirveyi gördü ve DXY 102.2-102.3'e çıktı. Kripto tarafında buna -$484.9M spot BTC ETF çıkışı ve ~$546M likidasyon eşlik etti, BTC $83K bölgesine, yani iki haftalık $83-87K bandının alt sınırına indi. Perşembe sabahı Brent'in Husi saldırıları ve kapalı Hormuz nedeniyle yeniden ~$102'ye çıkması enflasyon/faiz baskısını canlı tutuyor; piyasanın henüz tam fiyatlamadığı risk, $83K'nın kırılması halinde ETF çıkışlarının ve likidasyonların kendini besleyen bir satışa dönüşmesi.\n\nMakro uyumsuzluk kontrolü: Relative weakness. BTC 24 saatte ~%2.4 düşerken SPX ve Nasdaq yalnızca ~%0.2 geriledi, VIX 15 civarında sabit kaldı; makro kötüleşme (şahin tutanak, rekor faiz, güçlü dolar) BTC'ye hisselerden çok daha sert yansıyor ve ETF çıkışlarıyla birleşince göreli zayıflık derinleşiyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Temkinli risk-off\n\nBTC için sonuç:\nŞahin FOMC tutanakları, 24 yılın zirvesine yakın 10Y, güçlü dolar, $100 üzeri Brent ve sert ETF çıkışları makro zemini Negatif'e çekti. Önümüzdeki 24-72 saatte $83K desteğinin kırılması halinde $80-82K bölgesi test edilebilir; tepki alımları ancak faiz ve petrolde gevşeme ile ETF akımlarının girişe dönmesiyle sürdürülebilir olur. 14 Ekim CPI öncesi aşağı yönlü risk ağır basıyor.\n\nVarlık güç sıralaması:\n1. BRENT — 6.5/10 — Husi saldırıları, kapalı Hormuz ve ABD fırtına riskiyle Perşembe Asya'da ~$102.4'e yükseldi. (24s: +2.2%, 7g: bulunamadı)\n2. DXY — 6.5/10 — Şahin tutanak ve rekor faizlerle ~102.24'e çıkarak Nisan 2025'ten bu yana zirve bölgesine yerleşti. (24s: +0.4%, 7g: bulunamadı)\n3. VIX — 5/10 — Hisselerdeki sınırlı geri çekilmeyle 15.08'de neredeyse yatay, korku düşük. (24s: +0.47%, 7g: bulunamadı)\n4. SPX — 4.5/10 — Rekorun ardından faiz baskısıyla 7,801.77'ye hafif geriledi. (24s: -0.22%, 7g: bulunamadı)\n5. NASDAQ — 4.5/10 — Teknoloji rekordan yüksek faiz ve petrolle hafif geri çekildi. (24s: -0.22%, 7g: bulunamadı)\n6. XAUUSD — 3.5/10 — Güçlü dolar ve yüksek reel faizle ~$4,107'ye inerek iki ayın dibine yaklaştı. (24s: -0.7%, 7g: bulunamadı)\n7. BTC — 2.5/10 — ETF çıkışları ve likidasyonlarla ~$83K'ya düşüp iki haftalık bandın alt sınırına indi. (24s: -2.4%, 7g: bulunamadı)\n\nBTC Makro Bias: SHORT — Güven: Düşük",
+  "asset_strength": [
+    {
+      "asset": "BRENT",
+      "score": 6.5,
+      "reason": "Husi saldırıları, kapalı Hormuz ve ABD fırtına riskiyle Perşembe Asya'da ~$102.4'e yükseldi.",
+      "chg_24h_pct": 2.2,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "DXY",
+      "score": 6.5,
+      "reason": "Şahin tutanak ve rekor faizlerle ~102.24'e çıkarak Nisan 2025'ten bu yana zirve bölgesine yerleşti.",
+      "chg_24h_pct": 0.4,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "VIX",
+      "score": 5,
+      "reason": "Hisselerdeki sınırlı geri çekilmeyle 15.08'de neredeyse yatay, korku düşük.",
+      "chg_24h_pct": 0.47,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "SPX",
+      "score": 4.5,
+      "reason": "Rekorun ardından faiz baskısıyla 7,801.77'ye hafif geriledi.",
+      "chg_24h_pct": -0.22,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 4.5,
+      "reason": "Teknoloji rekordan yüksek faiz ve petrolle hafif geri çekildi.",
+      "chg_24h_pct": -0.22,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 3.5,
+      "reason": "Güçlü dolar ve yüksek reel faizle ~$4,107'ye inerek iki ayın dibine yaklaştı.",
+      "chg_24h_pct": -0.7,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "BTC",
+      "score": 2.5,
+      "reason": "ETF çıkışları ve likidasyonlarla ~$83K'ya düşüp iki haftalık bandın alt sınırına indi.",
+      "chg_24h_pct": -2.4,
+      "chg_7d_pct": null
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
