@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import Navbar from '@/components/Navbar'
+import { isBasicAuthConfigured } from '@/lib/authConfig'
 import Script from 'next/script'
 
 export const metadata: Metadata = {
@@ -27,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         `}</Script>
       </head>
       <body>
-        <Navbar />
+        <Navbar authEnabled={isBasicAuthConfigured()} />
         {children}
       </body>
     </html>

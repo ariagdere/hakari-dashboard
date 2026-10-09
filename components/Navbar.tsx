@@ -8,8 +8,10 @@ const NAV_ITEMS = [
   { label: 'MKT',      href: '/mkt' },
   { label: 'FVG-Lab',      href: '/fvg-lab' },
 ]
-export default function Navbar() {
+// authEnabled: giris yapilandirilmissa (DASHBOARD_BASIC_AUTH_*) sagda "CIKIS" gosterilir.
+export default function Navbar({ authEnabled = false }: { authEnabled?: boolean }) {
   const pathname = usePathname()
+  if (pathname === '/login') return null // giris sayfasinda menu yok
   const isActive = (href: string) => {
     if (href === '/analysis') return pathname === '/analysis' || pathname.startsWith('/analysis/')
     return pathname === href
@@ -40,6 +42,19 @@ export default function Navbar() {
             {item.label}
           </Link>
         ))}
+        {authEnabled && (
+          <form method="post" action="/api/auth/logout" style={{ marginLeft: 'auto', paddingLeft: 12, flexShrink: 0 }}>
+            <button
+              type="submit" className="mono nav-link" data-testid="logout"
+              style={{
+                fontSize: 11, padding: '4px 10px', whiteSpace: 'nowrap', letterSpacing: '0.06em', cursor: 'pointer',
+                background: 'none', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text-3)',
+              }}
+            >
+              ÇIKIŞ
+            </button>
+          </form>
+        )}
       </div>
     </div>
   )

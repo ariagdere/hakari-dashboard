@@ -1,4 +1,6 @@
-// Basic Auth yapilandirmasi -- middleware.ts ve hassas route'lar ayni kaynagi okur.
+// Giris yapilandirmasi -- middleware.ts, /login ve hassas route'lar ayni kaynagi okur.
+// DASHBOARD_BASIC_AUTH_USER / DASHBOARD_BASIC_AUTH_PASSWORD: /login formunun kullanici adi / sifresi
+// (ayrica API icin Basic Auth basligi; bkz. middleware.ts, lib/session.ts).
 //
 // middleware.ts, degiskenler TANIMLI DEGILSE istekleri gecirir (deploy sonrasi
 // dashboard'a erisim kilitlenmesin diye). Buna karsilik canli fiyat, hesap bilgisi
@@ -11,4 +13,4 @@ export function isBasicAuthConfigured(): boolean {
 }
 
 export const AUTH_NOT_CONFIGURED_MESSAGE =
-  'Basic Auth yapılandırılmamış (DASHBOARD_BASIC_AUTH_USER / DASHBOARD_BASIC_AUTH_PASSWORD). Bu endpoint auth olmadan çalışmaz.'
+  'Giriş yapılandırılmamış (DASHBOARD_BASIC_AUTH_USER / DASHBOARD_BASIC_AUTH_PASSWORD). Bu endpoint auth olmadan çalışmaz.'
