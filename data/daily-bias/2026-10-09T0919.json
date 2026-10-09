@@ -1,0 +1,125 @@
+{
+  "run_date": "2026-10-09",
+  "generated_at": "2026-10-09T06:19:51Z",
+  "net_direction": "Negatif",
+  "sentiment_score": -25,
+  "change_24h": "iyileşti",
+  "drivers": [
+    "Fed şahin tonu sürüyor: Waller veriler beklendiği gibi gelirse ek artırım bekliyor, Musalem daha fazla sıkılaştırma gerektiğini söyledi; FedWatch'ta Ekim artırımı ~%17, Aralık ~%83 (bir gün önce ~%78)",
+    "Brent Hormuz yakınındaki yeni gemi saldırılarıyla Perşembe +%4 ile $104.28'den kapandı (gün içi ~$106); enerji kaynaklı enflasyon ve faiz riski canlı",
+    "OpenAI gelir raporu (yıllık ~$50B, beklenen $70B yerine) AI/teknoloji satışını tetikledi: Nasdaq Bileşik -%1.25, NDX -%1.55, SPX -%0.47; VIX +%6.1 ile 16.00",
+    "Spot BTC ETF çıkışı ikinci gün sürdü: Perşembe -$244.1M (FBTC -$197.1M), Çarşamba -$484.9M; Ekim'de akımlar negatife döndü"
+  ],
+  "developments": [
+    {
+      "item": "Waller ve Musalem ek faiz artırımı ihtiyacına işaret etti; Aralık artırım olasılığı ~%83'e yükseldi, Ekim ~%17",
+      "impact": "Negatif"
+    },
+    {
+      "item": "ABD 10Y Çarşamba'daki %5.36 zirvesinden ~%5.23'e geriledi; 30Y ihalesi %5.618'den güçlü talep gördü",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "DXY 102.27'den ~101.8-102.0'a hafif geriledi, dört haftalık yükseliş direnç altında duraksadı",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Haftalık işsizlik başvuruları 197K ile beklentinin (200K) altında, 4 haftalık ortalama 2022'den beri en düşük; güçlü istihdam Fed'e sıkılaşma alanı veriyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Brent Hormuz'daki gemi saldırılarıyla +%4 ile $104.28 kapanış; Cuma Asya'da ~$103.5",
+      "impact": "Negatif"
+    },
+    {
+      "item": "FT'nin OpenAI gelir raporu AI hisselerini sarstı: Nasdaq -%1.25, Nvidia/Micron/Intel düşüşte",
+      "impact": "Negatif"
+    },
+    {
+      "item": "VIX +%6.1 ile 16.00'ya yükseldi, Nikkei volatilitesi 1 ayın zirvesinde",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Spot BTC ETF Perşembe -$244.1M net çıkış, ETH ETF'lerinde de çıkış sürüyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Altın iki ayın dibinden (~$4,090) toparlanıp ~$4,187'ye (+%1.3) çıktı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Asya Cuma karışık: Nikkei ~-%0.1, Şanghay -%1.2, Shenzhen -%2.1, Hang Seng +%1.1",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Stablecoin arzı (USDT ~$184B, USDC ~$74B) 7 günde yatay; toplam ~$270B, kripto likiditesi ince",
+      "impact": "Nötr"
+    },
+    {
+      "item": "BTC Nasdaq'taki %1.25'lik düşüşe rağmen ~$82.2-82.6K'da tutundu (24s ~-%1); $82K bölgesi korunuyor",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "Son 24 saatin en önemli gelişmesi, FT'nin OpenAI'ın yıllık gelirinin beklenen $70B yerine ~$50B olduğunu gösteren raporuyla AI ticaretinin sarsılması oldu: Nasdaq -%1.25 düşerken VIX 16'ya çıktı ve Asya'da teknoloji ağırlıklı endeksler baskı altında kaldı. Buna Waller ve Musalem'in ek artırım mesajları ile Hormuz'daki yeni gemi saldırılarıyla Brent'in $104'ün üzerine çıkması eşlik etti; Aralık artırım olasılığı ~%83'e yükseldi. Piyasanın henüz tam fiyatlamadığı risk, AI kaynaklı teknoloji satışının risk iştahını daha geniş biçimde bozması ve yüksek petrolün 14 Ekim CPI öncesi faiz baskısını yeniden alevlendirmesi; tahvil faizlerinin ve doların gerilemesi ise şimdilik tek dengeleyici unsur.",
+  "divergence": "aligned",
+  "divergence_note": "Dolar ve 10Y faiz zirvelerden geri çekilmesine rağmen BTC toparlanamadı, ancak aynı anda Nasdaq -%1.25 ile BTC'den sert düştü ve BTC ~$82K'da tutundu; bu karışık tablo net bir relative weakness/strength yerine BTC'nin teknoloji riskiyle büyük ölçüde uyumlu hareket ettiğini gösteriyor. ETF çıkışlarının sürmesi, faiz/dolar gevşemesinin BTC'ye yansımasını engelliyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Temkinli risk-off",
+  "conclusion": "Şahin Fed söylemi, $104 üzeri Brent, AI kaynaklı teknoloji satışı ve süren ETF çıkışları makro zemini Negatif tutuyor; faiz ve dolardaki hafif gevşeme düşüşü yavaşlatsa da talebi artırmaya yetmiyor. Önümüzdeki 24-72 saatte $82K'nın kırılması halinde $80K bölgesi gündeme gelebilir; yükseliş ancak ETF akımlarının girişe dönmesi ve petrol/faizde belirgin gevşemeyle sürdürülebilir olur. 14 Ekim CPI öncesi aşağı yönlü risk ağır basıyor.",
+  "bias": "SHORT",
+  "confidence": "Düşük",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Negatif\n\nSentiment skoru: -25\n\nSon 24 saatte değişim: İyileşti (önceki çalışma 2026-10-08 09:13, skor -30; faiz ve doların geri çekilmesiyle sınırlı iyileşme)\n\nAna sürücüler:\n- Fed şahin tonu sürüyor: Waller veriler beklendiği gibi gelirse ek artırım bekliyor, Musalem daha fazla sıkılaştırma gerektiğini söyledi; FedWatch'ta Ekim artırımı ~%17, Aralık ~%83 (bir gün önce ~%78)\n- Brent Hormuz yakınındaki yeni gemi saldırılarıyla Perşembe +%4 ile $104.28'den kapandı (gün içi ~$106); enerji kaynaklı enflasyon ve faiz riski canlı\n- OpenAI gelir raporu (yıllık ~$50B, beklenen $70B yerine) AI/teknoloji satışını tetikledi: Nasdaq Bileşik -%1.25, NDX -%1.55, SPX -%0.47; VIX +%6.1 ile 16.00\n- Spot BTC ETF çıkışı ikinci gün sürdü: Perşembe -$244.1M (FBTC -$197.1M), Çarşamba -$484.9M; Ekim'de akımlar negatife döndü\n\nGelişmeler:\n- Waller ve Musalem ek faiz artırımı ihtiyacına işaret etti; Aralık artırım olasılığı ~%83'e yükseldi, Ekim ~%17 → Negatif\n- ABD 10Y Çarşamba'daki %5.36 zirvesinden ~%5.23'e geriledi; 30Y ihalesi %5.618'den güçlü talep gördü → Pozitif\n- DXY 102.27'den ~101.8-102.0'a hafif geriledi, dört haftalık yükseliş direnç altında duraksadı → Pozitif\n- Haftalık işsizlik başvuruları 197K ile beklentinin (200K) altında, 4 haftalık ortalama 2022'den beri en düşük; güçlü istihdam Fed'e sıkılaşma alanı veriyor → Negatif\n- Brent Hormuz'daki gemi saldırılarıyla +%4 ile $104.28 kapanış; Cuma Asya'da ~$103.5 → Negatif\n- FT'nin OpenAI gelir raporu AI hisselerini sarstı: Nasdaq -%1.25, Nvidia/Micron/Intel düşüşte → Negatif\n- VIX +%6.1 ile 16.00'ya yükseldi, Nikkei volatilitesi 1 ayın zirvesinde → Negatif\n- Spot BTC ETF Perşembe -$244.1M net çıkış, ETH ETF'lerinde de çıkış sürüyor → Negatif\n- Altın iki ayın dibinden (~$4,090) toparlanıp ~$4,187'ye (+%1.3) çıktı → Nötr\n- Asya Cuma karışık: Nikkei ~-%0.1, Şanghay -%1.2, Shenzhen -%2.1, Hang Seng +%1.1 → Nötr\n- Stablecoin arzı (USDT ~$184B, USDC ~$74B) 7 günde yatay; toplam ~$270B, kripto likiditesi ince → Nötr\n- BTC Nasdaq'taki %1.25'lik düşüşe rağmen ~$82.2-82.6K'da tutundu (24s ~-%1); $82K bölgesi korunuyor → Nötr\n\nEn önemli yeni gelişme:\nSon 24 saatin en önemli gelişmesi, FT'nin OpenAI'ın yıllık gelirinin beklenen $70B yerine ~$50B olduğunu gösteren raporuyla AI ticaretinin sarsılması oldu: Nasdaq -%1.25 düşerken VIX 16'ya çıktı ve Asya'da teknoloji ağırlıklı endeksler baskı altında kaldı. Buna Waller ve Musalem'in ek artırım mesajları ile Hormuz'daki yeni gemi saldırılarıyla Brent'in $104'ün üzerine çıkması eşlik etti; Aralık artırım olasılığı ~%83'e yükseldi. Piyasanın henüz tam fiyatlamadığı risk, AI kaynaklı teknoloji satışının risk iştahını daha geniş biçimde bozması ve yüksek petrolün 14 Ekim CPI öncesi faiz baskısını yeniden alevlendirmesi; tahvil faizlerinin ve doların gerilemesi ise şimdilik tek dengeleyici unsur.\n\nMakro uyumsuzluk kontrolü: Aligned. Dolar ve 10Y faiz zirvelerden geri çekilmesine rağmen BTC toparlanamadı, ancak aynı anda Nasdaq -%1.25 ile BTC'den sert düştü ve BTC ~$82K'da tutundu; bu karışık tablo net bir relative weakness/strength yerine BTC'nin teknoloji riskiyle büyük ölçüde uyumlu hareket ettiğini gösteriyor. ETF çıkışlarının sürmesi, faiz/dolar gevşemesinin BTC'ye yansımasını engelliyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Temkinli risk-off\n\nBTC için sonuç:\nŞahin Fed söylemi, $104 üzeri Brent, AI kaynaklı teknoloji satışı ve süren ETF çıkışları makro zemini Negatif tutuyor; faiz ve dolardaki hafif gevşeme düşüşü yavaşlatsa da talebi artırmaya yetmiyor. Önümüzdeki 24-72 saatte $82K'nın kırılması halinde $80K bölgesi gündeme gelebilir; yükseliş ancak ETF akımlarının girişe dönmesi ve petrol/faizde belirgin gevşemeyle sürdürülebilir olur. 14 Ekim CPI öncesi aşağı yönlü risk ağır basıyor.\n\nVarlık güç sıralaması:\n1. BRENT — 7.5/10 — Hormuz yakınındaki yeni gemi saldırılarıyla Perşembe +%4 yükselip $104.28'den kapandı, gün içinde ~$106'yı gördü. (24s: +4%, 7g: bulunamadı)\n2. XAUUSD — 7/10 — Faiz ve dolardaki geri çekilmeyle iki ayın dibinden toparlanıp ~$4,187'ye çıktı. (24s: +1.3%, 7g: +1%)\n3. VIX — 6.5/10 — Teknoloji satışı, yüksek faiz ve petrolle %6.1 artışla 16.00'ya yükseldi, korku artıyor. (24s: +6.1%, 7g: +4.5%)\n4. DXY — 4.5/10 — Faizlerin zirveden geri çekilmesiyle 102.27'den ~101.9'a hafif geriledi, dört haftalık yükselişi duraksadı. (24s: -0.3%, 7g: bulunamadı)\n5. SPX — 4/10 — AI kaygısı ve faiz baskısıyla iki gün üst üste düşüp 7,765.36'ya geriledi. (24s: -0.47%, 7g: bulunamadı)\n6. NASDAQ — 3/10 — OpenAI gelir raporuyla AI/çip hisseleri satıldı, NDX 30,676'ya düştü. (24s: -1.55%, 7g: -0.43%)\n7. BTC — 3/10 — ETF çıkışları sürerken ~$82.4K'ya gerileyerek haftayı ezik geçiriyor, ancak Nasdaq kadar sert düşmedi. (24s: -1%, 7g: -2.9%)\n\nBTC Makro Bias: SHORT — Güven: Düşük",
+  "asset_strength": [
+    {
+      "asset": "BRENT",
+      "score": 7.5,
+      "reason": "Hormuz yakınındaki yeni gemi saldırılarıyla Perşembe +%4 yükselip $104.28'den kapandı, gün içinde ~$106'yı gördü.",
+      "chg_24h_pct": 4,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 7,
+      "reason": "Faiz ve dolardaki geri çekilmeyle iki ayın dibinden toparlanıp ~$4,187'ye çıktı.",
+      "chg_24h_pct": 1.3,
+      "chg_7d_pct": 1
+    },
+    {
+      "asset": "VIX",
+      "score": 6.5,
+      "reason": "Teknoloji satışı, yüksek faiz ve petrolle %6.1 artışla 16.00'ya yükseldi, korku artıyor.",
+      "chg_24h_pct": 6.1,
+      "chg_7d_pct": 4.5
+    },
+    {
+      "asset": "DXY",
+      "score": 4.5,
+      "reason": "Faizlerin zirveden geri çekilmesiyle 102.27'den ~101.9'a hafif geriledi, dört haftalık yükselişi duraksadı.",
+      "chg_24h_pct": -0.3,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "SPX",
+      "score": 4,
+      "reason": "AI kaygısı ve faiz baskısıyla iki gün üst üste düşüp 7,765.36'ya geriledi.",
+      "chg_24h_pct": -0.47,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 3,
+      "reason": "OpenAI gelir raporuyla AI/çip hisseleri satıldı, NDX 30,676'ya düştü.",
+      "chg_24h_pct": -1.55,
+      "chg_7d_pct": -0.43
+    },
+    {
+      "asset": "BTC",
+      "score": 3,
+      "reason": "ETF çıkışları sürerken ~$82.4K'ya gerileyerek haftayı ezik geçiriyor, ancak Nasdaq kadar sert düşmedi.",
+      "chg_24h_pct": -1,
+      "chg_7d_pct": -2.9
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
