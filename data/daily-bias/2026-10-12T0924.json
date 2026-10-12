@@ -1,0 +1,129 @@
+{
+  "run_date": "2026-10-12",
+  "generated_at": "2026-10-12T06:24:16Z",
+  "net_direction": "Hafif Negatif",
+  "sentiment_score": -15,
+  "change_24h": "iyileşti",
+  "drivers": [
+    "Fed sıkılaşma beklentisi canlı: FedWatch'ta Aralık'a kadar artırım olasılığı ~%85; 14 Ekim Eylül CPI'ı (beklenti yıllık %3.6, önceki %3.4) bu hafta yönü belirleyecek",
+    "Körfez'de tırmanma: Husiler Riyad King Khalid Havalimanı'nı ikinci kez vurdu, Hormuz/Umman yakınında yeni tanker saldırıları; Brent ~$103-105.5 bandında, enerji kaynaklı enflasyon riski sürüyor",
+    "Risk iştahı toparlandı: Cuma SPX +%0.6 (7,811.54, haftalık +%1.2), Nasdaq Bileşik +%0.6, VIX -%3.7 ile 14.84; ABD 10Y %5.365 zirvesinden ~%5.24'e geriledi",
+    "ETF akımları zayıf ama satış yavaşladı: Cuma spot BTC ETF +$21.1M (IBIT +$22.4M), ancak 5-9 Ekim haftası toplam -$678.9M net çıkış"
+  ],
+  "developments": [
+    {
+      "item": "Cuma ABD borsaları yükselişle kapandı: SPX +%0.6 (7,811.54, rekora yakın), Dow +%0.8, Nasdaq Bileşik +%0.6; üç endeks de haftayı artıda bitirdi",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "VIX -%3.7 ile 14.84'e geriledi, Perşembe'nin AI kaynaklı satış korkusu dağıldı",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "ABD 10Y faizi %5.365 zirvesinden ~%5.24'e, 2Y ~%4.80'e geriledi; faizler hâlâ çok yüksek seviyede",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Fed: Aralık'a kadar artırım olasılığı ~%85; Waller/Musalem şahin tonu fiyatlanmış durumda",
+      "impact": "Negatif"
+    },
+    {
+      "item": "14 Ekim Eylül CPI: yıllık %3.6 beklentisi (önceki %3.4), çekirdek aylık %0.2 bekleniyor; sıcak veri faiz/dolar baskısını yeniden alevlendirebilir",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Hafta sonu Husiler Riyad havalimanını yeniden vurdu (Cumartesi 12 ölü), Hormuz ve Umman yakınında yeni tanker saldırıları; Brent Pazartesi Asya'da ~$103-105.5",
+      "impact": "Negatif"
+    },
+    {
+      "item": "JPMorgan: Körfez ihracatı 17.5 mb/g ile savaş öncesinin %98'i; Hormuz akışı büyük ölçüde sürüyor, petrol yükselişini sınırlıyor",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "DXY Cuma 102.21 (+%0.07) ile 18 ayın zirvesine yakın kalmaya devam ediyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Altın vadeli Cuma +%1.4 ile ~$4,216, Pazartesi ~$4,210; iki ay dibinden toparlanma sürüyor",
+      "impact": "Nötr"
+    },
+    {
+      "item": "ECB (%2.65) ve BOJ (%1.25) Eylül'de faiz artırdı; küresel merkez bankası eğilimi sıkılaşma yönünde, PBOC kararı 20 Ekim'de",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Spot BTC ETF Cuma +$21.1M küçük girişe döndü, haftalık toplam -$678.9M çıkış; ETH tarafında baskı sürdü",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Asya Pazartesi temkinli: Nikkei yatay (~69,030), kazanç sezonu ve Körfez gerilimi öncesi bekle-gör",
+      "impact": "Nötr"
+    },
+    {
+      "item": "BTC hafta sonu short tasfiyeleriyle ~$84.0K'ya toparlandı (24s ~+%1.2), $85K direnci aşılamadı; 24 saatlik BTC tasfiyesi ~$47M, çoğu short",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "Hafta sonunun en önemli gelişmesi Körfez'deki tırmanma oldu: Husiler Riyad'daki King Khalid Havalimanı'nı bir gün arayla ikinci kez vurdu (Cumartesi saldırısında 12 ölü) ve Hormuz ile Umman yakınında yeni tanker saldırıları bildirildi; Brent Pazartesi Asya seansında ~$105.5'e kadar çıktı. Ancak JPMorgan'a göre Körfez ihracatı savaş öncesinin %98'inde ve Hormuz akışı sürüyor, bu yüzden petroldeki tepki sınırlı kaldı. Piyasanın henüz tam fiyatlamadığı risk, bu tırmanmanın 14 Ekim CPI'ının (%3.6 beklenti) sıcak gelmesiyle birleşip Aralık Fed artırımını kesinleştirmesi ve faiz/dolar baskısını yeniden başlatması; şimdilik hisse senetlerindeki toparlanma ve faizlerdeki geri çekilme BTC'nin $84K'ya dönmesine alan açtı.",
+  "divergence": "relative weakness",
+  "divergence_note": "Cuma SPX rekora yakın kapanıp haftayı +%1.2 ile, Nasdaq +%0.6 ile bitirirken ve ABD 10Y %5.365'ten ~%5.24'e gerilerken BTC aynı hafta ETF'lerden ~$679M net çıkışla ezik kaldı ve hafta sonu ancak short tasfiyeleriyle $84K'ya dönebildi. Risk varlıklarındaki toparlanmaya ve faizlerdeki gevşemeye rağmen BTC'nin $85K'yı aşamaması relative weakness olarak işaretlenmeli.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Nötr",
+  "conclusion": "Hisse senetlerindeki toparlanma, VIX'in 15'in altına inmesi, faizlerin zirveden gerilemesi ve ETF satışının yavaşlaması makro zemini önceki güne göre iyileştirdi, ancak Fed artırım beklentisi, $100 üzeri Brent ve güçlü dolar talebi hâlâ baskılıyor. Önümüzdeki 24-72 saatte yön büyük ölçüde 14 Ekim CPI'ına bağlı; sıcak veri $82K'yı yeniden gündeme getirirken yumuşak veri $85K direncinin aşılmasına zemin hazırlayabilir. CPI öncesi net bir makro yön yok.",
+  "bias": "NEUTRAL",
+  "confidence": "Düşük",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Hafif Negatif\n\nSentiment skoru: -15\n\nSon 24 saatte değişim: Önceki güne göre iyileşti\n\nAna sürücüler:\n- Fed sıkılaşma beklentisi canlı: FedWatch'ta Aralık'a kadar artırım olasılığı ~%85; 14 Ekim Eylül CPI'ı (beklenti yıllık %3.6, önceki %3.4) bu hafta yönü belirleyecek\n- Körfez'de tırmanma: Husiler Riyad King Khalid Havalimanı'nı ikinci kez vurdu, Hormuz/Umman yakınında yeni tanker saldırıları; Brent ~$103-105.5 bandında, enerji kaynaklı enflasyon riski sürüyor\n- Risk iştahı toparlandı: Cuma SPX +%0.6 (7,811.54, haftalık +%1.2), Nasdaq Bileşik +%0.6, VIX -%3.7 ile 14.84; ABD 10Y %5.365 zirvesinden ~%5.24'e geriledi\n- ETF akımları zayıf ama satış yavaşladı: Cuma spot BTC ETF +$21.1M (IBIT +$22.4M), ancak 5-9 Ekim haftası toplam -$678.9M net çıkış\n\nGelişme sınıflandırması:\n- Cuma ABD borsaları yükselişle kapandı: SPX +%0.6 (7,811.54, rekora yakın), Dow +%0.8, Nasdaq Bileşik +%0.6; üç endeks de haftayı artıda bitirdi → Pozitif\n- VIX -%3.7 ile 14.84'e geriledi, Perşembe'nin AI kaynaklı satış korkusu dağıldı → Pozitif\n- ABD 10Y faizi %5.365 zirvesinden ~%5.24'e, 2Y ~%4.80'e geriledi; faizler hâlâ çok yüksek seviyede → Pozitif\n- Fed: Aralık'a kadar artırım olasılığı ~%85; Waller/Musalem şahin tonu fiyatlanmış durumda → Negatif\n- 14 Ekim Eylül CPI: yıllık %3.6 beklentisi (önceki %3.4), çekirdek aylık %0.2 bekleniyor; sıcak veri faiz/dolar baskısını yeniden alevlendirebilir → Negatif\n- Hafta sonu Husiler Riyad havalimanını yeniden vurdu (Cumartesi 12 ölü), Hormuz ve Umman yakınında yeni tanker saldırıları; Brent Pazartesi Asya'da ~$103-105.5 → Negatif\n- JPMorgan: Körfez ihracatı 17.5 mb/g ile savaş öncesinin %98'i; Hormuz akışı büyük ölçüde sürüyor, petrol yükselişini sınırlıyor → Pozitif\n- DXY Cuma 102.21 (+%0.07) ile 18 ayın zirvesine yakın kalmaya devam ediyor → Negatif\n- Altın vadeli Cuma +%1.4 ile ~$4,216, Pazartesi ~$4,210; iki ay dibinden toparlanma sürüyor → Nötr\n- ECB (%2.65) ve BOJ (%1.25) Eylül'de faiz artırdı; küresel merkez bankası eğilimi sıkılaşma yönünde, PBOC kararı 20 Ekim'de → Negatif\n- Spot BTC ETF Cuma +$21.1M küçük girişe döndü, haftalık toplam -$678.9M çıkış; ETH tarafında baskı sürdü → Nötr\n- Asya Pazartesi temkinli: Nikkei yatay (~69,030), kazanç sezonu ve Körfez gerilimi öncesi bekle-gör → Nötr\n- BTC hafta sonu short tasfiyeleriyle ~$84.0K'ya toparlandı (24s ~+%1.2), $85K direnci aşılamadı; 24 saatlik BTC tasfiyesi ~$47M, çoğu short → Nötr\n\nEn önemli yeni gelişme:\nHafta sonunun en önemli gelişmesi Körfez'deki tırmanma oldu: Husiler Riyad'daki King Khalid Havalimanı'nı bir gün arayla ikinci kez vurdu (Cumartesi saldırısında 12 ölü) ve Hormuz ile Umman yakınında yeni tanker saldırıları bildirildi; Brent Pazartesi Asya seansında ~$105.5'e kadar çıktı. Ancak JPMorgan'a göre Körfez ihracatı savaş öncesinin %98'inde ve Hormuz akışı sürüyor, bu yüzden petroldeki tepki sınırlı kaldı. Piyasanın henüz tam fiyatlamadığı risk, bu tırmanmanın 14 Ekim CPI'ının (%3.6 beklenti) sıcak gelmesiyle birleşip Aralık Fed artırımını kesinleştirmesi ve faiz/dolar baskısını yeniden başlatması; şimdilik hisse senetlerindeki toparlanma ve faizlerdeki geri çekilme BTC'nin $84K'ya dönmesine alan açtı.\n\nMakro uyumsuzluk kontrolü:\nrelative weakness: Cuma SPX rekora yakın kapanıp haftayı +%1.2 ile, Nasdaq +%0.6 ile bitirirken ve ABD 10Y %5.365'ten ~%5.24'e gerilerken BTC aynı hafta ETF'lerden ~$679M net çıkışla ezik kaldı ve hafta sonu ancak short tasfiyeleriyle $84K'ya dönebildi. Risk varlıklarındaki toparlanmaya ve faizlerdeki gevşemeye rağmen BTC'nin $85K'yı aşamaması relative weakness olarak işaretlenmeli.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Nötr\n\nBTC için sonuç:\nHisse senetlerindeki toparlanma, VIX'in 15'in altına inmesi, faizlerin zirveden gerilemesi ve ETF satışının yavaşlaması makro zemini önceki güne göre iyileştirdi, ancak Fed artırım beklentisi, $100 üzeri Brent ve güçlü dolar talebi hâlâ baskılıyor. Önümüzdeki 24-72 saatte yön büyük ölçüde 14 Ekim CPI'ına bağlı; sıcak veri $82K'yı yeniden gündeme getirirken yumuşak veri $85K direncinin aşılmasına zemin hazırlayabilir. CPI öncesi net bir makro yön yok.\n\nVarlık güç sıralaması:\n1. XAUUSD — 6.5/10 — Faizlerin zirveden gerilemesi ve Körfez gerilimiyle Cuma +%1.4 yükselip ~$4,210-4,216'ya toparlandı. (24s: +1.40%, 7g: n/a)\n2. SPX — 6.5/10 — Cuma +%0.6 ile 7,811.54'ten rekora yakın kapandı ve haftayı +%1.2 ile bitirdi. (24s: +0.60%, 7g: +1.20%)\n3. NASDAQ — 6/10 — AI satışının ardından Cuma ~+%0.5 toparlandı, haftalık bazda Bileşik +%0.6 ile sınırlı artıda. (24s: +0.50%, 7g: +0.60%)\n4. BRENT — 6/10 — Riyad havalimanı ve tanker saldırılarıyla $103-105.5 bandında yüksek seyrini korudu, ancak Hormuz akışının sürmesi yükselişi sınırlıyor. (24s: +0.50%, 7g: n/a)\n5. BTC — 5.5/10 — Short tasfiyeleri ve ETF satışının yavaşlamasıyla ~$84K'ya toparlandı, ancak haftayı ETF çıkışlarıyla ezik geçirdi ve $85K altında kaldı. (24s: +1.20%, 7g: n/a)\n6. DXY — 5.5/10 — Cuma 102.21 ile yatay kapandı, 18 ayın zirvesine yakın güçlü konumunu koruyor. (24s: +0.07%, 7g: n/a)\n7. VIX — 3.5/10 — Hisse toparlanmasıyla %3.7 düşüp 14.84'e geriledi, korku azalıyor. (24s: -3.70%, 7g: n/a)\n\nBTC Makro Bias: NEUTRAL\nGüven seviyesi: Düşük",
+  "asset_strength": [
+    {
+      "asset": "XAUUSD",
+      "score": 6.5,
+      "reason": "Faizlerin zirveden gerilemesi ve Körfez gerilimiyle Cuma +%1.4 yükselip ~$4,210-4,216'ya toparlandı.",
+      "chg_24h_pct": 1.4,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "SPX",
+      "score": 6.5,
+      "reason": "Cuma +%0.6 ile 7,811.54'ten rekora yakın kapandı ve haftayı +%1.2 ile bitirdi.",
+      "chg_24h_pct": 0.6,
+      "chg_7d_pct": 1.2
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 6,
+      "reason": "AI satışının ardından Cuma ~+%0.5 toparlandı, haftalık bazda Bileşik +%0.6 ile sınırlı artıda.",
+      "chg_24h_pct": 0.5,
+      "chg_7d_pct": 0.6
+    },
+    {
+      "asset": "BRENT",
+      "score": 6,
+      "reason": "Riyad havalimanı ve tanker saldırılarıyla $103-105.5 bandında yüksek seyrini korudu, ancak Hormuz akışının sürmesi yükselişi sınırlıyor.",
+      "chg_24h_pct": 0.5,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "BTC",
+      "score": 5.5,
+      "reason": "Short tasfiyeleri ve ETF satışının yavaşlamasıyla ~$84K'ya toparlandı, ancak haftayı ETF çıkışlarıyla ezik geçirdi ve $85K altında kaldı.",
+      "chg_24h_pct": 1.2,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "DXY",
+      "score": 5.5,
+      "reason": "Cuma 102.21 ile yatay kapandı, 18 ayın zirvesine yakın güçlü konumunu koruyor.",
+      "chg_24h_pct": 0.07,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "VIX",
+      "score": 3.5,
+      "reason": "Hisse toparlanmasıyla %3.7 düşüp 14.84'e geriledi, korku azalıyor.",
+      "chg_24h_pct": -3.7,
+      "chg_7d_pct": null
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
