@@ -1,0 +1,121 @@
+{
+  "run_date": "2026-10-13",
+  "generated_at": "2026-10-13T06:11:55Z",
+  "net_direction": "Negatif",
+  "sentiment_score": -30,
+  "change_24h": "kötüleşti",
+  "drivers": [
+    "Fed sıkılaşma baskısı güçlendi: Cleveland Fed Başkanı Hammack 12 Ekim'de enflasyon büyümeden önleyici artırım çağrısı yaptı; FedWatch'ta Aralık artırım olasılığı ~%77-88, 14 Ekim Eylül CPI'ı (beklenti yıllık %3.6) kritik eşik",
+    "Asya'da çip kaynaklı risk-off: Kospi Salı -%7.4 ile 5,914'e (Temmuz sonundan beri en düşük), Nikkei ~-%2.2-2.5; CXMT rekabeti ve AI rallisinin sürdürülebilirliği kaygısı, ABD'de Micron -%3.9 ve Nasdaq Bileşik -%0.44 ile başladı",
+    "Enerji/jeopolitik: Brent Pazartesi iki haftanın zirvesine (~$106-107.8) çıktı, Salı ~$105.9; Rusya Trump'ın 'enerji ateşkesi'ni fiilen tanımadı (6 Ukrayna enerji tesisine saldırı), Körfez'de Husi/tanker riski sürüyor",
+    "Güçlü dolar ve zayıf kripto akımları: EUR/USD 1.1150 ile 17 ayın dibinde, DXY ~102.2 18 ay zirvesine yakın, ABD 10Y ~%5.24; spot BTC ETF Pazartesi -$65.4M (tamamı IBIT), önceki hafta ~-$680M"
+  ],
+  "developments": [
+    {
+      "item": "Kospi Salı -%7.4 ile 5,914'e çöktü (Samsung/SK Hynix öncülüğünde, CXMT rekabet kaygısı); Nikkei ~-%2.2-2.5, Asya genelinde teknoloji satışı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "ABD Pazartesi karışık kapandı: Dow +%0.38 (51,850.55), SPX -%0.06 (7,807.24), Nasdaq Bileşik -%0.44 (27,245.90); Micron -%3.9, teknoloji sektörü -%1.25",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Cleveland Fed'den Hammack önleyici faiz artırımı çağrısı yaptı; piyasa Ekim'de bekleme (~%80), Aralık'ta artırım (~%77-88) fiyatlıyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "14 Ekim Eylül CPI'ı (yıllık %3.6 beklenti, önceki %3.4) öncesi faizler ~%5.24'te (10Y) ve ~%4.80'de (2Y) yüksek seviyede yatay; reel faizler kısıtlayıcı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "EUR/USD 12 Ekim'de 1.1150 ile 17 ayın dibini gördü; DXY ~102.17 ile 18 ay zirvesine yakın, şahin Fed ve petrol doları destekliyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Brent Pazartesi 29 Eylül'den bu yana en yüksek seviyeye çıktı, Salı ~$105.9 (-%0.7); Goldman risk priminin varil başına ~$20 eklediğini hesaplıyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Trump'ın Rusya-Ukrayna 'enerji ateşkesi' açıklamasına rağmen Rusya Ukrayna enerji tesislerine saldırılarını sürdürdü; Kremlin 'temaslar sürüyor' dedi; ABD'nin Rus dizeli alacağı haberi petrolü kısmen gevşetti",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Spot BTC ETF Pazartesi -$65.4M net çıkış (tamamı IBIT); 13 seansta toplam giriş yalnızca ~$232M, kurumsal talep zayıf",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Altın ~$4,165'e geriledi (24s ~-%1), güçlü dolar ve yüksek reel faiz güvenli liman talebini sınırlıyor",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Stablecoin arzı Mayıs zirvesinin (~$322B) altında ~$300-308B bandında, kripto likiditesinde genişleme yok",
+      "impact": "Negatif"
+    },
+    {
+      "item": "BTC ~$82K altına geriledi (24s ~-%2, 7g ~-%4); hisse endeksleri yatayken düşüş BTC'ye özgü zayıflığı gösteriyor",
+      "impact": "Negatif"
+    }
+  ],
+  "key_development": "Son saatlerin en önemli gelişmesi Asya seansındaki sert çip satışı oldu: Kospi Samsung ve SK Hynix öncülüğünde %7'nin üzerinde düşerek 5,914'e geriledi ve Temmuz sonundan beri en düşük seviyeyi gördü; Nikkei de %2'nin üzerinde kaybetti. Satışı Çinli bellek üreticisi CXMT'nin rekabet tehdidi ve AI rallisinin sürdürülebilirliğine dair artan şüphe tetikledi; ABD'de Micron'un -%3.9 düşüşüyle başlayan hareket, Nasdaq'ı ve risk iştahını CPI'dan bir gün önce yeniden baskı altına alabilir. Hammack'ın şahin tonu, 17 ay dibindeki euro/güçlü dolar ve $105 üzeri Brent ile birleşince, bu gelişme BTC'nin zaten zayıf olan ETF talebinin üzerine ek bir risk-off katmanı ekliyor ve henüz ABD vadelilerine tam yansımamış olabilir.",
+  "divergence": "relative weakness",
+  "divergence_note": "Pazartesi SPX yatay (-%0.06), DXY yatay (~102.17) ve ABD 10Y ~%5.24'te değişmezken BTC 24 saatte ~%2 düşerek $82K altına indi ve ETF'lerden yeniden çıkış oldu. Makro göstergeler bir gün içinde belirgin kötüleşmeden BTC'nin hisselerden daha sert düşmesi relative weakness olarak işaretlenmeli; Asya çip satışı ise BTC'nin henüz tam yansıtmadığı ek risk taşıyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Temkinli risk-off",
+  "conclusion": "Şahin Fed söylemi, yüksek faiz/güçlü dolar, $100 üzeri Brent ve Asya'daki çip kaynaklı risk-off, zayıf ETF akımlarıyla birleşerek BTC talebini azaltıyor. Önümüzdeki 24-72 saatte yön 14 Ekim CPI'ına bağlı; sıcak veri (%3.6 ve üzeri) $80K bölgesini gündeme getirirken yumuşak veri ancak $84-85K'ya kısa süreli bir toparlanma sağlayabilir. Makro risk dengesi aşağı yönlü, ancak CPI'ın ikili sonucu güveni düşük tutuyor.",
+  "bias": "SHORT",
+  "confidence": "Düşük",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Negatif\n\nSentiment skoru: -30\n\nSon 24 saatte değişim: Önceki güne göre kötüleşti\n\nAna sürücüler:\n- Fed sıkılaşma baskısı güçlendi: Cleveland Fed Başkanı Hammack 12 Ekim'de enflasyon büyümeden önleyici artırım çağrısı yaptı; FedWatch'ta Aralık artırım olasılığı ~%77-88, 14 Ekim Eylül CPI'ı (beklenti yıllık %3.6) kritik eşik\n- Asya'da çip kaynaklı risk-off: Kospi Salı -%7.4 ile 5,914'e (Temmuz sonundan beri en düşük), Nikkei ~-%2.2-2.5; CXMT rekabeti ve AI rallisinin sürdürülebilirliği kaygısı, ABD'de Micron -%3.9 ve Nasdaq Bileşik -%0.44 ile başladı\n- Enerji/jeopolitik: Brent Pazartesi iki haftanın zirvesine (~$106-107.8) çıktı, Salı ~$105.9; Rusya Trump'ın 'enerji ateşkesi'ni fiilen tanımadı (6 Ukrayna enerji tesisine saldırı), Körfez'de Husi/tanker riski sürüyor\n- Güçlü dolar ve zayıf kripto akımları: EUR/USD 1.1150 ile 17 ayın dibinde, DXY ~102.2 18 ay zirvesine yakın, ABD 10Y ~%5.24; spot BTC ETF Pazartesi -$65.4M (tamamı IBIT), önceki hafta ~-$680M\n\nGelişmelerin sınıflandırması:\n- Kospi Salı -%7.4 ile 5,914'e çöktü (Samsung/SK Hynix öncülüğünde, CXMT rekabet kaygısı); Nikkei ~-%2.2-2.5, Asya genelinde teknoloji satışı → Negatif\n- ABD Pazartesi karışık kapandı: Dow +%0.38 (51,850.55), SPX -%0.06 (7,807.24), Nasdaq Bileşik -%0.44 (27,245.90); Micron -%3.9, teknoloji sektörü -%1.25 → Negatif\n- Cleveland Fed'den Hammack önleyici faiz artırımı çağrısı yaptı; piyasa Ekim'de bekleme (~%80), Aralık'ta artırım (~%77-88) fiyatlıyor → Negatif\n- 14 Ekim Eylül CPI'ı (yıllık %3.6 beklenti, önceki %3.4) öncesi faizler ~%5.24'te (10Y) ve ~%4.80'de (2Y) yüksek seviyede yatay; reel faizler kısıtlayıcı → Negatif\n- EUR/USD 12 Ekim'de 1.1150 ile 17 ayın dibini gördü; DXY ~102.17 ile 18 ay zirvesine yakın, şahin Fed ve petrol doları destekliyor → Negatif\n- Brent Pazartesi 29 Eylül'den bu yana en yüksek seviyeye çıktı, Salı ~$105.9 (-%0.7); Goldman risk priminin varil başına ~$20 eklediğini hesaplıyor → Negatif\n- Trump'ın Rusya-Ukrayna 'enerji ateşkesi' açıklamasına rağmen Rusya Ukrayna enerji tesislerine saldırılarını sürdürdü; Kremlin 'temaslar sürüyor' dedi; ABD'nin Rus dizeli alacağı haberi petrolü kısmen gevşetti → Nötr\n- Spot BTC ETF Pazartesi -$65.4M net çıkış (tamamı IBIT); 13 seansta toplam giriş yalnızca ~$232M, kurumsal talep zayıf → Negatif\n- Altın ~$4,165'e geriledi (24s ~-%1), güçlü dolar ve yüksek reel faiz güvenli liman talebini sınırlıyor → Nötr\n- Stablecoin arzı Mayıs zirvesinin (~$322B) altında ~$300-308B bandında, kripto likiditesinde genişleme yok → Negatif\n- BTC ~$82K altına geriledi (24s ~-%2, 7g ~-%4); hisse endeksleri yatayken düşüş BTC'ye özgü zayıflığı gösteriyor → Negatif\n\nEn önemli yeni gelişme:\nSon saatlerin en önemli gelişmesi Asya seansındaki sert çip satışı oldu: Kospi Samsung ve SK Hynix öncülüğünde %7'nin üzerinde düşerek 5,914'e geriledi ve Temmuz sonundan beri en düşük seviyeyi gördü; Nikkei de %2'nin üzerinde kaybetti. Satışı Çinli bellek üreticisi CXMT'nin rekabet tehdidi ve AI rallisinin sürdürülebilirliğine dair artan şüphe tetikledi; ABD'de Micron'un -%3.9 düşüşüyle başlayan hareket, Nasdaq'ı ve risk iştahını CPI'dan bir gün önce yeniden baskı altına alabilir. Hammack'ın şahin tonu, 17 ay dibindeki euro/güçlü dolar ve $105 üzeri Brent ile birleşince, bu gelişme BTC'nin zaten zayıf olan ETF talebinin üzerine ek bir risk-off katmanı ekliyor ve henüz ABD vadelilerine tam yansımamış olabilir.\n\nMakro uyumsuzluk kontrolü:\nrelative weakness: Pazartesi SPX yatay (-%0.06), DXY yatay (~102.17) ve ABD 10Y ~%5.24'te değişmezken BTC 24 saatte ~%2 düşerek $82K altına indi ve ETF'lerden yeniden çıkış oldu. Makro göstergeler bir gün içinde belirgin kötüleşmeden BTC'nin hisselerden daha sert düşmesi relative weakness olarak işaretlenmeli; Asya çip satışı ise BTC'nin henüz tam yansıtmadığı ek risk taşıyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Temkinli risk-off\n\nBTC için sonuç:\nŞahin Fed söylemi, yüksek faiz/güçlü dolar, $100 üzeri Brent ve Asya'daki çip kaynaklı risk-off, zayıf ETF akımlarıyla birleşerek BTC talebini azaltıyor. Önümüzdeki 24-72 saatte yön 14 Ekim CPI'ına bağlı; sıcak veri (%3.6 ve üzeri) $80K bölgesini gündeme getirirken yumuşak veri ancak $84-85K'ya kısa süreli bir toparlanma sağlayabilir. Makro risk dengesi aşağı yönlü, ancak CPI'ın ikili sonucu güveni düşük tutuyor.\n\nVarlık güç sıralaması:\n1. BRENT — 6.5/10 — Pazartesi iki haftanın zirvesine çıktıktan sonra Salı ~$105.9'a hafif geriledi, Körfez riski ve Rusya-Ukrayna enerji saldırılarıyla haftalık bazda güçlü. (24s: -0.70%, 7g: +4.50%)\n2. DXY — 5.5/10 — Pazartesi ~102.17 ile yatay kapandı, euro'nun 17 ay dibine inmesiyle 18 ay zirvesine yakın güçlü konumunu koruyor. (24s: -0.04%, 7g: -0.30%)\n3. VIX — 5.5/10 — Teknoloji satışıyla ~15.2'ye hafif yükseldi, Asya'daki çip çöküşü korkunun artabileceğine işaret ediyor. (24s: +2.50%, 7g: -2.00%)\n4. SPX — 5/10 — Dow'daki değer rotasyonuna karşın teknoloji baskısıyla 7,807.24'te yatay kapandı, rekora yakın kalıyor. (24s: -0.06%, 7g: +0.20%)\n5. XAUUSD — 4.5/10 — Güçlü dolar ve yüksek reel faizle Cuma'daki toparlanmanın bir kısmını geri verip ~$4,165'e geriledi. (24s: -1.10%, 7g: +0.30%)\n6. NASDAQ — 4/10 — Micron -%3.9 ve teknoloji sektörü -%1.25 ile geriledi, Asya'daki çip çöküşü ek baskı yaratıyor. (24s: -0.60%, 7g: -0.40%)\n7. BTC — 3/10 — ETF çıkışları ve güçlü dolarla $82K altına indi, hisseler yatayken en zayıf varlık oldu. (24s: -2.00%, 7g: -4.00%)\n\nBTC Makro Bias: SHORT\nGüven seviyesi: Düşük",
+  "asset_strength": [
+    {
+      "asset": "BRENT",
+      "score": 6.5,
+      "reason": "Pazartesi iki haftanın zirvesine çıktıktan sonra Salı ~$105.9'a hafif geriledi, Körfez riski ve Rusya-Ukrayna enerji saldırılarıyla haftalık bazda güçlü.",
+      "chg_24h_pct": -0.7,
+      "chg_7d_pct": 4.5
+    },
+    {
+      "asset": "DXY",
+      "score": 5.5,
+      "reason": "Pazartesi ~102.17 ile yatay kapandı, euro'nun 17 ay dibine inmesiyle 18 ay zirvesine yakın güçlü konumunu koruyor.",
+      "chg_24h_pct": -0.04,
+      "chg_7d_pct": -0.3
+    },
+    {
+      "asset": "VIX",
+      "score": 5.5,
+      "reason": "Teknoloji satışıyla ~15.2'ye hafif yükseldi, Asya'daki çip çöküşü korkunun artabileceğine işaret ediyor.",
+      "chg_24h_pct": 2.5,
+      "chg_7d_pct": -2
+    },
+    {
+      "asset": "SPX",
+      "score": 5,
+      "reason": "Dow'daki değer rotasyonuna karşın teknoloji baskısıyla 7,807.24'te yatay kapandı, rekora yakın kalıyor.",
+      "chg_24h_pct": -0.06,
+      "chg_7d_pct": 0.2
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 4.5,
+      "reason": "Güçlü dolar ve yüksek reel faizle Cuma'daki toparlanmanın bir kısmını geri verip ~$4,165'e geriledi.",
+      "chg_24h_pct": -1.1,
+      "chg_7d_pct": 0.3
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 4,
+      "reason": "Micron -%3.9 ve teknoloji sektörü -%1.25 ile geriledi, Asya'daki çip çöküşü ek baskı yaratıyor.",
+      "chg_24h_pct": -0.6,
+      "chg_7d_pct": -0.4
+    },
+    {
+      "asset": "BTC",
+      "score": 3,
+      "reason": "ETF çıkışları ve güçlü dolarla $82K altına indi, hisseler yatayken en zayıf varlık oldu.",
+      "chg_24h_pct": -2,
+      "chg_7d_pct": -4
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
