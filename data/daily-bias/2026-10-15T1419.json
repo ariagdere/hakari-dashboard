@@ -1,0 +1,129 @@
+{
+  "run_date": "2026-10-15",
+  "generated_at": "2026-10-15T11:19:50Z",
+  "net_direction": "Negatif",
+  "sentiment_score": -45,
+  "change_24h": "kötüleşti",
+  "drivers": [
+    "Sıcak Eylül CPI'ı: manşet yıllık %3.7 (beklenti %3.6, önceki %3.4), aylık %0.6; çekirdek aylık %0.3 / yıllık %2.6 beklenti üstü. FedWatch'ta 28 Ekim artırım olasılığı ~%22'den %40-50'ye çıktı, Aralık'a kadar artırım ~%90 fiyatlanıyor",
+    "Küresel AI/çip çöküşü: Kospi Perşembe ~-%8.7 (devre kesici), Nikkei -%5.2; ABD'de Çarşamba Nasdaq Bileşik -%1.88, SPX -%1.11 (Temmuz'dan beri en sert düşüş), NDX vadelileri -%1.1",
+    "Kripto akımlarında çöküş: spot BTC ETF 14 Ekim -$261M (FBTC -$152.7M), ETH ETF -$129.5M; 24 saatte ~$483M BTC/ETH vadeli likidasyonu, stablecoin arzı Mayıs zirvesinin altında",
+    "Yüksek faiz ortamı: 2Y ~%4.82'ye yükseldi, 10Y ~%5.19-5.30 bandında; DXY 102 üzerinde, reel faizler kısıtlayıcı. Brent ~$104 ile enerji kaynaklı enflasyon riski sürüyor"
+  ],
+  "developments": [
+    {
+      "item": "Eylül CPI yıllık %3.7 / aylık %0.6 ile beklentiyi aştı, benzin endeksi %9.1 artışla aylık artışın yarısından fazlasını oluşturdu; çekirdek %0.3 / %2.6 da beklenti üstü",
+      "impact": "Negatif"
+    },
+    {
+      "item": "CME FedWatch'ta 28 Ekim artırım olasılığı ~%22'den %40-50'ye çıktı, Aralık'a kadar artırım ~%55-90; NY Fed'den Williams 'acele gerek yok' dedi, seçim öncesi artırımın siyasi zorluğu da tartışılıyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "ABD Çarşamba sert düştü: SPX -%1.11 (7,718.94), Nasdaq Bileşik -%1.88 (26,692.87), Russell 2000 -%1.93; çip satışı ve AI borçlanma kaygıları",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Asya Perşembe çöktü: Kospi ~-%8.7 (5,527, devre kesici), Nikkei -%5.2 (64,223); CXMT rekabeti, AI capex/finansman kaygısı ve IMF'nin Asya'nın AI bağımlılığı uyarısı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "ABD vadelileri Perşembe: NDX -%1.1, SPX -%0.3, Dow +%0.3; VIX ~17.4'e yükseldi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "2Y faiz ~%4.82'ye yükseldi, 10Y ~%5.19-5.30; getiri eğrisi düzleşiyor, reel faizler kısıtlayıcı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "DXY CPI sonrası 102.55'e çıktı, Perşembe ~102.06'ya geriledi; USD/JPY ~158.9, Japonya 160'ta müdahale uyarısı yapıyor",
+      "impact": "Nötr"
+    },
+    {
+      "item": "BOJ'nin Ekim'de artırıma karşı olduğu haberi; ECB enerji enflasyonu nedeniyle sıkılaştırma çizgisinde, ÇHC hedefli faiz indirimi ve konut sübvansiyonu açıkladı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Brent IEA'nın 2026 talep tahminini düşürmesi ve ABD'nin nakliye kısıtlamalarını gevşetme sinyaliyle ~-%1.5 düşüşle ~$104.4'e geriledi; Orta Doğu riski sürüyor",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Altın %1 toparlanarak ~$4,145'e çıktı, güvenli liman talebi geri dönüyor",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Spot BTC ETF 14 Ekim -$261M, ETH ETF -$129.5M (toplam -$390.5M); 13 Ekim'deki +$175.7M girişin tamamen tersine döndü",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Stablecoin arzı ~$303-310B ile Mayıs zirvesinin (~$322B) altında, kripto likiditesinde genişleme yok",
+      "impact": "Negatif"
+    },
+    {
+      "item": "BTC 24 saatte ~-%3.4 ile $80.2K'ya kadar düştü (~$80.9K), ~$483M vadeli likidasyonu yaşandı",
+      "impact": "Negatif"
+    }
+  ],
+  "key_development": "Son saatlerin en önemli gelişmesi, ABD'deki sıcak CPI'ın Asya'da çip/AI çöküşüne dönüşmesi oldu: Kospi Perşembe yaklaşık %8.7 düşerek devre kesiciyi tetikledi, Nikkei %5'in üzerinde kaybetti ve Nasdaq 100 vadelileri Avrupa seansında %1'in üzerinde ekside. Hareket, yıllık %3.7'ye çıkan enflasyonun Fed'in 28 Ekim'de ikinci artırımı yapma olasılığını ~%40-50'ye yükseltmesiyle AI yatırımlarının borçla finansmanına dair kaygıların birleşmesinden besleniyor. BTC'nin teknoloji hisseleriyle yüksek korelasyonu ve ETF'lerden süren çıkışlar düşünüldüğünde, ABD seansında satışın Nasdaq'a tam yansıması $80K desteğini test ettirebilir; bu risk henüz tam fiyatlanmamış olabilir.",
+  "divergence": "relative weakness",
+  "divergence_note": "Makro bozulma (sıcak CPI, artan artırım olasılığı, küresel teknoloji satışı) BTC'nin düşüşünü büyük ölçüde açıklıyor, bu yüzden hareket genel olarak uyumlu. Ancak BTC 24 saatte ~-%3.4 ve 7 günde ~-%5.5 ile SPX (-%1.1) ve Nasdaq'tan (-%1.9) daha sert düşüyor; Perşembe dolar geri çekilip altın toparlanırken BTC toparlanamadı. Bu, makroyla aynı yönde ama ek bir relative weakness içeriyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Risk-off",
+  "conclusion": "Sıcak CPI, yükselen Fed artırım olasılığı, küresel AI/çip çöküşü ve ETF çıkışları BTC talebini belirgin şekilde azaltıyor. Önümüzdeki 24-72 saatte makro bazlı yön aşağı; Nasdaq satışı ABD seansında derinleşirse $80K altı gündeme gelirken, Fed yetkililerinden yumuşak sinyal veya dolarda geri çekilme yalnızca kısa süreli tepki alımı sağlayabilir. Risk dengesi açıkça aşağı yönlü, ancak sert düşüş sonrası pozisyon temizliği tepki riski taşıyor.",
+  "bias": "SHORT",
+  "confidence": "Orta",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Negatif\n\nSentiment skoru: -45\n\nSon 24 saatte değişim: Önceki güne göre kötüleşti\n\nAna sürücüler:\n- Sıcak Eylül CPI'ı: manşet yıllık %3.7 (beklenti %3.6, önceki %3.4), aylık %0.6; çekirdek aylık %0.3 / yıllık %2.6 beklenti üstü. FedWatch'ta 28 Ekim artırım olasılığı ~%22'den %40-50'ye çıktı, Aralık'a kadar artırım ~%90 fiyatlanıyor\n- Küresel AI/çip çöküşü: Kospi Perşembe ~-%8.7 (devre kesici), Nikkei -%5.2; ABD'de Çarşamba Nasdaq Bileşik -%1.88, SPX -%1.11 (Temmuz'dan beri en sert düşüş), NDX vadelileri -%1.1\n- Kripto akımlarında çöküş: spot BTC ETF 14 Ekim -$261M (FBTC -$152.7M), ETH ETF -$129.5M; 24 saatte ~$483M BTC/ETH vadeli likidasyonu, stablecoin arzı Mayıs zirvesinin altında\n- Yüksek faiz ortamı: 2Y ~%4.82'ye yükseldi, 10Y ~%5.19-5.30 bandında; DXY 102 üzerinde, reel faizler kısıtlayıcı. Brent ~$104 ile enerji kaynaklı enflasyon riski sürüyor\n\nGelişmelerin sınıflandırması:\n- [Negatif] Eylül CPI yıllık %3.7 / aylık %0.6 ile beklentiyi aştı, benzin endeksi %9.1 artışla aylık artışın yarısından fazlasını oluşturdu; çekirdek %0.3 / %2.6 da beklenti üstü\n- [Negatif] CME FedWatch'ta 28 Ekim artırım olasılığı ~%22'den %40-50'ye çıktı, Aralık'a kadar artırım ~%55-90; NY Fed'den Williams 'acele gerek yok' dedi, seçim öncesi artırımın siyasi zorluğu da tartışılıyor\n- [Negatif] ABD Çarşamba sert düştü: SPX -%1.11 (7,718.94), Nasdaq Bileşik -%1.88 (26,692.87), Russell 2000 -%1.93; çip satışı ve AI borçlanma kaygıları\n- [Negatif] Asya Perşembe çöktü: Kospi ~-%8.7 (5,527, devre kesici), Nikkei -%5.2 (64,223); CXMT rekabeti, AI capex/finansman kaygısı ve IMF'nin Asya'nın AI bağımlılığı uyarısı\n- [Negatif] ABD vadelileri Perşembe: NDX -%1.1, SPX -%0.3, Dow +%0.3; VIX ~17.4'e yükseldi\n- [Negatif] 2Y faiz ~%4.82'ye yükseldi, 10Y ~%5.19-5.30; getiri eğrisi düzleşiyor, reel faizler kısıtlayıcı\n- [Nötr] DXY CPI sonrası 102.55'e çıktı, Perşembe ~102.06'ya geriledi; USD/JPY ~158.9, Japonya 160'ta müdahale uyarısı yapıyor\n- [Nötr] BOJ'nin Ekim'de artırıma karşı olduğu haberi; ECB enerji enflasyonu nedeniyle sıkılaştırma çizgisinde, ÇHC hedefli faiz indirimi ve konut sübvansiyonu açıkladı\n- [Pozitif] Brent IEA'nın 2026 talep tahminini düşürmesi ve ABD'nin nakliye kısıtlamalarını gevşetme sinyaliyle ~-%1.5 düşüşle ~$104.4'e geriledi; Orta Doğu riski sürüyor\n- [Nötr] Altın %1 toparlanarak ~$4,145'e çıktı, güvenli liman talebi geri dönüyor\n- [Negatif] Spot BTC ETF 14 Ekim -$261M, ETH ETF -$129.5M (toplam -$390.5M); 13 Ekim'deki +$175.7M girişin tamamen tersine döndü\n- [Negatif] Stablecoin arzı ~$303-310B ile Mayıs zirvesinin (~$322B) altında, kripto likiditesinde genişleme yok\n- [Negatif] BTC 24 saatte ~-%3.4 ile $80.2K'ya kadar düştü (~$80.9K), ~$483M vadeli likidasyonu yaşandı\n\nEn önemli yeni gelişme:\nSon saatlerin en önemli gelişmesi, ABD'deki sıcak CPI'ın Asya'da çip/AI çöküşüne dönüşmesi oldu: Kospi Perşembe yaklaşık %8.7 düşerek devre kesiciyi tetikledi, Nikkei %5'in üzerinde kaybetti ve Nasdaq 100 vadelileri Avrupa seansında %1'in üzerinde ekside. Hareket, yıllık %3.7'ye çıkan enflasyonun Fed'in 28 Ekim'de ikinci artırımı yapma olasılığını ~%40-50'ye yükseltmesiyle AI yatırımlarının borçla finansmanına dair kaygıların birleşmesinden besleniyor. BTC'nin teknoloji hisseleriyle yüksek korelasyonu ve ETF'lerden süren çıkışlar düşünüldüğünde, ABD seansında satışın Nasdaq'a tam yansıması $80K desteğini test ettirebilir; bu risk henüz tam fiyatlanmamış olabilir.\n\nMakro uyumsuzluk kontrolü: relative weakness (makroyla uyumlu düşüş, ancak hisselerden daha sert)\nMakro bozulma (sıcak CPI, artan artırım olasılığı, küresel teknoloji satışı) BTC'nin düşüşünü büyük ölçüde açıklıyor, bu yüzden hareket genel olarak uyumlu. Ancak BTC 24 saatte ~-%3.4 ve 7 günde ~-%5.5 ile SPX (-%1.1) ve Nasdaq'tan (-%1.9) daha sert düşüyor; Perşembe dolar geri çekilip altın toparlanırken BTC toparlanamadı. Bu, makroyla aynı yönde ama ek bir relative weakness içeriyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Risk-off\n\nBTC için sonuç:\nSıcak CPI, yükselen Fed artırım olasılığı, küresel AI/çip çöküşü ve ETF çıkışları BTC talebini belirgin şekilde azaltıyor. Önümüzdeki 24-72 saatte makro bazlı yön aşağı; Nasdaq satışı ABD seansında derinleşirse $80K altı gündeme gelirken, Fed yetkililerinden yumuşak sinyal veya dolarda geri çekilme yalnızca kısa süreli tepki alımı sağlayabilir. Risk dengesi açıkça aşağı yönlü, ancak sert düşüş sonrası pozisyon temizliği tepki riski taşıyor.\n\nVarlık güç sıralaması:\n1. VIX — 7/10 — CPI sonrası teknoloji satışıyla ~15.3'ten ~17.4'e sıçradı, Ekim vadelisi ~18.3 ile korkunun belirgin arttığını gösteriyor. (24s: +13%, 7g: +14%)\n2. XAUUSD (altın) — 6/10 — Güçlü dolar baskısına rağmen enflasyon ve hisse çöküşüyle güvenli liman talebi geri döndü, ~$4,145'e %1 toparlandı. (24s: +1%, 7g: -0.3%)\n3. DXY — 5/10 — CPI ile 102.55'e yükseldikten sonra Perşembe ~102.06'ya geri çekildi, haftalık bazda yatay ama 18 ay zirvesine yakın. (24s: -0.3%, 7g: -0.1%)\n4. Brent — 4.5/10 — IEA'nın talep tahminini düşürmesi ve ABD'nin nakliye kısıtlamalarını gevşetme sinyaliyle ~$104.4'e geriledi, haftalık bazda hafif pozitif. (24s: -1.5%, 7g: +1%)\n5. S&P 500 — 3.5/10 — Sıcak CPI ve AI satışıyla Çarşamba %1.11 düşüşle 7,718.94'e indi (Temmuz'dan beri en sert günlük kayıp), vadeliler -%0.3. (24s: -1.1%, 7g: -1%)\n6. Nasdaq 100 — 2.5/10 — Çip ve AI borçlanma kaygılarıyla Çarşamba ~-%1.9 düştü, Perşembe NDX vadelileri ~-%1.1 ile satış derinleşiyor. (24s: -1.9%, 7g: -2.8%)\n7. BTC — 2/10 — CPI sonrası ~$483M likidasyon ve $261M ETF çıkışıyla $80.2K'ya kadar indi, ~$80.9K'da en zayıf varlık. (24s: -3.4%, 7g: -5.5%)\n\nBTC Makro Bias: SHORT — Güven: Orta",
+  "asset_strength": [
+    {
+      "asset": "VIX",
+      "score": 7,
+      "reason": "CPI sonrası teknoloji satışıyla ~15.3'ten ~17.4'e sıçradı, Ekim vadelisi ~18.3 ile korkunun belirgin arttığını gösteriyor.",
+      "chg_24h_pct": 13,
+      "chg_7d_pct": 14
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 6,
+      "reason": "Güçlü dolar baskısına rağmen enflasyon ve hisse çöküşüyle güvenli liman talebi geri döndü, ~$4,145'e %1 toparlandı.",
+      "chg_24h_pct": 1,
+      "chg_7d_pct": -0.3
+    },
+    {
+      "asset": "DXY",
+      "score": 5,
+      "reason": "CPI ile 102.55'e yükseldikten sonra Perşembe ~102.06'ya geri çekildi, haftalık bazda yatay ama 18 ay zirvesine yakın.",
+      "chg_24h_pct": -0.3,
+      "chg_7d_pct": -0.1
+    },
+    {
+      "asset": "BRENT",
+      "score": 4.5,
+      "reason": "IEA'nın talep tahminini düşürmesi ve ABD'nin nakliye kısıtlamalarını gevşetme sinyaliyle ~$104.4'e geriledi, haftalık bazda hafif pozitif.",
+      "chg_24h_pct": -1.5,
+      "chg_7d_pct": 1
+    },
+    {
+      "asset": "SPX",
+      "score": 3.5,
+      "reason": "Sıcak CPI ve AI satışıyla Çarşamba %1.11 düşüşle 7,718.94'e indi (Temmuz'dan beri en sert günlük kayıp), vadeliler -%0.3.",
+      "chg_24h_pct": -1.1,
+      "chg_7d_pct": -1
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 2.5,
+      "reason": "Çip ve AI borçlanma kaygılarıyla Çarşamba ~-%1.9 düştü, Perşembe NDX vadelileri ~-%1.1 ile satış derinleşiyor.",
+      "chg_24h_pct": -1.9,
+      "chg_7d_pct": -2.8
+    },
+    {
+      "asset": "BTC",
+      "score": 2,
+      "reason": "CPI sonrası ~$483M likidasyon ve $261M ETF çıkışıyla $80.2K'ya kadar indi, ~$80.9K'da en zayıf varlık.",
+      "chg_24h_pct": -3.4,
+      "chg_7d_pct": -5.5
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
