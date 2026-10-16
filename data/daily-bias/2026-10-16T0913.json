@@ -1,0 +1,129 @@
+{
+  "run_date": "2026-10-16",
+  "generated_at": "2026-10-16T06:13:42Z",
+  "net_direction": "Hafif Negatif",
+  "sentiment_score": -28,
+  "change_24h": "iyileşti",
+  "drivers": [
+    "Sıcak Eylül PPI'ı: manşet aylık %1.3 / yıllık %6.3, çekirdek aylık %0.7 / yıllık %5.0; FedWatch'ta 27-28 Ekim artırım olasılığı ~%27-34, Aralık'a kadar ~%63",
+    "Güvenli liman tahvil rallisi: 10Y ~%5.3'ten ~%5.05-5.09'a, 2Y ~%4.77'ye geriledi; DXY 18 ay zirvesinden ~102.07'ye çekildi",
+    "Risk iştahında kısmi toparlanma: SPX +%0.33, Dow +%1.1, Nasdaq yatay; Cuma Nikkei ~+%1.8, Kospi ~+%3-4; ancak Nasdaq haftayı ~-%2 ile kapatıyor",
+    "Kripto akımları zayıf: 15 Ekim spot BTC ETF yalnızca +$5.1M, ETH ETF'leri 9 seanstır çıkışta, haftalık BTC+ETH çıkışı ~$1.2B; stablecoin arzı yatay"
+  ],
+  "developments": [
+    {
+      "item": "Eylül PPI aylık %1.3 / yıllık %6.3 (Mart 2022'den beri en büyük), çekirdek %0.7 / %5.0 beklentinin çok üzerinde; enerji %10.8 arttı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "FedWatch'ta Ekim artırım olasılığı CPI sonrası ~%50 zirvesinden ~%27-34'e geriledi, Aralık'a kadar artırım ~%63; Warsh Ekim kararı için ipucu vermedi, Daly 'sıkılaştırma muhtemelen gerekli ama acele yok' dedi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "AI satışı kaynaklı güvenli liman rallisiyle 10Y ~%5.05-5.09'a (3 haftanın en düşüğü), 2Y ~%4.77'ye geriledi",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "DXY 18 ay zirvesi ~102.75'ten ~102.07'ye çekildi; USD/JPY ~158, Japonya müdahale uyarısını sürdürüyor",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "ABD Perşembe: SPX +%0.33 (7,744), Dow +%1.1, Nasdaq Bileşik +%0.08; finans ve küçük hisselere rotasyon, teknoloji zayıf",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Asya Cuma toparlandı: Nikkei ~+%1.8, Kospi ~+%3-4; Endonezya MSCI gelişmekte olan piyasa statüsü riskiyle ~-%11",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "NDX vadelileri Cuma sabahı hafif ekside, Nasdaq haftalık ~-%2 kayıpta; AI capex/borçlanma kaygıları sürüyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "VIX Perşembe iki haftanın zirvesini gördükten sonra ~16.5'e geriledi",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Altın ~%1.5 yükselişle ~$4,170-4,185'e çıktı, güvenli liman talebi güçlü",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Brent IEA'nın talep tahminini düşürmesiyle ~$104-105'e hafif geriledi; enerji kaynaklı enflasyon riski PPI'da belirgin",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Spot BTC ETF 15 Ekim +$5.1M (14 Ekim -$261M sonrası), ETH ETF'leri 9 seanstır çıkışta (~-$60M); haftalık BTC+ETH çıkışı ~$1.2B",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Stablecoin arzı yatay, kripto likiditesinde genişleme yok",
+      "impact": "Nötr"
+    },
+    {
+      "item": "BTC PPI sonrası $80K'yı test etti, ~$82K'ya toparlandı ama ~$82.5K direncini aşamadı",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "Sıcak PPI'a rağmen piyasanın enflasyon korkusundan büyüme/AI korkusuna dönmesi en önemli yeni gelişme: Perşembe Kospi ve Nikkei çöküşü Treasury'lerde güçlü bir güvenli liman alımı yarattı, 10Y faiz üç haftanın en düşüğüne indi ve dolar 18 ay zirvesinden geri çekildi. Fed Başkanı Warsh Ekim kararını \"önceden belirlemediğini\" söyledi, Daly ise sıkılaştırmanın muhtemelen gerektiğini ama acele olmadığını belirtti; bu, Ekim artırım fiyatlamasını CPI sonrası ~%50 zirvesinden geri çekti. Faizler ve dolardaki bu gevşeme sürerse BTC üzerindeki baskıyı azaltabilir, ancak %6.3'lük PPI Aralık artırımını masada tutuyor ve piyasa bunu henüz tam fiyatlamamış olabilir.",
+  "divergence": "relative weakness",
+  "divergence_note": "10Y faiz 12-15 bp düşüp DXY geri çekilirken, altın ~%1.5 yükselip Asya hisseleri sert toparlanırken BTC yalnızca ~%1.2 tepki verdi, $80K'yı yeniden test etti ve ~$82.5K direncini aşamadı; ETF talebi de yok denecek kadar zayıf. Makro rüzgar kısa vadede hafifçe lehine dönmüşken BTC'nin tepkisi cılız.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Temkinli risk-off",
+  "conclusion": "Faiz ve dolardaki geri çekilme dünkü sert negatif tabloyu yumuşattı, ancak %6.3'lük PPI, canlı Fed artırım riski ve süren ETF çıkışları BTC talebini hâlâ baskılıyor. Önümüzdeki 24-72 saatte makro bazlı beklenti hafif aşağı/yatay; $80K bölgesi kırılgan kalırken, kalıcı yükseliş için ETF girişlerinin geri dönmesi ve Fed'den yumuşak sinyal gerekiyor. Haftasonu öncesi AI hisselerinde yeni bir satış dalgası en büyük aşağı yönlü risk.",
+  "bias": "SHORT",
+  "confidence": "Düşük",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Hafif Negatif\n\nSentiment skoru: -28\n\nSon 24 saatte değişim: Önceki güne göre iyileşti\n\nAna sürücüler:\n1. Sıcak Eylül PPI'ı: manşet aylık %1.3 / yıllık %6.3 (Mart 2022'den beri en büyük artış), çekirdek aylık %0.7 / yıllık %5.0. CPI'la birlikte Fed artırım riskini canlı tutuyor; FedWatch'ta 27-28 Ekim artırım olasılığı ~%27-34, Aralık'a kadar ~%63.\n2. Güvenli liman tahvil rallisi: AI satışıyla 10Y ~%5.3'ten ~%5.05-5.09'a, 2Y ~%4.77'ye geriledi (12-15 bp düşüş); DXY 18 ay zirvesinden ~102.07'ye çekildi. Finansal koşullar biraz gevşedi.\n3. Risk iştahında kısmi toparlanma: SPX +%0.33 (7,744), Dow +%1.1, Nasdaq yatay (+%0.08); Cuma Asya'da Nikkei ~+%1.8, Kospi ~+%3-4 tepki verdi. Ancak Nasdaq haftayı ~-%2 ile kapatıyor, NDX vadelileri hafif ekside.\n4. Kripto akımları zayıf: 14 Ekim -$261M sonrası 15 Ekim spot BTC ETF yalnızca +$5.1M; ETH ETF'leri 9 seanstır çıkışta (15 Ekim ~-$60M), haftalık BTC+ETH çıkışı ~$1.2B. Stablecoin arzı yatay.\n\nEn önemli yeni gelişme:\nSıcak PPI'a rağmen piyasanın enflasyon korkusundan büyüme/AI korkusuna dönmesi en önemli yeni gelişme: Perşembe Kospi ve Nikkei çöküşü Treasury'lerde güçlü bir güvenli liman alımı yarattı, 10Y faiz üç haftanın en düşüğüne indi ve dolar 18 ay zirvesinden geri çekildi. Fed Başkanı Warsh Ekim kararını \"önceden belirlemediğini\" söyledi, Daly ise sıkılaştırmanın muhtemelen gerektiğini ama acele olmadığını belirtti; bu, Ekim artırım fiyatlamasını CPI sonrası ~%50 zirvesinden geri çekti. Faizler ve dolardaki bu gevşeme sürerse BTC üzerindeki baskıyı azaltabilir, ancak %6.3'lük PPI Aralık artırımını masada tutuyor ve piyasa bunu henüz tam fiyatlamamış olabilir.\n\nMakro uyumsuzluk kontrolü:\nrelative weakness. 10Y faiz 12-15 bp düşüp DXY geri çekilirken, altın ~%1.5 yükselip Asya hisseleri sert toparlanırken BTC yalnızca ~%1.2 tepki verdi, $80K'yı yeniden test etti ve ~$82.5K direncini aşamadı; ETF talebi de yok denecek kadar zayıf. Makro rüzgar kısa vadede hafifçe lehine dönmüşken BTC'nin tepkisi cılız.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Temkinli risk-off\n\nBTC için sonuç:\nFaiz ve dolardaki geri çekilme dünkü sert negatif tabloyu yumuşattı, ancak %6.3'lük PPI, canlı Fed artırım riski ve süren ETF çıkışları BTC talebini hâlâ baskılıyor. Önümüzdeki 24-72 saatte makro bazlı beklenti hafif aşağı/yatay; $80K bölgesi kırılgan kalırken, kalıcı yükseliş için ETF girişlerinin geri dönmesi ve Fed'den yumuşak sinyal gerekiyor. Haftasonu öncesi AI hisselerinde yeni bir satış dalgası en büyük aşağı yönlü risk.\n\nVarlık güç sıralaması:\n1. XAUUSD — 7/10 — Hisse çöküşü ve düşen faizlerle güvenli liman talebi güçlendi, ~$4,170-4,185'e yükseldi. (24s: +%1.5, 7g: +%1.0)\n2. SPX — 5.5/10 — CPI sonrası satıştan sonra Perşembe finans ve küçük hisselere rotasyonla +%0.33 toparlandı, haftalık hafif ekside. (24s: +%0.3, 7g: -%0.7)\n3. VIX — 5/10 — Perşembe iki haftanın zirvesini gördükten sonra ~16.5'e geriledi, korku hafifledi ama hafta başına göre yüksek. (24s: -%2.4, 7g: +%6)\n4. BTC — 4.5/10 — $80K'yı test edip ~$82K'ya toparlandı ancak haftalık kaybı sürüyor ve tepkisi makro gevşemeye göre zayıf. (24s: +%1.2, 7g: -%3.5)\n5. DXY — 4.5/10 — Tahvil rallisiyle 18 ay zirvesi ~102.75'ten ~102.07'ye geri çekildi. (24s: -%0.3, 7g: -%0.4)\n6. BRENT — 4.5/10 — IEA'nın talep tahminini düşürmesiyle ~$104-105 bandında hafif geriledi, haftalık hafif artıda. (24s: -%0.6, 7g: +%0.5)\n7. NASDAQ — 4/10 — AI/çip satışı sonrası Perşembe yatay kaldı, haftayı ~-%2'nin üzerinde kayıpla kapatıyor ve vadeliler hafif ekside. (24s: +%0.1, 7g: -%2.3)\n\nBTC Makro Bias: SHORT\nGüven: Düşük",
+  "asset_strength": [
+    {
+      "asset": "XAUUSD",
+      "score": 7,
+      "reason": "Hisse çöküşü ve düşen faizlerle güvenli liman talebi güçlendi, ~$4,170-4,185'e yükseldi.",
+      "chg_24h_pct": 1.5,
+      "chg_7d_pct": 1
+    },
+    {
+      "asset": "SPX",
+      "score": 5.5,
+      "reason": "CPI sonrası satıştan sonra Perşembe finans ve küçük hisselere rotasyonla +%0.33 toparlandı, haftalık hafif ekside.",
+      "chg_24h_pct": 0.3,
+      "chg_7d_pct": -0.7
+    },
+    {
+      "asset": "VIX",
+      "score": 5,
+      "reason": "Perşembe iki haftanın zirvesini gördükten sonra ~16.5'e geriledi, korku hafifledi ama hafta başına göre yüksek.",
+      "chg_24h_pct": -2.4,
+      "chg_7d_pct": 6
+    },
+    {
+      "asset": "BTC",
+      "score": 4.5,
+      "reason": "$80K'yı test edip ~$82K'ya toparlandı ancak haftalık kaybı sürüyor ve tepkisi makro gevşemeye göre zayıf.",
+      "chg_24h_pct": 1.2,
+      "chg_7d_pct": -3.5
+    },
+    {
+      "asset": "DXY",
+      "score": 4.5,
+      "reason": "Tahvil rallisiyle 18 ay zirvesi ~102.75'ten ~102.07'ye geri çekildi.",
+      "chg_24h_pct": -0.3,
+      "chg_7d_pct": -0.4
+    },
+    {
+      "asset": "BRENT",
+      "score": 4.5,
+      "reason": "IEA'nın talep tahminini düşürmesiyle ~$104-105 bandında hafif geriledi, haftalık hafif artıda.",
+      "chg_24h_pct": -0.6,
+      "chg_7d_pct": 0.5
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 4,
+      "reason": "AI/çip satışı sonrası Perşembe yatay kaldı, haftayı ~-%2'nin üzerinde kayıpla kapatıyor ve vadeliler hafif ekside.",
+      "chg_24h_pct": 0.1,
+      "chg_7d_pct": -2.3
+    }
+  ],
+  "model": "claude",
+  "prompt_version": "v5"
+}
