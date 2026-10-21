@@ -1,0 +1,141 @@
+{
+  "run_date": "2026-10-21",
+  "generated_at": "2026-10-21T06:14:45Z",
+  "net_direction": "Hafif Negatif",
+  "sentiment_score": -12,
+  "change_24h": "iyileşti",
+  "drivers": [
+    "Fed artırım fiyatlaması geriledi: Warsh'ın ileri yönlendirme vermemesi ve Waller/Jefferson/Williams'ın Ekim'de beklemeye açık sinyalleriyle 27-28 Ekim artırım olasılığı CPI sonrası ~%41-54 zirvesinden ~%14-15'e indi; ancak Aralık artırımı masada.",
+    "Enerji şoku: Hormuz'da mayın/tanker saldırıları ve Husi-Suudi çatışmasıyla Brent 20 Ekim'de $111.99 ile 5 ayın zirvesini gördü, $108.8'den kapattı ve Asya'da ~$110'a döndü (7g ~+%5); enerji kaynaklı enflasyon riski faizleri %5'in üzerinde tutuyor.",
+    "Dolar ve faizlerde hafif gevşeme: DXY ~101.7'ye (-%0.25) geriledi, 10Y ~%5.12 (-2 bp), 2Y ~%4.78; reel faizler hâlâ kısıtlayıcı seviyede.",
+    "Kripto akımlarında dönüş: 19 Ekim spot BTC ETF net +$526.6M (IBIT +$665.2M, Ekim 2025'ten beri en güçlü gün), ancak ETH ETF'leri 4 seanstır çıkışta (-$103M) ve stablecoin arzı yatay/hafif düşüşte."
+  ],
+  "developments": [
+    {
+      "item": "Ekim FOMC artırım olasılığı ~%14-15'e geriledi; Warsh ileri yönlendirme vermiyor, Waller/Jefferson/Williams Ekim'de beklemeye açık",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Eylül CPI aylık %0.6 / yıllık %3.7 ve sıcak PPI sonrası Aralık artırım riski sürüyor; Fed Eylül'de 3.75-4.00'e artırmıştı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Brent Hormuz'daki mayın patlamaları ve tanker saldırılarıyla $111.99'a (5 ay zirvesi) çıktı, İran-Pakistan arabuluculuk görüşmeleriyle $108.8'e geriledi, Asya'da ~$110",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Hormuz fiilen kapalı (18 Ekim'de 4 geçiş, normalde ~85/gün); Husi-Suudi çatışması sürüyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "10Y ~%5.12 (-2 bp), 2Y ~%4.78; faizler hâlâ %5 civarında yüksek",
+      "impact": "Nötr"
+    },
+    {
+      "item": "DXY ~101.7'ye geriledi (-%0.25), 18 ay zirvesinden uzaklaşıyor",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "ABD 20 Ekim: Dow +%1.0, SPX +%0.28 (7,712), Nasdaq -%0.02; AI capex/borçlanma kaygıları teknolojiyi tutuyor",
+      "impact": "Nötr"
+    },
+    {
+      "item": "VIX ~%6 düşüşle 17.3'e geriledi",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Asya 21 Ekim: Nikkei ~+%1.1, Kospi güçlü; Şanghay -%0.4, Hang Seng -%0.3; RBA Kasım artırımını gündeme getirdi",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Altın ~%0.5 düşüşle ~$4,140'a geriledi, güvenli liman talebi soğudu",
+      "impact": "Nötr"
+    },
+    {
+      "item": "BOJ'un 30 Ekim'de beklemesi, artırımı Aralık'a bırakması bekleniyor",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Spot BTC ETF 19 Ekim net +$526.6M (IBIT +$665.2M); Ekim net çıkışı ~-$88M'a daraldı",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Spot ETH ETF'leri 4 seanstır çıkışta (19 Ekim -$103M), Ekim'de ~-$950M+",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Stablecoin arzı yatay/hafif düşüşte (7g ~-%0.7), kripto likiditesinde genişleme yok",
+      "impact": "Negatif"
+    },
+    {
+      "item": "İsviçre FINMA ilk perakende spot BTC ETF'ini onayladı",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "BTC ~$82.7K, 24s ~+%1.2; ~$83.2K direncini aşamadı, Fear & Greed 63",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "ABD spot BTC ETF'lerine 19 Ekim'de gelen $526.6M net giriş (IBIT tek başına $665.2M, Ekim 2025'ten beri en güçlü gün) haftalarca süren çıkışlardan sonra kurumsal talebin geri döndüğüne dair ilk güçlü sinyal; Ekim'in aylık çıkışı ~-$88M'a daraldı. Bu, Ekim FOMC artırım olasılığının ~%14-15'e gerilemesi ve DXY'nin 101.7'ye çekilmesiyle eş zamanlı geldi. Ancak aynı saatlerde Hormuz'daki mayın patlamaları Brent'i 5 ayın zirvesine taşıdı; petrol ~$110'da kalırsa enerji kaynaklı enflasyon Aralık artırımı fiyatlamasını yeniden canlandırabilir ve ETF girişinin süreklilik kazanıp kazanmadığı (20 Ekim verisi) piyasa tarafından henüz tam fiyatlanmadı.",
+  "divergence": "relative strength",
+  "divergence_note": "BTC, Brent'in 5 ayın zirvesine çıktığı, faizlerin %5'in üzerinde kaldığı ve altının bile gerilediği bir ortamda ~$82.7K'da günü ~+%1.2 ile tamamladı ve haftalık bazda hafif artıda; güçlü ETF girişiyle desteklenen bu dayanıklılık hafif relative strength. Ancak DXY ve Fed artırım beklentisindeki gevşemeye rağmen $83.2K direncinin aşılamaması gücün sınırlı olduğunu gösteriyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Nötr",
+  "conclusion": "Fed'in Ekim'de artırım yapmayacağına dair fiyatlama, zayıflayan dolar ve ETF girişlerinin geri dönüşü dünkü negatif tabloyu belirgin şekilde iyileştirdi. Buna karşın $110 Brent, %5'in üzerindeki 10Y faiz, yatay stablecoin likiditesi ve Aralık artırım riski kalıcı bir makro yükseliş rüzgârını engelliyor. Önümüzdeki 24-72 saatte makro bazlı beklenti yatay/hafif yukarı; ETF girişlerinin sürmesi yukarı, Hormuz kaynaklı yeni bir petrol sıçraması aşağı yönlü ana risk.",
+  "bias": "NEUTRAL",
+  "confidence": "Düşük",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Hafif Negatif\n\nSentiment skoru: -12\n\nSon 24 saatte değişim: Önceki güne göre iyileşti\n\nAna sürücüler:\n1. Fed artırım fiyatlaması geriledi: Warsh'ın ileri yönlendirme vermemesi ve Waller/Jefferson/Williams'ın Ekim'de beklemeye açık sinyalleriyle 27-28 Ekim artırım olasılığı CPI sonrası ~%41-54 zirvesinden ~%14-15'e indi; ancak Aralık artırımı masada.\n2. Enerji şoku: Hormuz'da mayın/tanker saldırıları ve Husi-Suudi çatışmasıyla Brent 20 Ekim'de $111.99 ile 5 ayın zirvesini gördü, $108.8'den kapattı ve Asya'da ~$110'a döndü (7g ~+%5); enerji kaynaklı enflasyon riski faizleri %5'in üzerinde tutuyor.\n3. Dolar ve faizlerde hafif gevşeme: DXY ~101.7'ye (-%0.25) geriledi, 10Y ~%5.12 (-2 bp), 2Y ~%4.78; reel faizler hâlâ kısıtlayıcı seviyede.\n4. Kripto akımlarında dönüş: 19 Ekim spot BTC ETF net +$526.6M (IBIT +$665.2M, Ekim 2025'ten beri en güçlü gün), ancak ETH ETF'leri 4 seanstır çıkışta (-$103M) ve stablecoin arzı yatay/hafif düşüşte.\n\nGelişmelerin sınıflandırması:\n- Ekim FOMC artırım olasılığı ~%14-15'e geriledi; Warsh ileri yönlendirme vermiyor, Waller/Jefferson/Williams Ekim'de beklemeye açık — Pozitif\n- Eylül CPI aylık %0.6 / yıllık %3.7 ve sıcak PPI sonrası Aralık artırım riski sürüyor; Fed Eylül'de 3.75-4.00'e artırmıştı — Negatif\n- Brent Hormuz'daki mayın patlamaları ve tanker saldırılarıyla $111.99'a (5 ay zirvesi) çıktı, İran-Pakistan arabuluculuk görüşmeleriyle $108.8'e geriledi, Asya'da ~$110 — Negatif\n- Hormuz fiilen kapalı (18 Ekim'de 4 geçiş, normalde ~85/gün); Husi-Suudi çatışması sürüyor — Negatif\n- 10Y ~%5.12 (-2 bp), 2Y ~%4.78; faizler hâlâ %5 civarında yüksek — Nötr\n- DXY ~101.7'ye geriledi (-%0.25), 18 ay zirvesinden uzaklaşıyor — Pozitif\n- ABD 20 Ekim: Dow +%1.0, SPX +%0.28 (7,712), Nasdaq -%0.02; AI capex/borçlanma kaygıları teknolojiyi tutuyor — Nötr\n- VIX ~%6 düşüşle 17.3'e geriledi — Pozitif\n- Asya 21 Ekim: Nikkei ~+%1.1, Kospi güçlü; Şanghay -%0.4, Hang Seng -%0.3; RBA Kasım artırımını gündeme getirdi — Nötr\n- Altın ~%0.5 düşüşle ~$4,140'a geriledi, güvenli liman talebi soğudu — Nötr\n- BOJ'un 30 Ekim'de beklemesi, artırımı Aralık'a bırakması bekleniyor — Nötr\n- Spot BTC ETF 19 Ekim net +$526.6M (IBIT +$665.2M); Ekim net çıkışı ~-$88M'a daraldı — Pozitif\n- Spot ETH ETF'leri 4 seanstır çıkışta (19 Ekim -$103M), Ekim'de ~-$950M+ — Negatif\n- Stablecoin arzı yatay/hafif düşüşte (7g ~-%0.7), kripto likiditesinde genişleme yok — Negatif\n- İsviçre FINMA ilk perakende spot BTC ETF'ini onayladı — Pozitif\n- BTC ~$82.7K, 24s ~+%1.2; ~$83.2K direncini aşamadı, Fear & Greed 63 — Nötr\n\nEn önemli yeni gelişme:\nABD spot BTC ETF'lerine 19 Ekim'de gelen $526.6M net giriş (IBIT tek başına $665.2M, Ekim 2025'ten beri en güçlü gün) haftalarca süren çıkışlardan sonra kurumsal talebin geri döndüğüne dair ilk güçlü sinyal; Ekim'in aylık çıkışı ~-$88M'a daraldı. Bu, Ekim FOMC artırım olasılığının ~%14-15'e gerilemesi ve DXY'nin 101.7'ye çekilmesiyle eş zamanlı geldi. Ancak aynı saatlerde Hormuz'daki mayın patlamaları Brent'i 5 ayın zirvesine taşıdı; petrol ~$110'da kalırsa enerji kaynaklı enflasyon Aralık artırımı fiyatlamasını yeniden canlandırabilir ve ETF girişinin süreklilik kazanıp kazanmadığı (20 Ekim verisi) piyasa tarafından henüz tam fiyatlanmadı.\n\nMakro uyumsuzluk kontrolü:\nrelative strength. BTC, Brent'in 5 ayın zirvesine çıktığı, faizlerin %5'in üzerinde kaldığı ve altının bile gerilediği bir ortamda ~$82.7K'da günü ~+%1.2 ile tamamladı ve haftalık bazda hafif artıda; güçlü ETF girişiyle desteklenen bu dayanıklılık hafif relative strength. Ancak DXY ve Fed artırım beklentisindeki gevşemeye rağmen $83.2K direncinin aşılamaması gücün sınırlı olduğunu gösteriyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Nötr\n\nBTC için sonuç:\nFed'in Ekim'de artırım yapmayacağına dair fiyatlama, zayıflayan dolar ve ETF girişlerinin geri dönüşü dünkü negatif tabloyu belirgin şekilde iyileştirdi. Buna karşın $110 Brent, %5'in üzerindeki 10Y faiz, yatay stablecoin likiditesi ve Aralık artırım riski kalıcı bir makro yükseliş rüzgârını engelliyor. Önümüzdeki 24-72 saatte makro bazlı beklenti yatay/hafif yukarı; ETF girişlerinin sürmesi yukarı, Hormuz kaynaklı yeni bir petrol sıçraması aşağı yönlü ana risk.\n\nVarlık güç sıralaması:\n1. BRENT — 8.5/10 — Hormuz'daki mayın ve tanker saldırılarıyla 5 ayın zirvesi $111.99'u gördü, ~$110'da güçlü kalıyor. (24s: +%0.6, 7g: +%5.5)\n2. BTC — 6/10 — ETF girişlerinin desteğiyle ~$82.7K'ya yükseldi ve haftalık hafif artıya döndü, ancak $83.2K direnci aşılamadı. (24s: +%1.2, 7g: +%1)\n3. SPX — 5.5/10 — Dow öncülüğünde +%0.28 ile 7,712'ye yükseldi, haftalık bazda hafif ekside. (24s: +%0.3, 7g: -%0.6)\n4. XAUUSD — 4.5/10 — Risk iştahının toparlanmasıyla ~$4,140'a geriledi, haftalık yatay. (24s: -%0.5, 7g: +%0.3)\n5. NASDAQ — 4.5/10 — AI capex ve borçlanma kaygılarıyla teknoloji yatay kaldı, haftalık hafif ekside. (24s: %0, 7g: -%0.5)\n6. VIX — 4/10 — ~%6 düşüşle 17.3'e geriledi, korku azaldı ama hafta başına göre hafif yüksek. (24s: -%6.1, 7g: +%5)\n7. DXY — 3.5/10 — Fed artırım beklentisinin sönmesiyle ~101.7'ye geriledi, 18 ay zirvesinden uzaklaşıyor. (24s: -%0.25, 7g: -%0.8)\n\nBTC Makro Bias: NEUTRAL\nGüven: Düşük",
+  "asset_strength": [
+    {
+      "asset": "BRENT",
+      "score": 8.5,
+      "reason": "Hormuz'daki mayın ve tanker saldırılarıyla 5 ayın zirvesi $111.99'u gördü, ~$110'da güçlü kalıyor.",
+      "chg_24h_pct": 0.6,
+      "chg_7d_pct": 5.5
+    },
+    {
+      "asset": "BTC",
+      "score": 6,
+      "reason": "ETF girişlerinin desteğiyle ~$82.7K'ya yükseldi ve haftalık hafif artıya döndü, ancak $83.2K direnci aşılamadı.",
+      "chg_24h_pct": 1.2,
+      "chg_7d_pct": 1
+    },
+    {
+      "asset": "SPX",
+      "score": 5.5,
+      "reason": "Dow öncülüğünde +%0.28 ile 7,712'ye yükseldi, haftalık bazda hafif ekside.",
+      "chg_24h_pct": 0.3,
+      "chg_7d_pct": -0.6
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 4.5,
+      "reason": "Risk iştahının toparlanmasıyla ~$4,140'a geriledi, haftalık yatay.",
+      "chg_24h_pct": -0.5,
+      "chg_7d_pct": 0.3
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 4.5,
+      "reason": "AI capex ve borçlanma kaygılarıyla teknoloji yatay kaldı, haftalık hafif ekside.",
+      "chg_24h_pct": 0,
+      "chg_7d_pct": -0.5
+    },
+    {
+      "asset": "VIX",
+      "score": 4,
+      "reason": "~%6 düşüşle 17.3'e geriledi, korku azaldı ama hafta başına göre hafif yüksek.",
+      "chg_24h_pct": -6.1,
+      "chg_7d_pct": 5
+    },
+    {
+      "asset": "DXY",
+      "score": 3.5,
+      "reason": "Fed artırım beklentisinin sönmesiyle ~101.7'ye geriledi, 18 ay zirvesinden uzaklaşıyor.",
+      "chg_24h_pct": -0.25,
+      "chg_7d_pct": -0.8
+    }
+  ],
+  "model": "claude",
+  "prompt_version": "v5"
+}
