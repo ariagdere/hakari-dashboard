@@ -1,0 +1,129 @@
+{
+  "run_date": "2026-10-23",
+  "generated_at": "2026-10-23T06:14:21Z",
+  "net_direction": "Negatif",
+  "sentiment_score": -28,
+  "change_24h": "kötüleşti",
+  "drivers": [
+    "Petrol/jeopolitik şok derinleşti: Husilerin Suudi Arabistan'a yeni saldırıları ve ABD-İsrail'in İran'a yeni saldırı planları haberleriyle Brent ~%4 sıçrayarak ~$113-114'e, beş ayın zirvesine çıktı; enerji kaynaklı enflasyon riski arttı.",
+    "Teknoloji/AI satışı: Meta'nın bilanço sonrası ~-%7 düşüşü ve AI harcama kaygılarıyla Nasdaq Bileşik -%2.6 (Haziran'dan beri en kötü seans), NDX ~-%2.9, SPX -%1.21; Asya'da Nikkei -%1.7, Kospi -%2.4 ile satış yayıldı.",
+    "Fed sıkılaşma beklentisi sürüyor: 27-28 Ekim FOMC'de bekleme ~%84-93 fiyatlanırken Aralık artırım olasılığı ~%68-90 bandında; risk-off ile tahvile kaçış 10Y'yi ~17 bp düşürerek ~%4.97'ye, 2Y'yi ~%4.66'ya indirdi.",
+    "Kurumsal talep var ama fiyatı taşımıyor: Spot BTC ETF'lerine üç seansta ~$1.07B giriş (21 Ekim +$528M) gelmesine rağmen BTC ~$84.3K'dan ~$81.5K'ya geriledi ve risk varlıklarıyla birlikte satıldı."
+  ],
+  "developments": [
+    {
+      "item": "Brent ~$113-114, ~%4 yükselişle beş ayın zirvesi; Husilerin Suudi hedeflere yeni saldırıları",
+      "impact": "Negatif"
+    },
+    {
+      "item": "NYT: ABD ve İsrail ara seçimler sonrası İran'a yeni saldırı planı hazırladı; Iran'ın 7 günlük Hormuz önerisi teyit edilmedi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "ABD 22 Ekim: Nasdaq Bileşik -%2.6 (26,009), SPX -%1.21 (7,663), Dow yatay; Meta ~-%7, AI harcama kaygısı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Asya 23 Ekim: Nikkei -%1.7, Kospi -%2.4, Hang Seng +%0.2; çip satışı yayıldı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "10Y ~%4.97 (-17 bp), 2Y ~%4.66 (-16 bp); risk-off kaynaklı tahvil talebi",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "DXY ~101.61 (-%0.17), Fed bekleme beklentisiyle hafif zayıf; JPY güvenli liman talebiyle güçlendi",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Ekim FOMC'de bekleme ~%84-93; Aralık artırım olasılığı ~%68-90 bandında dalgalı, ekonomist anketinde artırım konsensüsü",
+      "impact": "Negatif"
+    },
+    {
+      "item": "VIX ~18.8 (+%13), korku göstergesi yükseldi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Altın ~$4,025 (-%2.45), gümüş -%5.6; petrol kaynaklı enflasyon/faiz kaygısı ve risk satışı güvenli liman talebini bastırdı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Spot BTC ETF 21 Ekim +$528M (IBIT +$235M, FBTC +$213M), üç seansta ~$1.07B; Ekim MTD net girişte",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Spot ETH ETF'leri beş günlük çıkış serisini kırdı ancak aylık bazda ağır çıkışta",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Stablecoin arzında belirgin yeni genişleme verisi yok, kripto likiditesi yatay",
+      "impact": "Nötr"
+    },
+    {
+      "item": "BTC ~$81.5K, 24s ~-%1.4 (önceki rapora göre), gün içinde ~$84.3K'dan ~$81.3K'ya sert geri çekildi",
+      "impact": "Negatif"
+    }
+  ],
+  "key_development": "Husilerin Suudi Arabistan'a yeni saldırıları ve ABD-İsrail'in İran'a yeni saldırı planı hazırladığı haberleri Brent'i ~%4 yükselterek ~$113-114'e, beş ayın zirvesine taşıdı; aynı gün Meta'nın bilanço sonrası çöküşü AI harcama kaygısını yeniden alevlendirdi ve Nasdaq'ı -%2.6 ile Haziran'dan beri en kötü seansına itti. Bu ikili şok BTC'yi ETF girişlerine rağmen ~$81.5K'ya çekti. Tahvil faizlerindeki ~17 bp'lik sert düşüş normalde BTC için destekleyici olsa da şu an büyüme/risk korkusundan kaynaklanıyor ve petrol yüksek kaldıkça Fed'in Aralık artırımı masada kalıyor; İran'a fiili bir saldırı henüz fiyatlanmış değil.",
+  "divergence": "relative weakness",
+  "divergence_note": "10Y faiz ~17 bp ve DXY -%0.17 düşerken BTC yükselmedi, aksine ~$84.3K'dan ~$81.5K'ya geriledi ve güçlü ETF girişlerine rağmen Nasdaq ile birlikte satıldı; bu relative weakness. BTC şu an likidite/faiz varlığı gibi değil, yüksek betalı teknoloji riski gibi işlem görüyor; düşüşü Nasdaq'tan (-%2.6) sınırlı kalsa da makro destek sinyaline tepki vermemesi zayıflık işareti.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Temkinli risk-off",
+  "conclusion": "Petrol $113'ün üzerinde, AI/teknoloji satışı ve süregelen Aralık artırım riski BTC talebini azaltıyor; faizlerdeki düşüş ve ETF girişleri tek dengeleyici unsurlar. Dünkü tabloya göre makro zemin kötüleşti ve risk iştahı zayıfladı. Önümüzdeki 24-72 saatte hafif aşağı yönlü beklenti; 27-28 Ekim FOMC öncesi Fed tonu, İran gelişmeleri ve ETF girişlerinin sürüp sürmediği ana katalizörler.",
+  "bias": "SHORT",
+  "confidence": "Düşük",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Negatif\n\nSentiment skoru: -28\n\nSon 24 saatte değişim: Önceki güne göre kötüleşti\n\nAna sürücüler:\n1. Petrol/jeopolitik şok derinleşti: Husilerin Suudi Arabistan'a yeni saldırıları ve ABD-İsrail'in İran'a yeni saldırı planları haberleriyle Brent ~%4 sıçrayarak ~$113-114'e, beş ayın zirvesine çıktı; enerji kaynaklı enflasyon riski arttı.\n2. Teknoloji/AI satışı: Meta'nın bilanço sonrası ~-%7 düşüşü ve AI harcama kaygılarıyla Nasdaq Bileşik -%2.6 (Haziran'dan beri en kötü seans), NDX ~-%2.9, SPX -%1.21; Asya'da Nikkei -%1.7, Kospi -%2.4 ile satış yayıldı.\n3. Fed sıkılaşma beklentisi sürüyor: 27-28 Ekim FOMC'de bekleme ~%84-93 fiyatlanırken Aralık artırım olasılığı ~%68-90 bandında; risk-off ile tahvile kaçış 10Y'yi ~17 bp düşürerek ~%4.97'ye, 2Y'yi ~%4.66'ya indirdi.\n4. Kurumsal talep var ama fiyatı taşımıyor: Spot BTC ETF'lerine üç seansta ~$1.07B giriş (21 Ekim +$528M) gelmesine rağmen BTC ~$84.3K'dan ~$81.5K'ya geriledi ve risk varlıklarıyla birlikte satıldı.\n\nGelişmelerin sınıflandırması:\n- Brent ~$113-114, ~%4 yükselişle beş ayın zirvesi; Husilerin Suudi hedeflere yeni saldırıları — Negatif\n- NYT: ABD ve İsrail ara seçimler sonrası İran'a yeni saldırı planı hazırladı; Iran'ın 7 günlük Hormuz önerisi teyit edilmedi — Negatif\n- ABD 22 Ekim: Nasdaq Bileşik -%2.6 (26,009), SPX -%1.21 (7,663), Dow yatay; Meta ~-%7, AI harcama kaygısı — Negatif\n- Asya 23 Ekim: Nikkei -%1.7, Kospi -%2.4, Hang Seng +%0.2; çip satışı yayıldı — Negatif\n- 10Y ~%4.97 (-17 bp), 2Y ~%4.66 (-16 bp); risk-off kaynaklı tahvil talebi — Pozitif\n- DXY ~101.61 (-%0.17), Fed bekleme beklentisiyle hafif zayıf; JPY güvenli liman talebiyle güçlendi — Nötr\n- Ekim FOMC'de bekleme ~%84-93; Aralık artırım olasılığı ~%68-90 bandında dalgalı, ekonomist anketinde artırım konsensüsü — Negatif\n- VIX ~18.8 (+%13), korku göstergesi yükseldi — Negatif\n- Altın ~$4,025 (-%2.45), gümüş -%5.6; petrol kaynaklı enflasyon/faiz kaygısı ve risk satışı güvenli liman talebini bastırdı — Nötr\n- Spot BTC ETF 21 Ekim +$528M (IBIT +$235M, FBTC +$213M), üç seansta ~$1.07B; Ekim MTD net girişte — Pozitif\n- Spot ETH ETF'leri beş günlük çıkış serisini kırdı ancak aylık bazda ağır çıkışta — Nötr\n- Stablecoin arzında belirgin yeni genişleme verisi yok, kripto likiditesi yatay — Nötr\n- BTC ~$81.5K, 24s ~-%1.4 (önceki rapora göre), gün içinde ~$84.3K'dan ~$81.3K'ya sert geri çekildi — Negatif\n\nEn önemli yeni gelişme:\nHusilerin Suudi Arabistan'a yeni saldırıları ve ABD-İsrail'in İran'a yeni saldırı planı hazırladığı haberleri Brent'i ~%4 yükselterek ~$113-114'e, beş ayın zirvesine taşıdı; aynı gün Meta'nın bilanço sonrası çöküşü AI harcama kaygısını yeniden alevlendirdi ve Nasdaq'ı -%2.6 ile Haziran'dan beri en kötü seansına itti. Bu ikili şok BTC'yi ETF girişlerine rağmen ~$81.5K'ya çekti. Tahvil faizlerindeki ~17 bp'lik sert düşüş normalde BTC için destekleyici olsa da şu an büyüme/risk korkusundan kaynaklanıyor ve petrol yüksek kaldıkça Fed'in Aralık artırımı masada kalıyor; İran'a fiili bir saldırı henüz fiyatlanmış değil.\n\nMakro uyumsuzluk kontrolü:\nrelative weakness. 10Y faiz ~17 bp ve DXY -%0.17 düşerken BTC yükselmedi, aksine ~$84.3K'dan ~$81.5K'ya geriledi ve güçlü ETF girişlerine rağmen Nasdaq ile birlikte satıldı; bu relative weakness. BTC şu an likidite/faiz varlığı gibi değil, yüksek betalı teknoloji riski gibi işlem görüyor; düşüşü Nasdaq'tan (-%2.6) sınırlı kalsa da makro destek sinyaline tepki vermemesi zayıflık işareti.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Temkinli risk-off\n\nBTC için sonuç:\nPetrol $113'ün üzerinde, AI/teknoloji satışı ve süregelen Aralık artırım riski BTC talebini azaltıyor; faizlerdeki düşüş ve ETF girişleri tek dengeleyici unsurlar. Dünkü tabloya göre makro zemin kötüleşti ve risk iştahı zayıfladı. Önümüzdeki 24-72 saatte hafif aşağı yönlü beklenti; 27-28 Ekim FOMC öncesi Fed tonu, İran gelişmeleri ve ETF girişlerinin sürüp sürmediği ana katalizörler.\n\nVarlık güç sıralaması:\n1. BRENT — 9/10 — Husi saldırıları ve İran gerilimiyle ~%4 sıçrayarak ~$113-114'e, beş ayın zirvesine çıktı ve haftalık bazda güçlü yükselişte. (24s: +%3.5, 7g: +%8)\n2. VIX — 7.5/10 — AI hisselerindeki satış ve petrol şokuyla ~%13 yükselerek ~18.8'e çıktı, korku belirgin arttı. (24s: +%13, 7g: +%14)\n3. DXY — 4.5/10 — Faizlerdeki sert düşüş ve Fed bekleme beklentisiyle ~101.6'ya hafif geriledi, haftalık bazda da zayıf. (24s: -%0.17, 7g: -%0.4)\n4. BTC — 3.5/10 — Güçlü ETF girişlerine rağmen risk satışına katılarak ~$84.3K'dan ~$81.5K'ya geriledi. (24s: -%1.4, 7g: n/a)\n5. SPX — 3.5/10 — Teknoloji öncülüğünde -%1.21 düşerek 7,663'e geriledi, rekor denemesi bozuldu. (24s: -%1.21, 7g: -%0.7)\n6. XAUUSD — 2.5/10 — Petrol kaynaklı enflasyon/faiz kaygısı ve risk satışıyla ~-%2.45 düşerek ~$4,025'e indi, beşinci gün kayıpta. (24s: -%2.45, 7g: -%2.9)\n7. NASDAQ — 2/10 — Meta'nın çöküşü ve AI harcama kaygısıyla Haziran'dan beri en kötü seansını yaşadı (NDX ~-%2.9). (24s: -%2.9, 7g: -%2.6)\n\nBTC Makro Bias: SHORT\nGüven: Düşük",
+  "asset_strength": [
+    {
+      "asset": "BRENT",
+      "score": 9,
+      "reason": "Husi saldırıları ve İran gerilimiyle ~%4 sıçrayarak ~$113-114'e, beş ayın zirvesine çıktı ve haftalık bazda güçlü yükselişte.",
+      "chg_24h_pct": 3.5,
+      "chg_7d_pct": 8
+    },
+    {
+      "asset": "VIX",
+      "score": 7.5,
+      "reason": "AI hisselerindeki satış ve petrol şokuyla ~%13 yükselerek ~18.8'e çıktı, korku belirgin arttı.",
+      "chg_24h_pct": 13,
+      "chg_7d_pct": 14
+    },
+    {
+      "asset": "DXY",
+      "score": 4.5,
+      "reason": "Faizlerdeki sert düşüş ve Fed bekleme beklentisiyle ~101.6'ya hafif geriledi, haftalık bazda da zayıf.",
+      "chg_24h_pct": -0.17,
+      "chg_7d_pct": -0.4
+    },
+    {
+      "asset": "BTC",
+      "score": 3.5,
+      "reason": "Güçlü ETF girişlerine rağmen risk satışına katılarak ~$84.3K'dan ~$81.5K'ya geriledi.",
+      "chg_24h_pct": -1.4,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "SPX",
+      "score": 3.5,
+      "reason": "Teknoloji öncülüğünde -%1.21 düşerek 7,663'e geriledi, rekor denemesi bozuldu.",
+      "chg_24h_pct": -1.21,
+      "chg_7d_pct": -0.7
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 2.5,
+      "reason": "Petrol kaynaklı enflasyon/faiz kaygısı ve risk satışıyla ~-%2.45 düşerek ~$4,025'e indi, beşinci gün kayıpta.",
+      "chg_24h_pct": -2.45,
+      "chg_7d_pct": -2.9
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 2,
+      "reason": "Meta'nın çöküşü ve AI harcama kaygısıyla Haziran'dan beri en kötü seansını yaşadı (NDX ~-%2.9).",
+      "chg_24h_pct": -2.9,
+      "chg_7d_pct": -2.6
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
