@@ -1,0 +1,129 @@
+{
+  "run_date": "2026-10-26",
+  "generated_at": "2026-10-26T06:17:02Z",
+  "net_direction": "Negatif",
+  "sentiment_score": -32,
+  "change_24h": "kötüleşti",
+  "drivers": [
+    "ETF akımı tersine döndü: Spot BTC ETF'lerinde 22 Ekim -$635.6M ve 23 Ekim -$137.9M ile iki seansta ~$773.5M çıkış oldu (IBIT -$110M); önceki raporun tek dengeleyici unsuru olan kurumsal talep zayıfladı.",
+    "Petrol/jeopolitik: Brent Cuma %3.1 artışla $116.72'ye (Nisan sonundan beri en yüksek kapanış) çıktı, haftayı ~+%6 ile kapattı; Pazartesi Asya'da Katarlı arabulucuların Tahran ziyareti haberiyle ~$115'e geriledi ama enerji kaynaklı enflasyon riski yüksek.",
+    "Fed sıkılaşma riski: 28 Ekim FOMC'de bekleme bekleniyor ancak piyasa Aralık artırımına ~%80 olasılık veriyor; 10Y ~%4.97-5.00, 2Y ~%4.69 ile faizler yüksek ve reel faizler BTC için baskı.",
+    "Risk iştahı kırılgan: SPX (-%0.52) ve Nasdaq ikinci haftalık kaybını yazdı, VIX ~20.2'ye çıktı; bu hafta Microsoft/Alphabet/Amazon bilançoları, GDP/PCE ve BoJ/ECB kararları olay riski taşıyor."
+  ],
+  "developments": [
+    {
+      "item": "Spot BTC ETF 22 Ekim -$635.6M, 23 Ekim -$137.9M; iki seansta ~$773.5M çıkış (hafta yine de ~+$301M net)",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Spot ETH ETF'lerinde Ekim'de ~$1.08B çıkış, yılın en kötü ayı; ETH ~$2,340",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Brent Cuma +%3.1 ile $116.72 (Nisan sonundan beri en yüksek kapanış), haftalık ~+%6; Husi-Suudi saldırıları sürüyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Katarlı arabulucular Tahran'da gerilim azaltma girişiminde; Brent Pazartesi ~$115'e geriledi",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "28 Ekim FOMC'de bekleme bekleniyor, Aralık artırımı ~%80 fiyatlı; BoJ/ECB kararları ve RBNZ artırımı bu hafta",
+      "impact": "Negatif"
+    },
+    {
+      "item": "10Y ~%4.97-5.00, 2Y ~%4.69; faizler yüksek seviyede yatay",
+      "impact": "Negatif"
+    },
+    {
+      "item": "DXY ~101.5, -%0.15; USD/JPY 157 altında bir ayın dibine yakın",
+      "impact": "Nötr"
+    },
+    {
+      "item": "23 Ekim: SPX -%0.52 (7,623), Dow -%1.23, Nasdaq -%0.21; ikinci haftalık kayıp; VIX 20.24",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Pazar vadelileri: S&P +%0.4, Nasdaq-100 +%0.6; Asya karışık, Nikkei hafif eksi, Kospi -%1.6",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Altın üç ayın dibi $3,975'ten $4,000 üzerine toparlandı, haftalık ~-%3.5",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Bu hafta Microsoft/Alphabet/Amazon, Coinbase ve Strategy bilançoları, GDP ve PCE verileri, 30 Ekim opsiyon vadesi",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Stablecoin arzında belirgin yeni genişleme yok (~$297B), kripto likiditesi yatay",
+      "impact": "Nötr"
+    },
+    {
+      "item": "BTC ~$79.6K, 24s ~-%1.5, $80K altına indi; kaldıraçlı long tasfiyeleri",
+      "impact": "Negatif"
+    }
+  ],
+  "key_development": "Son saatlerde en önemli gelişme, Katarlı arabulucuların Washington ile koordineli şekilde Tahran'da gerilimi düşürme girişimi başlatması; bu haber Brent'i altı ayın zirvesinden ~$115'e çekti, ABD vadelilerini (S&P +%0.4, Nasdaq-100 +%0.6) yükseltti ve DXY'yi ~101.5'e indirdi. Ancak BTC bu rahatlamaya katılmadı ve iki günlük ~$773M ETF çıkışı ile kaldıraçlı long tasfiyeleri altında $80K'nın altına (~$79.6K) indi. Gerilim azalması kalıcı olursa petrol kaynaklı Fed artırım riski geriler ve BTC için en güçlü pozitif katalizör olabilir; şu an teyit edilmiş bir anlaşma yok ve Husilerin Suudi saldırıları sürüyor.",
+  "divergence": "relative weakness",
+  "divergence_note": "Petrol gevşerken, dolar hafif zayıflarken (~-%0.15), altın toparlanırken ve hisse vadelileri yükselirken BTC ~-%1.5 ile $80K'nın altına düştü; haftalık bazda da Nasdaq'tan (~-%0.8) daha zayıf (~-%3). Makrodaki kısmi rahatlamaya tepki vermemesi ve ETF çıkışları talebin zayıf olduğunu gösteriyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Temkinli risk-off",
+  "conclusion": "Yüksek faizler, Aralık artırım fiyatlaması ve ETF çıkışları BTC talebini azaltıyor; Ortadoğu'da gerilim azalması tek önemli pozitif potansiyel. Önümüzdeki 24-72 saatte FOMC öncesi temkinle hafif aşağı/yatay seyir beklenir. Fed'in Aralık konusunda şahin olmayan tonu veya İran-Suudi cephesinde somut ateşkes bu görüşü hızla tersine çevirebilir.",
+  "bias": "SHORT",
+  "confidence": "Düşük",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Negatif\n\nSentiment skoru: -32\n\nSon 24 saatte değişim: Önceki güne göre kötüleşti\n\nAna sürücüler:\n- ETF akımı tersine döndü: Spot BTC ETF'lerinde 22 Ekim -$635.6M ve 23 Ekim -$137.9M ile iki seansta ~$773.5M çıkış oldu (IBIT -$110M); önceki raporun tek dengeleyici unsuru olan kurumsal talep zayıfladı.\n- Petrol/jeopolitik: Brent Cuma %3.1 artışla $116.72'ye (Nisan sonundan beri en yüksek kapanış) çıktı, haftayı ~+%6 ile kapattı; Pazartesi Asya'da Katarlı arabulucuların Tahran ziyareti haberiyle ~$115'e geriledi ama enerji kaynaklı enflasyon riski yüksek.\n- Fed sıkılaşma riski: 28 Ekim FOMC'de bekleme bekleniyor ancak piyasa Aralık artırımına ~%80 olasılık veriyor; 10Y ~%4.97-5.00, 2Y ~%4.69 ile faizler yüksek ve reel faizler BTC için baskı.\n- Risk iştahı kırılgan: SPX (-%0.52) ve Nasdaq ikinci haftalık kaybını yazdı, VIX ~20.2'ye çıktı; bu hafta Microsoft/Alphabet/Amazon bilançoları, GDP/PCE ve BoJ/ECB kararları olay riski taşıyor.\n\nEn önemli yeni gelişme:\nSon saatlerde en önemli gelişme, Katarlı arabulucuların Washington ile koordineli şekilde Tahran'da gerilimi düşürme girişimi başlatması; bu haber Brent'i altı ayın zirvesinden ~$115'e çekti, ABD vadelilerini (S&P +%0.4, Nasdaq-100 +%0.6) yükseltti ve DXY'yi ~101.5'e indirdi. Ancak BTC bu rahatlamaya katılmadı ve iki günlük ~$773M ETF çıkışı ile kaldıraçlı long tasfiyeleri altında $80K'nın altına (~$79.6K) indi. Gerilim azalması kalıcı olursa petrol kaynaklı Fed artırım riski geriler ve BTC için en güçlü pozitif katalizör olabilir; şu an teyit edilmiş bir anlaşma yok ve Husilerin Suudi saldırıları sürüyor.\n\nMakro uyumsuzluk kontrolü:\nRelative weakness. Petrol gevşerken, dolar hafif zayıflarken (~-%0.15), altın toparlanırken ve hisse vadelileri yükselirken BTC ~-%1.5 ile $80K'nın altına düştü; haftalık bazda da Nasdaq'tan (~-%0.8) daha zayıf (~-%3). Makrodaki kısmi rahatlamaya tepki vermemesi ve ETF çıkışları talebin zayıf olduğunu gösteriyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Temkinli risk-off\n\nBTC için sonuç:\nYüksek faizler, Aralık artırım fiyatlaması ve ETF çıkışları BTC talebini azaltıyor; Ortadoğu'da gerilim azalması tek önemli pozitif potansiyel. Önümüzdeki 24-72 saatte FOMC öncesi temkinle hafif aşağı/yatay seyir beklenir. Fed'in Aralık konusunda şahin olmayan tonu veya İran-Suudi cephesinde somut ateşkes bu görüşü hızla tersine çevirebilir.\n\nVarlık güç sıralaması:\n1. BRENT — 8/10 — Husi saldırılarıyla haftayı ~%6 yükselişle altı ayın zirvesinde kapattı, Pazartesi Katar arabuluculuğu haberiyle ~$115'e hafif geriledi. (24s: -1.5%, 7g: +4.5%)\n2. VIX — 7/10 — Cuma %6 artışla 20.24'e çıktı, haftalık bazda korku belirgin şekilde yükseldi. (24s: +6.0%, 7g: +18.0%)\n3. NASDAQ — 4.5/10 — Cuma sınırlı düşüş ve Pazar vadelilerinde +%0.6 toparlanmaya rağmen AI kaygısıyla ikinci haftalık kayıpta. (24s: -0.2%, 7g: -0.8%)\n4. DXY — 4.5/10 — Fed bekleme beklentisi ve güvenli liman talebinin azalmasıyla ~101.5'e hafif geriledi, haftalık bazda yatay-zayıf. (24s: -0.15%, 7g: yok)\n5. SPX — 4/10 — Petrol baskısıyla Cuma -%0.52 düşerek 7,623'e indi, rekorun ~%2.5 altında ikinci haftalık kayıpta. (24s: -0.52%, 7g: -0.47%)\n6. XAUUSD — 4/10 — Petrol kaynaklı faiz kaygısıyla haftada ~%3.5 düşüp üç ayın dibini ($3,975) gördü, Pazartesi $4,000 üzerine hafif toparlandı. (24s: +0.5%, 7g: -3.5%)\n7. BTC — 3/10 — ETF çıkışları ve long tasfiyeleriyle makrodaki rahatlamaya rağmen $80K altına geriledi, haftalık eğilim aşağı. (24s: -1.5%, 7g: -3.0%)\n\nBTC Makro Bias: SHORT — Güven: Düşük",
+  "asset_strength": [
+    {
+      "asset": "BRENT",
+      "score": 8,
+      "reason": "Husi saldırılarıyla haftayı ~%6 yükselişle altı ayın zirvesinde kapattı, Pazartesi Katar arabuluculuğu haberiyle ~$115'e hafif geriledi.",
+      "chg_24h_pct": -1.5,
+      "chg_7d_pct": 4.5
+    },
+    {
+      "asset": "VIX",
+      "score": 7,
+      "reason": "Cuma %6 artışla 20.24'e çıktı, haftalık bazda korku belirgin şekilde yükseldi.",
+      "chg_24h_pct": 6,
+      "chg_7d_pct": 18
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 4.5,
+      "reason": "Cuma sınırlı düşüş ve Pazar vadelilerinde +%0.6 toparlanmaya rağmen AI kaygısıyla ikinci haftalık kayıpta.",
+      "chg_24h_pct": -0.2,
+      "chg_7d_pct": -0.8
+    },
+    {
+      "asset": "DXY",
+      "score": 4.5,
+      "reason": "Fed bekleme beklentisi ve güvenli liman talebinin azalmasıyla ~101.5'e hafif geriledi, haftalık bazda yatay-zayıf.",
+      "chg_24h_pct": -0.15,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "SPX",
+      "score": 4,
+      "reason": "Petrol baskısıyla Cuma -%0.52 düşerek 7,623'e indi, rekorun ~%2.5 altında ikinci haftalık kayıpta.",
+      "chg_24h_pct": -0.52,
+      "chg_7d_pct": -0.47
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 4,
+      "reason": "Petrol kaynaklı faiz kaygısıyla haftada ~%3.5 düşüp üç ayın dibini ($3,975) gördü, Pazartesi $4,000 üzerine hafif toparlandı.",
+      "chg_24h_pct": 0.5,
+      "chg_7d_pct": -3.5
+    },
+    {
+      "asset": "BTC",
+      "score": 3,
+      "reason": "ETF çıkışları ve long tasfiyeleriyle makrodaki rahatlamaya rağmen $80K altına geriledi, haftalık eğilim aşağı.",
+      "chg_24h_pct": -1.5,
+      "chg_7d_pct": -3
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
