@@ -1,0 +1,133 @@
+{
+  "run_date": "2026-10-27",
+  "generated_at": "2026-10-27T06:12:52Z",
+  "net_direction": "Hafif Negatif",
+  "sentiment_score": -22,
+  "change_24h": "iyileşti",
+  "drivers": [
+    "Faiz/Fed baskısı sürüyor: 27-28 Ekim FOMC'de bekleme (~%90) fiyatlı ancak yıl sonuna kadar artırım olasılığı ~%84; 10Y ~%4.99, 2Y ~%4.72'ye (+3bp) yükseldi, reel faizler BTC için ana engel.",
+    "Risk iştahı toparlandı: Anthropic IPO başvurusuyla teknoloji rallisi; SPX +%0.70 (7,677), Nasdaq +%0.82, NDX ~+%1.1, VIX -%5.5 ile 18.4'e geriledi.",
+    "ETF akımı yeniden pozitif ama zayıf: Spot BTC ETF'lerine 26 Ekim'de +$110.3M (tamamı IBIT) giriş, iki günlük ~$773M çıkışın ancak küçük bir kısmını telafi ediyor; ETH ETF'lerinde Ekim çıkışı ~$1B.",
+    "Petrol/jeopolitik hafif rahatlama: Katar ve Suudi heyetlerinin Tahran ziyaretleriyle Brent -%0.8 ile $115.81'de kapandı; ancak Husi saldırıları sürüyor ve 3 Kasım seçimleri sonrası İran'a saldırı riski fiyatlanıyor."
+  ],
+  "developments": [
+    {
+      "item": "Spot BTC ETF 26 Ekim +$110.3M net giriş (tamamı IBIT), iki günlük çıkış serisi sona erdi",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Spot ETH ETF'lerinde Ekim çıkışı ~$1B; ETH ~$2,300, 7g ~-%5",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Anthropic IPO başvurusuyla teknoloji rallisi: SPX +%0.70, Nasdaq +%0.82, Dow +%0.28",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "VIX -%5.45 ile 18.39'a geriledi",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "27-28 Ekim FOMC: bekleme ~%90 fiyatlı, yıl sonuna kadar artırım ~%84; Warsh basın toplantısı odakta",
+      "impact": "Negatif"
+    },
+    {
+      "item": "10Y ~%4.99 yatay, 2Y +3bp ~%4.72; faizler 5% eşiğinde",
+      "impact": "Negatif"
+    },
+    {
+      "item": "DXY ~101.5-102 bandında, teknoloji rallisiyle hafif güçlendi; USD/JPY ~157.7",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Katar ve Suudi heyetleri Tahran'da gerilim azaltma görüşmeleri yaptı; Suudi'nin Husilere $1B teklifi iddiası (teyitsiz)",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Brent -%0.8 ile $115.81'de kapandı ama Husi saldırıları sürüyor, Trump seçim sonrası İran'a saldırı seçeneğini açık tutuyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Altın $4,012'ye (+%0.4) toparlandı, geçen hafta -%4 düşmüştü",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Bu hafta ECB (29 Ekim) ve BoJ (30 Ekim, %1.25'te bekleme) kararları; Kanada ve Yeni Zelanda artırım bekleniyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Microsoft/Alphabet/Amazon/Meta, Coinbase ve Strategy bilançoları, GDP ve PCE verileri bu hafta",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Stablecoin arzında belirgin yeni genişleme yok, kripto likiditesi yatay",
+      "impact": "Nötr"
+    },
+    {
+      "item": "BTC ~$79.8K, 24s ~yatay; hisse rallisine rağmen $80K üzerine kalıcı dönemedi",
+      "impact": "Negatif"
+    }
+  ],
+  "key_development": "Son saatlerin en önemli gelişmesi, 27-28 Ekim FOMC toplantısının başlaması ve piyasanın yıl sonuna kadar ~%84 olasılıkla bir faiz artırımı fiyatlaması; 2Y faizin +3bp ile ~%4.72'ye, 10Y'nin ~%4.99'a yükselmesi bu beklentinin sıkılaştığını gösteriyor. Chair Warsh'ın Çarşamba basın toplantısında Aralık artırımına kapıyı açık tutması BTC için yeni bir negatif şok yaratabilir; buna karşılık petroldeki gevşemeye atıfla daha ılımlı bir ton, Anthropic IPO'suyla başlayan risk iştahını kriptoya da taşıyabilir. Ortadoğu'da Katar/Suudi arabuluculuğu petrolü baskılıyor ancak teyitli bir ateşkes yok.",
+  "divergence": "relative weakness",
+  "divergence_note": "Nasdaq ~+%0.8-1.1, S&P +%0.7 yükselirken, VIX %5.5 düşerken, petrol gerilerken ve ETF'lere yeniden giriş olurken BTC yalnızca yatay (~$79.8K) kaldı ve $80K üzerine yerleşemedi; 7 günlük bazda da ~-%3 ile hisselerden zayıf. Makro risk iştahındaki iyileşmeye eşlik edememesi relative weakness olarak işaretleniyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Nötr",
+  "conclusion": "Risk iştahı ve ETF akımlarında kısmi iyileşme var, ancak ~%5 tahvil faizleri ve Fed artırım fiyatlaması BTC talebini sınırlıyor. Önümüzdeki 24-72 saatte FOMC kararına kadar yatay/hafif aşağı eğilimli dalgalı seyir beklenir. Warsh'ın ılımlı tonu veya İran cephesinde somut ateşkes yukarı, şahin bir Aralık sinyali ise aşağı yönlü kırılımı tetikleyebilir.",
+  "bias": "NEUTRAL",
+  "confidence": "Düşük",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Hafif Negatif\n\nSentiment skoru: -22\n\nSon 24 saatte değişim: Önceki güne göre iyileşti\n\nAna sürücüler:\n- Faiz/Fed baskısı sürüyor: 27-28 Ekim FOMC'de bekleme (~%90) fiyatlı ancak yıl sonuna kadar artırım olasılığı ~%84; 10Y ~%4.99, 2Y ~%4.72'ye (+3bp) yükseldi, reel faizler BTC için ana engel.\n- Risk iştahı toparlandı: Anthropic IPO başvurusuyla teknoloji rallisi; SPX +%0.70 (7,677), Nasdaq +%0.82, NDX ~+%1.1, VIX -%5.5 ile 18.4'e geriledi.\n- ETF akımı yeniden pozitif ama zayıf: Spot BTC ETF'lerine 26 Ekim'de +$110.3M (tamamı IBIT) giriş, iki günlük ~$773M çıkışın ancak küçük bir kısmını telafi ediyor; ETH ETF'lerinde Ekim çıkışı ~$1B.\n- Petrol/jeopolitik hafif rahatlama: Katar ve Suudi heyetlerinin Tahran ziyaretleriyle Brent -%0.8 ile $115.81'de kapandı; ancak Husi saldırıları sürüyor ve 3 Kasım seçimleri sonrası İran'a saldırı riski fiyatlanıyor.\n\nGelişme sınıflandırması:\n- Spot BTC ETF 26 Ekim +$110.3M net giriş (tamamı IBIT), iki günlük çıkış serisi sona erdi — Pozitif\n- Spot ETH ETF'lerinde Ekim çıkışı ~$1B; ETH ~$2,300, 7g ~-%5 — Negatif\n- Anthropic IPO başvurusuyla teknoloji rallisi: SPX +%0.70, Nasdaq +%0.82, Dow +%0.28 — Pozitif\n- VIX -%5.45 ile 18.39'a geriledi — Pozitif\n- 27-28 Ekim FOMC: bekleme ~%90 fiyatlı, yıl sonuna kadar artırım ~%84; Warsh basın toplantısı odakta — Negatif\n- 10Y ~%4.99 yatay, 2Y +3bp ~%4.72; faizler 5% eşiğinde — Negatif\n- DXY ~101.5-102 bandında, teknoloji rallisiyle hafif güçlendi; USD/JPY ~157.7 — Nötr\n- Katar ve Suudi heyetleri Tahran'da gerilim azaltma görüşmeleri yaptı; Suudi'nin Husilere $1B teklifi iddiası (teyitsiz) — Pozitif\n- Brent -%0.8 ile $115.81'de kapandı ama Husi saldırıları sürüyor, Trump seçim sonrası İran'a saldırı seçeneğini açık tutuyor — Negatif\n- Altın $4,012'ye (+%0.4) toparlandı, geçen hafta -%4 düşmüştü — Nötr\n- Bu hafta ECB (29 Ekim) ve BoJ (30 Ekim, %1.25'te bekleme) kararları; Kanada ve Yeni Zelanda artırım bekleniyor — Negatif\n- Microsoft/Alphabet/Amazon/Meta, Coinbase ve Strategy bilançoları, GDP ve PCE verileri bu hafta — Nötr\n- Stablecoin arzında belirgin yeni genişleme yok, kripto likiditesi yatay — Nötr\n- BTC ~$79.8K, 24s ~yatay; hisse rallisine rağmen $80K üzerine kalıcı dönemedi — Negatif\n\nEn önemli yeni gelişme:\nSon saatlerin en önemli gelişmesi, 27-28 Ekim FOMC toplantısının başlaması ve piyasanın yıl sonuna kadar ~%84 olasılıkla bir faiz artırımı fiyatlaması; 2Y faizin +3bp ile ~%4.72'ye, 10Y'nin ~%4.99'a yükselmesi bu beklentinin sıkılaştığını gösteriyor. Chair Warsh'ın Çarşamba basın toplantısında Aralık artırımına kapıyı açık tutması BTC için yeni bir negatif şok yaratabilir; buna karşılık petroldeki gevşemeye atıfla daha ılımlı bir ton, Anthropic IPO'suyla başlayan risk iştahını kriptoya da taşıyabilir. Ortadoğu'da Katar/Suudi arabuluculuğu petrolü baskılıyor ancak teyitli bir ateşkes yok.\n\nMakro uyumsuzluk kontrolü: relative weakness\nNasdaq ~+%0.8-1.1, S&P +%0.7 yükselirken, VIX %5.5 düşerken, petrol gerilerken ve ETF'lere yeniden giriş olurken BTC yalnızca yatay (~$79.8K) kaldı ve $80K üzerine yerleşemedi; 7 günlük bazda da ~-%3 ile hisselerden zayıf. Makro risk iştahındaki iyileşmeye eşlik edememesi relative weakness olarak işaretleniyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Nötr\n\nBTC için sonuç:\nRisk iştahı ve ETF akımlarında kısmi iyileşme var, ancak ~%5 tahvil faizleri ve Fed artırım fiyatlaması BTC talebini sınırlıyor. Önümüzdeki 24-72 saatte FOMC kararına kadar yatay/hafif aşağı eğilimli dalgalı seyir beklenir. Warsh'ın ılımlı tonu veya İran cephesinde somut ateşkes yukarı, şahin bir Aralık sinyali ise aşağı yönlü kırılımı tetikleyebilir.\n\nVarlık güç sıralaması:\n1. NASDAQ — 7/10 — Anthropic IPO kaynaklı teknoloji rallisiyle iki haftalık düşüşün ardından en güçlü toparlanmayı gösterdi. (24s: +%1.1, 7g: n/a)\n2. SPX — 6.5/10 — Teknoloji liderliğinde +%0.70 ile 7,677'ye yükseldi, ancak haftalık bazda hâlâ toparlanma aşamasında. (24s: +%0.7, 7g: n/a)\n3. BRENT — 5.5/10 — Arabuluculuk haberleriyle geriledi ama haftalık bazda altı ayın zirvesine yakın güçlü seyrini koruyor. (24s: -%0.8, 7g: +%4.5)\n4. DXY — 5/10 — 101.5-102 bandında hafif güçlendi, 14 Ekim zirvesinin altında yatay eğilimde. (24s: +%0.3, 7g: -%0.4)\n5. XAUUSD — 4.5/10 — $4,000 üzerine hafif toparlandı ancak geçen haftaki sert düşüşün izleri sürüyor. (24s: +%0.4, 7g: -%3)\n6. BTC — 4.5/10 — Hisse rallisine ve ETF girişine rağmen $80K civarında yatay kaldı, haftalık bazda zayıf. (24s: +%0.2, 7g: -%3)\n7. VIX — 3.5/10 — Risk iştahının toparlanmasıyla %5.5 düşüşle 18.4'e geriledi, korku azaldı. (24s: -%5.45, 7g: n/a)\n\nBTC Makro Bias: NEUTRAL — Güven: Düşük",
+  "asset_strength": [
+    {
+      "asset": "NASDAQ",
+      "score": 7,
+      "reason": "Anthropic IPO kaynaklı teknoloji rallisiyle iki haftalık düşüşün ardından en güçlü toparlanmayı gösterdi.",
+      "chg_24h_pct": 1.1,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "SPX",
+      "score": 6.5,
+      "reason": "Teknoloji liderliğinde +%0.70 ile 7,677'ye yükseldi, ancak haftalık bazda hâlâ toparlanma aşamasında.",
+      "chg_24h_pct": 0.7,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "BRENT",
+      "score": 5.5,
+      "reason": "Arabuluculuk haberleriyle geriledi ama haftalık bazda altı ayın zirvesine yakın güçlü seyrini koruyor.",
+      "chg_24h_pct": -0.8,
+      "chg_7d_pct": 4.5
+    },
+    {
+      "asset": "DXY",
+      "score": 5,
+      "reason": "101.5-102 bandında hafif güçlendi, 14 Ekim zirvesinin altında yatay eğilimde.",
+      "chg_24h_pct": 0.3,
+      "chg_7d_pct": -0.4
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 4.5,
+      "reason": "$4,000 üzerine hafif toparlandı ancak geçen haftaki sert düşüşün izleri sürüyor.",
+      "chg_24h_pct": 0.4,
+      "chg_7d_pct": -3
+    },
+    {
+      "asset": "BTC",
+      "score": 4.5,
+      "reason": "Hisse rallisine ve ETF girişine rağmen $80K civarında yatay kaldı, haftalık bazda zayıf.",
+      "chg_24h_pct": 0.2,
+      "chg_7d_pct": -3
+    },
+    {
+      "asset": "VIX",
+      "score": 3.5,
+      "reason": "Risk iştahının toparlanmasıyla %5.5 düşüşle 18.4'e geriledi, korku azaldı.",
+      "chg_24h_pct": -5.45,
+      "chg_7d_pct": null
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
