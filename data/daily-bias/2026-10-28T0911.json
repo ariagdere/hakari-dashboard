@@ -1,0 +1,133 @@
+{
+  "run_date": "2026-10-28",
+  "generated_at": "2026-10-28T06:11:28Z",
+  "net_direction": "Hafif Negatif",
+  "sentiment_score": -15,
+  "change_24h": "iyileşti",
+  "drivers": [
+    "Fed/faiz baskısı: FOMC kararı bugün (28 Ekim 21:00 TSİ) — bekleme ~%90+ fiyatlı, ancak Aralık artırım olasılığı ~%75-82; 10Y ~%4.99 ile %5 eşiğinde, reel faizler BTC için ana engel.",
+    "Risk iştahı güçlü: AI/teknoloji rallisi sürüyor; Nasdaq +%1.2 (26,478), SPX +%0.6 (7,723), VIX -%4.7 ile 17.5'e geriledi, Nikkei +%1.1 ve KOSPI +%6 ile Asya seansı da pozitif.",
+    "Dolar sıkılaştırıcı: DXY +%0.4 ile 102.37'ye, yaklaşık iki haftanın zirvesine çıktı; altın $4,000 civarında baskı altında.",
+    "Petrol/jeopolitik hafif rahatlama: Tahran'da Suudi/Türk/Pakistan arabuluculuğuyla Brent ~$114.7'ye (-%1) geriledi, ancak Hürmüz ve Husi riskleri sürüyor."
+  ],
+  "developments": [
+    {
+      "item": "FOMC 28 Ekim: bekleme ~%90-93 fiyatlı, Aralık artırımı ~%75-82; Warsh basın toplantısı belirleyici",
+      "impact": "Negatif"
+    },
+    {
+      "item": "10Y ~%4.99 yatay, 30Y ~%5.3; faizler %5 eşiğinde",
+      "impact": "Negatif"
+    },
+    {
+      "item": "DXY +%0.4 ile 102.37, iki günlük yükseliş serisi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "AI rallisi: Nasdaq +%1.2, SPX +%0.6; ancak S&P'de hisselerin çoğu düştü (dar katılım)",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "VIX -%4.7 ile 17.52'ye geriledi",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Asya seansı pozitif: Nikkei +%1.1, KOSPI +%6.25; USD/JPY ~157",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Spot BTC ETF: 26 Ekim +$110M (IBIT), 27 Ekim için ilk veri yalnızca +$24.5M (FBTC); Ekim ayı toplamı hâlâ ~-$200M",
+      "impact": "Nötr"
+    },
+    {
+      "item": "ETH/SOL/XRP ETF'lerinde 26 Ekim toplam ~-$100M çıkış",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Tahran'da arabuluculuk görüşmeleri devam; Brent ~$114.7 (-%1)",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Husi saldırıları ve Hürmüz'de tanker riskleri sürüyor; petrol $100 üzerinde enflasyon riski",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Altın $4,000 civarında -%0.3, üç ayın dibine yakın",
+      "impact": "Nötr"
+    },
+    {
+      "item": "ECB (29 Ekim), BoJ (30 Ekim) kararları ve Perşembe PCE verisi yaklaşıyor",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Stablecoin arzında belirgin yeni genişleme yok, kripto likiditesi yatay",
+      "impact": "Nötr"
+    },
+    {
+      "item": "BTC $80K üzerine döndü (~$80.7K, 24s ~+%1), ancak yükselişin büyük kısmı short kapanışından kaynaklandı",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "Son saatlerin en önemli gelişmesi, bugün 21:00 TSİ'de açıklanacak FOMC kararı ve ardından Chair Warsh'ın basın toplantısı. Ekim'de bekleme neredeyse tamamen fiyatlı olduğundan asıl belirleyici, Aralık artırımına (~%75-82 fiyatlı) dair yönlendirme olacak; DXY'nin karar öncesi iki haftanın zirvesine (102.37) çıkması ve 10Y'nin %5 eşiğinde durması piyasanın şahin bir ton beklediğini gösteriyor. Warsh'ın veri bağımlılığını vurgulayan ve petroldeki gevşemeye atıf yapan ılımlı bir mesajı, short kapanışıyla $80K üzerine dönen BTC'ye gerçek talep getirebilir; Aralık artırımını teyit eden bir ton ise yükselişi hızla geri aldırabilir.",
+  "divergence": "aligned",
+  "divergence_note": "BTC son 24 saatte ~+%1 ile $80K üzerine dönerek Nasdaq'taki ~+%1.2'lik risk-on hareketle ve VIX düşüşüyle genel olarak uyumlu hareket etti; dolar güçlenmesine rağmen yükselmesi küçük bir pozitif. Ancak yükselişin büyük kısmının short kapanışından gelmesi ve ETF girişlerinin zayıf kalması nedeniyle bu henüz relative strength sayılmaz; aligned olarak işaretleniyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Temkinli risk-on",
+  "conclusion": "Risk iştahı ve VIX destekleyici olsa da güçlenen dolar, %5'e yakın tahvil faizleri ve Aralık artırım fiyatlaması BTC talebini sınırlıyor. Önümüzdeki 24-72 saatte FOMC ve Perşembe PCE verisine bağlı olarak $80K civarında dalgalı, yönsüz bir seyir beklenir. Warsh'ın ılımlı tonu yukarı, Aralık artırımını teyit eden şahin bir mesaj ise aşağı yönlü kırılımı tetikleyebilir.",
+  "bias": "NEUTRAL",
+  "confidence": "Düşük",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Hafif Negatif\n\nSentiment skoru: -15\n\nSon 24 saatte değişim: Önceki güne göre iyileşti\n\nAna sürücüler:\n- Fed/faiz baskısı: FOMC kararı bugün (28 Ekim 21:00 TSİ) — bekleme ~%90+ fiyatlı, ancak Aralık artırım olasılığı ~%75-82; 10Y ~%4.99 ile %5 eşiğinde, reel faizler BTC için ana engel.\n- Risk iştahı güçlü: AI/teknoloji rallisi sürüyor; Nasdaq +%1.2 (26,478), SPX +%0.6 (7,723), VIX -%4.7 ile 17.5'e geriledi, Nikkei +%1.1 ve KOSPI +%6 ile Asya seansı da pozitif.\n- Dolar sıkılaştırıcı: DXY +%0.4 ile 102.37'ye, yaklaşık iki haftanın zirvesine çıktı; altın $4,000 civarında baskı altında.\n- Petrol/jeopolitik hafif rahatlama: Tahran'da Suudi/Türk/Pakistan arabuluculuğuyla Brent ~$114.7'ye (-%1) geriledi, ancak Hürmüz ve Husi riskleri sürüyor.\n\nGelişme sınıflandırması:\n- FOMC 28 Ekim: bekleme ~%90-93 fiyatlı, Aralık artırımı ~%75-82; Warsh basın toplantısı belirleyici — Negatif\n- 10Y ~%4.99 yatay, 30Y ~%5.3; faizler %5 eşiğinde — Negatif\n- DXY +%0.4 ile 102.37, iki günlük yükseliş serisi — Negatif\n- AI rallisi: Nasdaq +%1.2, SPX +%0.6; ancak S&P'de hisselerin çoğu düştü (dar katılım) — Pozitif\n- VIX -%4.7 ile 17.52'ye geriledi — Pozitif\n- Asya seansı pozitif: Nikkei +%1.1, KOSPI +%6.25; USD/JPY ~157 — Pozitif\n- Spot BTC ETF: 26 Ekim +$110M (IBIT), 27 Ekim için ilk veri yalnızca +$24.5M (FBTC); Ekim ayı toplamı hâlâ ~-$200M — Nötr\n- ETH/SOL/XRP ETF'lerinde 26 Ekim toplam ~-$100M çıkış — Negatif\n- Tahran'da arabuluculuk görüşmeleri devam; Brent ~$114.7 (-%1) — Pozitif\n- Husi saldırıları ve Hürmüz'de tanker riskleri sürüyor; petrol $100 üzerinde enflasyon riski — Negatif\n- Altın $4,000 civarında -%0.3, üç ayın dibine yakın — Nötr\n- ECB (29 Ekim), BoJ (30 Ekim) kararları ve Perşembe PCE verisi yaklaşıyor — Nötr\n- Stablecoin arzında belirgin yeni genişleme yok, kripto likiditesi yatay — Nötr\n- BTC $80K üzerine döndü (~$80.7K, 24s ~+%1), ancak yükselişin büyük kısmı short kapanışından kaynaklandı — Nötr\n\nEn önemli yeni gelişme:\nSon saatlerin en önemli gelişmesi, bugün 21:00 TSİ'de açıklanacak FOMC kararı ve ardından Chair Warsh'ın basın toplantısı. Ekim'de bekleme neredeyse tamamen fiyatlı olduğundan asıl belirleyici, Aralık artırımına (~%75-82 fiyatlı) dair yönlendirme olacak; DXY'nin karar öncesi iki haftanın zirvesine (102.37) çıkması ve 10Y'nin %5 eşiğinde durması piyasanın şahin bir ton beklediğini gösteriyor. Warsh'ın veri bağımlılığını vurgulayan ve petroldeki gevşemeye atıf yapan ılımlı bir mesajı, short kapanışıyla $80K üzerine dönen BTC'ye gerçek talep getirebilir; Aralık artırımını teyit eden bir ton ise yükselişi hızla geri aldırabilir.\n\nMakro uyumsuzluk kontrolü: aligned\nBTC son 24 saatte ~+%1 ile $80K üzerine dönerek Nasdaq'taki ~+%1.2'lik risk-on hareketle ve VIX düşüşüyle genel olarak uyumlu hareket etti; dolar güçlenmesine rağmen yükselmesi küçük bir pozitif. Ancak yükselişin büyük kısmının short kapanışından gelmesi ve ETF girişlerinin zayıf kalması nedeniyle bu henüz relative strength sayılmaz; aligned olarak işaretleniyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Temkinli risk-on\n\nBTC için sonuç:\nRisk iştahı ve VIX destekleyici olsa da güçlenen dolar, %5'e yakın tahvil faizleri ve Aralık artırım fiyatlaması BTC talebini sınırlıyor. Önümüzdeki 24-72 saatte FOMC ve Perşembe PCE verisine bağlı olarak $80K civarında dalgalı, yönsüz bir seyir beklenir. Warsh'ın ılımlı tonu yukarı, Aralık artırımını teyit eden şahin bir mesaj ise aşağı yönlü kırılımı tetikleyebilir.\n\nVarlık güç sıralaması:\n1. NASDAQ — 7/10 — AI hisselerinin öncülüğünde +%1.2 yükseldi ve haftalık ~+%2 ile en güçlü eğilimi sürdürüyor. (24s: +%1.2, 7g: +%2)\n2. SPX — 6.5/10 — +%0.6 ile 7,723'e çıktı ancak katılım dar, yükselişi birkaç büyük AI hissesi taşıyor. (24s: +%0.6, 7g: n/a)\n3. DXY — 6/10 — Fed öncesi iki günlük yükselişle yaklaşık iki haftanın zirvesi olan 102.37'ye çıktı. (24s: +%0.4, 7g: n/a)\n4. BTC — 5.5/10 — Short kapanışıyla $80K üzerine döndü ancak spot ve ETF talebi zayıf, haftalık eğilim yatay. (24s: +%1, 7g: n/a)\n5. XAUUSD — 4.5/10 — Güçlü dolar baskısıyla $4,000 civarında üç ayın dibine yakın yatay-zayıf seyrediyor. (24s: -%0.3, 7g: n/a)\n6. BRENT — 4.5/10 — Tahran'daki arabuluculuk umutlarıyla ~$114.7'ye geriledi, ancak hâlâ yüksek seviyelerde. (24s: -%1, 7g: n/a)\n7. VIX — 3.5/10 — Risk iştahının güçlenmesiyle %4.7 düşüşle 17.5'e geriledi, korku azalıyor. (24s: -%4.73, 7g: n/a)\n\nBTC Makro Bias: NEUTRAL — Güven: Düşük",
+  "asset_strength": [
+    {
+      "asset": "NASDAQ",
+      "score": 7,
+      "reason": "AI hisselerinin öncülüğünde +%1.2 yükseldi ve haftalık ~+%2 ile en güçlü eğilimi sürdürüyor.",
+      "chg_24h_pct": 1.2,
+      "chg_7d_pct": 2
+    },
+    {
+      "asset": "SPX",
+      "score": 6.5,
+      "reason": "+%0.6 ile 7,723'e çıktı ancak katılım dar, yükselişi birkaç büyük AI hissesi taşıyor.",
+      "chg_24h_pct": 0.6,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "DXY",
+      "score": 6,
+      "reason": "Fed öncesi iki günlük yükselişle yaklaşık iki haftanın zirvesi olan 102.37'ye çıktı.",
+      "chg_24h_pct": 0.4,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "BTC",
+      "score": 5.5,
+      "reason": "Short kapanışıyla $80K üzerine döndü ancak spot ve ETF talebi zayıf, haftalık eğilim yatay.",
+      "chg_24h_pct": 1,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 4.5,
+      "reason": "Güçlü dolar baskısıyla $4,000 civarında üç ayın dibine yakın yatay-zayıf seyrediyor.",
+      "chg_24h_pct": -0.3,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "BRENT",
+      "score": 4.5,
+      "reason": "Tahran'daki arabuluculuk umutlarıyla ~$114.7'ye geriledi, ancak hâlâ yüksek seviyelerde.",
+      "chg_24h_pct": -1,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "VIX",
+      "score": 3.5,
+      "reason": "Risk iştahının güçlenmesiyle %4.7 düşüşle 17.5'e geriledi, korku azalıyor.",
+      "chg_24h_pct": -4.73,
+      "chg_7d_pct": null
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
