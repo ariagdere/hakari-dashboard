@@ -1,0 +1,149 @@
+{
+  "run_date": "2026-10-29",
+  "generated_at": "2026-10-29T06:10:25Z",
+  "net_direction": "Hafif Negatif",
+  "sentiment_score": -22,
+  "change_24h": "kötüleşti",
+  "drivers": [
+    "Şahin bekleme: Fed 28 Ekim'de faizi %3.75-4.00'te 10-2 oyla sabit tuttu; Cook ve Hammack artırım yönünde muhalefet etti, Aralık artırım olasılığı ~%78'den ~%85-86'ya yükseldi ve 10Y ~%5.02-5.05 ile %5 üzerinde kaldı.",
+    "Tech/AI sentimentinde kırılma: Alphabet bilançosu beklentiyi karşılamadı (hisse ~-%10, negatif serbest nakit akışı), NDX vadelileri -%0.8/-1.4 geriledi; Microsoft +%3 ile kısmen dengeledi, Kospi -%2.2 ile Asya karışık.",
+    "Dolar ve kısa vadeli faizlerde gevşeme: Warsh'ın forward guidance vermemesiyle DXY ~101.8'e (-%0.4) geriledi, 2Y ~%4.70'e düştü (bull steepening) — BTC için hafif destek.",
+    "Petrol/jeopolitik: Brent ~$115 civarında; İran ile barış görüşmesi haberleri ile 3 Kasım seçimleri sonrası olası ABD askeri harekatı uyarısı arasında enerji kaynaklı enflasyon riski sürüyor."
+  ],
+  "developments": [
+    {
+      "item": "Fed faizi %3.75-4.00'te sabit tuttu, 10-2 oy; iki üye artırım istedi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Aralık artırım olasılığı ~%85-86'ya yükseldi (önceki gün ~%78)",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Warsh: forward guidance yok; 2027'den itibaren daha az toplantı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "10Y ~%5.02-5.05, 30Y ~%5.33; reel faizler yüksek",
+      "impact": "Negatif"
+    },
+    {
+      "item": "2Y ~%4.70'e geriledi (-4/-8bp), eğri dikleşti",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "DXY Fed sonrası ~101.8'e geriledi (-%0.4)",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Alphabet bilançosu hayal kırıklığı (~-%10 AH), NDX vadelileri -%0.8/-1.4",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Microsoft Azure büyümesiyle beklentiyi aştı (+%3 AH)",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "SPX +%0.28 (7,744), Nasdaq Comp. +%0.27 ile cash seansı hafif artıda kapattı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "VIX -%3.5 ile 16.9'a geriledi",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Asya karışık: Nikkei ~+%0.2-0.3, Kospi -%2.2, MSCI Asya (Japonya hariç) -%0.7",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Spot BTC ETF: 28 Ekim +$137M (IBIT +$136M), üçüncü gün üst üste giriş; 5 seanslık toplam hâlâ ~-$350M",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "ETH ETF'lerinde dört haftalık çıkış serisi sürüyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Stablecoin arzı ~$305B, haftalık ~-$1.1B daralma",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Brent ~$115; İran barış görüşmesi haberleri vs. seçim sonrası askeri harekat uyarısı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Altın ~$4,040-4,058, -%0.5 ile zayıf",
+      "impact": "Nötr"
+    },
+    {
+      "item": "ECB bugün (%2.50'de sabit beklenir, Euro Bölgesi enflasyonu %3.8), BoJ Cuma, PCE verisi yaklaşıyor",
+      "impact": "Nötr"
+    },
+    {
+      "item": "BTC ~$80.3-81.6K bandında yatay; zayıf dolar ve ETF girişine rağmen yukarı kırılım yok",
+      "impact": "Negatif"
+    }
+  ],
+  "key_development": "Son saatlerin en önemli gelişmesi, Fed'in şahin bekleme kararının ardından Alphabet'in beklentiyi karşılamayan bilançosuyla AI/teknoloji rallisinin sekteye uğraması. Fed tarafında iki üyenin artırım yönünde muhalefet etmesi Aralık artırım fiyatlamasını ~%85-86'ya taşıdı, ancak Warsh'ın yönlendirme vermemesi doları ve 2Y faizini geriletti; bu kısmi gevşeme BTC için olumlu olabilirdi. Ne var ki Alphabet'in ~%10'luk düşüşü ve negatif serbest nakit akışı AI harcama endişelerini yeniden alevlendirdi ve NDX vadelilerini %1'in üzerinde aşağı çekti; son haftalarda BTC'yi destekleyen tek ayak olan Nasdaq risk iştahının zayıflaması, bugün ECB ve yarın BoJ ile PCE öncesinde BTC'nin $80K desteğini test etme riskini artırıyor.",
+  "divergence": "relative weakness",
+  "divergence_note": "Fed sonrası dolar ~%0.4 geriledi, 2Y faiz düştü ve spot BTC ETF'lerine üç gündür giriş var; buna rağmen BTC ~$80.5K'da yatay kaldı ve $81-81.7K direncini aşamadı. Makronun kısa vadede hafif rahatladığı kanallarda (dolar, 2Y) BTC'nin tepki vermemesi relative weakness olarak işaretleniyor; Nasdaq vadelilerindeki düşüşe karşı sert satış görülmemesi ise zayıflığın sınırlı olduğunu gösteriyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Temkinli risk-off",
+  "conclusion": "%5 üzerindeki 10Y, ~%85 fiyatlı Aralık artırımı ve teknolojideki Alphabet kaynaklı satış BTC talebini sınırlıyor; zayıf dolar ve ETF girişleri ise sert düşüşü engelliyor. Önümüzdeki 24-72 saatte $79-82K bandında, aşağı yönlü riskleri ağır basan dalgalı bir seyir beklenir. PCE verisinin sıcak gelmesi veya Nasdaq satışının derinleşmesi $79K altını, ılımlı PCE ise $82K üstünü tetikleyebilir.",
+  "bias": "NEUTRAL",
+  "confidence": "Düşük",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Hafif Negatif\n\nSentiment skoru: -22\n\nSon 24 saatte değişim: Önceki güne göre kötüleşti\n\nAna sürücüler:\n- Şahin bekleme: Fed 28 Ekim'de faizi %3.75-4.00'te 10-2 oyla sabit tuttu; Cook ve Hammack artırım yönünde muhalefet etti, Aralık artırım olasılığı ~%78'den ~%85-86'ya yükseldi ve 10Y ~%5.02-5.05 ile %5 üzerinde kaldı.\n- Tech/AI sentimentinde kırılma: Alphabet bilançosu beklentiyi karşılamadı (hisse ~-%10, negatif serbest nakit akışı), NDX vadelileri -%0.8/-1.4 geriledi; Microsoft +%3 ile kısmen dengeledi, Kospi -%2.2 ile Asya karışık.\n- Dolar ve kısa vadeli faizlerde gevşeme: Warsh'ın forward guidance vermemesiyle DXY ~101.8'e (-%0.4) geriledi, 2Y ~%4.70'e düştü (bull steepening) — BTC için hafif destek.\n- Petrol/jeopolitik: Brent ~$115 civarında; İran ile barış görüşmesi haberleri ile 3 Kasım seçimleri sonrası olası ABD askeri harekatı uyarısı arasında enerji kaynaklı enflasyon riski sürüyor.\n\nGelişme sınıflandırması:\n- Fed faizi %3.75-4.00'te sabit tuttu, 10-2 oy; iki üye artırım istedi — Negatif\n- Aralık artırım olasılığı ~%85-86'ya yükseldi (önceki gün ~%78) — Negatif\n- Warsh: forward guidance yok; 2027'den itibaren daha az toplantı — Nötr\n- 10Y ~%5.02-5.05, 30Y ~%5.33; reel faizler yüksek — Negatif\n- 2Y ~%4.70'e geriledi (-4/-8bp), eğri dikleşti — Pozitif\n- DXY Fed sonrası ~101.8'e geriledi (-%0.4) — Pozitif\n- Alphabet bilançosu hayal kırıklığı (~-%10 AH), NDX vadelileri -%0.8/-1.4 — Negatif\n- Microsoft Azure büyümesiyle beklentiyi aştı (+%3 AH) — Pozitif\n- SPX +%0.28 (7,744), Nasdaq Comp. +%0.27 ile cash seansı hafif artıda kapattı — Nötr\n- VIX -%3.5 ile 16.9'a geriledi — Pozitif\n- Asya karışık: Nikkei ~+%0.2-0.3, Kospi -%2.2, MSCI Asya (Japonya hariç) -%0.7 — Negatif\n- Spot BTC ETF: 28 Ekim +$137M (IBIT +$136M), üçüncü gün üst üste giriş; 5 seanslık toplam hâlâ ~-$350M — Pozitif\n- ETH ETF'lerinde dört haftalık çıkış serisi sürüyor — Negatif\n- Stablecoin arzı ~$305B, haftalık ~-$1.1B daralma — Negatif\n- Brent ~$115; İran barış görüşmesi haberleri vs. seçim sonrası askeri harekat uyarısı — Negatif\n- Altın ~$4,040-4,058, -%0.5 ile zayıf — Nötr\n- ECB bugün (%2.50'de sabit beklenir, Euro Bölgesi enflasyonu %3.8), BoJ Cuma, PCE verisi yaklaşıyor — Nötr\n- BTC ~$80.3-81.6K bandında yatay; zayıf dolar ve ETF girişine rağmen yukarı kırılım yok — Negatif\n\nEn önemli yeni gelişme:\nSon saatlerin en önemli gelişmesi, Fed'in şahin bekleme kararının ardından Alphabet'in beklentiyi karşılamayan bilançosuyla AI/teknoloji rallisinin sekteye uğraması. Fed tarafında iki üyenin artırım yönünde muhalefet etmesi Aralık artırım fiyatlamasını ~%85-86'ya taşıdı, ancak Warsh'ın yönlendirme vermemesi doları ve 2Y faizini geriletti; bu kısmi gevşeme BTC için olumlu olabilirdi. Ne var ki Alphabet'in ~%10'luk düşüşü ve negatif serbest nakit akışı AI harcama endişelerini yeniden alevlendirdi ve NDX vadelilerini %1'in üzerinde aşağı çekti; son haftalarda BTC'yi destekleyen tek ayak olan Nasdaq risk iştahının zayıflaması, bugün ECB ve yarın BoJ ile PCE öncesinde BTC'nin $80K desteğini test etme riskini artırıyor.\n\nMakro uyumsuzluk kontrolü: relative weakness\nFed sonrası dolar ~%0.4 geriledi, 2Y faiz düştü ve spot BTC ETF'lerine üç gündür giriş var; buna rağmen BTC ~$80.5K'da yatay kaldı ve $81-81.7K direncini aşamadı. Makronun kısa vadede hafif rahatladığı kanallarda (dolar, 2Y) BTC'nin tepki vermemesi relative weakness olarak işaretleniyor; Nasdaq vadelilerindeki düşüşe karşı sert satış görülmemesi ise zayıflığın sınırlı olduğunu gösteriyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Temkinli risk-off\n\nBTC için sonuç:\n%5 üzerindeki 10Y, ~%85 fiyatlı Aralık artırımı ve teknolojideki Alphabet kaynaklı satış BTC talebini sınırlıyor; zayıf dolar ve ETF girişleri ise sert düşüşü engelliyor. Önümüzdeki 24-72 saatte $79-82K bandında, aşağı yönlü riskleri ağır basan dalgalı bir seyir beklenir. PCE verisinin sıcak gelmesi veya Nasdaq satışının derinleşmesi $79K altını, ılımlı PCE ise $82K üstünü tetikleyebilir.\n\nVarlık güç sıralaması:\n1. BRENT — 6.5/10 — Arz endişeleriyle +%1.3 ile $115.3'te kapattı, Perşembe barış görüşmesi haberleriyle ~$114.9'a hafif geriledi; haftalık eğilim yukarı. (24s: +%0.2, 7g: +%4.1)\n2. NASDAQ — 5.5/10 — Cash seansı +%0.3 ile kapandı ancak Alphabet sonrası NDX vadelileri ~-%1.2 düştü, AI liderliği sarsıldı. (24s: +%0.3, 7g: +%2)\n3. SPX — 5.5/10 — Üçüncü gün üst üste +%0.28 ile 7,744'e çıktı, ancak vadeliler -%0.3 ve haftalık bazda yatay. (24s: +%0.28, 7g: -%0.2)\n4. BTC — 4.5/10 — Zayıf dolar ve ETF girişlerine rağmen ~$80.5K'da yatay kaldı, haftalık bazda ~$82.7K'dan geride. (24s: -%0.3, 7g: -%2.7)\n5. DXY — 4.5/10 — Warsh'ın yönlendirme vermemesiyle 102.4'ten ~101.8'e geriledi, haftalık bazda yatay. (24s: -%0.4, 7g: +%0.1)\n6. XAUUSD — 4/10 — Yüksek reel faiz baskısıyla ~$4,045'e geriledi, haftalık düşüş eğilimi sürüyor. (24s: -%0.5, 7g: -%1.7)\n7. VIX — 3.5/10 — Fed kararı sonrası -%3.5 ile 16.9'a geriledi, ancak Alphabet sonrası vadeli satışlar yükseliş riski taşıyor. (24s: -%3.5, 7g: n/a)\n\nBTC Makro Bias: NEUTRAL — Güven: Düşük",
+  "asset_strength": [
+    {
+      "asset": "BRENT",
+      "score": 6.5,
+      "reason": "Arz endişeleriyle +%1.3 ile $115.3'te kapattı, Perşembe barış görüşmesi haberleriyle ~$114.9'a hafif geriledi; haftalık eğilim yukarı.",
+      "chg_24h_pct": 0.2,
+      "chg_7d_pct": 4.1
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 5.5,
+      "reason": "Cash seansı +%0.3 ile kapandı ancak Alphabet sonrası NDX vadelileri ~-%1.2 düştü, AI liderliği sarsıldı.",
+      "chg_24h_pct": 0.3,
+      "chg_7d_pct": 2
+    },
+    {
+      "asset": "SPX",
+      "score": 5.5,
+      "reason": "Üçüncü gün üst üste +%0.28 ile 7,744'e çıktı, ancak vadeliler -%0.3 ve haftalık bazda yatay.",
+      "chg_24h_pct": 0.28,
+      "chg_7d_pct": -0.2
+    },
+    {
+      "asset": "BTC",
+      "score": 4.5,
+      "reason": "Zayıf dolar ve ETF girişlerine rağmen ~$80.5K'da yatay kaldı, haftalık bazda ~$82.7K'dan geride.",
+      "chg_24h_pct": -0.3,
+      "chg_7d_pct": -2.7
+    },
+    {
+      "asset": "DXY",
+      "score": 4.5,
+      "reason": "Warsh'ın yönlendirme vermemesiyle 102.4'ten ~101.8'e geriledi, haftalık bazda yatay.",
+      "chg_24h_pct": -0.4,
+      "chg_7d_pct": 0.1
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 4,
+      "reason": "Yüksek reel faiz baskısıyla ~$4,045'e geriledi, haftalık düşüş eğilimi sürüyor.",
+      "chg_24h_pct": -0.5,
+      "chg_7d_pct": -1.7
+    },
+    {
+      "asset": "VIX",
+      "score": 3.5,
+      "reason": "Fed kararı sonrası -%3.5 ile 16.9'a geriledi, ancak Alphabet sonrası vadeli satışlar yükseliş riski taşıyor.",
+      "chg_24h_pct": -3.5,
+      "chg_7d_pct": null
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
