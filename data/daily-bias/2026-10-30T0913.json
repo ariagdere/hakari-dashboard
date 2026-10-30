@@ -1,0 +1,145 @@
+{
+  "run_date": "2026-10-30",
+  "generated_at": "2026-10-30T06:13:51Z",
+  "net_direction": "Negatif",
+  "sentiment_score": -42,
+  "change_24h": "kötüleşti",
+  "drivers": [
+    "Binance şoku: Borsa ~$6.3B ile tarihin en büyük kripto hırsızlığını doğruladı (ele geçirilmiş mühendis laptopu); yatırma/çekme askıya alındı, ~$470-480M BTC long likidasyonu ile BTC ~$76.3K'ya kadar indi — ~$3B donduruldu ve Binance kayıpları karşılama sözü verdi.",
+    "AI/teknoloji satışı derinleşiyor: Alphabet -%12.6 sonrası Nasdaq Comp. -%1.38 kapattı; Amazon (~-%6/-12) ve Intel (~-%17/-22) bilançolarıyla NDX vadelileri -%1.5/-2.1, Asya (özellikle Kospi) sert düştü.",
+    "Şahin Fed + sıcak enflasyon: Eylül PCE manşet %3.6, çekirdek %3.1; Q3 GSYH %3.4 ve işsizlik başvuruları 194K ile güçlü — Aralık artırım olasılığı ~%80-85 bandında kalıyor.",
+    "Kısmi destek: Güvenli liman talebiyle 10Y ~%5.05'ten ~%4.90'a (bir ayın dibi) geriledi, DXY ~101.7'ye zayıfladı; ancak BTC bu gevşemeye tepki vermedi."
+  ],
+  "developments": [
+    {
+      "item": "Binance ~$6.3B hack'i doğruladı, yatırma/çekme askıya alındı; saldırgan ~18,270 BTC'yi 19 cüzdana dağıttı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Binance ~$3B'lık varlığı dondurdu, Tether/Circle çalınan stablecoinleri dondurdu, Binance tüm kayıpları karşılama sözü verdi",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Kripto toplam piyasa değeri -%3.7 ile ~$2.67T; BTC ~$1B+ toplam likidasyonla $77K altına indi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Alphabet -%12.6; Nasdaq Comp. -%1.38 (26,185), SPX -%0.30 (7,720)",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Amazon (gelir/EPS ıskası, $220B capex) ve Intel (zayıf Q4 rehberliği) sonrası NDX vadelileri -%1.5/-2.1",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Eylül PCE manşet %3.6, çekirdek %3.1 (aylık çekirdek %0.3, beklentiye paralel)",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Q3 GSYH %3.4 (beklenti ~%3.1-3.2), işsizlik başvuruları 194K",
+      "impact": "Negatif"
+    },
+    {
+      "item": "10Y faiz AI satışıyla ~%4.90'a, bir ayın dibine geriledi; 2Y ~%4.67",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "DXY ~101.7-102.0'a hafif geriledi",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "ECB mevduat faizini %2.50'de oybirliğiyle sabit tuttu; Lagarde Şubat 2027'de erken ayrılacağını açıkladı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "BoJ faizi %1.25'te 8-1 oyla sabit tuttu (Takata artırım istedi), 2027 enflasyon tahmini %2.6'ya yükseltildi; Aralık artırımı ~%80 fiyatlı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Asya hisseleri Kospi öncülüğünde sert düştü",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Spot BTC ETF'lerinde dördüncü gün giriş (Farside 29 Ekim ~+$17M, önceki gün +$137M); ETH ETF çıkışları sürüyor",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Stablecoin arzı ~$305-308B civarında yatay/hafif daralma eğiliminde",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Brent ~$112-116, İran'a yönelik askeri seçenek brifingi haberleriyle ay bazında ~%11.5 artışa yöneldi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "VIX 17.2'ye yükseldi; vadeli satışlar Cuma açılışında yükseliş riskine işaret ediyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Altın ~$4,005, -%0.4/-1; güvenli liman talebi tahvillere yöneldi",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "Son saatlerin en önemli gelişmesi, Binance'in ~$6.3B'lık hack'i doğrulaması: ele geçirilmiş bir mühendis laptopu üzerinden yapılan yetkisiz çekimler tarihin en büyük kripto hırsızlığı oldu, borsa yatırma/çekme işlemlerini askıya aldı ve BTC $78K/$77K desteklerini kırarak ~$76.3K'ya kadar indi. Bu olay, makro bir şoktan ziyade kriptoya özgü bir güven ve likidite şoku; en büyük spot/türev likidite merkezinin fiilen donması piyasa yapıcılığını zayıflatıyor ve saldırganın elindeki ~18,270 BTC (~$1.4B) olası satış baskısı (overhang) yaratıyor. Aynı anda Amazon ve Intel bilançolarıyla AI satışı derinleşti, böylece BTC hem kripto içi hem de risk iştahı kanalından baskı altında; buna karşın ~$3B'lık dondurma, Tether/Circle müdahalesi ve Binance'in kayıpları karşılama taahhüdü bulaşma riskini sınırlayabilir — çekimlerin sorunsuz yeniden açılması kısa vadeli toparlanmanın anahtarı.",
+  "divergence": "relative weakness",
+  "divergence_note": "AI satışı kaynaklı güvenli liman talebiyle 10Y ~15bp gerileyerek bir ayın dibine (~%4.90) indi ve DXY zayıfladı; bu ortam normalde BTC'yi desteklerdi, ancak BTC ~$80.5K'dan ~$77K'ya (-%3.5/-4) düştü. Düşüşün ana nedeni Binance hack'i (idiosenkratik) olsa da BTC'nin faiz/dolar gevşemesine tepkisizliği ve Nasdaq'tan daha sert düşmesi relative weakness olarak işaretleniyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Risk-off",
+  "conclusion": "Binance kaynaklı güven şoku, derinleşen AI/teknoloji satışı ve %3.6 PCE ile şahin Fed, önümüzdeki 24-72 saatte BTC talebini baskılıyor. Düşen 10Y faiz ve zayıf dolar tek destek; Binance çekimlerinin sorunsuz açılması ve dondurulan fonlar $80K'ya geri dönüş tepkisini tetikleyebilir. Aksi halde, özellikle hacker cüzdanlarından satış veya Nasdaq'ta ikinci dalga gelirse, $75-76K altı test edilebilir.",
+  "bias": "SHORT",
+  "confidence": "Düşük",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Negatif\n\nSentiment skoru: -42\n\nSon 24 saatte değişim: Önceki güne göre kötüleşti\n\nAna sürücüler:\n- Binance şoku: Borsa ~$6.3B ile tarihin en büyük kripto hırsızlığını doğruladı (ele geçirilmiş mühendis laptopu); yatırma/çekme askıya alındı, ~$470-480M BTC long likidasyonu ile BTC ~$76.3K'ya kadar indi — ~$3B donduruldu ve Binance kayıpları karşılama sözü verdi.\n- AI/teknoloji satışı derinleşiyor: Alphabet -%12.6 sonrası Nasdaq Comp. -%1.38 kapattı; Amazon (~-%6/-12) ve Intel (~-%17/-22) bilançolarıyla NDX vadelileri -%1.5/-2.1, Asya (özellikle Kospi) sert düştü.\n- Şahin Fed + sıcak enflasyon: Eylül PCE manşet %3.6, çekirdek %3.1; Q3 GSYH %3.4 ve işsizlik başvuruları 194K ile güçlü — Aralık artırım olasılığı ~%80-85 bandında kalıyor.\n- Kısmi destek: Güvenli liman talebiyle 10Y ~%5.05'ten ~%4.90'a (bir ayın dibi) geriledi, DXY ~101.7'ye zayıfladı; ancak BTC bu gevşemeye tepki vermedi.\n\nGelişmelerin sınıflandırması:\n- Binance ~$6.3B hack'i doğruladı, yatırma/çekme askıya alındı; saldırgan ~18,270 BTC'yi 19 cüzdana dağıttı — Negatif\n- Binance ~$3B'lık varlığı dondurdu, Tether/Circle çalınan stablecoinleri dondurdu, Binance tüm kayıpları karşılama sözü verdi — Pozitif\n- Kripto toplam piyasa değeri -%3.7 ile ~$2.67T; BTC ~$1B+ toplam likidasyonla $77K altına indi — Negatif\n- Alphabet -%12.6; Nasdaq Comp. -%1.38 (26,185), SPX -%0.30 (7,720) — Negatif\n- Amazon (gelir/EPS ıskası, $220B capex) ve Intel (zayıf Q4 rehberliği) sonrası NDX vadelileri -%1.5/-2.1 — Negatif\n- Eylül PCE manşet %3.6, çekirdek %3.1 (aylık çekirdek %0.3, beklentiye paralel) — Negatif\n- Q3 GSYH %3.4 (beklenti ~%3.1-3.2), işsizlik başvuruları 194K — Negatif\n- 10Y faiz AI satışıyla ~%4.90'a, bir ayın dibine geriledi; 2Y ~%4.67 — Pozitif\n- DXY ~101.7-102.0'a hafif geriledi — Pozitif\n- ECB mevduat faizini %2.50'de oybirliğiyle sabit tuttu; Lagarde Şubat 2027'de erken ayrılacağını açıkladı — Nötr\n- BoJ faizi %1.25'te 8-1 oyla sabit tuttu (Takata artırım istedi), 2027 enflasyon tahmini %2.6'ya yükseltildi; Aralık artırımı ~%80 fiyatlı — Nötr\n- Asya hisseleri Kospi öncülüğünde sert düştü — Negatif\n- Spot BTC ETF'lerinde dördüncü gün giriş (Farside 29 Ekim ~+$17M, önceki gün +$137M); ETH ETF çıkışları sürüyor — Nötr\n- Stablecoin arzı ~$305-308B civarında yatay/hafif daralma eğiliminde — Negatif\n- Brent ~$112-116, İran'a yönelik askeri seçenek brifingi haberleriyle ay bazında ~%11.5 artışa yöneldi — Negatif\n- VIX 17.2'ye yükseldi; vadeli satışlar Cuma açılışında yükseliş riskine işaret ediyor — Negatif\n- Altın ~$4,005, -%0.4/-1; güvenli liman talebi tahvillere yöneldi — Nötr\n\nEn önemli yeni gelişme:\nSon saatlerin en önemli gelişmesi, Binance'in ~$6.3B'lık hack'i doğrulaması: ele geçirilmiş bir mühendis laptopu üzerinden yapılan yetkisiz çekimler tarihin en büyük kripto hırsızlığı oldu, borsa yatırma/çekme işlemlerini askıya aldı ve BTC $78K/$77K desteklerini kırarak ~$76.3K'ya kadar indi. Bu olay, makro bir şoktan ziyade kriptoya özgü bir güven ve likidite şoku; en büyük spot/türev likidite merkezinin fiilen donması piyasa yapıcılığını zayıflatıyor ve saldırganın elindeki ~18,270 BTC (~$1.4B) olası satış baskısı (overhang) yaratıyor. Aynı anda Amazon ve Intel bilançolarıyla AI satışı derinleşti, böylece BTC hem kripto içi hem de risk iştahı kanalından baskı altında; buna karşın ~$3B'lık dondurma, Tether/Circle müdahalesi ve Binance'in kayıpları karşılama taahhüdü bulaşma riskini sınırlayabilir — çekimlerin sorunsuz yeniden açılması kısa vadeli toparlanmanın anahtarı.\n\nMakro uyumsuzluk kontrolü: Relative weakness\nAI satışı kaynaklı güvenli liman talebiyle 10Y ~15bp gerileyerek bir ayın dibine (~%4.90) indi ve DXY zayıfladı; bu ortam normalde BTC'yi desteklerdi, ancak BTC ~$80.5K'dan ~$77K'ya (-%3.5/-4) düştü. Düşüşün ana nedeni Binance hack'i (idiosenkratik) olsa da BTC'nin faiz/dolar gevşemesine tepkisizliği ve Nasdaq'tan daha sert düşmesi relative weakness olarak işaretleniyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Risk-off\n\nBTC için sonuç:\nBinance kaynaklı güven şoku, derinleşen AI/teknoloji satışı ve %3.6 PCE ile şahin Fed, önümüzdeki 24-72 saatte BTC talebini baskılıyor. Düşen 10Y faiz ve zayıf dolar tek destek; Binance çekimlerinin sorunsuz açılması ve dondurulan fonlar $80K'ya geri dönüş tepkisini tetikleyebilir. Aksi halde, özellikle hacker cüzdanlarından satış veya Nasdaq'ta ikinci dalga gelirse, $75-76K altı test edilebilir.\n\nVarlık güç sıralaması:\n1. BRENT — 7/10 — İran'a yönelik askeri seçenek haberleriyle ~$112-116 bandında yukarı eğilimini sürdürüyor, ay bazında ~%11.5 artışa yöneldi. (24s: +%0.8, 7g: +%2.2)\n2. VIX — 5.5/10 — Teknoloji satışıyla 17.2'ye yükseldi ve vadeli satışlar Cuma yükselişine işaret ediyor, ancak haftalık bazda 18.8'in altında. (24s: +%1.8, 7g: -%8.5)\n3. DXY — 5/10 — Faizlerdeki düşüşle ~101.7'ye hafif geriledi, haftalık bazda yatay. (24s: -%0.2, 7g: +%0.1)\n4. SPX — 4.5/10 — Equal-weight güçlü olsa da mega-cap teknoloji baskısıyla -%0.30 ile 7,720'ye geriledi, vadeliler ~-%1. (24s: -%0.3, 7g: +%0.7)\n5. XAUUSD — 4/10 — Güvenli liman talebi tahvillere yönelince ~$4,005'e geriledi, haftalık hafif düşüş eğilimi sürüyor. (24s: -%1.0, 7g: -%0.5)\n6. NASDAQ — 2.5/10 — Alphabet, Amazon ve Intel kaynaklı AI harcama kaygısıyla cash seansı ~-%1.5 kapattı, vadeliler -%1.5/-2.1 ek kayıpta. (24s: -%1.5, 7g: -%0.3)\n7. BTC — 2/10 — Binance hack'i ve likidasyonlarla $80K ve $78K desteklerini kırarak ~$77K'ya düştü, haftanın en zayıf varlığı. (24s: -%3.8, 7g: -%5.2)\n\nBTC Makro Bias: SHORT — Güven: Düşük",
+  "asset_strength": [
+    {
+      "asset": "BRENT",
+      "score": 7,
+      "reason": "İran'a yönelik askeri seçenek haberleriyle ~$112-116 bandında yukarı eğilimini sürdürüyor, ay bazında ~%11.5 artışa yöneldi.",
+      "chg_24h_pct": 0.8,
+      "chg_7d_pct": 2.2
+    },
+    {
+      "asset": "VIX",
+      "score": 5.5,
+      "reason": "Teknoloji satışıyla 17.2'ye yükseldi ve vadeli satışlar Cuma yükselişine işaret ediyor, ancak haftalık bazda 18.8'in altında.",
+      "chg_24h_pct": 1.8,
+      "chg_7d_pct": -8.5
+    },
+    {
+      "asset": "DXY",
+      "score": 5,
+      "reason": "Faizlerdeki düşüşle ~101.7'ye hafif geriledi, haftalık bazda yatay.",
+      "chg_24h_pct": -0.2,
+      "chg_7d_pct": 0.1
+    },
+    {
+      "asset": "SPX",
+      "score": 4.5,
+      "reason": "Equal-weight güçlü olsa da mega-cap teknoloji baskısıyla -%0.30 ile 7,720'ye geriledi, vadeliler ~-%1.",
+      "chg_24h_pct": -0.3,
+      "chg_7d_pct": 0.7
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 4,
+      "reason": "Güvenli liman talebi tahvillere yönelince ~$4,005'e geriledi, haftalık hafif düşüş eğilimi sürüyor.",
+      "chg_24h_pct": -1,
+      "chg_7d_pct": -0.5
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 2.5,
+      "reason": "Alphabet, Amazon ve Intel kaynaklı AI harcama kaygısıyla cash seansı ~-%1.5 kapattı, vadeliler -%1.5/-2.1 ek kayıpta.",
+      "chg_24h_pct": -1.5,
+      "chg_7d_pct": -0.3
+    },
+    {
+      "asset": "BTC",
+      "score": 2,
+      "reason": "Binance hack'i ve likidasyonlarla $80K ve $78K desteklerini kırarak ~$77K'ya düştü, haftanın en zayıf varlığı.",
+      "chg_24h_pct": -3.8,
+      "chg_7d_pct": -5.2
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
