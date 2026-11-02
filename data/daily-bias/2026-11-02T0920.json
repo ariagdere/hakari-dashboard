@@ -1,0 +1,129 @@
+{
+  "run_date": "2026-11-02",
+  "generated_at": "2026-11-02T06:20:01Z",
+  "net_direction": "Hafif Negatif",
+  "sentiment_score": -22,
+  "change_24h": "iyileşti",
+  "drivers": [
+    "Binance toparlanması: Borsa 1 Kasım'da BTC ile başlayarak 15 ağda çekimleri yeniden açtı, çalınan varlıkların ~%90-95'ini karşıladığını açıkladı; ~$4.6B çekim/~$3.64B net çıkış düzenli işlendi, bulaşma korkusu azaldı.",
+    "Şahin Fed: Fed 28 Ekim'de %3.75-4.00'te sabit tuttu (2 artırım yönlü muhalefet); Aralık artırım olasılığı ~%70-80 bandında — Cuma'daki Ekim istihdam raporu bunu kesinleştirebilir.",
+    "AI/teknoloji satışı: Intel -%29 ile Nasdaq Comp. Cuma -%2.86 (Ekim -%5.3), SPX -%1.82; VIX %13 artışla 19.4. Pazartesi vadeliler ve Asya (Kospi +%2.6) hafif toparlanıyor.",
+    "Kurumsal talep zayıf: Spot BTC ETF'lerinde Cuma -$643M (haftalık ~-$202M), ETH ETF'lerinde -$156M; buna karşın 10Y dördüncü haftalık düşüşle ~%4.93'te ve DXY ~101.9'da yatay."
+  ],
+  "developments": [
+    {
+      "item": "Binance 1 Kasım'da BTC dahil 15 ağda çekimleri yeniden açtı, kayıpların ~%90-95'ini SAFU/hazine/sigorta fonuyla karşıladığını açıkladı",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Binance'ten ~$3.64B net çıkış; FBI hack'i Kuzey Kore'nin TraderTraitor grubuna bağladı (çalınan BTC satış baskısı riski sürüyor)",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Spot BTC ETF'lerinde 30 Ekim -$643M çıkış (IBIT -$234M, FBTC -$201M), hafta ~-$202M; ETH ETF -$156M",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Nasdaq Comp. -%2.86 (25,437), SPX -%1.82 (7,580); Intel -%29 ile AI capex kaygısı derinleşti; Nasdaq Ekim'de -%5.3",
+      "impact": "Negatif"
+    },
+    {
+      "item": "VIX %12.9 artışla 19.42'ye yükseldi, 20'nin hemen altında",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Aralık Fed artırım olasılığı ~%70-80 (OIS ~%73, Polymarket ~%70); önceki haftaki ~%80-85'ten hafif geriledi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "10Y faiz dördüncü haftalık düşüşle ~%4.93'te, %5 üzerini tutamadı",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "DXY ~101.9 civarında haftalık yatay",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Brent Doha'daki Hormuz görüşmeleriyle Asya'da -%2 ile ~$111'e geriledi; Körfez'de gemi saldırıları sürüyor",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Altın ~$3,900'ün altından dip alımıyla ~$3,914'e (+%0.4) toparlandı, haftalık düşüş eğilimi sürüyor",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Asya Pazartesi teknoloji öncülüğünde yükseldi (Kospi +%2.6, Nikkei +%0.4); Çin piyasa destek araçları haberleriyle ralli yaptı",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Bu hafta: Apple bilançosu (Pazartesi), ABD ara seçimleri (Salı), Ekim tarım dışı istihdam (Cuma) — ikili risk olayları",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Stablecoin arzı ~$305-310B bandında yatay; güncel taze genişleme verisi yok",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "Son saatlerin en önemli gelişmesi, Binance'in hafta sonu çekimleri aşamalı olarak yeniden açması: BTC ağıyla başlayan süreç 15 ağa genişledi, borsa çalınan varlıkların ~%90-95'ini kendi fonlarıyla karşıladığını açıkladı ve ~$4.6B'lık çekim talebi aksamadan işlendi. Bu, geçen haftanın SHORT kararını tetikleyen kriptoya özgü güven/likidite şokunu büyük ölçüde nötralize ediyor ve BTC'nin $77-78.5K bandında dengelenmesini sağladı. Ancak ~$3.64B net çıkış, FBI'ın saldırıyı Kuzey Kore'ye bağlamasıyla çalınan ~18K BTC'nin aklanma/satış riski ve Cuma günkü -$643M ETF çıkışı, talebin henüz geri dönmediğini gösteriyor; asıl yön artık Salı'daki ara seçimler ve Cuma'daki istihdam verisinin Aralık artırımı fiyatlamasına etkisiyle belirlenecek.",
+  "divergence": "relative strength",
+  "divergence_note": "Cuma günü Nasdaq -%2.9, SPX -%1.8 düşüp VIX %13 sıçrarken ve ETF'lerden -$643M çıkarken BTC ~$77-78K'yı korudu ve hafta sonu Binance haberleriyle ~$78.4K'ya hafif toparlandı. Makro/risk iştahı kötüleşmesine rağmen BTC'nin yeni dip yapmaması, geçen haftaki relative weakness'in yerini sınırlı bir relative strength'e bıraktığını gösteriyor (kısmen Binance'e özgü toparlanma etkisi).",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Temkinli risk-off",
+  "conclusion": "Binance riskinin azalması ve BTC'nin Cuma'daki hisse satışına direnç göstermesi kısa vadeli aşağı baskıyı hafifletti, ancak şahin Fed, ETF çıkışları ve AI kaynaklı teknoloji zayıflığı yukarı yönlü talebi sınırlıyor. Önümüzdeki 24-72 saatte BTC'nin $76-80K bandında ara seçim ve istihdam verisi öncesi yön arayışında kalması bekleniyor. Zayıf istihdam/düşen faizler $80K üzerine, güçlü veri ve Nasdaq'ta yeni satış ise $76K testine kapı açar.",
+  "bias": "NEUTRAL",
+  "confidence": "Düşük",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Hafif Negatif\n\nSentiment skoru: -22\n\nSon 24 saatte değişim: Önceki güne göre iyileşti\n\nAna sürücüler:\n- Binance toparlanması: Borsa 1 Kasım'da BTC ile başlayarak 15 ağda çekimleri yeniden açtı, çalınan varlıkların ~%90-95'ini karşıladığını açıkladı; ~$4.6B çekim/~$3.64B net çıkış düzenli işlendi, bulaşma korkusu azaldı.\n- Şahin Fed: Fed 28 Ekim'de %3.75-4.00'te sabit tuttu (2 artırım yönlü muhalefet); Aralık artırım olasılığı ~%70-80 bandında — Cuma'daki Ekim istihdam raporu bunu kesinleştirebilir.\n- AI/teknoloji satışı: Intel -%29 ile Nasdaq Comp. Cuma -%2.86 (Ekim -%5.3), SPX -%1.82; VIX %13 artışla 19.4. Pazartesi vadeliler ve Asya (Kospi +%2.6) hafif toparlanıyor.\n- Kurumsal talep zayıf: Spot BTC ETF'lerinde Cuma -$643M (haftalık ~-$202M), ETH ETF'lerinde -$156M; buna karşın 10Y dördüncü haftalık düşüşle ~%4.93'te ve DXY ~101.9'da yatay.\n\nGelişmelerin sınıflandırması:\n- Binance 1 Kasım'da BTC dahil 15 ağda çekimleri yeniden açtı, kayıpların ~%90-95'ini SAFU/hazine/sigorta fonuyla karşıladığını açıkladı — Pozitif\n- Binance'ten ~$3.64B net çıkış; FBI hack'i Kuzey Kore'nin TraderTraitor grubuna bağladı (çalınan BTC satış baskısı riski sürüyor) — Negatif\n- Spot BTC ETF'lerinde 30 Ekim -$643M çıkış (IBIT -$234M, FBTC -$201M), hafta ~-$202M; ETH ETF -$156M — Negatif\n- Nasdaq Comp. -%2.86 (25,437), SPX -%1.82 (7,580); Intel -%29 ile AI capex kaygısı derinleşti; Nasdaq Ekim'de -%5.3 — Negatif\n- VIX %12.9 artışla 19.42'ye yükseldi, 20'nin hemen altında — Negatif\n- Aralık Fed artırım olasılığı ~%70-80 (OIS ~%73, Polymarket ~%70); önceki haftaki ~%80-85'ten hafif geriledi — Negatif\n- 10Y faiz dördüncü haftalık düşüşle ~%4.93'te, %5 üzerini tutamadı — Pozitif\n- DXY ~101.9 civarında haftalık yatay — Nötr\n- Brent Doha'daki Hormuz görüşmeleriyle Asya'da -%2 ile ~$111'e geriledi; Körfez'de gemi saldırıları sürüyor — Pozitif\n- Altın ~$3,900'ün altından dip alımıyla ~$3,914'e (+%0.4) toparlandı, haftalık düşüş eğilimi sürüyor — Nötr\n- Asya Pazartesi teknoloji öncülüğünde yükseldi (Kospi +%2.6, Nikkei +%0.4); Çin piyasa destek araçları haberleriyle ralli yaptı — Pozitif\n- Bu hafta: Apple bilançosu (Pazartesi), ABD ara seçimleri (Salı), Ekim tarım dışı istihdam (Cuma) — ikili risk olayları — Nötr\n- Stablecoin arzı ~$305-310B bandında yatay; güncel taze genişleme verisi yok — Nötr\n\nEn önemli yeni gelişme:\nSon saatlerin en önemli gelişmesi, Binance'in hafta sonu çekimleri aşamalı olarak yeniden açması: BTC ağıyla başlayan süreç 15 ağa genişledi, borsa çalınan varlıkların ~%90-95'ini kendi fonlarıyla karşıladığını açıkladı ve ~$4.6B'lık çekim talebi aksamadan işlendi. Bu, geçen haftanın SHORT kararını tetikleyen kriptoya özgü güven/likidite şokunu büyük ölçüde nötralize ediyor ve BTC'nin $77-78.5K bandında dengelenmesini sağladı. Ancak ~$3.64B net çıkış, FBI'ın saldırıyı Kuzey Kore'ye bağlamasıyla çalınan ~18K BTC'nin aklanma/satış riski ve Cuma günkü -$643M ETF çıkışı, talebin henüz geri dönmediğini gösteriyor; asıl yön artık Salı'daki ara seçimler ve Cuma'daki istihdam verisinin Aralık artırımı fiyatlamasına etkisiyle belirlenecek.\n\nMakro uyumsuzluk kontrolü: Relative strength\nCuma günü Nasdaq -%2.9, SPX -%1.8 düşüp VIX %13 sıçrarken ve ETF'lerden -$643M çıkarken BTC ~$77-78K'yı korudu ve hafta sonu Binance haberleriyle ~$78.4K'ya hafif toparlandı. Makro/risk iştahı kötüleşmesine rağmen BTC'nin yeni dip yapmaması, geçen haftaki relative weakness'in yerini sınırlı bir relative strength'e bıraktığını gösteriyor (kısmen Binance'e özgü toparlanma etkisi).\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Temkinli risk-off\n\nBTC için sonuç:\nBinance riskinin azalması ve BTC'nin Cuma'daki hisse satışına direnç göstermesi kısa vadeli aşağı baskıyı hafifletti, ancak şahin Fed, ETF çıkışları ve AI kaynaklı teknoloji zayıflığı yukarı yönlü talebi sınırlıyor. Önümüzdeki 24-72 saatte BTC'nin $76-80K bandında ara seçim ve istihdam verisi öncesi yön arayışında kalması bekleniyor. Zayıf istihdam/düşen faizler $80K üzerine, güçlü veri ve Nasdaq'ta yeni satış ise $76K testine kapı açar.\n\nVarlık güç sıralaması:\n1. VIX — 7.5/10 — Teknoloji satışıyla Cuma %12.9 sıçrayarak 19.42'ye çıktı ve haftalık bazda da yükselişte, ancak 20 eşiğinin altında kaldı. (24s: +%12.9, 7g: +%3.3)\n2. DXY — 5/10 — Düşen faizlere rağmen ~101.9'da dar bantta yatay seyretti. (24s: -%0.1, 7g: %0.0)\n3. BTC — 4.5/10 — Binance çekimlerinin açılmasıyla ~$78.4K'ya hafif toparlandı ama haftalık bazda hâlâ kayıpta. (24s: +%0.5, 7g: -%3.5)\n4. XAUUSD — 4/10 — $3,900 altından dip alımıyla ~$3,914'e döndü, ancak haftalık düşüş eğilimi sürüyor. (24s: +%0.4, 7g: -%2.5)\n5. BRENT — 3.5/10 — Hormuz'u açmaya yönelik Doha görüşmeleriyle Asya seansında -%2 ile ~$111'e geriledi. (24s: -%2, 7g: -%1.5)\n6. SPX — 3/10 — Mega-cap teknoloji satışıyla Cuma -%1.82 ile 7,580'e düştü, Haziran'dan beri en sert günlük kayıp. (24s: -%1.8, 7g: -%0.6)\n7. NASDAQ — 2/10 — Intel'in -%29'luk çöküşü ve AI capex kaygısıyla Cuma ~-%3 düştü, Ekim'i -%5.3 ile kapattı. (24s: -%3, 7g: -%2.2)\n\nBTC Makro Bias: NEUTRAL — Güven: Düşük",
+  "asset_strength": [
+    {
+      "asset": "VIX",
+      "score": 7.5,
+      "reason": "Teknoloji satışıyla Cuma %12.9 sıçrayarak 19.42'ye çıktı ve haftalık bazda da yükselişte, ancak 20 eşiğinin altında kaldı.",
+      "chg_24h_pct": 12.9,
+      "chg_7d_pct": 3.3
+    },
+    {
+      "asset": "DXY",
+      "score": 5,
+      "reason": "Düşen faizlere rağmen ~101.9'da dar bantta yatay seyretti.",
+      "chg_24h_pct": -0.1,
+      "chg_7d_pct": 0
+    },
+    {
+      "asset": "BTC",
+      "score": 4.5,
+      "reason": "Binance çekimlerinin açılmasıyla ~$78.4K'ya hafif toparlandı ama haftalık bazda hâlâ kayıpta.",
+      "chg_24h_pct": 0.5,
+      "chg_7d_pct": -3.5
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 4,
+      "reason": "$3,900 altından dip alımıyla ~$3,914'e döndü, ancak haftalık düşüş eğilimi sürüyor.",
+      "chg_24h_pct": 0.4,
+      "chg_7d_pct": -2.5
+    },
+    {
+      "asset": "BRENT",
+      "score": 3.5,
+      "reason": "Hormuz'u açmaya yönelik Doha görüşmeleriyle Asya seansında -%2 ile ~$111'e geriledi.",
+      "chg_24h_pct": -2,
+      "chg_7d_pct": -1.5
+    },
+    {
+      "asset": "SPX",
+      "score": 3,
+      "reason": "Mega-cap teknoloji satışıyla Cuma -%1.82 ile 7,580'e düştü, Haziran'dan beri en sert günlük kayıp.",
+      "chg_24h_pct": -1.8,
+      "chg_7d_pct": -0.6
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 2,
+      "reason": "Intel'in -%29'luk çöküşü ve AI capex kaygısıyla Cuma ~-%3 düştü, Ekim'i -%5.3 ile kapattı.",
+      "chg_24h_pct": -3,
+      "chg_7d_pct": -2.2
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
