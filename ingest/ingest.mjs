@@ -167,6 +167,26 @@ const { default: pg } = await import('pg')
 const useSsl = process.env.PGSSL === 'true' || /sslmode=require/.test(process.env.DATABASE_URL)
 const client = new pg.Client({ connectionString: process.env.DATABASE_URL, ssl: useSsl ? { rejectUnauthorized: false } : undefined })
 await client.connect()
+
+// Hedef kontrolu: btc_daily_bias'i eski dashboard (hakari-dashboard) okur, tablo onun veritabaninda
+// olmali. Secret baska bir veritabanini gosteriyorsa (or. DB sifresi degisip secret yenilenirken adres
+// Hakari 2'nin projesinden kopyalanirsa) SCHEMA tabloyu orada kurar, Action yesil biter ve eski
+// dashboard'daki kart sessizce bayat kalir. Bu yuzden once eski sistemin iki ana tablosuna bakilir;
+// yoksa hicbir sey yazilmadan durulur. Hakari 2'de ikisi de yok (orada legacy_orders var).
+const { rows: [target] } = await client.query(
+  `SELECT to_regclass('btc_analysis') IS NOT NULL AS btc_analysis, to_regclass('orders') IS NOT NULL AS orders`,
+)
+if (!target.btc_analysis || !target.orders) {
+  await client.end()
+  const has = (k) => (target[k] ? 'var' : 'yok')
+  console.error(
+    `✗ Bu veritabani eski dashboard'unki degil (btc_analysis ${has('btc_analysis')}, orders ${has('orders')}); hicbir sey yazilmadi.\n` +
+    `  DATABASE_URL secret'ina Railway'de eski sistemin projesindeki (hakari-dashboard'un oldugu) Postgres > Variables >\n` +
+    `  DATABASE_PUBLIC_URL degerini yaz ve bu isi yeniden calistir.`,
+  )
+  process.exit(1)
+}
+
 try {
   await client.query(SCHEMA)
   const cols = Object.keys(rows[0] ?? {})

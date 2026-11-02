@@ -10,7 +10,8 @@ Her çalışma ayrı satırdır (anahtar: `source_file`); günün son çalışma
 
 - Tablo şeması: `ingest/schema.sql` (`main`'deki `db/004` + `db/005` + `db/006` ile aynı). Action her çalışmada idempotent olarak uygular.
 - Dosya formatı: `ingest/example.json`
-- Gerekli secret: `DATABASE_URL` → Railway Postgres'in **public** bağlantı adresi (`DATABASE_PUBLIC_URL`, `*.proxy.rlwy.net`). İç adres (`postgres.railway.internal`) GitHub'dan erişilemez.
+- Gerekli secret: `DATABASE_URL` → **eski sistemin** Railway projesindeki (hakari-dashboard'un olduğu) Postgres'in **public** bağlantı adresi (`DATABASE_PUBLIC_URL`, `*.proxy.rlwy.net`). Hakari 2'nin Postgres'i değil; Hakari 2 raporları bu daldan kendisi okur. İç adres (`postgres.railway.internal`) GitHub'dan erişilemez.
+- Ingest yazmadan önce hedefte eski sistemin `btc_analysis` ve `orders` tablolarını arar; yoksa (secret başka bir veritabanını gösteriyorsa) hiçbir şey yazmadan hata verir.
 - SSL gerekirse: repo variable `PGSSL=true` ya da URL'e `?sslmode=require`.
 - Elle doğrulama: `node ingest/ingest.mjs --dry-run`
 - Zaman damgası: routine taslağı `run_date`/`generated_at` olmadan yazar; `node ingest/stamp.mjs <taslak.json>` bunları sistem saatinden basar, doğrular ve dosyayı `data/daily-bias/`'a koyar (model saati tahmin etmesin diye).
