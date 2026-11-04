@@ -1,0 +1,129 @@
+{
+  "run_date": "2026-11-04",
+  "generated_at": "2026-11-04T06:10:59Z",
+  "net_direction": "Hafif Negatif",
+  "sentiment_score": -22,
+  "change_24h": "iyileşti",
+  "drivers": [
+    "Blue sweep şoku teknolojiye: Erken sonuçlar Demokratların Temsilciler Meclisi'ni ve muhtemelen Senato'yu kazandığını gösteriyor; AI/veri merkezi regülasyonu kaygısıyla Nasdaq 100 vadelileri ~-%2.2, S&P 500 vadelileri ~-%1.2-1.3, Nikkei ~-%3, Kospi ~-%1.6.",
+    "Dolar ve faizler geriliyor: DXY ~-%0.37 ile 101.34'e, 10Y ~6bp düşüşle ~%4.91'e indi; düşen reel faizler altını ~$3,947'ye taşıdı — BTC için destekleyici makro kanal.",
+    "ETF çıkışları yavaşladı ama sürüyor: Spot BTC ETF'lerinde 3 Kasım ~-$116M (IBIT -$95M), 2 Kasım ~-$399M ve Cuma -$643M'ın ardından; ETH ETF'leri de çıkışta. Fear & Greed ~34 (dünkü 26'dan toparlandı).",
+    "Şahin Fed ve yoğun veri takvimi: Aralık artırım olasılığı ~%72-76; Salı güçlü JOLTS 10Y'yi ~%4.96'ya itmişti. Cuma Ekim istihdamı, 10 Kasım CPI belirleyici."
+  ],
+  "developments": [
+    {
+      "item": "Erken sonuçlar Demokratların Temsilciler Meclisi'ni kazandığını ve Senato'yu almaya yakın olduğunu gösteriyor (Kuzey Carolina koltuğu el değiştirdi); kesin sonuç henüz netleşmedi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Nasdaq 100 vadelileri ~-%2.2, S&P 500 vadelileri ~-%1.2-1.3 — AI/veri merkezi yatırımlarına regülasyon ve sıkı denetim kaygısı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Asya Çarşamba: Nikkei ~-%3, Kospi ~-%1.6, Japonya hariç Asya-Pasifik ~-%0.5; çip hisseleri AMD'nin güçlü bilançosuna rağmen düştü",
+      "impact": "Negatif"
+    },
+    {
+      "item": "DXY ~-%0.37 ile 101.34'e, G10'un neredeyse tamamına karşı geriledi",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "10Y faiz ~6bp düşüşle ~%4.91, 5Y 9bp'ye kadar düşüşle ~%4.68; reel faizler geriliyor",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Salı nakit seansı: SPX +%0.36 (7,568.92) ile 3 günlük düşüşü kırdı, Nasdaq 100 +%0.7 (28,180), çip hisseleri 5 seans sonra ilk kez yükseldi; Dow -%0.38",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Salı güçlü JOLTS verisi 10Y'yi ~%4.96'ya, 2Y'yi ~%4.61'e itti; Aralık artırım olasılığı ~%72-76 bandında",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Spot BTC ETF'lerinde 3 Kasım ~-$116M net çıkış (IBIT -$95M, Grayscale Mini -$52.6M) — çıkış hızı 2 Kasım'daki ~-$399M'den belirgin azaldı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Spot ETH ETF'lerinde son seansta ~-$140M çıkış; çıkış serisi sürüyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Altın zayıf dolar ve düşen reel faizle ~+%0.5 ile ~$3,947'ye çıktı (Salı ~-%0.7 ile ~$3,921'e inmişti)",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Brent ~$104.4 civarında yatay/hafif aşağı, WTI ~-%0.6 ile ~$95.6; İran ve Ukrayna görüşmeleri petrolü 3 haftanın dibinde tutuyor — enerji enflasyonu riski azalıyor",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "BTC seçim gecesi ~$75,740 dibini gördükten sonra ~$77-77.5K'ya toparlandı; Nasdaq vadelilerindeki ~%2 düşüşe rağmen tutunuyor",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Stablecoin arzı için taze veri yok",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "Son saatlerin en önemli gelişmesi ABD ara seçimlerinde 'blue sweep' fiyatlaması: erken sonuçlar Demokratların Temsilciler Meclisi'ni kazandığını ve Senato'ya yaklaştığını gösterince Nasdaq 100 vadelileri ~%2.2, S&P 500 vadelileri ~%1.2-1.3 düştü, Nikkei ~%3 geriledi; piyasa AI/veri merkezi yatırımlarına regülasyon riski ve yasama kilitlenmesi fiyatlıyor. Aynı anda dolar endeksi 101.34'e, 10Y faiz ~%4.91'e indi ve altın yükseldi — yani risk iştahı kötüleşirken finansal koşullar hafifçe gevşiyor. BTC bu iki zıt kuvvet arasında seçim gecesi $75.7K dibinden ~$77K+'ya toparlanarak teknolojiden ayrışma sinyali verdi; ancak Nasdaq'taki satışın ABD nakit seansında derinleşmesi BTC'yi yeniden $76K desteğine çekebilir.",
+  "divergence": "relative strength",
+  "divergence_note": "Nasdaq 100 vadelileri ~%2.2 düşer, Nikkei ~%3 kaybederken BTC seçim gecesi $75.7K dibinden toparlanıp 24 saatte ~+%0.5-0.8 ile ~$77K üzerinde tutunuyor ve ETF çıkışları yavaşladı. Teknolojiye yönelik sert risk-off'a rağmen BTC'nin düşmemesi, düşen dolar ve faizlerden fayda gördüğünü gösteren temkinli bir relative strength; ancak sinyal tek seanslık ve henüz ABD nakit açılışıyla test edilmedi.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Temkinli risk-off",
+  "conclusion": "Seçim kaynaklı teknoloji satışı ve süren ETF çıkışları baskı yaratsa da düşen dolar/faizler ve BTC'nin relative strength'i aşağı yönlü riski dengeliyor. Önümüzdeki 24-72 saatte BTC'nin Cuma istihdam verisi öncesi $75.5-79K bandında yönsüz/hafif negatif seyretmesi bekleniyor. Nasdaq satışının ABD seansında derinleşmesi $75K altını açar; zayıf istihdam ve Aralık artırım fiyatlamasının gerilemesi ise $80K'ya doğru rahatlama getirebilir.",
+  "bias": "NEUTRAL",
+  "confidence": "Düşük",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Hafif Negatif\n\nSentiment skoru: -22\n\nSon 24 saatte değişim: Önceki güne göre iyileşti\n\nAna sürücüler:\n- Blue sweep şoku teknolojiye: Erken sonuçlar Demokratların Temsilciler Meclisi'ni ve muhtemelen Senato'yu kazandığını gösteriyor; AI/veri merkezi regülasyonu kaygısıyla Nasdaq 100 vadelileri ~-%2.2, S&P 500 vadelileri ~-%1.2-1.3, Nikkei ~-%3, Kospi ~-%1.6.\n- Dolar ve faizler geriliyor: DXY ~-%0.37 ile 101.34'e, 10Y ~6bp düşüşle ~%4.91'e indi; düşen reel faizler altını ~$3,947'ye taşıdı — BTC için destekleyici makro kanal.\n- ETF çıkışları yavaşladı ama sürüyor: Spot BTC ETF'lerinde 3 Kasım ~-$116M (IBIT -$95M), 2 Kasım ~-$399M ve Cuma -$643M'ın ardından; ETH ETF'leri de çıkışta. Fear & Greed ~34 (dünkü 26'dan toparlandı).\n- Şahin Fed ve yoğun veri takvimi: Aralık artırım olasılığı ~%72-76; Salı güçlü JOLTS 10Y'yi ~%4.96'ya itmişti. Cuma Ekim istihdamı, 10 Kasım CPI belirleyici.\n\nGelişmelerin sınıflandırması:\n- Erken sonuçlar Demokratların Temsilciler Meclisi'ni kazandığını ve Senato'yu almaya yakın olduğunu gösteriyor (Kuzey Carolina koltuğu el değiştirdi); kesin sonuç henüz netleşmedi — Negatif\n- Nasdaq 100 vadelileri ~-%2.2, S&P 500 vadelileri ~-%1.2-1.3 — AI/veri merkezi yatırımlarına regülasyon ve sıkı denetim kaygısı — Negatif\n- Asya Çarşamba: Nikkei ~-%3, Kospi ~-%1.6, Japonya hariç Asya-Pasifik ~-%0.5; çip hisseleri AMD'nin güçlü bilançosuna rağmen düştü — Negatif\n- DXY ~-%0.37 ile 101.34'e, G10'un neredeyse tamamına karşı geriledi — Pozitif\n- 10Y faiz ~6bp düşüşle ~%4.91, 5Y 9bp'ye kadar düşüşle ~%4.68; reel faizler geriliyor — Pozitif\n- Salı nakit seansı: SPX +%0.36 (7,568.92) ile 3 günlük düşüşü kırdı, Nasdaq 100 +%0.7 (28,180), çip hisseleri 5 seans sonra ilk kez yükseldi; Dow -%0.38 — Nötr\n- Salı güçlü JOLTS verisi 10Y'yi ~%4.96'ya, 2Y'yi ~%4.61'e itti; Aralık artırım olasılığı ~%72-76 bandında — Negatif\n- Spot BTC ETF'lerinde 3 Kasım ~-$116M net çıkış (IBIT -$95M, Grayscale Mini -$52.6M) — çıkış hızı 2 Kasım'daki ~-$399M'den belirgin azaldı — Nötr\n- Spot ETH ETF'lerinde son seansta ~-$140M çıkış; çıkış serisi sürüyor — Negatif\n- Altın zayıf dolar ve düşen reel faizle ~+%0.5 ile ~$3,947'ye çıktı (Salı ~-%0.7 ile ~$3,921'e inmişti) — Nötr\n- Brent ~$104.4 civarında yatay/hafif aşağı, WTI ~-%0.6 ile ~$95.6; İran ve Ukrayna görüşmeleri petrolü 3 haftanın dibinde tutuyor — enerji enflasyonu riski azalıyor — Pozitif\n- BTC seçim gecesi ~$75,740 dibini gördükten sonra ~$77-77.5K'ya toparlandı; Nasdaq vadelilerindeki ~%2 düşüşe rağmen tutunuyor — Pozitif\n- Stablecoin arzı için taze veri yok — Nötr\n\nEn önemli yeni gelişme:\nSon saatlerin en önemli gelişmesi ABD ara seçimlerinde 'blue sweep' fiyatlaması: erken sonuçlar Demokratların Temsilciler Meclisi'ni kazandığını ve Senato'ya yaklaştığını gösterince Nasdaq 100 vadelileri ~%2.2, S&P 500 vadelileri ~%1.2-1.3 düştü, Nikkei ~%3 geriledi; piyasa AI/veri merkezi yatırımlarına regülasyon riski ve yasama kilitlenmesi fiyatlıyor. Aynı anda dolar endeksi 101.34'e, 10Y faiz ~%4.91'e indi ve altın yükseldi — yani risk iştahı kötüleşirken finansal koşullar hafifçe gevşiyor. BTC bu iki zıt kuvvet arasında seçim gecesi $75.7K dibinden ~$77K+'ya toparlanarak teknolojiden ayrışma sinyali verdi; ancak Nasdaq'taki satışın ABD nakit seansında derinleşmesi BTC'yi yeniden $76K desteğine çekebilir.\n\nMakro uyumsuzluk kontrolü: Relative strength\nNasdaq 100 vadelileri ~%2.2 düşer, Nikkei ~%3 kaybederken BTC seçim gecesi $75.7K dibinden toparlanıp 24 saatte ~+%0.5-0.8 ile ~$77K üzerinde tutunuyor ve ETF çıkışları yavaşladı. Teknolojiye yönelik sert risk-off'a rağmen BTC'nin düşmemesi, düşen dolar ve faizlerden fayda gördüğünü gösteren temkinli bir relative strength; ancak sinyal tek seanslık ve henüz ABD nakit açılışıyla test edilmedi.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Temkinli risk-off\n\nBTC için sonuç:\nSeçim kaynaklı teknoloji satışı ve süren ETF çıkışları baskı yaratsa da düşen dolar/faizler ve BTC'nin relative strength'i aşağı yönlü riski dengeliyor. Önümüzdeki 24-72 saatte BTC'nin Cuma istihdam verisi öncesi $75.5-79K bandında yönsüz/hafif negatif seyretmesi bekleniyor. Nasdaq satışının ABD seansında derinleşmesi $75K altını açar; zayıf istihdam ve Aralık artırım fiyatlamasının gerilemesi ise $80K'ya doğru rahatlama getirebilir.\n\nVarlık güç sıralaması:\n1. VIX — 7/10 — Seçim gecesi Nasdaq vadelilerindeki ~%2 düşüşle yükseliş baskısı altında; Salı nakit seansındaki toparlanmaya rağmen 20 üzerinde kalan korku fiyatlaması sürüyor. (24s: veri yok, 7g: veri yok)\n2. XAUUSD — 6/10 — Zayıf dolar ve düşen reel faizlerle ~$3,947'ye toparlandı, haftalık kaybı sınırlı. (24s: +%0, 7g: -%1)\n3. BTC — 4.5/10 — Seçim gecesi $75.7K dibinden ~$77K+'ya toparlanıp teknoloji satışından ayrıştı, ancak haftalık eğilim hâlâ aşağı. (24s: +%0.6, 7g: -%3)\n4. SPX — 4/10 — Salı +%0.36 ile 3 günlük düşüşü kırdı ama vadeliler blue sweep fiyatlamasıyla ~%1.2 ekside. (24s: +%0.4, 7g: -%1.2)\n5. DXY — 3.5/10 — Faizlerdeki düşüş ve seçim sonuçlarıyla 101.34'e geriledi, G10'un çoğuna karşı zayıf. (24s: -%0.4, 7g: -%0.6)\n6. NASDAQ — 3/10 — Salı nakit seansında +%0.7 ile toparlandı ancak vadeliler ~%2.2 düşüşle AI regülasyon kaygısını fiyatlıyor, düzeltme bölgesinde. (24s: +%0.7, 7g: -%3)\n7. BRENT — 2/10 — İran ve Ukrayna görüşmeleriyle 3 haftanın dibine yakın ~$104'te, haftanın en zayıf varlığı olmaya devam ediyor. (24s: -%0.4, 7g: -%7.5)\n\nBTC Makro Bias: NEUTRAL — Güven: Düşük",
+  "asset_strength": [
+    {
+      "asset": "VIX",
+      "score": 7,
+      "reason": "Seçim gecesi Nasdaq vadelilerindeki ~%2 düşüşle yükseliş baskısı altında; Salı nakit seansındaki toparlanmaya rağmen 20 üzerinde kalan korku fiyatlaması sürüyor.",
+      "chg_24h_pct": null,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 6,
+      "reason": "Zayıf dolar ve düşen reel faizlerle ~$3,947'ye toparlandı, haftalık kaybı sınırlı.",
+      "chg_24h_pct": 0,
+      "chg_7d_pct": -1
+    },
+    {
+      "asset": "BTC",
+      "score": 4.5,
+      "reason": "Seçim gecesi $75.7K dibinden ~$77K+'ya toparlanıp teknoloji satışından ayrıştı, ancak haftalık eğilim hâlâ aşağı.",
+      "chg_24h_pct": 0.6,
+      "chg_7d_pct": -3
+    },
+    {
+      "asset": "SPX",
+      "score": 4,
+      "reason": "Salı +%0.36 ile 3 günlük düşüşü kırdı ama vadeliler blue sweep fiyatlamasıyla ~%1.2 ekside.",
+      "chg_24h_pct": 0.4,
+      "chg_7d_pct": -1.2
+    },
+    {
+      "asset": "DXY",
+      "score": 3.5,
+      "reason": "Faizlerdeki düşüş ve seçim sonuçlarıyla 101.34'e geriledi, G10'un çoğuna karşı zayıf.",
+      "chg_24h_pct": -0.4,
+      "chg_7d_pct": -0.6
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 3,
+      "reason": "Salı nakit seansında +%0.7 ile toparlandı ancak vadeliler ~%2.2 düşüşle AI regülasyon kaygısını fiyatlıyor, düzeltme bölgesinde.",
+      "chg_24h_pct": 0.7,
+      "chg_7d_pct": -3
+    },
+    {
+      "asset": "BRENT",
+      "score": 2,
+      "reason": "İran ve Ukrayna görüşmeleriyle 3 haftanın dibine yakın ~$104'te, haftanın en zayıf varlığı olmaya devam ediyor.",
+      "chg_24h_pct": -0.4,
+      "chg_7d_pct": -7.5
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
