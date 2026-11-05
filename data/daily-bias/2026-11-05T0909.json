@@ -1,0 +1,133 @@
+{
+  "run_date": "2026-11-05",
+  "generated_at": "2026-11-05T06:09:59Z",
+  "net_direction": "Hafif Pozitif",
+  "sentiment_score": 25,
+  "change_24h": "iyileşti",
+  "drivers": [
+    "Blue sweep netleşti, risk iştahı döndü: Demokratlar Kongre'nin iki kanadını aldı; belirsizliğin kalkması ve gridlock beklentisiyle Dow +%3.03 (53,356), SPX +%1.58 (7,688.62), Nasdaq Composite +%1.44 kapattı; VIX ~%20 düşüşle ~16.6'ya indi.",
+    "Dolar, faizler ve petrol birlikte geriliyor: DXY ~101.2-101.5 ile bir ayın dibinde, 10Y ~%4.84-4.89, 2Y ~%4.58; Brent ABD-İran anlaşma umuduyla $100 altına (~$94-99) çöktü — enerji kaynaklı enflasyon riski azalıyor.",
+    "ETF akımları pozitife döndü: Spot BTC ETF'lerinde 4 Kasım +$74.6M net giriş (FBTC +$236.7M, IBIT -$201.2M), ETH ETF'lerinde +$53M; önceki iki seansta toplam -$514M çıkış vardı.",
+    "Şahin Fed hâlâ fren: Aralık artırım olasılığı ~%78-82'ye çıktı; Cuma Ekim istihdamı ve 10 Kasım CPI belirleyici."
+  ],
+  "developments": [
+    {
+      "item": "Demokratlar Temsilciler Meclisi ve Senato'da çoğunluğu aldı; sonucun netleşmesi ve kabul edilmesi siyasi belirsizliği azalttı",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Çarşamba nakit seansı: Dow +%3.03 (44 yılın en iyi ara seçim sonrası günü), SPX +%1.58, Nasdaq Composite +%1.44; AI yararlanıcıları ise geride kaldı",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "VIX ~%20 düşüşle ~16.6'ya geriledi",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "DXY 101.21 dibini gördü, ~101.3-101.5'te bir ayın en düşüğünde",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "10Y faiz ~%4.84-4.89'a, 2Y ~%4.58'e geriledi; reel faizler düşüyor",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Brent ABD-İran anlaşma umudu ve seçim sonucuyla bir ayın ilk kez $100 altına indi (~$94-99), Cuma'daki ~$118'den sert düşüş",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Aralık Fed artırım olasılığı ~%78-82'ye yükseldi; düşen faizlere rağmen sıkılaşma fiyatlaması sürüyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Spot BTC ETF'lerinde 4 Kasım +$74.6M net giriş (FBTC +$236.7M, IBIT -$201.2M); üç seanslık çıkış serisi kırıldı",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Spot ETH ETF'lerinde 4 Kasım +$53M net giriş",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Altın zayıf dolar ve düşen faizlerle $4,100 üzerine (~$4,135'e kadar) çıktı, 22 Ekim'den beri en yüksek",
+      "impact": "Nötr"
+    },
+    {
+      "item": "BTC seçim dibinden (~$75.6K) toparlanıp kısa süreli $81K üzerine çıktı, ~$80.4-80.5K'da; <1 saatte ~$380M short likidasyonu",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Asya Perşembe: Kospi ~%3 düşüş (yarı iletken baskısı), Nikkei hafif ekside, Hang Seng yükselişte — karışık seans",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Stablecoin toplam piyasa değeri 26 Ekim-1 Kasım haftasında -$4.53B geriledi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "BoE faiz kararı bugün; ABD Ekim istihdamı Cuma",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "Son saatlerin en önemli gelişmesi, ara seçim sonuçlarının netleşmesiyle 'blue sweep' fiyatlamasının dünkü teknoloji paniğinden geniş tabanlı bir risk-on rallisine dönüşmesi: vadelilerdeki ~%2'lik düşüş nakit seansında tersine döndü, Dow +%3, SPX +%1.6 kapattı ve VIX ~16.6'ya geriledi. Aynı anda dolar endeksi bir ayın dibine, 10Y faiz ~%4.85'e indi ve Brent ABD-İran anlaşma umuduyla $100 altına çöktü — enerji enflasyonu riskinin azalması, Fed'in Aralık artırımını fiyatlayan piyasada orta vadede rahatlama potansiyeli taşıyor. BTC bu ortamda ~$380M short likidasyonuyla $75.6K'dan $81K'ya sıçradı ve ETF akımları pozitife döndü; ancak Aralık artırım olasılığının ~%80 bandında kalması Cuma istihdam verisini kritik eşik yapıyor.",
+  "divergence": "aligned",
+  "divergence_note": "BTC makro gevşemeyle uyumlu hareket ediyor: dolar, faizler ve petrol düşer, hisseler yükselir ve VIX çökerken BTC 24 saatte ~%3.5-4 yükselerek $80K üzerine çıktı ve ETF akımları pozitife döndü. Hareketin bir kısmı short likidasyonu kaynaklı olduğundan kalıcılığı spot talebe bağlı; belirgin bir relative strength ya da weakness yok.",
+  "liquidity_regime": "Nötr",
+  "risk_regime": "Temkinli risk-on",
+  "conclusion": "Zayıf dolar, düşen faizler ve petrol ile pozitife dönen ETF akımları BTC için makro zemini iyileştirdi. Önümüzdeki 24-72 saatte BTC'nin $78-83K bandında hafif yukarı eğilimli seyretmesi bekleniyor; ancak Aralık artırım olasılığı ~%80'de olduğundan güçlü bir Cuma istihdam verisi rallinin önünü kesebilir. Zayıf istihdam ve süren ETF girişleri $83-85K'yı test ettirebilir, $78K altına dönüş ise rallinin likidasyon kaynaklı kaldığını gösterir.",
+  "bias": "LONG",
+  "confidence": "Düşük",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Hafif Pozitif\n\nSentiment skoru: +25\n\nSon 24 saatte değişim: Önceki güne göre iyileşti\n\nAna sürücüler:\n- Blue sweep netleşti, risk iştahı döndü: Demokratlar Kongre'nin iki kanadını aldı; belirsizliğin kalkması ve gridlock beklentisiyle Dow +%3.03 (53,356), SPX +%1.58 (7,688.62), Nasdaq Composite +%1.44 kapattı; VIX ~%20 düşüşle ~16.6'ya indi.\n- Dolar, faizler ve petrol birlikte geriliyor: DXY ~101.2-101.5 ile bir ayın dibinde, 10Y ~%4.84-4.89, 2Y ~%4.58; Brent ABD-İran anlaşma umuduyla $100 altına (~$94-99) çöktü — enerji kaynaklı enflasyon riski azalıyor.\n- ETF akımları pozitife döndü: Spot BTC ETF'lerinde 4 Kasım +$74.6M net giriş (FBTC +$236.7M, IBIT -$201.2M), ETH ETF'lerinde +$53M; önceki iki seansta toplam -$514M çıkış vardı.\n- Şahin Fed hâlâ fren: Aralık artırım olasılığı ~%78-82'ye çıktı; Cuma Ekim istihdamı ve 10 Kasım CPI belirleyici.\n\nGelişmelerin sınıflandırması:\n- Demokratlar Temsilciler Meclisi ve Senato'da çoğunluğu aldı; sonucun netleşmesi ve kabul edilmesi siyasi belirsizliği azalttı — Pozitif\n- Çarşamba nakit seansı: Dow +%3.03 (44 yılın en iyi ara seçim sonrası günü), SPX +%1.58, Nasdaq Composite +%1.44; AI yararlanıcıları ise geride kaldı — Pozitif\n- VIX ~%20 düşüşle ~16.6'ya geriledi — Pozitif\n- DXY 101.21 dibini gördü, ~101.3-101.5'te bir ayın en düşüğünde — Pozitif\n- 10Y faiz ~%4.84-4.89'a, 2Y ~%4.58'e geriledi; reel faizler düşüyor — Pozitif\n- Brent ABD-İran anlaşma umudu ve seçim sonucuyla bir ayın ilk kez $100 altına indi (~$94-99), Cuma'daki ~$118'den sert düşüş — Pozitif\n- Aralık Fed artırım olasılığı ~%78-82'ye yükseldi; düşen faizlere rağmen sıkılaşma fiyatlaması sürüyor — Negatif\n- Spot BTC ETF'lerinde 4 Kasım +$74.6M net giriş (FBTC +$236.7M, IBIT -$201.2M); üç seanslık çıkış serisi kırıldı — Pozitif\n- Spot ETH ETF'lerinde 4 Kasım +$53M net giriş — Pozitif\n- Altın zayıf dolar ve düşen faizlerle $4,100 üzerine (~$4,135'e kadar) çıktı, 22 Ekim'den beri en yüksek — Nötr\n- BTC seçim dibinden (~$75.6K) toparlanıp kısa süreli $81K üzerine çıktı, ~$80.4-80.5K'da; <1 saatte ~$380M short likidasyonu — Pozitif\n- Asya Perşembe: Kospi ~%3 düşüş (yarı iletken baskısı), Nikkei hafif ekside, Hang Seng yükselişte — karışık seans — Nötr\n- Stablecoin toplam piyasa değeri 26 Ekim-1 Kasım haftasında -$4.53B geriledi — Negatif\n- BoE faiz kararı bugün; ABD Ekim istihdamı Cuma — Nötr\n\nEn önemli yeni gelişme:\nSon saatlerin en önemli gelişmesi, ara seçim sonuçlarının netleşmesiyle 'blue sweep' fiyatlamasının dünkü teknoloji paniğinden geniş tabanlı bir risk-on rallisine dönüşmesi: vadelilerdeki ~%2'lik düşüş nakit seansında tersine döndü, Dow +%3, SPX +%1.6 kapattı ve VIX ~16.6'ya geriledi. Aynı anda dolar endeksi bir ayın dibine, 10Y faiz ~%4.85'e indi ve Brent ABD-İran anlaşma umuduyla $100 altına çöktü — enerji enflasyonu riskinin azalması, Fed'in Aralık artırımını fiyatlayan piyasada orta vadede rahatlama potansiyeli taşıyor. BTC bu ortamda ~$380M short likidasyonuyla $75.6K'dan $81K'ya sıçradı ve ETF akımları pozitife döndü; ancak Aralık artırım olasılığının ~%80 bandında kalması Cuma istihdam verisini kritik eşik yapıyor.\n\nMakro uyumsuzluk kontrolü: Aligned (uyumlu)\nBTC makro gevşemeyle uyumlu hareket ediyor: dolar, faizler ve petrol düşer, hisseler yükselir ve VIX çökerken BTC 24 saatte ~%3.5-4 yükselerek $80K üzerine çıktı ve ETF akımları pozitife döndü. Hareketin bir kısmı short likidasyonu kaynaklı olduğundan kalıcılığı spot talebe bağlı; belirgin bir relative strength ya da weakness yok.\n\nLikidite rejimi: Nötr\n\nRisk rejimi: Temkinli risk-on\n\nBTC için sonuç:\nZayıf dolar, düşen faizler ve petrol ile pozitife dönen ETF akımları BTC için makro zemini iyileştirdi. Önümüzdeki 24-72 saatte BTC'nin $78-83K bandında hafif yukarı eğilimli seyretmesi bekleniyor; ancak Aralık artırım olasılığı ~%80'de olduğundan güçlü bir Cuma istihdam verisi rallinin önünü kesebilir. Zayıf istihdam ve süren ETF girişleri $83-85K'yı test ettirebilir, $78K altına dönüş ise rallinin likidasyon kaynaklı kaldığını gösterir.\n\nVarlık güç sıralaması:\n1. BTC — 7.5/10 — Seçim dibinden ~$380M short likidasyonuyla $81K'ya sıçradı, ETF girişleri döndü ve haftalık kaybı sildi. (24s: +%3.8, 7g: +%1)\n2. XAUUSD — 7/10 — Zayıf dolar ve düşen faizlerle $4,100 üzerine çıkıp 22 Ekim'den bu yana zirvesini gördü. (24s: +%3, 7g: +%2)\n3. SPX — 6.5/10 — Belirsizliğin kalkmasıyla +%1.58 ile 7,688.62'ye yükseldi, haftalık kaybını telafi etti. (24s: +%1.6, 7g: +%0.5)\n4. NASDAQ — 6/10 — Toparlandı ancak AI yararlanıcılarının geride kalmasıyla genel piyasanın gerisinde, haftalık bazda hâlâ ekside. (24s: +%1.4, 7g: -%1.5)\n5. DXY — 3.5/10 — Düşen faizler ve seçim sonucuyla bir ayın dibine (~101.2-101.5) geriledi. (24s: -%0.3, 7g: -%0.8)\n6. VIX — 2.5/10 — Sonucun netleşmesiyle ~%20 düşüşle ~16.6'ya indi, korku fiyatlaması hızla söndü. (24s: -%20.3, 7g: veri yok)\n7. BRENT — 1/10 — ABD-İran anlaşma umuduyla bir ayın ilk kez $100 altına çöktü, Cuma'daki ~$118'den sert düşüş. (24s: -%5, 7g: -%14)\n\nBTC Makro Bias: LONG — Güven: Düşük",
+  "asset_strength": [
+    {
+      "asset": "BTC",
+      "score": 7.5,
+      "reason": "Seçim dibinden ~$380M short likidasyonuyla $81K'ya sıçradı, ETF girişleri döndü ve haftalık kaybı sildi.",
+      "chg_24h_pct": 3.8,
+      "chg_7d_pct": 1
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 7,
+      "reason": "Zayıf dolar ve düşen faizlerle $4,100 üzerine çıkıp 22 Ekim'den bu yana zirvesini gördü.",
+      "chg_24h_pct": 3,
+      "chg_7d_pct": 2
+    },
+    {
+      "asset": "SPX",
+      "score": 6.5,
+      "reason": "Belirsizliğin kalkmasıyla +%1.58 ile 7,688.62'ye yükseldi, haftalık kaybını telafi etti.",
+      "chg_24h_pct": 1.6,
+      "chg_7d_pct": 0.5
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 6,
+      "reason": "Toparlandı ancak AI yararlanıcılarının geride kalmasıyla genel piyasanın gerisinde, haftalık bazda hâlâ ekside.",
+      "chg_24h_pct": 1.4,
+      "chg_7d_pct": -1.5
+    },
+    {
+      "asset": "DXY",
+      "score": 3.5,
+      "reason": "Düşen faizler ve seçim sonucuyla bir ayın dibine (~101.2-101.5) geriledi.",
+      "chg_24h_pct": -0.3,
+      "chg_7d_pct": -0.8
+    },
+    {
+      "asset": "VIX",
+      "score": 2.5,
+      "reason": "Sonucun netleşmesiyle ~%20 düşüşle ~16.6'ya indi, korku fiyatlaması hızla söndü.",
+      "chg_24h_pct": -20.3,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "BRENT",
+      "score": 1,
+      "reason": "ABD-İran anlaşma umuduyla bir ayın ilk kez $100 altına çöktü, Cuma'daki ~$118'den sert düşüş.",
+      "chg_24h_pct": -5,
+      "chg_7d_pct": -14
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
