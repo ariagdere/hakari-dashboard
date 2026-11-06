@@ -1,0 +1,133 @@
+{
+  "run_date": "2026-11-06",
+  "generated_at": "2026-11-06T06:10:27Z",
+  "net_direction": "Negatif",
+  "sentiment_score": -40,
+  "change_24h": "kötüleşti",
+  "drivers": [
+    "AI/teknoloji çöküşü risk iştahını kırdı: 5 Kasım'da Nasdaq 100 -%6.36, Nasdaq Composite -%5.52 (24,315, düzeltme bölgesi), SPX -%4.36 (7,353.73), Dow -%3.44 — Nisan 2025'ten beri en kötü gün; VIX +%69.7 ile 28.18'e fırladı.",
+    "Asya'da bulaşma: Cuma Nikkei ~%6 düşüşle ayı piyasasına girdi, Kospi ~%6 geriledi; BTC ~$1.09B (çoğu long) likidasyonla ~$75-76K'ya indi.",
+    "ETF akımları yeniden negatife döndü: Spot BTC ETF'lerinde 5 Kasım -$430.2M net çıkış (FBTC -$199.9M, IBIT -$105M); bir günlük girişi tek seansta sildi.",
+    "Şahin merkez bankaları: Fed Aralık artırım olasılığı ~%81 seviyesinde, BoE faizi 25bp artırıp %4'e çıkardı; bugünkü Ekim istihdam verisi (beklenti +59K, işsizlik %4.2) kritik."
+  ],
+  "developments": [
+    {
+      "item": "Nasdaq 100 -%6.36, Nasdaq Composite -%5.52 ile düzeltme bölgesine girdi; seçim sonrası veri merkezi yatırımlarının yavaşlayacağı korkusuyla AI/çip satışı tüm piyasaya yayıldı (~$2T piyasa değeri kaybı)",
+      "impact": "Negatif"
+    },
+    {
+      "item": "SPX -%4.36 (7,353.73), Dow -1,833 puan (-%3.44); Çarşamba'daki seçim rallisi tamamen silindi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "VIX +%69.7 ile 28.18'e çıktı, Nisan 2025 tarife şokundan beri en büyük günlük sıçrama",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Cuma Asya: Nikkei ~%6 düşüşle ayı piyasasına girdi, Kospi ~%6 düştü, ASX 200 ise yükseldi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "10Y faiz ~6bp düşüşle %4.84'e, 2Y ~12bp düşüşle geriledi; güvenli liman talebiyle eğri dikleşti, reel faizler hafif geriliyor",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "DXY +%0.09 ile 101.60'ta yatay; dolar ne destek ne baskı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Altın +%1 ile ~$4,100'de, güvenli liman talebi canlı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Brent ABD-İran savaş kaygısı ve tanker saldırılarıyla +%3.88 ile $98.29'a toparlandı, ancak haftalık bazda ~%15 düşüş yolunda",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Fed Aralık artırım olasılığı ~%81; düşen faizlere rağmen sıkılaşma fiyatlaması sürüyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "BoE faizi 25bp artırarak %4'e çıkardı (bir üye 50bp istedi), enflasyonun %5'e yaklaşacağı uyarısı — küresel sıkılaşma eğilimi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Spot BTC ETF'lerinde 5 Kasım -$430.2M net çıkış (FBTC -$199.9M, IBIT -$105M)",
+      "impact": "Negatif"
+    },
+    {
+      "item": "BTC seçim rallisini sildi, ~%5.5-6 düşüşle ~$75-76K'ya geriledi; 24 saatte ~$1.09B, ağırlıkla long likidasyonu",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Stablecoin arzında son haftalarda belirgin genişleme yok; kripto likiditesi zayıf",
+      "impact": "Nötr"
+    },
+    {
+      "item": "ABD Ekim istihdam verisi bugün: beklenti +59K, işsizlik %4.2",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "Son saatlerin en önemli gelişmesi, AI/çip hisselerinden başlayan satışın küresel bir risk-off dalgasına dönüşmesi: Nasdaq 100 tek günde %6.4 düşerek Nisan 2025'ten bu yana en kötü gününü yaşadı, VIX %70 sıçrayarak 28'e çıktı ve Cuma Asya seansında Nikkei ile Kospi ~%6 düşüşle bunu izledi. Seçim sonrası 'veri merkezi yatırımları yavaşlar' korkusu yüksek beta varlıkları vururken BTC ~$1.09B likidasyonla $75-76K'ya indi ve spot ETF'lerden $430M çıktı. Faizlerin düşmesi tek destek; ancak Fed'in Aralık artırımı ~%81 fiyatlanmışken bugünkü istihdam verisi güçlü gelirse hem faiz hem risk tarafında baskı artabilir, zayıf gelirse artırım beklentisinin gerilemesi kısmi rahatlama sağlayabilir.",
+  "divergence": "aligned",
+  "divergence_note": "BTC, Nasdaq'la yüksek korelasyonla düştü (BTC ~-%5.5-6, NDX -%6.4); faizler düşerken BTC'nin yükselmemesi altına kıyasla zayıflık gösteriyor ancak hareket genel risk-off ile uyumlu. Belirgin bir relative strength ya da weakness yok; BTC şu anda bir güvenli liman değil, yüksek betalı teknoloji varlığı gibi işlem görüyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Risk-off",
+  "conclusion": "Teknoloji çöküşü, VIX sıçraması, ETF çıkışları ve şahin Fed/BoE birlikte BTC talebini azaltıyor. Önümüzdeki 24-72 saatte BTC'nin $72-78K bandında aşağı eğilimli seyretmesi ve $75K desteğinin test edilmesi bekleniyor; güçlü bir istihdam verisi $70-72K'yı gündeme getirebilir. Zayıf istihdam ve Nasdaq'ta toparlanma ise $78-80K'ya tepki alımını mümkün kılar.",
+  "bias": "SHORT",
+  "confidence": "Orta",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Negatif\n\nSentiment skoru: -40\n\nSon 24 saatte değişim: Önceki güne göre kötüleşti\n\nAna sürücüler:\n- AI/teknoloji çöküşü risk iştahını kırdı: 5 Kasım'da Nasdaq 100 -%6.36, Nasdaq Composite -%5.52 (24,315, düzeltme bölgesi), SPX -%4.36 (7,353.73), Dow -%3.44 — Nisan 2025'ten beri en kötü gün; VIX +%69.7 ile 28.18'e fırladı.\n- Asya'da bulaşma: Cuma Nikkei ~%6 düşüşle ayı piyasasına girdi, Kospi ~%6 geriledi; BTC ~$1.09B (çoğu long) likidasyonla ~$75-76K'ya indi.\n- ETF akımları yeniden negatife döndü: Spot BTC ETF'lerinde 5 Kasım -$430.2M net çıkış (FBTC -$199.9M, IBIT -$105M); bir günlük girişi tek seansta sildi.\n- Şahin merkez bankaları: Fed Aralık artırım olasılığı ~%81 seviyesinde, BoE faizi 25bp artırıp %4'e çıkardı; bugünkü Ekim istihdam verisi (beklenti +59K, işsizlik %4.2) kritik.\n\nGelişmelerin sınıflandırması:\n- Nasdaq 100 -%6.36, Nasdaq Composite -%5.52 ile düzeltme bölgesine girdi; seçim sonrası veri merkezi yatırımlarının yavaşlayacağı korkusuyla AI/çip satışı tüm piyasaya yayıldı (~$2T piyasa değeri kaybı) — Negatif\n- SPX -%4.36 (7,353.73), Dow -1,833 puan (-%3.44); Çarşamba'daki seçim rallisi tamamen silindi — Negatif\n- VIX +%69.7 ile 28.18'e çıktı, Nisan 2025 tarife şokundan beri en büyük günlük sıçrama — Negatif\n- Cuma Asya: Nikkei ~%6 düşüşle ayı piyasasına girdi, Kospi ~%6 düştü, ASX 200 ise yükseldi — Negatif\n- 10Y faiz ~6bp düşüşle %4.84'e, 2Y ~12bp düşüşle geriledi; güvenli liman talebiyle eğri dikleşti, reel faizler hafif geriliyor — Pozitif\n- DXY +%0.09 ile 101.60'ta yatay; dolar ne destek ne baskı — Nötr\n- Altın +%1 ile ~$4,100'de, güvenli liman talebi canlı — Nötr\n- Brent ABD-İran savaş kaygısı ve tanker saldırılarıyla +%3.88 ile $98.29'a toparlandı, ancak haftalık bazda ~%15 düşüş yolunda — Negatif\n- Fed Aralık artırım olasılığı ~%81; düşen faizlere rağmen sıkılaşma fiyatlaması sürüyor — Negatif\n- BoE faizi 25bp artırarak %4'e çıkardı (bir üye 50bp istedi), enflasyonun %5'e yaklaşacağı uyarısı — küresel sıkılaşma eğilimi — Negatif\n- Spot BTC ETF'lerinde 5 Kasım -$430.2M net çıkış (FBTC -$199.9M, IBIT -$105M) — Negatif\n- BTC seçim rallisini sildi, ~%5.5-6 düşüşle ~$75-76K'ya geriledi; 24 saatte ~$1.09B, ağırlıkla long likidasyonu — Negatif\n- Stablecoin arzında son haftalarda belirgin genişleme yok; kripto likiditesi zayıf — Nötr\n- ABD Ekim istihdam verisi bugün: beklenti +59K, işsizlik %4.2 — Nötr\n\nEn önemli yeni gelişme:\nSon saatlerin en önemli gelişmesi, AI/çip hisselerinden başlayan satışın küresel bir risk-off dalgasına dönüşmesi: Nasdaq 100 tek günde %6.4 düşerek Nisan 2025'ten bu yana en kötü gününü yaşadı, VIX %70 sıçrayarak 28'e çıktı ve Cuma Asya seansında Nikkei ile Kospi ~%6 düşüşle bunu izledi. Seçim sonrası 'veri merkezi yatırımları yavaşlar' korkusu yüksek beta varlıkları vururken BTC ~$1.09B likidasyonla $75-76K'ya indi ve spot ETF'lerden $430M çıktı. Faizlerin düşmesi tek destek; ancak Fed'in Aralık artırımı ~%81 fiyatlanmışken bugünkü istihdam verisi güçlü gelirse hem faiz hem risk tarafında baskı artabilir, zayıf gelirse artırım beklentisinin gerilemesi kısmi rahatlama sağlayabilir.\n\nMakro uyumsuzluk kontrolü: Aligned (uyumlu)\nBTC, Nasdaq'la yüksek korelasyonla düştü (BTC ~-%5.5-6, NDX -%6.4); faizler düşerken BTC'nin yükselmemesi altına kıyasla zayıflık gösteriyor ancak hareket genel risk-off ile uyumlu. Belirgin bir relative strength ya da weakness yok; BTC şu anda bir güvenli liman değil, yüksek betalı teknoloji varlığı gibi işlem görüyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Risk-off\n\nBTC için sonuç:\nTeknoloji çöküşü, VIX sıçraması, ETF çıkışları ve şahin Fed/BoE birlikte BTC talebini azaltıyor. Önümüzdeki 24-72 saatte BTC'nin $72-78K bandında aşağı eğilimli seyretmesi ve $75K desteğinin test edilmesi bekleniyor; güçlü bir istihdam verisi $70-72K'yı gündeme getirebilir. Zayıf istihdam ve Nasdaq'ta toparlanma ise $78-80K'ya tepki alımını mümkün kılar.\n\nVarlık güç sıralaması:\n1. VIX — 9.5/10 — Teknoloji çöküşüyle +%69.7 sıçrayarak 28.18'e çıktı, korku hızla fiyatlanıyor. (24s: +%69.7, 7g: veri yok)\n2. XAUUSD — 6.5/10 — Düşen faizler ve güvenli liman talebiyle ~$4,100'de tutunuyor, haftalık bazda belirgin artıda. (24s: +%1, 7g: +%4.8)\n3. DXY — 5/10 — 101.60'ta yatay kaldı; risk-off'a rağmen düşen faizler doları sınırladı. (24s: +%0.09, 7g: -%0.6)\n4. BRENT — 4.5/10 — Tanker saldırılarıyla $98.29'a toparlandı ancak haftalık bazda ~%15 düşüşte. (24s: +%3.88, 7g: -%15)\n5. SPX — 2/10 — -%4.36 ile 7,353.73'e düştü, seçim rallisini tamamen sildi. (24s: -%4.36, 7g: -%4)\n6. BTC — 1.5/10 — Long likidasyonları ve ETF çıkışlarıyla ~$75-76K'ya geriledi, seçim kazanımlarını sildi. (24s: -%5.5, 7g: -%4.5)\n7. NASDAQ — 1/10 — NDX -%6.36 ile 18 ayın en kötü gününü yaşadı, AI satışıyla düzeltme bölgesinde. (24s: -%6.36, 7g: -%7.5)\n\nBTC Makro Bias: SHORT — Güven: Orta",
+  "asset_strength": [
+    {
+      "asset": "VIX",
+      "score": 9.5,
+      "reason": "Teknoloji çöküşüyle +%69.7 sıçrayarak 28.18'e çıktı, korku hızla fiyatlanıyor.",
+      "chg_24h_pct": 69.7,
+      "chg_7d_pct": null
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 6.5,
+      "reason": "Düşen faizler ve güvenli liman talebiyle ~$4,100'de tutunuyor, haftalık bazda belirgin artıda.",
+      "chg_24h_pct": 1,
+      "chg_7d_pct": 4.8
+    },
+    {
+      "asset": "DXY",
+      "score": 5,
+      "reason": "101.60'ta yatay kaldı; risk-off'a rağmen düşen faizler doları sınırladı.",
+      "chg_24h_pct": 0.09,
+      "chg_7d_pct": -0.6
+    },
+    {
+      "asset": "BRENT",
+      "score": 4.5,
+      "reason": "Tanker saldırılarıyla $98.29'a toparlandı ancak haftalık bazda ~%15 düşüşte.",
+      "chg_24h_pct": 3.88,
+      "chg_7d_pct": -15
+    },
+    {
+      "asset": "SPX",
+      "score": 2,
+      "reason": "-%4.36 ile 7,353.73'e düştü, seçim rallisini tamamen sildi.",
+      "chg_24h_pct": -4.36,
+      "chg_7d_pct": -4
+    },
+    {
+      "asset": "BTC",
+      "score": 1.5,
+      "reason": "Long likidasyonları ve ETF çıkışlarıyla ~$75-76K'ya geriledi, seçim kazanımlarını sildi.",
+      "chg_24h_pct": -5.5,
+      "chg_7d_pct": -4.5
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 1,
+      "reason": "NDX -%6.36 ile 18 ayın en kötü gününü yaşadı, AI satışıyla düzeltme bölgesinde.",
+      "chg_24h_pct": -6.36,
+      "chg_7d_pct": -7.5
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
