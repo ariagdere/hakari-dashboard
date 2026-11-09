@@ -1,0 +1,133 @@
+{
+  "run_date": "2026-11-09",
+  "generated_at": "2026-11-09T06:15:17Z",
+  "net_direction": "Negatif",
+  "sentiment_score": -45,
+  "change_24h": "değişmedi",
+  "drivers": [
+    "Güçlü istihdam şahin Fed fiyatlamasını sertleştirdi: Ekim NFP +165K (beklenti ~59-65K), işsizlik %4.1; CME FedWatch Aralık 25bp artırım olasılığı ~%77-80, 2Y %4.51, 10Y %4.86.",
+    "Dolar sertleşiyor: DXY Cuma +%0.75 ile 102.3 (beş ayın en büyük günlük artışı), Pazartesi Asya'da ~102.2'de sabit; USD/JPY ~158.2.",
+    "Kurumsal ve kripto likiditesi daralıyor: Spot BTC ETF'lerinde 6 Kasım -$412M (IBIT -$403M), haftalık ~-$1.28B; ETH ETF -$93M; stablecoin arzı 7 günde -$6.7B ile ~$292B (2026'nın en sert haftalık düşüşü).",
+    "Risk iştahında kısmi toparlanma: Cuma NDX +%1.35, SPX +%0.31, VIX -%9 ile 25.64; Pazartesi Nikkei ~+%2.5-3.5, MSCI Asya (Japonya hariç) +%2, S&P futures +%0.6 — ancak BTC eşlik etmiyor."
+  ],
+  "developments": [
+    {
+      "item": "Ekim NFP +165K, işsizlik %4.1, ücretler +%0.4 a/a %3.1",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Fed Aralık artırım olasılığı ~%77-80 (bir hafta önce ~%67)",
+      "impact": "Negatif"
+    },
+    {
+      "item": "2Y %4.51, 10Y %4.86; reel faizler yüksek ve hafif yukarı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "DXY +%0.75 ile 102.3, Pazartesi sabit",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Cuma Wall Street toparlanması (NDX +%1.35, çipler toparlandı), VIX 25.64'e geriledi",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Pazartesi Asya'da güçlü tepki (Nikkei ~58,900, +%2.5+), ABD vadelileri +%0.6",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Brent ~$98.3, haftalık ~-%13-16 (ABD-İran anlaşma umudu); enerji kaynaklı enflasyon riski azalıyor",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "İran/Orta Doğu jeopolitik riski geriliyor ama çözülmüş değil",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Altın ~$4,068, haftalık +%5; güvenli liman talebi canlı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Spot BTC ETF -$412M (6 Kasım), haftalık ~-$1.28B; ETH ETF -$93M",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Stablecoin arzı haftalık -$6.7B, 10 gün üst üste düşüş",
+      "impact": "Negatif"
+    },
+    {
+      "item": "BTC Pazartesi ~$74.8K (-%1.3), $73.5K'ya kadar sarktı, Ağustos'tan beri en düşük bölgede",
+      "impact": "Negatif"
+    },
+    {
+      "item": "BOJ/ECB/PBOC tarafında son 24 saatte belirgin yeni politika sinyali yok; BoE geçen hafta artırdı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Salı ABD Ekim TÜFE verisi (sıcak gelirse artırım kesinleşir)",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "Cuma günkü Ekim istihdam verisinin beklentinin neredeyse üç katı (+165K, işsizlik %4.1) gelmesi ve piyasanın bunu şahin yönde fiyatlaması: CME'de Aralık artırım olasılığı ~%77-80'e çıktı, kısa vadeli faizler yükseldi ve dolar beş ayın en güçlü gününü yaşadı. Hisseler AI çöküşünün ardından teknik tepkiyle toparlanırken (Pazartesi Asya +%2-3) BTC ETF çıkışları ve stablecoin daralmasıyla $75K altında kaldı. Salı açıklanacak Ekim TÜFE verisi bu sıkılaşma fiyatlamasını ya kesinleştirecek ya da gevşetecek; piyasa henüz sıcak bir TÜFE'nin artırımı neredeyse kesinleştirmesini tam fiyatlamış değil.",
+  "divergence": "relative weakness",
+  "divergence_note": "Cuma ve Pazartesi sabahı hisseler, Asya endeksleri ve ABD vadelileri toparlanırken, VIX gerilerken BTC yükselmedi, aksine -%1.3 ile $74.8K'ya düşüp haftalık düşüşünü sürdürdü. Dolar ve faizlerin yükselişi kısmen açıklıyor, ancak risk iştahındaki iyileşmeye hiç katılmaması ve ETF/stablecoin çıkışları talep zayıflığına işaret ediyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Temkinli risk-off",
+  "conclusion": "Şahin Fed fiyatlaması, güçlenen dolar, ETF çıkışları ve daralan stablecoin arzı BTC talebini azaltıyor; hisse toparlanmasına eşlik edememesi göreli zayıflığı teyit ediyor. Önümüzdeki 24-72 saatte makro bazlı beklenti aşağı eğilimli/baskılı bir seyir; Salı TÜFE sıcak gelirse baskı artar. TÜFE yumuşak gelir ve artırım olasılığı belirgin gerilerse kısa süreli tepki alımı mümkün.",
+  "bias": "SHORT",
+  "confidence": "Orta",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Negatif\n\nSentiment skoru: -45\n\nSon 24 saatte değişim: Önceki güne göre değişmedi (-40 → -45; hisse tarafı toparlandı ama faiz/dolar ve kripto likiditesi kötüleşti)\n\nAna sürücüler:\n1. Güçlü istihdam şahin Fed fiyatlamasını sertleştirdi: Ekim NFP +165K (beklenti ~59-65K), işsizlik %4.1; CME FedWatch Aralık (8-9 Aralık) 25bp artırım olasılığı ~%77-80'e çıktı, 2Y %4.51, 10Y %4.86'ya yükseldi.\n2. Dolar sertleşiyor: DXY Cuma +%0.75 ile 102.3 (beş ayın en büyük günlük artışı), Pazartesi Asya'da ~102.2'de sabit; USD/JPY ~158.2.\n3. Kurumsal ve kripto likiditesi daralıyor: Spot BTC ETF'lerinde 6 Kasım -$412M (IBIT -$403M), haftalık ~-$1.28B; ETH ETF'leri -$93M; stablecoin arzı 7 günde -$6.7B ile ~$292B'a indi (2026'nın en sert haftalık düşüşü, 10 gündür geriliyor).\n4. Risk iştahında kısmi toparlanma: Cuma NDX +%1.35, SPX +%0.31, VIX -%9 ile 25.64; Pazartesi Nikkei ~+%2.5-3.5, MSCI Asya (Japonya hariç) +%2, S&P futures +%0.6 — ancak BTC buna eşlik etmiyor.\n\nGelişmelerin sınıflandırması:\n- Ekim NFP +165K, işsizlik %4.1, ücretler +%0.4 a/a %3.1 — Negatif (sıkılaşma beklentisini güçlendirdi)\n- Fed Aralık artırım olasılığı ~%77-80 (bir hafta önce ~%67) — Negatif\n- 2Y %4.51, 10Y %4.86; reel faizler yüksek ve hafif yukarı — Negatif\n- DXY +%0.75 ile 102.3, Pazartesi sabit — Negatif\n- Cuma Wall Street toparlanması (NDX +%1.35, çipler toparlandı), VIX 25.64'e geriledi — Pozitif\n- Pazartesi Asya'da güçlü tepki (Nikkei ~58,900, +%2.5+), ABD vadelileri +%0.6 — Pozitif\n- Brent ~$98.3, haftalık ~-%13-16 (ABD-İran anlaşma umudu); enerji kaynaklı enflasyon riski azalıyor — Pozitif\n- İran/Orta Doğu jeopolitik riski geriliyor ama çözülmüş değil — Nötr\n- Altın ~$4,068, haftalık +%5; güvenli liman talebi canlı — Nötr\n- Spot BTC ETF -$412M (6 Kasım), haftalık ~-$1.28B; ETH ETF -$93M — Negatif\n- Stablecoin arzı haftalık -$6.7B, 10 gün üst üste düşüş — Negatif\n- BTC Pazartesi ~$74.8K (-%1.3), $73.5K'ya kadar sarktı, Ağustos'tan beri en düşük bölgede — Negatif\n- BOJ/ECB/PBOC tarafında son 24 saatte belirgin yeni politika sinyali yok; BoE geçen hafta artırdı — Nötr\n- Salı ABD Ekim TÜFE verisi — Nötr (yüksek gelirse artırım kesinleşir)\n\nEn önemli yeni gelişme:\nCuma günkü Ekim istihdam verisinin beklentinin neredeyse üç katı (+165K, işsizlik %4.1) gelmesi ve hafta sonu sonrası piyasanın bunu şahin yönde fiyatlaması: CME'de Aralık artırım olasılığı ~%77-80'e çıktı, kısa vadeli faizler yükseldi ve dolar beş ayın en güçlü gününü yaşadı. Hisseler AI çöküşünün ardından teknik tepkiyle toparlanırken (Pazartesi Asya +%2-3) BTC ETF çıkışları ve stablecoin daralmasıyla $75K altında kaldı. Salı açıklanacak Ekim TÜFE verisi bu sıkılaşma fiyatlamasını ya kesinleştirecek ya da gevşetecek; piyasa henüz sıcak bir TÜFE'nin artırımı neredeyse kesinleştirmesini tam fiyatlamış değil.\n\nMakro uyumsuzluk kontrolü:\nrelative weakness — Cuma ve Pazartesi sabahı hisseler, Asya endeksleri ve ABD vadelileri toparlanırken, VIX gerilerken BTC yükselmedi, aksine -%1.3 ile $74.8K'ya düşüp haftalık düşüşünü sürdürdü. Dolar ve faizlerin yükselişi kısmen açıklıyor, ancak risk iştahındaki iyileşmeye hiç katılmaması ve ETF/stablecoin çıkışları talep zayıflığına işaret ediyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Temkinli risk-off\n\nBTC için sonuç:\nŞahin Fed fiyatlaması, güçlenen dolar, ETF çıkışları ve daralan stablecoin arzı BTC talebini azaltıyor; hisse toparlanmasına eşlik edememesi göreli zayıflığı teyit ediyor. Önümüzdeki 24-72 saatte makro bazlı beklenti aşağı eğilimli/baskılı bir seyir; Salı TÜFE sıcak gelirse baskı artar. TÜFE yumuşak gelir ve artırım olasılığı belirgin gerilerse kısa süreli tepki alımı mümkün.\n\nVarlık güç sıralaması:\n1. DXY — 7/10 — Güçlü istihdam ve artırım beklentisiyle Cuma beş ayın en büyük günlük yükselişini yaptı, Pazartesi 102.2'de tutunuyor. (24s: +%0.75, 7g: +%0.4)\n2. XAUUSD — 6.5/10 — Haftayı +%5 ile $4,000 üstünde kapattı, Pazartesi ~$4,068'de hafif geride ama güçlü. (24s: -%0.8, 7g: +%5.0)\n3. VIX — 6/10 — Cuma -%9 ile 25.64'e geriledi ancak haftalık bazda hâlâ belirgin yüksek, korku azalıyor ama sürüyor. (24s: -%9.0, 7g: +%32.0)\n4. NASDAQ — 4.5/10 — NDX çip toparlanmasıyla Cuma +%1.35 yükseldi, vadeliler artıda, ancak haftalık kayıp derin. (24s: +%1.35, 7g: -%3.4)\n5. SPX — 4.5/10 — Cuma +%0.31 ile 7,376.86'da sınırlı toparlandı, haftayı -%2.7 ile kapattı. (24s: +%0.31, 7g: -%2.68)\n6. BRENT — 2.5/10 — ABD-İran anlaşma umuduyla haftalık ~-%16 düştü, $98.3'te yatay seyrediyor. (24s: +%0.04, 7g: -%16.0)\n7. BTC — 2/10 — Hisse toparlanmasına katılmayıp ETF çıkışları ve likidite daralmasıyla $74.8K'ya geriledi. (24s: -%1.3, 7g: -%4.6)\n\nBTC Makro Bias: SHORT — Güven: Orta",
+  "asset_strength": [
+    {
+      "asset": "DXY",
+      "score": 7,
+      "reason": "Güçlü istihdam ve artırım beklentisiyle Cuma beş ayın en büyük günlük yükselişini yaptı, Pazartesi 102.2'de tutunuyor.",
+      "chg_24h_pct": 0.75,
+      "chg_7d_pct": 0.4
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 6.5,
+      "reason": "Haftayı +%5 ile $4,000 üstünde kapattı, Pazartesi ~$4,068'de hafif geride ama güçlü.",
+      "chg_24h_pct": -0.8,
+      "chg_7d_pct": 5
+    },
+    {
+      "asset": "VIX",
+      "score": 6,
+      "reason": "Cuma -%9 ile 25.64'e geriledi ancak haftalık bazda hâlâ belirgin yüksek, korku azalıyor ama sürüyor.",
+      "chg_24h_pct": -9,
+      "chg_7d_pct": 32
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 4.5,
+      "reason": "NDX çip toparlanmasıyla Cuma +%1.35 yükseldi, vadeliler artıda, ancak haftalık kayıp derin.",
+      "chg_24h_pct": 1.35,
+      "chg_7d_pct": -3.4
+    },
+    {
+      "asset": "SPX",
+      "score": 4.5,
+      "reason": "Cuma +%0.31 ile 7,376.86'da sınırlı toparlandı, haftayı -%2.7 ile kapattı.",
+      "chg_24h_pct": 0.31,
+      "chg_7d_pct": -2.68
+    },
+    {
+      "asset": "BRENT",
+      "score": 2.5,
+      "reason": "ABD-İran anlaşma umuduyla haftalık ~-%16 düştü, $98.3'te yatay seyrediyor.",
+      "chg_24h_pct": 0.04,
+      "chg_7d_pct": -16
+    },
+    {
+      "asset": "BTC",
+      "score": 2,
+      "reason": "Hisse toparlanmasına katılmayıp ETF çıkışları ve likidite daralmasıyla $74.8K'ya geriledi.",
+      "chg_24h_pct": -1.3,
+      "chg_7d_pct": -4.6
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
