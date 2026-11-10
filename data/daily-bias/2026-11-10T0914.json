@@ -1,0 +1,133 @@
+{
+  "run_date": "2026-11-10",
+  "generated_at": "2026-11-10T06:14:39Z",
+  "net_direction": "Negatif",
+  "sentiment_score": -35,
+  "change_24h": "iyileşti",
+  "drivers": [
+    "Şahin Fed fiyatlaması sertleşiyor: CME FedWatch Aralık 25bp artırım olasılığı ~%82-85 (Cuma ~%77); 2Y %4.56 (+5bp), 10Y ~%4.88; bugün 13:30 UTC Ekim TÜFE.",
+    "Risk iştahında sert toparlanma: SPX +%2.35 (~7,550), NDX +%3.40, VIX -%22 ile 19.92; Salı Asya'da Nikkei ~+%2.5, KOSPI +%4.",
+    "Petrol ve dolar geriliyor: Trump'ın İran açıklamasıyla Brent ~$91.5 (-%6-7), DXY -%0.6 ile ~101.7; enerji kaynaklı enflasyon riski azalıyor.",
+    "Kripto talebi zayıf: Spot BTC ETF 9 Kasım ~-$201M (IBIT -$213M), önceki hafta -$1.28B; ETH ETF 6 haftadır çıkışta; stablecoin arzı haftalık -%1.5 (~$294.8B)."
+  ],
+  "developments": [
+    {
+      "item": "Aralık Fed artırım olasılığı ~%82-85'e yükseldi, 2Y %4.56",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Pazartesi Wall Street rallisi (SPX +%2.35, NDX +%3.40, çipler öncülüğünde)",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "VIX -%22 ile 19.92, 20 altına indi",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Salı Asya'da güçlü devam (Nikkei ~+%2.5, KOSPI +%4, MSCI Asya-Pasifik +%1.5)",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Trump: İran'a yeni saldırı 'çok düşük ihtimal'; Brent ~$91.5'e düştü",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "DXY -%0.6 ile ~101.7",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Altın +%1.7 ile ~$4,140, artırım beklentisine rağmen güçlü",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Spot BTC ETF ~-$201M (9 Kasım), ETH ETF'leri 6 haftadır çıkışta",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Stablecoin arzı haftalık -%1.5 (~$294.8B), daralma sürüyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "BTC ~$74.7-75.0K'da yatay, hisse rallisine katılmadı; $73.5K test edildi, >$700M long likidasyonu",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Nvidia CEO'su hakkındaki yönetişim haberleri (doğrulanmamış), hisse ralliden dışlandı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "BOJ tutanakları Aralık'ta olası artırıma işaret etti",
+      "impact": "Negatif"
+    },
+    {
+      "item": "ECB/PBOC tarafında son 24 saatte yeni politika sinyali yok",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Bugünkü Ekim TÜFE verisi (sıcak gelirse artırım kesinleşir)",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "Pazartesi günü Trump'ın İran'a yeni saldırıların \"çok düşük ihtimal\" olduğunu söylemesiyle Brent'in ~%6-7 düşüp ~$91.5'e inmesi ve bunun hisselerde sert bir rallyi (NDX +%3.4, VIX 20 altı) ve dolarda gerilemeyi tetiklemesi. Ancak aynı gün güçlü istihdamın ardından Aralık artırım olasılığı ~%82-85'e tırmandı ve 2Y faiz yükseldi; BTC ise bu risk-on hareketine hiç katılmadı ve ETF çıkışları sürdü. Bugün 13:30 UTC'de açıklanacak Ekim TÜFE verisi belirleyici: düşen petrolün enflasyon beklentisini yumuşatması henüz Fed fiyatlamasına yansımadı; yumuşak bir veri artırım olasılığını hızla düşürüp BTC için tepki alanı açabilir, sıcak veri ise artırımı neredeyse kesinleştirir.",
+  "divergence": "relative weakness",
+  "divergence_note": "Dolar geriler, VIX %22 düşer ve Nasdaq %3.4 yükselirken BTC 24 saatte yatay (~$74.8K) kaldı ve haftalık düşüşünü koruyor. Makro tablonun bir kısmı (petrol, dolar, risk iştahı) iyileşmesine rağmen BTC'nin tepki verememesi ve süren ETF/stablecoin çıkışları, kriptoya özgü talep zayıflığını teyit ediyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Nötr",
+  "conclusion": "Hisselerde ve petrolde iyileşmeye rağmen şahin Fed fiyatlaması, ETF çıkışları ve daralan stablecoin arzı BTC talebini baskılamaya devam ediyor; göreli zayıflık belirgin. Önümüzdeki 24-72 saatte makro bazlı beklenti hafif aşağı/baskılı; ancak bugünkü TÜFE ikili bir risk olduğundan güven düşük. Yumuşak TÜFE ve artırım olasılığında belirgin düşüş bias'ı hızla nötre çevirebilir.",
+  "bias": "SHORT",
+  "confidence": "Düşük",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Negatif\n\nSentiment skoru: -35\n\nSon 24 saatte değişim: Önceki güne göre iyileşti (-45 → -35; dolar ve petrol geriledi, VIX 20 altına indi, ancak artırım olasılığı yükseldi ve BTC rallisine katılmadı)\n\nAna sürücüler:\n1. Şahin Fed fiyatlaması sertleşmeye devam ediyor: CME FedWatch'ta 8-9 Aralık 25bp artırım olasılığı ~%82-85'e çıktı (Cuma ~%77); 2Y %4.56 (+5bp), 10Y ~%4.88; reel faizler yüksek. Bugün 13:30 UTC'de Ekim TÜFE (beklenti manşet +%0.3, çekirdek +%0.2 a/a).\n2. Risk iştahında sert toparlanma: Pazartesi SPX +%2.35 (~7,550), NDX +%3.40 (27,908), VIX -%22 ile 19.92 (satıştan beri ilk 20 altı kapanış); Salı Asya'da Nikkei ~+%2.5, KOSPI +%4.\n3. Petrol ve dolar geriliyor: Trump'ın yeni İran saldırılarını \"çok düşük ihtimal\" demesiyle Brent ~-%6-7 ile ~$91.5 (Eylül başından beri en düşük); DXY -%0.6 ile ~101.7 — enerji kaynaklı enflasyon riski azalıyor.\n4. Kripto talebi zayıf: Spot BTC ETF'lerinde 9 Kasım ~-$201M (IBIT -$213M), önceki hafta -$1.28B; ETH ETF'leri 6. haftadır çıkışta; stablecoin arzı haftalık -%1.5 ile ~$294.8B.\n\nGelişmelerin sınıflandırması:\n- Aralık Fed artırım olasılığı ~%82-85'e yükseldi, 2Y %4.56 — Negatif\n- Pazartesi Wall Street rallisi (SPX +%2.35, NDX +%3.40, çipler öncülüğünde) — Pozitif\n- VIX -%22 ile 19.92, 20 altına indi — Pozitif\n- Salı Asya'da güçlü devam (Nikkei ~+%2.5, KOSPI +%4, MSCI Asya-Pasifik +%1.5) — Pozitif\n- Trump: İran'a yeni saldırı \"çok düşük ihtimal\"; Brent ~$91.5'e düştü — Pozitif\n- DXY -%0.6 ile ~101.7 — Pozitif\n- Altın +%1.7 ile ~$4,140, artırım beklentisine rağmen güçlü — Nötr\n- Spot BTC ETF ~-$201M (9 Kasım), ETH ETF'leri 6 haftadır çıkışta — Negatif\n- Stablecoin arzı haftalık -%1.5 (~$294.8B), daralma sürüyor — Negatif\n- BTC ~$74.7-75.0K'da yatay, hisse rallisine katılmadı; Pazar gecesi $73.5K test edildi, >$700M long likidasyonu — Negatif\n- Nvidia CEO'su hakkındaki yönetişim haberleri (doğrulanmamış), hisse ralliden dışlandı — Nötr\n- BOJ tutanakları Aralık'ta olası artırıma işaret etti (yen destekli, carry riski) — Negatif\n- ECB/PBOC tarafında son 24 saatte yeni politika sinyali yok — Nötr\n- Bugünkü Ekim TÜFE verisi — Nötr (sıcak gelirse artırım kesinleşir, yumuşak gelirse baskı hafifler)\n\nEn önemli yeni gelişme:\nPazartesi günü Trump'ın İran'a yeni saldırıların \"çok düşük ihtimal\" olduğunu söylemesiyle Brent'in ~%6-7 düşüp ~$91.5'e inmesi ve bunun hisselerde sert bir rallyi (NDX +%3.4, VIX 20 altı) ve dolarda gerilemeyi tetiklemesi. Ancak aynı gün güçlü istihdamın ardından Aralık artırım olasılığı ~%82-85'e tırmandı ve 2Y faiz yükseldi; BTC ise bu risk-on hareketine hiç katılmadı ve ETF çıkışları sürdü. Bugün 13:30 UTC'de açıklanacak Ekim TÜFE verisi belirleyici: düşen petrolün enflasyon beklentisini yumuşatması henüz Fed fiyatlamasına yansımadı; yumuşak bir veri artırım olasılığını hızla düşürüp BTC için tepki alanı açabilir, sıcak veri ise artırımı neredeyse kesinleştirir.\n\nMakro uyumsuzluk kontrolü:\nrelative weakness — Dolar geriler, VIX %22 düşer ve Nasdaq %3.4 yükselirken BTC 24 saatte yatay (~$74.8K) kaldı ve haftalık düşüşünü koruyor. Makro tablonun bir kısmı (petrol, dolar, risk iştahı) iyileşmesine rağmen BTC'nin tepki verememesi ve süren ETF/stablecoin çıkışları, kriptoya özgü talep zayıflığını teyit ediyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Nötr\n\nBTC için sonuç:\nHisselerde ve petrolde iyileşmeye rağmen şahin Fed fiyatlaması, ETF çıkışları ve daralan stablecoin arzı BTC talebini baskılamaya devam ediyor; göreli zayıflık belirgin. Önümüzdeki 24-72 saatte makro bazlı beklenti hafif aşağı/baskılı; ancak bugünkü TÜFE ikili bir risk olduğundan güven düşük. Yumuşak TÜFE ve artırım olasılığında belirgin düşüş bias'ı hızla nötre çevirebilir.\n\nVarlık güç sıralaması:\n1. XAUUSD — 7.5/10 — Artırım beklentisine rağmen dolar ve petroldeki gerilemeyle $4,100 üstünde güçlü kaldı, haftalık yükselişini sürdürüyor. (24s: +%1.7, 7g: +%5.0)\n2. NASDAQ — 7/10 — NDX çip öncülüğünde +%3.40 ile 27,908'e sıçrayıp önceki haftanın kaybını büyük ölçüde geri aldı. (24s: +%3.4, 7g: +%0.5)\n3. SPX — 6.5/10 — Petroldeki düşüşle +%2.35 yükselerek ~7,550'ye çıktı, haftalık bazda neredeyse yatay. (24s: +%2.35, 7g: -%0.5)\n4. DXY — 4/10 — İran kaynaklı petrol düşüşüyle -%0.6 geriledi, artırım beklentisi düşüşü sınırlıyor. (24s: -%0.6, 7g: -%0.2)\n5. BTC — 3.5/10 — Hisse rallisine katılmadan ETF çıkışları altında $75K civarında yatay kaldı, haftalık eğilim aşağı. (24s: +%0.1, 7g: -%3.5)\n6. VIX — 2.5/10 — %22 düşüşle 19.92'ye inip satıştan beri ilk kez 20 altında kapattı, korku belirgin azaldı. (24s: -%22.3, 7g: -%8.0)\n7. BRENT — 1.5/10 — Trump'ın İran açıklamasıyla ~$91.5'e sert düştü, haftalık kayıp derinleşti. (24s: -%6.9, 7g: -%15.0)\n\nBTC Makro Bias: SHORT — Güven: Düşük",
+  "asset_strength": [
+    {
+      "asset": "XAUUSD",
+      "score": 7.5,
+      "reason": "Artırım beklentisine rağmen dolar ve petroldeki gerilemeyle $4,100 üstünde güçlü kaldı, haftalık yükselişini sürdürüyor.",
+      "chg_24h_pct": 1.7,
+      "chg_7d_pct": 5
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 7,
+      "reason": "NDX çip öncülüğünde +%3.40 ile 27,908'e sıçrayıp önceki haftanın kaybını büyük ölçüde geri aldı.",
+      "chg_24h_pct": 3.4,
+      "chg_7d_pct": 0.5
+    },
+    {
+      "asset": "SPX",
+      "score": 6.5,
+      "reason": "Petroldeki düşüşle +%2.35 yükselerek ~7,550'ye çıktı, haftalık bazda neredeyse yatay.",
+      "chg_24h_pct": 2.35,
+      "chg_7d_pct": -0.5
+    },
+    {
+      "asset": "DXY",
+      "score": 4,
+      "reason": "İran kaynaklı petrol düşüşüyle -%0.6 geriledi, artırım beklentisi düşüşü sınırlıyor.",
+      "chg_24h_pct": -0.6,
+      "chg_7d_pct": -0.2
+    },
+    {
+      "asset": "BTC",
+      "score": 3.5,
+      "reason": "Hisse rallisine katılmadan ETF çıkışları altında $75K civarında yatay kaldı, haftalık eğilim aşağı.",
+      "chg_24h_pct": 0.1,
+      "chg_7d_pct": -3.5
+    },
+    {
+      "asset": "VIX",
+      "score": 2.5,
+      "reason": "%22 düşüşle 19.92'ye inip satıştan beri ilk kez 20 altında kapattı, korku belirgin azaldı.",
+      "chg_24h_pct": -22.3,
+      "chg_7d_pct": -8
+    },
+    {
+      "asset": "BRENT",
+      "score": 1.5,
+      "reason": "Trump'ın İran açıklamasıyla ~$91.5'e sert düştü, haftalık kayıp derinleşti.",
+      "chg_24h_pct": -6.9,
+      "chg_7d_pct": -15
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
