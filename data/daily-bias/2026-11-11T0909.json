@@ -1,0 +1,129 @@
+{
+  "run_date": "2026-11-11",
+  "generated_at": "2026-11-11T06:09:39Z",
+  "net_direction": "Negatif",
+  "sentiment_score": -45,
+  "change_24h": "kötüleşti",
+  "drivers": [
+    "Sıcak Ekim TÜFE: manşet +%0.4, çekirdek +%0.3 (beklenti üstü); Aralık 25bp artırım olasılığı ~%85-89, 50bp ~%11 (TÜFE öncesi ~%1).",
+    "Faiz ve dolar sıçradı: 2Y ~+18bp ile ~%4.73, 10Y ~%5 sınırında; DXY ~+%0.6 ile ~102.2; reel faizler yükseliyor.",
+    "Risk iştahı geriledi: SPX -%0.38, NDX -%0.60, Nvidia ~-%5 (CEO skandalı); VIX ~19.5 ile 20 altında, Nikkei ~+%3.",
+    "Kripto talebi zayıf: BTC ETF 4 gündür çıkışta (10 Kasım ~-$95M), ETH ETF 9 Kasım -$185M; stablecoin arzı yılın en düşüğü (~$294.8B); ~$723M likidasyon."
+  ],
+  "developments": [
+    {
+      "item": "Ekim TÜFE beklentinin üzerinde (manşet +%0.4, çekirdek +%0.3)",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Aralık 25bp artırım olasılığı ~%85-89, 50bp olasılığı ~%11'e yükseldi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "2Y ~%4.73 (+18bp), 10Y ~%5 sınırında",
+      "impact": "Negatif"
+    },
+    {
+      "item": "DXY ~+%0.6 ile ~102.2",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Wall Street geriledi (SPX -%0.38, NDX -%0.60), Nvidia skandalı teknolojiyi baskılıyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "VIX ~19.5 ile 20 altında kaldı, panik yok",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Çarşamba Asya'da Nikkei ~+%3, ASX +%1.2",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Altın TÜFE sonrası ~$100+ düşüşle ~$4,035",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Brent ~$92 civarında sabit, enerji enflasyon riski hafifliyor ama TÜFE'de enerji dışı kalemler baskın",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Spot BTC ETF 4 gündür çıkışta, hız yavaşlıyor (~-$95M)",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Stablecoin arzı yılın en düşüğünde (~$294.8B), daralma sürüyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "BTC TÜFE sonrası ~$72.7K'ya düştü, 200 günlük ortalamayı kaybetti, ~$74K'ya toparlandı; ~$723M likidasyon",
+      "impact": "Negatif"
+    },
+    {
+      "item": "BOJ/ECB/PBOC tarafında son 24 saatte yeni politika sinyali yok",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "Salı açıklanan Ekim TÜFE'si beklentinin üzerinde geldi (manşet +%0.4, çekirdek +%0.3) ve fiyat baskısının enerjiden gıda, kira ve hizmetlere yayıldığını gösterdi. Bu, petrol düşüşünün enflasyonu yumuşatacağı umudunu boşa çıkardı: Aralık artırımı neredeyse tamamen fiyatlandı, 50bp ihtimali ~%11'e sıçradı, 2Y faiz bir günde ~18bp yükseldi ve 10Y %5'i test etti. Piyasa henüz 50bp senaryosunu tam fiyatlamadı; Fed konuşmacılarından gelecek şahin sinyaller dolar ve reel faizleri daha da yukarı itip BTC talebini baskılayabilir.",
+  "divergence": "aligned",
+  "divergence_note": "BTC, makro kötüleşmeyle uyumlu biçimde TÜFE sonrası ~$72.7K'ya düşüp ~$74K'ya toparlandı; düşüşü faiz ve dolar şokunun büyüklüğüyle orantılı. Ancak Pazartesi hisse rallisine katılmayıp kötü veride hemen satılması, kriptoya özgü talebin hâlâ zayıf olduğunu (ETF ve stablecoin çıkışları) gösteriyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Temkinli risk-off",
+  "conclusion": "Sıcak TÜFE ile Fed artırımı neredeyse kesinleşti ve 50bp riski açıldı; yükselen 2Y/reel faizler ve güçlenen dolar BTC talebini azaltıyor. ETF ve stablecoin akımları da desteğe dönmediğinden önümüzdeki 24-72 saatte makro bazlı beklenti aşağı yönlü. ETF çıkışlarının yavaşlaması ve VIX'in sakin kalması sert bir çöküşten çok baskılı bir seyre işaret ediyor.",
+  "bias": "SHORT",
+  "confidence": "Orta",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Negatif\n\nSentiment skoru: -45\n\nSon 24 saatte değişim: Önceki güne göre kötüleşti (-35 → -45; sıcak Ekim TÜFE'si Aralık artırımını neredeyse kesinleştirdi, 2Y faiz ve dolar sıçradı, BTC 200 günlük ortalamanın altına indi)\n\nAna sürücüler:\n1. Sıcak Ekim TÜFE'si: manşet +%0.4 a/a (beklenti +%0.3), çekirdek +%0.3 (beklenti +%0.2); yıllık enflasyon ~%4. CME FedWatch'ta Aralık 25bp artırım olasılığı ~%85-89'a, 50bp artırım olasılığı ~%11'e (TÜFE öncesi ~%1) çıktı; Waller büyük adımın masada olduğunu söyledi.\n2. Faiz ve dolar sıçradı: 2Y ~+18bp ile ~%4.73 (Nisan 2025'ten beri en büyük günlük artış), 10Y gün içinde %5'i aşıp ~%4.95-4.98'de; DXY ~+%0.6 ile ~102.2. Reel faizler yükseliyor.\n3. Risk iştahı Pazartesi rallisinden sonra geriledi: SPX -%0.38 (7,520.93), NDX -%0.60 (~27,741), Nvidia ~-%5 (CEO skandalı); VIX ise ~19.5 ile 20 altında kaldı, Çarşamba Asya'da Nikkei ~+%3.\n4. Kripto talebi zayıf: Spot BTC ETF'leri 4. gün üst üste çıkışta (10 Kasım ~-$95M, IBIT -$78M; 9 Kasım -$201M), ETH ETF'lerinde 9 Kasım -$185M; stablecoin arzı ~$294.8B ile yılın en düşüğünde; TÜFE sonrası ~$723M likidasyon.\n\nGelişmelerin sınıflandırması:\n- Ekim TÜFE beklentinin üzerinde (manşet +%0.4, çekirdek +%0.3) — Negatif\n- Aralık 25bp artırım olasılığı ~%85-89, 50bp olasılığı ~%11'e yükseldi — Negatif\n- 2Y ~%4.73 (+18bp), 10Y ~%5 sınırında — Negatif\n- DXY ~+%0.6 ile ~102.2 — Negatif\n- Wall Street geriledi (SPX -%0.38, NDX -%0.60), Nvidia skandalı teknolojiyi baskılıyor — Negatif\n- VIX ~19.5 ile 20 altında kaldı, panik yok — Nötr\n- Çarşamba Asya'da Nikkei ~+%3, ASX +%1.2 — Pozitif\n- Altın TÜFE sonrası ~$100+ düşüşle ~$4,035 — Nötr\n- Brent ~$92 civarında sabit, enerji enflasyon riski hafifliyor ama TÜFE'de enerji dışı kalemler baskın — Nötr\n- Spot BTC ETF 4 gündür çıkışta, hız yavaşlıyor (~-$95M) — Negatif\n- Stablecoin arzı yılın en düşüğünde (~$294.8B), daralma sürüyor — Negatif\n- BTC TÜFE sonrası ~$72.7K'ya düştü, 200 günlük ortalamayı kaybetti, ~$74K'ya toparlandı; ~$723M likidasyon — Negatif\n- BOJ/ECB/PBOC tarafında son 24 saatte yeni politika sinyali yok — Nötr\n\nEn önemli yeni gelişme:\nSalı açıklanan Ekim TÜFE'si beklentinin üzerinde geldi (manşet +%0.4, çekirdek +%0.3) ve fiyat baskısının enerjiden gıda, kira ve hizmetlere yayıldığını gösterdi. Bu, petrol düşüşünün enflasyonu yumuşatacağı umudunu boşa çıkardı: Aralık artırımı neredeyse tamamen fiyatlandı, 50bp ihtimali ~%11'e sıçradı, 2Y faiz bir günde ~18bp yükseldi ve 10Y %5'i test etti. Piyasa henüz 50bp senaryosunu tam fiyatlamadı; Fed konuşmacılarından gelecek şahin sinyaller dolar ve reel faizleri daha da yukarı itip BTC talebini baskılayabilir.\n\nMakro uyumsuzluk kontrolü:\naligned — BTC, makro kötüleşmeyle uyumlu biçimde TÜFE sonrası ~$72.7K'ya düşüp ~$74K'ya toparlandı; düşüşü faiz ve dolar şokunun büyüklüğüyle orantılı. Ancak Pazartesi hisse rallisine katılmayıp kötü veride hemen satılması, kriptoya özgü talebin hâlâ zayıf olduğunu (ETF ve stablecoin çıkışları) gösteriyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Temkinli risk-off\n\nBTC için sonuç:\nSıcak TÜFE ile Fed artırımı neredeyse kesinleşti ve 50bp riski açıldı; yükselen 2Y/reel faizler ve güçlenen dolar BTC talebini azaltıyor. ETF ve stablecoin akımları da desteğe dönmediğinden önümüzdeki 24-72 saatte makro bazlı beklenti aşağı yönlü. ETF çıkışlarının yavaşlaması ve VIX'in sakin kalması sert bir çöküşten çok baskılı bir seyre işaret ediyor.\n\nVarlık güç sıralaması:\n1. DXY — 6.5/10 — Sıcak TÜFE ve artırım fiyatlamasıyla ~102.2'ye yükseldi, haftalık bazda da hafif yukarı döndü. (24s: +%0.6, 7g: +%0.3)\n2. NASDAQ — 4.5/10 — NDX Nvidia skandalı ve faiz şokuyla -%0.6 geriledi ama Pazartesi kazancının çoğunu korudu. (24s: -%0.6, 7g: -%0.1)\n3. SPX — 4.5/10 — Yükselen faizlerle -%0.38 düşüp 7,520'de kapattı, haftalık bazda hafif ekside. (24s: -%0.38, 7g: -%0.9)\n4. VIX — 4/10 — Hisse düşüşüne rağmen ~19.5'e gerileyip 20 altında kaldı, korku artmadı. (24s: -%2.0, 7g: -%10.0)\n5. XAUUSD — 3.5/10 — Sıcak TÜFE, yükselen faiz ve dolarla $100'ün üzerinde düşüp ~$4,035'e indi. (24s: -%2.5, 7g: +%2.4)\n6. BTC — 3/10 — TÜFE sonrası $72.7K'ya düşüp 200 günlük ortalamayı kaybetti, ~$74K'da zayıf seyrediyor. (24s: -%1.0, 7g: -%3.0)\n7. BRENT — 3/10 — İran açıklamasının ardından ~$92'de sabitlendi ama haftalık sert düşüşünü koruyor. (24s: +%0.2, 7g: -%14.0)\n\nBTC Makro Bias: SHORT — Güven: Orta",
+  "asset_strength": [
+    {
+      "asset": "DXY",
+      "score": 6.5,
+      "reason": "Sıcak TÜFE ve artırım fiyatlamasıyla ~102.2'ye yükseldi, haftalık bazda da hafif yukarı döndü.",
+      "chg_24h_pct": 0.6,
+      "chg_7d_pct": 0.3
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 4.5,
+      "reason": "NDX Nvidia skandalı ve faiz şokuyla -%0.6 geriledi ama Pazartesi kazancının çoğunu korudu.",
+      "chg_24h_pct": -0.6,
+      "chg_7d_pct": -0.1
+    },
+    {
+      "asset": "SPX",
+      "score": 4.5,
+      "reason": "Yükselen faizlerle -%0.38 düşüp 7,520'de kapattı, haftalık bazda hafif ekside.",
+      "chg_24h_pct": -0.38,
+      "chg_7d_pct": -0.9
+    },
+    {
+      "asset": "VIX",
+      "score": 4,
+      "reason": "Hisse düşüşüne rağmen ~19.5'e gerileyip 20 altında kaldı, korku artmadı.",
+      "chg_24h_pct": -2,
+      "chg_7d_pct": -10
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 3.5,
+      "reason": "Sıcak TÜFE, yükselen faiz ve dolarla $100'ün üzerinde düşüp ~$4,035'e indi.",
+      "chg_24h_pct": -2.5,
+      "chg_7d_pct": 2.4
+    },
+    {
+      "asset": "BTC",
+      "score": 3,
+      "reason": "TÜFE sonrası $72.7K'ya düşüp 200 günlük ortalamayı kaybetti, ~$74K'da zayıf seyrediyor.",
+      "chg_24h_pct": -1,
+      "chg_7d_pct": -3
+    },
+    {
+      "asset": "BRENT",
+      "score": 3,
+      "reason": "İran açıklamasının ardından ~$92'de sabitlendi ama haftalık sert düşüşünü koruyor.",
+      "chg_24h_pct": 0.2,
+      "chg_7d_pct": -14
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
