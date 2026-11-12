@@ -1,0 +1,125 @@
+{
+  "run_date": "2026-11-12",
+  "generated_at": "2026-11-12T06:09:30Z",
+  "net_direction": "Negatif",
+  "sentiment_score": -40,
+  "change_24h": "iyileşti",
+  "drivers": [
+    "Fed şahinliği derinleşti: Aralık artırım olasılığı ~%99-100, 50bp olasılığı ~%15'e çıktı; Waller 50bp'yi masada tuttu, Logan en az iki artırım istedi, Goolsbee TÜFE'yi 'neredeyse rahatsız edici' buldu.",
+    "Faiz ve dolar yüksek: Tahvil piyasası Veterans Day nedeniyle kapalıydı, son kapanış 2Y ~%4.73, 10Y ~%4.98; DXY ~+%0.67 ile ~102.9'a çıktı, reel faizler yüksek kalıyor.",
+    "Hisse risk iştahı toparlandı ama BTC katılmadı: NDX ~+%2.3 (CoreWeave bilançosu, AI iyimserliği), SPX ~+%1.3, VIX ~-%10 ile ~17.5; BTC ~$73.6K'da yatay-zayıf.",
+    "Kripto likiditesi daralıyor: stablecoin arzı 30 günde -$14.2B ile ~$280B altına indi (2022'den beri en sert düşüş); spot BTC ETF çıkışları sürüyor (IBIT 7 seanstır çıkışta, ~-$1.66B)."
+  ],
+  "developments": [
+    {
+      "item": "Aralık Fed artırımı ~%99-100 fiyatlanıyor, 50bp olasılığı ~%15",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Waller 50bp'ye açık, Logan en az iki artırım, Paulson kademeli sıkılaşma, Goolsbee TÜFE'yi 'neredeyse rahatsız edici' buldu",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Tahvil piyasası kapalı; son kapanış 2Y ~%4.73, 10Y ~%4.98 (son 19 ayın en sert yükselişi sonrası yüksek seviyede)",
+      "impact": "Negatif"
+    },
+    {
+      "item": "DXY ~+%0.67 ile ~102.9, USD/JPY ~159.8",
+      "impact": "Negatif"
+    },
+    {
+      "item": "NDX ~+%2.3, SPX ~+%1.3: CoreWeave bilançosu AI endişelerini dağıttı, Apple rekor",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "VIX ~-%10 ile ~17.5'e geriledi",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Nikkei ~+%1.3 (AI/yarı iletken), BOJ Aralık'ta artırım sinyali veriyor",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Altın ~-%0.7 ile ~$4,000 civarında, yüksek faizle güvenli liman talebi zayıf",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Brent ~+%1.4 ile ~$92.8, haftalık sert düşüş sonrası tepki; Cuma PPI'da yıllık ~%6.6 beklentisi enflasyon riskini canlı tutuyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Spot BTC ETF çıkışları sürüyor (IBIT 11 Kasım ~-$270M, 7 seanstır çıkışta), ETH ETF çıkışı 10 Kasım'da ~-$1.3M'a yavaşladı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Stablecoin arzı 30 günde -$14.2B ile ~$280B altına indi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "BTC hisse rallisine katılmadı, ~$73.2-74.6K bandında ~$73.6K",
+      "impact": "Negatif"
+    }
+  ],
+  "key_development": "Fed'in Aralık artırımı artık neredeyse kesin (~%99-100) ve tartışma artırımın büyüklüğüne kaydı: Waller çekirdek enflasyon %0.3 ve üzerinde kalırsa 50bp'yi destekleyebileceğini söyledi, Logan en az iki artırım daha istedi; 50bp olasılığı ~%15'e çıktı. Bu ortamda Cuma (13 Kasım) açıklanacak Ekim PPI'ı (yıllık ~%6.6 beklenti, Eylül'de aylık +%1.3) kritik: beklenti üstü bir veri 50bp senaryosunu fiyatlatıp Perşembe açılacak tahvil piyasasında 10Y'yi %5'in üzerine itebilir. Hisseler AI iyimserliğiyle yükselse de piyasa 50bp riskini henüz tam fiyatlamadı; bu, dolar ve reel faiz kanalıyla BTC talebini en çok etkileyebilecek gelişme.",
+  "divergence": "relative weakness",
+  "divergence_note": "BTC, Çarşamba NDX'in ~+%2.3 ve VIX'in ~-%10 olduğu güçlü risk-on seansına katılmadı ve ~$73.6K'da yatay-zayıf kaldı. Dolar ve faizlerin yüksekliği kısmen açıklasa da hisselerle bu ayrışma, ETF çıkışları ve stablecoin daralmasından kaynaklanan kriptoya özgü talep zayıflığına işaret ediyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Nötr",
+  "conclusion": "Neredeyse kesinleşen Fed artırımı, açılan 50bp riski, güçlü dolar ve daralan kripto likiditesi BTC talebini azaltmaya devam ediyor. Hisselerdeki AI kaynaklı toparlanma ve düşük VIX sert bir çöküş riskini sınırlasa da BTC'nin bu rallide geride kalması önümüzdeki 24-72 saat için makro bazlı beklentiyi aşağı yönlü tutuyor. Cuma PPI verisi beklenti üstü gelirse baskı artabilir; zayıf gelirse kısa süreli rahatlama görülebilir.",
+  "bias": "SHORT",
+  "confidence": "Orta",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Negatif\n\nSentiment skoru: -40\n\nSon 24 saatte değişim: Önceki güne göre iyileşti (-45 → -40; hisselerde güçlü AI rallisi ve VIX düşüşü risk iştahını toparladı, ancak Fed şahinliği derinleşti ve BTC rallıye katılmadı; iyileşme sınırlı)\n\nAna sürücüler:\n1. Fed şahinliği derinleşti: Aralık artırım olasılığı ~%99-100, 50bp olasılığı ~%15'e çıktı; Waller 50bp'yi masada tuttu, Logan en az iki artırım istedi, Goolsbee TÜFE'yi 'neredeyse rahatsız edici' buldu.\n2. Faiz ve dolar yüksek: Tahvil piyasası Veterans Day nedeniyle kapalıydı, son kapanış 2Y ~%4.73, 10Y ~%4.98; DXY ~+%0.67 ile ~102.9'a çıktı, reel faizler yüksek kalıyor.\n3. Hisse risk iştahı toparlandı ama BTC katılmadı: NDX ~+%2.3 (CoreWeave bilançosu, AI iyimserliği), SPX ~+%1.3, VIX ~-%10 ile ~17.5; BTC ~$73.6K'da yatay-zayıf.\n4. Kripto likiditesi daralıyor: stablecoin arzı 30 günde -$14.2B ile ~$280B altına indi (2022'den beri en sert düşüş); spot BTC ETF çıkışları sürüyor (IBIT 7 seanstır çıkışta, ~-$1.66B).\n\nGelişmelerin sınıflandırması:\n- Aralık Fed artırımı ~%99-100 fiyatlanıyor, 50bp olasılığı ~%15 — Negatif\n- Waller 50bp'ye açık, Logan en az iki artırım, Paulson kademeli sıkılaşma, Goolsbee TÜFE'yi 'neredeyse rahatsız edici' buldu — Negatif\n- Tahvil piyasası kapalı; son kapanış 2Y ~%4.73, 10Y ~%4.98 (son 19 ayın en sert yükselişi sonrası yüksek seviyede) — Negatif\n- DXY ~+%0.67 ile ~102.9, USD/JPY ~159.8 — Negatif\n- NDX ~+%2.3, SPX ~+%1.3: CoreWeave bilançosu AI endişelerini dağıttı, Apple rekor — Pozitif\n- VIX ~-%10 ile ~17.5'e geriledi — Pozitif\n- Nikkei ~+%1.3 (AI/yarı iletken), BOJ Aralık'ta artırım sinyali veriyor — Nötr\n- Altın ~-%0.7 ile ~$4,000 civarında, yüksek faizle güvenli liman talebi zayıf — Nötr\n- Brent ~+%1.4 ile ~$92.8, haftalık sert düşüş sonrası tepki; Cuma PPI'da yıllık ~%6.6 beklentisi enflasyon riskini canlı tutuyor — Negatif\n- Spot BTC ETF çıkışları sürüyor (IBIT 11 Kasım ~-$270M, 7 seanstır çıkışta), ETH ETF çıkışı 10 Kasım'da ~-$1.3M'a yavaşladı — Negatif\n- Stablecoin arzı 30 günde -$14.2B ile ~$280B altına indi — Negatif\n- BTC hisse rallisine katılmadı, ~$73.2-74.6K bandında ~$73.6K — Negatif\n\nEn önemli yeni gelişme:\nFed'in Aralık artırımı artık neredeyse kesin (~%99-100) ve tartışma artırımın büyüklüğüne kaydı: Waller çekirdek enflasyon %0.3 ve üzerinde kalırsa 50bp'yi destekleyebileceğini söyledi, Logan en az iki artırım daha istedi; 50bp olasılığı ~%15'e çıktı. Bu ortamda Cuma (13 Kasım) açıklanacak Ekim PPI'ı (yıllık ~%6.6 beklenti, Eylül'de aylık +%1.3) kritik: beklenti üstü bir veri 50bp senaryosunu fiyatlatıp Perşembe açılacak tahvil piyasasında 10Y'yi %5'in üzerine itebilir. Hisseler AI iyimserliğiyle yükselse de piyasa 50bp riskini henüz tam fiyatlamadı; bu, dolar ve reel faiz kanalıyla BTC talebini en çok etkileyebilecek gelişme.\n\nMakro uyumsuzluk kontrolü:\nrelative weakness — BTC, Çarşamba NDX'in ~+%2.3 ve VIX'in ~-%10 olduğu güçlü risk-on seansına katılmadı ve ~$73.6K'da yatay-zayıf kaldı. Dolar ve faizlerin yüksekliği kısmen açıklasa da hisselerle bu ayrışma, ETF çıkışları ve stablecoin daralmasından kaynaklanan kriptoya özgü talep zayıflığına işaret ediyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Nötr\n\nBTC için sonuç:\nNeredeyse kesinleşen Fed artırımı, açılan 50bp riski, güçlü dolar ve daralan kripto likiditesi BTC talebini azaltmaya devam ediyor. Hisselerdeki AI kaynaklı toparlanma ve düşük VIX sert bir çöküş riskini sınırlasa da BTC'nin bu rallide geride kalması önümüzdeki 24-72 saat için makro bazlı beklentiyi aşağı yönlü tutuyor. Cuma PPI verisi beklenti üstü gelirse baskı artabilir; zayıf gelirse kısa süreli rahatlama görülebilir.\n\nVarlık güç sıralaması:\n1. NASDAQ — 8.5/10 — NDX CoreWeave bilançosu ve AI iyimserliğiyle ~+%2.3 yükselip 200 günlük ortalamanın üzerine çıktı, haftalık toparlanma güçlü. (24s: +%2.3, 7g: +%5)\n2. SPX — 8/10 — Teknoloji öncülüğünde ~+%1.3 ile ~7,620'ye yükselip 5 Kasım dibinden belirgin toparlandı. (24s: +%1.3, 7g: +%3.6)\n3. DXY — 6.5/10 — Fed artırım beklentileriyle ikinci gün üst üste yükselip ~102.9'a çıktı. (24s: +%0.67, 7g: +%0.9)\n4. BRENT — 4/10 — ~$92.8'e ~+%1.4 tepki verdi ama haftalık sert düşüşünü koruyor. (24s: +%1.4, 7g: -%12)\n5. XAUUSD — 3.5/10 — Yüksek faiz ve güçlü dolarla ~$4,000 civarına geriledi, haftalık bazda yatay. (24s: -%0.7, 7g: +%0.5)\n6. BTC — 3/10 — Hisse rallisine katılmadan ~$73.6K'da yatay-zayıf kaldı, haftalık bazda ekside. (24s: -%0.5, 7g: -%3)\n7. VIX — 2/10 — Hisse rallisiyle ~-%10 düşüp ~17.5'e geriledi, korku belirgin azaldı. (24s: -%10.1, 7g: -%18)\n\nBTC Makro Bias: SHORT — Güven: Orta",
+  "asset_strength": [
+    {
+      "asset": "NASDAQ",
+      "score": 8.5,
+      "reason": "NDX CoreWeave bilançosu ve AI iyimserliğiyle ~+%2.3 yükselip 200 günlük ortalamanın üzerine çıktı, haftalık toparlanma güçlü.",
+      "chg_24h_pct": 2.3,
+      "chg_7d_pct": 5
+    },
+    {
+      "asset": "SPX",
+      "score": 8,
+      "reason": "Teknoloji öncülüğünde ~+%1.3 ile ~7,620'ye yükselip 5 Kasım dibinden belirgin toparlandı.",
+      "chg_24h_pct": 1.3,
+      "chg_7d_pct": 3.6
+    },
+    {
+      "asset": "DXY",
+      "score": 6.5,
+      "reason": "Fed artırım beklentileriyle ikinci gün üst üste yükselip ~102.9'a çıktı.",
+      "chg_24h_pct": 0.67,
+      "chg_7d_pct": 0.9
+    },
+    {
+      "asset": "BRENT",
+      "score": 4,
+      "reason": "~$92.8'e ~+%1.4 tepki verdi ama haftalık sert düşüşünü koruyor.",
+      "chg_24h_pct": 1.4,
+      "chg_7d_pct": -12
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 3.5,
+      "reason": "Yüksek faiz ve güçlü dolarla ~$4,000 civarına geriledi, haftalık bazda yatay.",
+      "chg_24h_pct": -0.7,
+      "chg_7d_pct": 0.5
+    },
+    {
+      "asset": "BTC",
+      "score": 3,
+      "reason": "Hisse rallisine katılmadan ~$73.6K'da yatay-zayıf kaldı, haftalık bazda ekside.",
+      "chg_24h_pct": -0.5,
+      "chg_7d_pct": -3
+    },
+    {
+      "asset": "VIX",
+      "score": 2,
+      "reason": "Hisse rallisiyle ~-%10 düşüp ~17.5'e geriledi, korku belirgin azaldı.",
+      "chg_24h_pct": -10.1,
+      "chg_7d_pct": -18
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
