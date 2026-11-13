@@ -1,0 +1,121 @@
+{
+  "run_date": "2026-11-13",
+  "generated_at": "2026-11-13T06:10:18Z",
+  "net_direction": "Negatif",
+  "sentiment_score": -55,
+  "change_24h": "kötüleşti",
+  "drivers": [
+    "Faiz şoku: Tahvil piyasası açılınca 10Y ~%5.10-5.14'e (üç haftanın zirvesi), 30Y ~%5.43'e çıktı; 2Y ~%4.8-4.9 bandına yükseldi. Reel faizler yüksek ve yükseliyor.",
+    "Fed sıkılaşması: Aralık artırımı ~%85-100 fiyatlanıyor, 50bp olasılığı ~%10-15; Waller 50bp'yi masada tutuyor. Bugünkü Ekim PPI'ı (yıllık ~%6.6 beklenti) kritik.",
+    "Güçlü dolar: DXY ~+%0.3 ile ~103.2'ye çıkarak 19 ayın zirvesini gördü; dolar tüm majörlere karşı güçlendi.",
+    "Kripto likidite çekilmesi: Spot BTC ETF'lerinde çıkış serisi sürüyor (5 seansta ~-$1.44B, 11 Kasım ~-$300M), stablecoin arzı 30 günde ~-$14.2B; BTC $70K altına inip ~$1.2B likidasyon yaşandı."
+  ],
+  "developments": [
+    {
+      "item": "10Y ~%5.1+, 30Y ~%5.43",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Aralık Fed artırımı ~%85-100, 50bp ~%10-15; Waller/Goolsbee şahin",
+      "impact": "Negatif"
+    },
+    {
+      "item": "DXY ~103.2, 19 ayın zirvesi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Nvidia CEO'su Jensen Huang istifa etti; NVDA -%4.3, NDX -%0.3, SPX -%0.35, Russell 2000 -%1.7",
+      "impact": "Negatif"
+    },
+    {
+      "item": "VIX ~17.6-18.7, sınırlı yükseliş",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Altın ~-%3 ile ~$3,870, bir yılın dibi; güvenli liman talebi yerine faiz baskısı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Brent ~+%3.3 ile ~$95.8, Orta Doğu gerginliği; enerji kaynaklı enflasyon riski",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Asya karışık: Nikkei ~+%0.9-1.4, Hang Seng ~-%0.9, Kospi geri döndü",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Spot BTC ETF çıkışları sürüyor (IBIT önderliğinde), ETH ETF'lerinde de çıkış",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Stablecoin arzı 30 günde ~-$14.2B",
+      "impact": "Negatif"
+    },
+    {
+      "item": "BTC $68.5-69K'ya kadar düştü (12 haftanın dibi), ~$1.2B likidasyon, çoğu long",
+      "impact": "Negatif"
+    }
+  ],
+  "key_development": "Veterans Day sonrası açılan tahvil piyasasında 10Y faizin %5.1'in üzerine, 30Y'nin %5.43'e çıkması ve buna eşlik eden 19 aylık dolar zirvesi, son 24 saatin belirleyici gelişmesi oldu; aynı gün Nvidia CEO'su Jensen Huang'ın istifası AI/teknoloji sentimentini sarstı. Bu kombinasyon kaldıraçlı kripto pozisyonlarını tasfiye ederek BTC'yi $70K'nın altına itti. Bugün açıklanacak Ekim PPI'ı henüz fiyatlanmamış en büyük risk: beklenti üstü gelirse 50bp Aralık artırımı senaryosu güçlenip 10Y'yi daha yukarı taşıyabilir; zayıf gelirse aşırı satılmış piyasada kısa bir rahatlama tetiklenebilir.",
+  "divergence": "relative weakness",
+  "divergence_note": "Makro kötüleşti ve BTC de düştü; yön uyumlu ama tepki orantısız. Hisseler (NDX -%0.3, SPX -%0.35) gün içi kayıplarını büyük ölçüde geri alırken BTC ~-%6 düştü ve 12 haftanın dibine indi. Bu, hisselere göre belirgin \"relative weakness\" — BTC makro şoku en yüksek beta ile fiyatlıyor ve ETF/stablecoin çıkışları kırılganlığı artırıyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Temkinli risk-off",
+  "conclusion": "Yükselen uzun vadeli faizler, güçlü dolar, kesinleşen Fed artırımı ve süren ETF/stablecoin çıkışları önümüzdeki 24-72 saatte BTC talebini baskılamaya devam ediyor. Likidasyon sonrası aşırı satım kısa süreli tepki yaratabilir ama makro zemin tepkilerin satışla karşılanmasını destekliyor. Beklenti üstü PPI aşağı yönlü baskıyı artırır; zayıf PPI ise yalnızca geçici rahatlama sağlar.",
+  "bias": "SHORT",
+  "confidence": "Orta",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Negatif\n\nSentiment skoru: -55\n\nSon 24 saatte değişim: Önceki güne göre kötüleşti\n\nAna sürücüler:\n- Faiz şoku: Tahvil piyasası açılınca 10Y ~%5.10-5.14'e (üç haftanın zirvesi), 30Y ~%5.43'e çıktı; 2Y ~%4.8-4.9 bandına yükseldi. Reel faizler yüksek ve yükseliyor.\n- Fed sıkılaşması: Aralık artırımı ~%85-100 fiyatlanıyor, 50bp olasılığı ~%10-15; Waller 50bp'yi masada tutuyor. Bugünkü Ekim PPI'ı (yıllık ~%6.6 beklenti) kritik.\n- Güçlü dolar: DXY ~+%0.3 ile ~103.2'ye çıkarak 19 ayın zirvesini gördü; dolar tüm majörlere karşı güçlendi.\n- Kripto likidite çekilmesi: Spot BTC ETF'lerinde çıkış serisi sürüyor (5 seansta ~-$1.44B, 11 Kasım ~-$300M), stablecoin arzı 30 günde ~-$14.2B; BTC $70K altına inip ~$1.2B likidasyon yaşandı.\n\nGelişmeler:\n- 10Y ~%5.1+, 30Y ~%5.43 — Negatif\n- Aralık Fed artırımı ~%85-100, 50bp ~%10-15; Waller/Goolsbee şahin — Negatif\n- DXY ~103.2, 19 ayın zirvesi — Negatif\n- Nvidia CEO'su Jensen Huang istifa etti; NVDA -%4.3, NDX -%0.3, SPX -%0.35, Russell 2000 -%1.7 — Negatif\n- VIX ~17.6-18.7, sınırlı yükseliş — Nötr\n- Altın ~-%3 ile ~$3,870, bir yılın dibi; güvenli liman talebi yerine faiz baskısı — Negatif\n- Brent ~+%3.3 ile ~$95.8, Orta Doğu gerginliği; enerji kaynaklı enflasyon riski — Negatif\n- Asya karışık: Nikkei ~+%0.9-1.4, Hang Seng ~-%0.9, Kospi geri döndü — Nötr\n- Spot BTC ETF çıkışları sürüyor (IBIT önderliğinde), ETH ETF'lerinde de çıkış — Negatif\n- Stablecoin arzı 30 günde ~-$14.2B — Negatif\n- BTC $68.5-69K'ya kadar düştü (12 haftanın dibi), ~$1.2B likidasyon, çoğu long — Negatif\n\nEn önemli yeni gelişme:\nVeterans Day sonrası açılan tahvil piyasasında 10Y faizin %5.1'in üzerine, 30Y'nin %5.43'e çıkması ve buna eşlik eden 19 aylık dolar zirvesi, son 24 saatin belirleyici gelişmesi oldu; aynı gün Nvidia CEO'su Jensen Huang'ın istifası AI/teknoloji sentimentini sarstı. Bu kombinasyon kaldıraçlı kripto pozisyonlarını tasfiye ederek BTC'yi $70K'nın altına itti. Bugün açıklanacak Ekim PPI'ı henüz fiyatlanmamış en büyük risk: beklenti üstü gelirse 50bp Aralık artırımı senaryosu güçlenip 10Y'yi daha yukarı taşıyabilir; zayıf gelirse aşırı satılmış piyasada kısa bir rahatlama tetiklenebilir.\n\nMakro uyumsuzluk kontrolü:\nMakro kötüleşti ve BTC de düştü; yön uyumlu ama tepki orantısız. Hisseler (NDX -%0.3, SPX -%0.35) gün içi kayıplarını büyük ölçüde geri alırken BTC ~-%6 düştü ve 12 haftanın dibine indi. Bu, hisselere göre belirgin \"relative weakness\" — BTC makro şoku en yüksek beta ile fiyatlıyor ve ETF/stablecoin çıkışları kırılganlığı artırıyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Temkinli risk-off\n\nBTC için sonuç:\nYükselen uzun vadeli faizler, güçlü dolar, kesinleşen Fed artırımı ve süren ETF/stablecoin çıkışları önümüzdeki 24-72 saatte BTC talebini baskılamaya devam ediyor. Likidasyon sonrası aşırı satım kısa süreli tepki yaratabilir ama makro zemin tepkilerin satışla karşılanmasını destekliyor. Beklenti üstü PPI aşağı yönlü baskıyı artırır; zayıf PPI ise yalnızca geçici rahatlama sağlar.\n\nVarlık güç sıralaması:\n1. DXY — 7/10 — Fed artırım beklentileri ve yükselen faizlerle ~103.2'ye çıkıp 19 ayın zirvesini gördü, haftalık eğilim istikrarlı yukarı. (24s: +%0.27, 7g: +%1.2)\n2. BRENT — 6.5/10 — Orta Doğu gerginliğiyle ~$95.8'e sert yükseldi ama haftalık bazda hâlâ ekside. (24s: +%3.3, 7g: -%8)\n3. NASDAQ — 5/10 — Huang istifasıyla sert açılışın ardından kayıpları büyük ölçüde geri aldı, haftalık kazanç korunuyor. (24s: -%0.3, 7g: +%4)\n4. SPX — 5/10 — Erken ~%1'lik düşüşü silerek hafif ekside kapandı, haftalık toparlanma sürüyor. (24s: -%0.35, 7g: +%3)\n5. VIX — 5/10 — Hisse oynaklığına rağmen ~17.6 civarında yatay kaldı, korku belirgin artmadı. (24s: +%0.6, 7g: -%15)\n6. XAUUSD — 2/10 — Güçlü dolar ve yüksek reel faizle ~%3 çöküp ~$3,870 ile bir yılın dibine indi. (24s: -%3.0, 7g: -%3.5)\n7. BTC — 1.5/10 — $70K altına inip 12 haftanın dibini gördü, ~$1.2B likidasyonla en zayıf varlık. (24s: -%6.0, 7g: -%10)\n\nBTC Makro Bias: SHORT — Güven: Orta",
+  "asset_strength": [
+    {
+      "asset": "DXY",
+      "score": 7,
+      "reason": "Fed artırım beklentileri ve yükselen faizlerle ~103.2'ye çıkıp 19 ayın zirvesini gördü, haftalık eğilim istikrarlı yukarı.",
+      "chg_24h_pct": 0.27,
+      "chg_7d_pct": 1.2
+    },
+    {
+      "asset": "BRENT",
+      "score": 6.5,
+      "reason": "Orta Doğu gerginliğiyle ~$95.8'e sert yükseldi ama haftalık bazda hâlâ ekside.",
+      "chg_24h_pct": 3.3,
+      "chg_7d_pct": -8
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 5,
+      "reason": "Huang istifasıyla sert açılışın ardından kayıpları büyük ölçüde geri aldı, haftalık kazanç korunuyor.",
+      "chg_24h_pct": -0.3,
+      "chg_7d_pct": 4
+    },
+    {
+      "asset": "SPX",
+      "score": 5,
+      "reason": "Erken ~%1'lik düşüşü silerek hafif ekside kapandı, haftalık toparlanma sürüyor.",
+      "chg_24h_pct": -0.35,
+      "chg_7d_pct": 3
+    },
+    {
+      "asset": "VIX",
+      "score": 5,
+      "reason": "Hisse oynaklığına rağmen ~17.6 civarında yatay kaldı, korku belirgin artmadı.",
+      "chg_24h_pct": 0.6,
+      "chg_7d_pct": -15
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 2,
+      "reason": "Güçlü dolar ve yüksek reel faizle ~%3 çöküp ~$3,870 ile bir yılın dibine indi.",
+      "chg_24h_pct": -3,
+      "chg_7d_pct": -3.5
+    },
+    {
+      "asset": "BTC",
+      "score": 1.5,
+      "reason": "$70K altına inip 12 haftanın dibini gördü, ~$1.2B likidasyonla en zayıf varlık.",
+      "chg_24h_pct": -6,
+      "chg_7d_pct": -10
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
