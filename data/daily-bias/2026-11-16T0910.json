@@ -1,0 +1,125 @@
+{
+  "run_date": "2026-11-16",
+  "generated_at": "2026-11-16T06:10:43Z",
+  "net_direction": "Negatif",
+  "sentiment_score": -58,
+  "change_24h": "kötüleşti",
+  "drivers": [
+    "Faiz baskısı: 10Y ~%5.14 ile 5 seansta +29bp, 2Y 3,5 yılın en sert iki günlük yükselişini gördü; reel faizler yüksek ve yükseliyor.",
+    "Fed sıkılaşması: 8-9 Aralık'ta 25bp artırım ~%89-100 fiyatlanıyor, 50bp olasılığı ~%13-15; Warsh bugün konuşuyor.",
+    "Güçlü dolar: DXY ~103.4 ile 19 ayın zirvesi civarında, Eylül'den beri en iyi haftası (5 seansta ~+%1.1).",
+    "Kripto likidite çekilmesi: Spot BTC ETF'lerinde 7 seanslık çıkış (~-$1.91B), stablecoin arzı 30 günde ~-$14.2B; BTC hafta sonu ~$62K ile Temmuz'dan beri dibi gördü."
+  ],
+  "developments": [
+    {
+      "item": "10Y ~%5.14, haftalık +29bp; 2Y sert yükseliş",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Aralık Fed artırımı neredeyse kesin, 50bp ~%13-15; şahin Fed konuşmacıları",
+      "impact": "Negatif"
+    },
+    {
+      "item": "DXY ~103.4, 19 ayın zirvesi civarında",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Ekim PPI aylık %0.3 (beklenti %0.4), yıllık %6.5",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Cuma Nasdaq -%0.91, SPX -%0.4 (Nvidia liderlik değişimi); VIX +%3.2 ile 19.3",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Pazartesi Asya risk-off: MSCI Asya (Japonya hariç) -%1.9, Tayvan -%4.7, Kore -%3; Japonya/Çin'den zayıf veriler; ABD vadelileri ekside",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Nvidia bilançosu ve FOMC tutanakları bu hafta",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Altın ~$3,873, haftalık ~-%4.5",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Brent ~$95, ikinci haftalık düşüş",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Spot BTC ETF çıkışları 7 seanstır sürüyor, ikinci haftada da -$1B+",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Stablecoin arzı ~-$14.2B (2022'den beri en büyük daralma)",
+      "impact": "Negatif"
+    },
+    {
+      "item": "BTC hafta sonu ~$62K'ya indi, ~$65K'ya toparlandı; Fear & Greed 10",
+      "impact": "Negatif"
+    }
+  ],
+  "key_development": "Son saatlerin en önemli gelişmesi, Pazartesi Asya seansında Nvidia bilançosu öncesi çip hisselerinde başlayan sert satış (Tayvan -%4.7, Kore -%3) ve buna eklenen Japonya/Çin'den zayıf büyüme verileri oldu; ABD vadelileri de eksiye döndü. %5.1'in üzerindeki 10Y ve 19 aylık dolar zirvesiyle birleşen bu risk-off dalgası, hafta sonu $62K'ya kadar düşen BTC'nin tepkisini sınırlıyor. Bugün Warsh'ın konuşması henüz fiyatlanmamış en yakın katalizör: 50bp Aralık senaryosuna kapı aralayan şahin bir ton faizleri ve doları daha yukarı itip BTC'de yeni dip testini tetikleyebilir; ölçülü bir ton ise aşırı korku (F&G 10) ortamında kısa bir rahatlama yaratabilir.",
+  "divergence": "relative weakness",
+  "divergence_note": "Makro kötüleşti ve BTC de düştü; yön uyumlu ama tepki orantısız. SPX haftayı hafif artıda (~+%1.2) kapatırken BTC 7 günde ~-%13.5 düştü ve Temmuz'dan beri dibi gördü. Hafta sonu sonrası BTC'nin ~$65K'ya toparlanması sınırlı bir dengelenme, ancak hisselere göre belirgin \"relative weakness\" sürüyor; ETF ve stablecoin çıkışları BTC'yi makro şoku en yüksek beta ile fiyatlamaya itiyor.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Temkinli risk-off",
+  "conclusion": "%5'in üzerindeki uzun vadeli faizler, 19 aylık dolar zirvesi, kesinleşen Aralık artırımı ve süren ETF/stablecoin çıkışları önümüzdeki 24-72 saatte BTC talebini baskılamaya devam ediyor. Aşırı korku ve hafta sonu tasfiyesi kısa süreli tepki alımlarına zemin hazırlayabilir, ancak makro zemin tepkilerin satışla karşılanmasını destekliyor. Warsh'ın tonu, FOMC tutanakları ve Nvidia bilançosu haftanın yön belirleyicileri; şahin sürpriz $60K bölgesinin test edilmesi riskini artırır.",
+  "bias": "SHORT",
+  "confidence": "Orta",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Negatif\n\nSentiment skoru: -58\n\nSon 24 saatte değişim: Önceki güne göre kötüleşti\n\nAna sürücüler:\n- Faiz baskısı: 10Y ~%5.14 ile 5 seansta +29bp (Nisan 2025'ten beri en büyük haftalık artış), 2Y 3,5 yılın en sert iki günlük yükselişini gördü; reel faizler yüksek ve yükseliyor.\n- Fed sıkılaşması: 8-9 Aralık'ta 25bp artırım ~%89-100 fiyatlanıyor, 50bp olasılığı ~%13-15; Fed konuşmacıları sıkılaşma yönünde hizalandı, Warsh bugün konuşuyor.\n- Güçlü dolar: DXY ~103.4 ile 19 ayın zirvesi civarında, Eylül'den beri en iyi haftasını kapattı (5 seansta ~+%1.1).\n- Kripto likidite çekilmesi: Spot BTC ETF'lerinde 7 seanslık çıkış serisi (~-$1.91B; 13 Kasım -$185M, Kasım toplamı ~-$2.35B), stablecoin arzı 30 günde ~-$14.2B; BTC hafta sonu ~$62K ile Temmuz'dan beri dibi gördü.\n\nGelişmeler:\n- 10Y ~%5.14, haftalık +29bp; 2Y sert yükseliş — Negatif\n- Aralık Fed artırımı neredeyse kesin, 50bp ~%13-15; şahin Fed konuşmacıları — Negatif\n- DXY ~103.4, 19 ayın zirvesi civarında — Negatif\n- Ekim PPI aylık %0.3 (beklenti %0.4), yıllık %6.5 (Kasım 2022'den beri en yüksek) — Nötr\n- Cuma Nasdaq -%0.91, SPX -%0.4 (Nvidia liderlik değişimi); VIX +%3.2 ile 19.3 — Negatif\n- Pazartesi Asya risk-off: MSCI Asya (Japonya hariç) -%1.9, Tayvan -%4.7, Kore -%3, Nikkei geriledi; Japonya ekonomisinin beklenmedik daralması ve Çin'den zayıf veriler; ABD vadelileri ekside — Negatif\n- Nvidia bilançosu ve FOMC tutanakları bu hafta — Nötr\n- Altın ~$3,873'e geriledi, haftalık ~-%4.5; Goldman 2027 hedefini düşürdü — Negatif\n- Brent ~$95 civarında, ikinci haftalık düşüş; enerji kaynaklı enflasyon riski yüksek seviyede sürüyor — Nötr\n- Spot BTC ETF çıkışları 7 seanstır sürüyor, ikinci haftada da -$1B+ — Negatif\n- Stablecoin arzı ~-$14.2B (2022'den beri en büyük daralma) — Negatif\n- BTC hafta sonu ~$62K'ya indi, ~$65K'ya toparlandı; Fear & Greed 10 (aşırı korku) — Negatif\n\nEn önemli yeni gelişme:\nSon saatlerin en önemli gelişmesi, Pazartesi Asya seansında Nvidia bilançosu öncesi çip hisselerinde başlayan sert satış (Tayvan -%4.7, Kore -%3) ve buna eklenen Japonya/Çin'den zayıf büyüme verileri oldu; ABD vadelileri de eksiye döndü. %5.1'in üzerindeki 10Y ve 19 aylık dolar zirvesiyle birleşen bu risk-off dalgası, hafta sonu $62K'ya kadar düşen BTC'nin tepkisini sınırlıyor. Bugün Warsh'ın konuşması henüz fiyatlanmamış en yakın katalizör: 50bp Aralık senaryosuna kapı aralayan şahin bir ton faizleri ve doları daha yukarı itip BTC'de yeni dip testini tetikleyebilir; ölçülü bir ton ise aşırı korku (F&G 10) ortamında kısa bir rahatlama yaratabilir.\n\nMakro uyumsuzluk kontrolü:\nMakro kötüleşti ve BTC de düştü; yön uyumlu ama tepki orantısız. SPX haftayı hafif artıda (~+%1.2) kapatırken BTC 7 günde ~-%13.5 düştü ve Temmuz'dan beri dibi gördü. Hafta sonu sonrası BTC'nin ~$65K'ya toparlanması sınırlı bir dengelenme, ancak hisselere göre belirgin \"relative weakness\" sürüyor; ETF ve stablecoin çıkışları BTC'yi makro şoku en yüksek beta ile fiyatlamaya itiyor.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Temkinli risk-off\n\nBTC için sonuç:\n%5'in üzerindeki uzun vadeli faizler, 19 aylık dolar zirvesi, kesinleşen Aralık artırımı ve süren ETF/stablecoin çıkışları önümüzdeki 24-72 saatte BTC talebini baskılamaya devam ediyor. Aşırı korku ve hafta sonu tasfiyesi kısa süreli tepki alımlarına zemin hazırlayabilir, ancak makro zemin tepkilerin satışla karşılanmasını destekliyor. Warsh'ın tonu, FOMC tutanakları ve Nvidia bilançosu haftanın yön belirleyicileri; şahin sürpriz $60K bölgesinin test edilmesi riskini artırır.\n\nVarlık güç sıralaması:\n1. DXY — 7/10 — Fed artırım beklentileri ve yükselen faizlerle ~103.4'te 19 ayın zirvesi civarında, Eylül'den beri en iyi haftasını kapattı. (24s: +%0.2, 7g: +%1.1)\n2. VIX — 5.5/10 — Cuma %3.2 yükselerek 19.3'e çıktı, Asya'daki çip satışıyla korku hafifçe artıyor. (24s: +%3.2, 7g: -%4)\n3. SPX — 5/10 — Cuma -%0.4 ile ~7,562'ye geriledi ama haftayı hafif artıda kapattı. (24s: -%0.4, 7g: +%1.2)\n4. NASDAQ — 4.5/10 — Nvidia liderlik krizi ve yükselen faizlerle Cuma ~%0.9 düştü, haftalık kazancın çoğu silindi. (24s: -%0.9, 7g: +%1.5)\n5. BRENT — 4.5/10 — ~$95 civarında yatay-hafif ekside, ikinci haftalık düşüşü kaydediyor. (24s: -%0.8, 7g: -%1.5)\n6. XAUUSD — 3/10 — Güçlü dolar ve yüksek reel faizle ~$3,873'e geriledi, haftalık ~%4.5 kayıp. (24s: -%0.4, 7g: -%4.5)\n7. BTC — 2/10 — Hafta sonu ~$62K ile Temmuz'dan beri dibi gördü, ~$65K'ya toparlansa da 7 günde en zayıf varlık. (24s: +%0.2, 7g: -%13.5)\n\nBTC Makro Bias: SHORT — Güven: Orta",
+  "asset_strength": [
+    {
+      "asset": "DXY",
+      "score": 7,
+      "reason": "Fed artırım beklentileri ve yükselen faizlerle ~103.4'te 19 ayın zirvesi civarında, Eylül'den beri en iyi haftasını kapattı.",
+      "chg_24h_pct": 0.2,
+      "chg_7d_pct": 1.1
+    },
+    {
+      "asset": "VIX",
+      "score": 5.5,
+      "reason": "Cuma %3.2 yükselerek 19.3'e çıktı, Asya'daki çip satışıyla korku hafifçe artıyor.",
+      "chg_24h_pct": 3.2,
+      "chg_7d_pct": -4
+    },
+    {
+      "asset": "SPX",
+      "score": 5,
+      "reason": "Cuma -%0.4 ile ~7,562'ye geriledi ama haftayı hafif artıda kapattı.",
+      "chg_24h_pct": -0.4,
+      "chg_7d_pct": 1.2
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 4.5,
+      "reason": "Nvidia liderlik krizi ve yükselen faizlerle Cuma ~%0.9 düştü, haftalık kazancın çoğu silindi.",
+      "chg_24h_pct": -0.9,
+      "chg_7d_pct": 1.5
+    },
+    {
+      "asset": "BRENT",
+      "score": 4.5,
+      "reason": "~$95 civarında yatay-hafif ekside, ikinci haftalık düşüşü kaydediyor.",
+      "chg_24h_pct": -0.8,
+      "chg_7d_pct": -1.5
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 3,
+      "reason": "Güçlü dolar ve yüksek reel faizle ~$3,873'e geriledi, haftalık ~%4.5 kayıp.",
+      "chg_24h_pct": -0.4,
+      "chg_7d_pct": -4.5
+    },
+    {
+      "asset": "BTC",
+      "score": 2,
+      "reason": "Hafta sonu ~$62K ile Temmuz'dan beri dibi gördü, ~$65K'ya toparlansa da 7 günde en zayıf varlık.",
+      "chg_24h_pct": 0.2,
+      "chg_7d_pct": -13.5
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
