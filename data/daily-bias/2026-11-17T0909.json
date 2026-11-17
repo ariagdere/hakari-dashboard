@@ -1,0 +1,129 @@
+{
+  "run_date": "2026-11-17",
+  "generated_at": "2026-11-17T06:09:34Z",
+  "net_direction": "Negatif",
+  "sentiment_score": -60,
+  "change_24h": "kötüleşti",
+  "drivers": [
+    "Teknoloji kaynaklı risk-off: Pazartesi NDX -%2.7, SPX -%1.9 (7,416.6); VIX ~%23 sıçrayarak ~23.7'ye çıktı; Salı Asya geniş çapta ekside (Nikkei -%1, Kospi -%1.1, Hang Seng -%1, ASX -%1.5).",
+    "Fed sıkılaşması: 9 Aralık'ta 25bp artırım ~%91-95 fiyatlanıyor, 50bp seçeneği masada; Waller bugün tekrar konuşuyor.",
+    "Yüksek faiz/güçlü dolar: 10Y ~%5.12 (günlük -4bp ama 5% üstünde), 2Y ~%4.82; reel faizler yüksek; DXY ~103.5 ile Nisan 2025'ten beri zirvede.",
+    "Kripto likidite çekilmesi: Spot BTC ETF'lerinde iki haftada ~-$2.35B çıkış, stablecoin arzı haftalık ~-%1.4 (~$285B); Fear & Greed 12."
+  ],
+  "developments": [
+    {
+      "item": "Pazartesi NDX -%2.7, Nasdaq Composite -%2.5, SPX -%1.9; AI harcama endişesi ve Çin'e çip uzaktan erişim kısıtı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "VIX ~%23 yükselişle ~23.7",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Salı Asya risk-off: Nikkei -%1, Kospi -%1.1, Hang Seng -%1, Shanghai -%0.8, ASX -%1.5",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Aralık 25bp artırım ~%91-95, 50bp tartışılıyor; Waller bugün konuşuyor",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Warsh konuşması verimlilik/işgücüne odaklandı, faiz yönlendirmesi vermedi",
+      "impact": "Nötr"
+    },
+    {
+      "item": "10Y ~%5.12 (-4bp), 2Y ~%4.82; hafif geri çekilme ama seviye yüksek",
+      "impact": "Nötr"
+    },
+    {
+      "item": "DXY ~103.5, Nisan 2025'ten beri zirve",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Altın ~$3,852, Ekim 2025'ten beri dip",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Brent ~$92.4 ile sert düşüş, enerji enflasyonu riski hafifliyor",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Spot BTC ETF'lerinde iki haftada ~-$2.35B çıkış, üçüncü haftalık çıkış",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Stablecoin arzı haftalık ~-%1.4 (~$285B)",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Nvidia bilançosu bugün kapanış sonrası; Anthropic halka arzı 18 Kasım",
+      "impact": "Nötr"
+    },
+    {
+      "item": "BTC hisse satışına rağmen $64-65K'da tutundu; Fear & Greed 12",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "Son saatlerin belirleyici gelişmesi, Nvidia bilançosu (bugün ABD kapanışı sonrası) öncesinde yapay zeka harcaması endişeleri ve Çin'e gelişmiş çiplere uzaktan erişimi sınırlayan yeni ABD kuralıyla derinleşen teknoloji satışının Salı Asya seansına yayılması oldu (SoftBank -%6.2, Advantest -%4.3). VIX'in 23 üstüne çıkması risk iştahının hızla daraldığını gösteriyor; Nvidia sonucu ve bugünkü Waller konuşması (50bp ihtimali) önümüzdeki 24-48 saatte BTC için en büyük oynaklık kaynağı. Yarın beklenen Anthropic halka arzı da teknoloji likiditesini çekebilecek ek bir olay.",
+  "divergence": "relative strength",
+  "divergence_note": "relative strength (zayıf): Nasdaq -%2.7 düşüp VIX ~%23 sıçrarken BTC 24 saatte yalnızca ~-%0.7 ile $64-65K bandında tutundu; ancak bu dayanıklılık önceki haftanın ~-%13.6'lık sert düşüşünün ardından geliyor ve ETF çıkışları sürdüğü için henüz talep dönüşü sinyali değil.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Risk-off",
+  "conclusion": "Fed artırım fiyatlaması, %5 üstü 10Y, güçlü dolar ve süren ETF/stablecoin çıkışları BTC talebini azaltmaya devam ediyor. Önümüzdeki 24-72 saatte makro yön aşağı yönlü; Nvidia sonrası hisselerde rahatlama ve faizlerde geri çekilme kısa süreli toparlanma sağlayabilir, ancak şahin bir Waller ya da zayıf Nvidia tepkisi $62K bölgesinin yeniden test edilmesine yol açabilir.",
+  "bias": "SHORT",
+  "confidence": "Orta",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Negatif\n\nSentiment skoru: -60\n\nSon 24 saatte değişim: kötüleşti\n\nAna sürücüler:\n- Teknoloji kaynaklı risk-off: Pazartesi NDX -%2.7, SPX -%1.9 (7,416.6); VIX ~%23 sıçrayarak ~23.7'ye çıktı; Salı Asya geniş çapta ekside (Nikkei -%1, Kospi -%1.1, Hang Seng -%1, ASX -%1.5).\n- Fed sıkılaşması: 9 Aralık'ta 25bp artırım ~%91-95 fiyatlanıyor, 50bp seçeneği masada; Waller bugün tekrar konuşuyor.\n- Yüksek faiz/güçlü dolar: 10Y ~%5.12 (günlük -4bp ama 5% üstünde), 2Y ~%4.82; reel faizler yüksek; DXY ~103.5 ile Nisan 2025'ten beri zirvede.\n- Kripto likidite çekilmesi: Spot BTC ETF'lerinde iki haftada ~-$2.35B çıkış, stablecoin arzı haftalık ~-%1.4 (~$285B); Fear & Greed 12.\n\nEn önemli yeni gelişme:\nSon saatlerin belirleyici gelişmesi, Nvidia bilançosu (bugün ABD kapanışı sonrası) öncesinde yapay zeka harcaması endişeleri ve Çin'e gelişmiş çiplere uzaktan erişimi sınırlayan yeni ABD kuralıyla derinleşen teknoloji satışının Salı Asya seansına yayılması oldu (SoftBank -%6.2, Advantest -%4.3). VIX'in 23 üstüne çıkması risk iştahının hızla daraldığını gösteriyor; Nvidia sonucu ve bugünkü Waller konuşması (50bp ihtimali) önümüzdeki 24-48 saatte BTC için en büyük oynaklık kaynağı. Yarın beklenen Anthropic halka arzı da teknoloji likiditesini çekebilecek ek bir olay.\n\nMakro uyumsuzluk kontrolü:\nrelative strength (zayıf): Nasdaq -%2.7 düşüp VIX ~%23 sıçrarken BTC 24 saatte yalnızca ~-%0.7 ile $64-65K bandında tutundu; ancak bu dayanıklılık önceki haftanın ~-%13.6'lık sert düşüşünün ardından geliyor ve ETF çıkışları sürdüğü için henüz talep dönüşü sinyali değil.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Risk-off\n\nBTC için sonuç:\nFed artırım fiyatlaması, %5 üstü 10Y, güçlü dolar ve süren ETF/stablecoin çıkışları BTC talebini azaltmaya devam ediyor. Önümüzdeki 24-72 saatte makro yön aşağı yönlü; Nvidia sonrası hisselerde rahatlama ve faizlerde geri çekilme kısa süreli toparlanma sağlayabilir, ancak şahin bir Waller ya da zayıf Nvidia tepkisi $62K bölgesinin yeniden test edilmesine yol açabilir.\n\nVarlık güç sıralaması:\n1. VIX — 8.5/10 — Teknoloji satışıyla ~%23 sıçrayıp ~23.7'ye çıktı, korku belirgin arttı. (24s: +%23, 7g: +%19)\n2. DXY — 7/10 — Artırım beklentileriyle ~103.5'e yükselip Nisan 2025'ten beri zirveyi gördü, haftalık eğilim yukarı. (24s: +%0.2, 7g: +%1.5)\n3. BRENT — 3.5/10 — Pazartesi ~$92.4'e sert geriledi, haftayı yatay-ekside götürüyor. (24s: -%3.4, 7g: -%0.5)\n4. XAUUSD — 3/10 — Güçlü dolar ve yüksek reel faizle ~$3,852'ye inip Ekim 2025'ten beri dibi test etti. (24s: -%0.9, 7g: -%6.3)\n5. SPX — 3/10 — Teknoloji öncülüğünde -%1.9 ile 7,416.6'ya düştü, haftalık kazancı sildi. (24s: -%1.9, 7g: -%1.8)\n6. BTC — 2.5/10 — Hisse çöküşünde $64-65K'da tutunsa da haftalık bazda en sert düşüşü yaşayan varlık. (24s: -%0.7, 7g: -%13.6)\n7. NASDAQ — 2/10 — Nvidia bilançosu ve Çin çip kuralı öncesi NDX -%2.7 ile çöktü, haftalık eğilim aşağı döndü. (24s: -%2.7, 7g: -%4.5)\n\nBTC Makro Bias: SHORT\nGüven seviyesi: Orta",
+  "asset_strength": [
+    {
+      "asset": "VIX",
+      "score": 8.5,
+      "reason": "Teknoloji satışıyla ~%23 sıçrayıp ~23.7'ye çıktı, korku belirgin arttı.",
+      "chg_24h_pct": 23,
+      "chg_7d_pct": 19
+    },
+    {
+      "asset": "DXY",
+      "score": 7,
+      "reason": "Artırım beklentileriyle ~103.5'e yükselip Nisan 2025'ten beri zirveyi gördü, haftalık eğilim yukarı.",
+      "chg_24h_pct": 0.2,
+      "chg_7d_pct": 1.5
+    },
+    {
+      "asset": "BRENT",
+      "score": 3.5,
+      "reason": "Pazartesi ~$92.4'e sert geriledi, haftayı yatay-ekside götürüyor.",
+      "chg_24h_pct": -3.4,
+      "chg_7d_pct": -0.5
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 3,
+      "reason": "Güçlü dolar ve yüksek reel faizle ~$3,852'ye inip Ekim 2025'ten beri dibi test etti.",
+      "chg_24h_pct": -0.9,
+      "chg_7d_pct": -6.3
+    },
+    {
+      "asset": "SPX",
+      "score": 3,
+      "reason": "Teknoloji öncülüğünde -%1.9 ile 7,416.6'ya düştü, haftalık kazancı sildi.",
+      "chg_24h_pct": -1.9,
+      "chg_7d_pct": -1.8
+    },
+    {
+      "asset": "BTC",
+      "score": 2.5,
+      "reason": "Hisse çöküşünde $64-65K'da tutunsa da haftalık bazda en sert düşüşü yaşayan varlık.",
+      "chg_24h_pct": -0.7,
+      "chg_7d_pct": -13.6
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 2,
+      "reason": "Nvidia bilançosu ve Çin çip kuralı öncesi NDX -%2.7 ile çöktü, haftalık eğilim aşağı döndü.",
+      "chg_24h_pct": -2.7,
+      "chg_7d_pct": -4.5
+    }
+  ],
+  "model": "claude",
+  "prompt_version": "v5"
+}
