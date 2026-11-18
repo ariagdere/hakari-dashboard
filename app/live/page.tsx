@@ -16,6 +16,7 @@ import OrderPanel, { ChartPick, OrderDraft } from '@/components/OrderPanel'
 import { attachLevelInteractions, LevelTarget, PickKind } from '@/lib/chartLevelInteractions'
 import { applyQuoteToBar } from '@/lib/formingCandle'
 import { snapToBar } from '@/lib/chartMarkers'
+import { ElleZoneLayer, type ElleZone } from '@/lib/elleZoneLayer'
 
 ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, Filler, Legend)
 
@@ -73,6 +74,9 @@ interface Stats {
   max_drawdown: number; max_consecutive_wins: number
 }
 interface Candle { time: number; open: number; high: number; low: number; close: number }
+// 3m paralel sistemin 1m mumlarindan (/api/axi-candles, lib/paralelCandles.ts); digerleri Axi mum bakicisindan
+type ChartInterval = '3m' | '5m' | '15m' | '1h' | '4h' | '1d'
+const CHART_INTERVALS: readonly ChartInterval[] = ['3m', '5m', '15m', '1h', '4h', '1d']
 
 interface StrategyRow {
   magic: number
@@ -384,9 +388,16 @@ function OpenScoreCard({ count, unrealized, valueAtRisk }: { count: number; unre
   )
 }
 
-const INTERVAL_SEC: Record<'5m' | '15m' | '1h' | '4h' | '1d', number> = {
-  '5m': 5 * 60, '15m': 15 * 60, '1h': 60 * 60, '4h': 4 * 60 * 60, '1d': 24 * 60 * 60,
+const INTERVAL_SEC: Record<ChartInterval, number> = {
+  '3m': 3 * 60, '5m': 5 * 60, '15m': 15 * 60, '1h': 60 * 60, '4h': 4 * 60 * 60, '1d': 24 * 60 * 60,
 }
+
+// Elle zonlar (paralel sistemin elle_zones'u, /api/elle-zones): gecerli olanlarin hepsi grafikte bant. Zonlar nadiren
+// degisir; 5 dakikada bir okunur.
+const ELLE_ZONES_REFRESH_MS = 5 * 60_000
+const ELLE_ZONES_PREF = 'live.elleZones'
+type ElleZoneInfo = { configured: boolean; zones: ElleZone[]; error: string | null }
+const fmtZone = (z: ElleZone) => `#${z.id} ${Math.round(z.lo)}–${Math.round(z.hi)}`
 
 // Diger zaman dilimlerinin mumlarini arka planda sirayla bir kez ceker: ilk dilim gecisi de
 // aninda olsun. Hata onemsiz (gecis aninda zaten cekilir).
@@ -402,8 +413,9 @@ async function prefetchCandles(cache: Map<string, Candle[]>, current: string) {
   }
 }
 
-function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, height }: {
-  candles: Candle[]; selectedOrders: Order[]; interval: '5m' | '15m' | '1h' | '4h' | '1d'; quote: Price | null
+function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, height, showZones }: {
+  candles: Candle[]; selectedOrders: Order[]; interval: ChartInterval; quote: Price | null
+  showZones: boolean
   draft: OrderDraft | null
   onPick?: (target: LevelTarget, price: number, kind: PickKind, final: boolean) => void
   height?: number
@@ -412,6 +424,8 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
   const priceLinesRef = useRef<any[]>([])
+  const zoneLayerRef = useRef<ElleZoneLayer | null>(null)
+  const [zoneInfo, setZoneInfo] = useState<ElleZoneInfo | null>(null)
   const [unplacedMarkers, setUnplacedMarkers] = useState<string[]>([]) // mumu olmayan zamana dusen isaretler
   // Emir panelinin SL/TP cizgileri (surukleme sirasinda fiyatlari dogrudan guncellenir)
   const draftLinesRef = useRef<{ sl: IPriceLine | null; tp: IPriceLine | null }>({ sl: null, tp: null })
@@ -450,6 +464,9 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
       wickUpColor: '#4ade80', wickDownColor: '#f87171',
       priceFormat: { type: 'custom', minMove: 1, formatter: (p: number) => Math.round(p).toString() },
     })
+    const zoneLayer = new ElleZoneLayer(TZ_OFFSET_SEC)
+    series.attachPrimitive(zoneLayer)
+    zoneLayerRef.current = zoneLayer
     chartRef.current = chart
     seriesRef.current = series
     setCoarsePointer(typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches)
@@ -487,9 +504,38 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
       chart.remove()
       chartRef.current = null
       seriesRef.current = null
+      zoneLayerRef.current = null
       draftLinesRef.current = { sl: null, tp: null }
     }
   }, [])
+
+  // Elle zonlar: acilista ve 5 dakikada bir
+  useEffect(() => {
+    let active = true
+    const load = async () => {
+      try {
+        const res = await fetch('/api/elle-zones', { cache: 'no-store' })
+        const body = await res.json().catch(() => null)
+        if (!active) return
+        if (res.ok && body) setZoneInfo({ configured: !!body.configured, zones: Array.isArray(body.zones) ? body.zones : [], error: null })
+        else setZoneInfo((prev) => ({ configured: true, zones: prev?.zones ?? [], error: body?.error ?? `HTTP ${res.status}` }))
+      } catch {
+        if (active) setZoneInfo((prev) => ({ configured: true, zones: prev?.zones ?? [], error: 'Bağlantı hatası' }))
+      }
+    }
+    void load()
+    const timer = setInterval(load, ELLE_ZONES_REFRESH_MS)
+    return () => {
+      active = false
+      clearInterval(timer)
+    }
+  }, [])
+  useEffect(() => {
+    zoneLayerRef.current?.setZones(zoneInfo?.zones ?? [])
+  }, [zoneInfo])
+  useEffect(() => {
+    zoneLayerRef.current?.setVisible(showZones)
+  }, [showZones])
 
   // Telefonda emir paneli acikken grafik uzar (fiyata dokunmak icin daha fazla alan)
   useEffect(() => {
@@ -510,12 +556,14 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
     if (candles.length === 0) {
       // Dilim degisti ve yeni mumlar yukleniyor: eski dilimin mumlari ekranda kalmasin.
       seriesRef.current.setData([])
+      zoneLayerRef.current?.setBars([])
       lastBarRef.current = null
       return
     }
     {
       const localCandles = candles.map((c) => ({ ...c, time: toLocalTime(c.time) }))
       seriesRef.current.setData(localCandles as any)
+      zoneLayerRef.current?.setBars(localCandles.map((c) => c.time))
       lastBarRef.current = { ...localCandles[localCandles.length - 1] }
       const q = latestQuoteRef.current
       if (q) {
@@ -658,9 +706,34 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
   const pickHint = draftPick && onPick
     ? `${draftPick === 'sl' ? 'SL' : 'TP'}: fiyata ${coarsePointer ? 'dokun' : 'tıkla'} · çizgiyi sürükle`
     : null
+  // Grafiğin altında: fiyatın üstündeki ve altındaki en yakın elle zon (dar dilimde bantlar ekranın dışında kalabilir)
+  const refPrice = quote?.bid ?? candles[candles.length - 1]?.close ?? null
+  let zoneNote: string | null = null
+  if (showZones && zoneInfo) {
+    const zs = zoneInfo.zones
+    if (!zoneInfo.configured) zoneNote = 'Elle zonlar: Railway\'de PARALEL_DATABASE_URL tanımlı değil.'
+    else if (zoneInfo.error && zs.length === 0) zoneNote = `Elle zonlar okunamadı: ${zoneInfo.error}`
+    else if (zs.length === 0) zoneNote = 'Geçerli elle zon yok.'
+    else if (refPrice !== null) {
+      const inside = zs.find((z) => z.lo <= refPrice && refPrice <= z.hi)
+      const above = zs.filter((z) => z.lo > refPrice).sort((a, b) => a.lo - b.lo)[0]
+      const below = zs.filter((z) => z.hi < refPrice).sort((a, b) => b.hi - a.hi)[0]
+      const parts = [
+        inside ? `fiyat ${fmtZone(inside)} içinde` : null,
+        above ? `üstte en yakın ${fmtZone(above)}` : null,
+        below ? `altta en yakın ${fmtZone(below)}` : null,
+      ].filter(Boolean)
+      zoneNote = `Elle zonlar (${zs.length}): ${parts.join(' · ')}`
+    }
+  }
   return (
     <div style={{ position: 'relative' }}>
       <div ref={containerRef} style={{ width: '100%', touchAction: 'manipulation' }} />
+      {zoneNote && (
+        <div data-testid="elle-zones-note" className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 6 }}>
+          {zoneNote}
+        </div>
+      )}
       {unplacedMarkers.length > 0 && (
         <div data-testid="unplaced-markers" className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 6 }}>
           Grafikte bu zamanlara ait mum yok, işaret konmadı: {unplacedMarkers.join(', ')}
@@ -871,7 +944,25 @@ export default function LivePositionsPage() {
   const [candles, setCandles] = useState<Candle[]>([])
   // Grafik mumlarinin durumu -- basliktaki "yukleniyor / tekrar deneniyor" gostergesi icin.
   const [candlesStatus, setCandlesStatus] = useState<{ loading: boolean; error: string | null }>({ loading: true, error: null })
-  const [chartInterval, setChartInterval] = useState<'5m' | '15m' | '1h' | '4h' | '1d'>('15m')
+  const [chartInterval, setChartInterval] = useState<ChartInterval>('15m')
+  // Elle zon bantlari acik mi (tarayicida hatirlanir; varsayilan acik)
+  const [showZones, setShowZones] = useState(true)
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(ELLE_ZONES_PREF) === 'off') setShowZones(false)
+    } catch {
+      // depolama kapali: varsayilan
+    }
+  }, [])
+  const toggleZones = () => {
+    const next = !showZones
+    setShowZones(next)
+    try {
+      localStorage.setItem(ELLE_ZONES_PREF, next ? 'on' : 'off')
+    } catch {
+      // depolama kapali: yalniz bu sekmede
+    }
+  }
   // Emir paneli (grafigin sagi) ve paneldeki SL/TP taslagi (grafikte kesikli cizgi). Panel bir kez
   // acildiktan sonra kapatilinca DOM'dan kalkmaz, gizlenir: yoldaki emir istegi ve sonucu kaybolmaz.
   const [orderPanelOpen, setOrderPanelOpen] = useState(false)
@@ -1597,7 +1688,7 @@ export default function LivePositionsPage() {
               )}
               {selectedOrders.length > 0 && <span style={{ color: 'var(--blue)', marginLeft: 8 }}>· {selectedOrders.length} selected</span>}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               <button
                 className={`filter-btn${orderPanelOpen ? ' active' : ''}`}
                 style={{ fontSize: 10, padding: '2px 10px' }}
@@ -1605,8 +1696,17 @@ export default function LivePositionsPage() {
               >
                 + Create order
               </button>
+              <button
+                className={`filter-btn${showZones ? ' active' : ''}`}
+                style={{ fontSize: 10, padding: '2px 10px' }}
+                aria-pressed={showZones}
+                onClick={toggleZones}
+                title="Paralel sistemdeki elle zonlar (geçerli olanların hepsi)"
+              >
+                Elle zonlar
+              </button>
               <div style={{ display: 'flex', gap: 4 }}>
-                {(['5m', '15m', '1h', '4h', '1d'] as const).map((tf) => (
+                {CHART_INTERVALS.map((tf) => (
                   <button
                     key={tf}
                     className={`filter-btn${chartInterval === tf ? ' active' : ''}`}
@@ -1625,6 +1725,7 @@ export default function LivePositionsPage() {
             selectedOrders={selectedOrders}
             interval={chartInterval}
             quote={price}
+            showZones={showZones}
             draft={orderPanelOpen ? orderDraft : null}
             onPick={orderPanelOpen ? handleChartPick : undefined}
             height={isMobile ? (orderPanelOpen ? orderChartHeight : 240) : undefined}
