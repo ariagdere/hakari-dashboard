@@ -1,9 +1,11 @@
 import pool from '@/lib/db'
 import { NextResponse } from 'next/server'
+import { ORDER_TIME_JOIN, RED_FOLDER_JOINS, RED_FOLDER_COLUMNS, BIAS_JOIN, BIAS_COLUMNS } from '@/lib/orderContext'
 
 export const dynamic = 'force-dynamic'
 
 // analyses-export/route.ts ile aynı desende -- orders tablosunun tamamını CSV olarak verir.
+// Red folder ve bias kolonları her istekte eşleştirilir (lib/orderContext.ts).
 export async function GET() {
   const { rows } = await pool.query(`
     SELECT
@@ -12,8 +14,12 @@ export async function GET() {
       o.volume, o.entry_price, o.fill_price, o.close_price, o.sl, o.tp, o.rr,
       o.r_target, o.r_risk, o.realized_pnl, o.exit_reason, o.is_manual,
       o.h1_ls_angle, o.m5_ls_angle, o.h1_tt_pos_angle, o.m5_tt_pos_angle,
-      o.red_folder_same_day, o.red_folder_event_name, o.red_folder_hours_diff
+      ${RED_FOLDER_COLUMNS},
+      ${BIAS_COLUMNS}
     FROM orders o
+    ${ORDER_TIME_JOIN}
+    ${RED_FOLDER_JOINS}
+    ${BIAS_JOIN}
     ORDER BY o.created_at DESC
   `)
   if (rows.length === 0) {
@@ -27,6 +33,7 @@ export async function GET() {
     'r_target', 'r_risk', 'realized_pnl', 'exit_reason', 'is_manual',
     'h1_ls_angle', 'm5_ls_angle', 'h1_tt_pos_angle', 'm5_tt_pos_angle',
     'red_folder_same_day', 'red_folder_event_name', 'red_folder_hours_diff',
+    'bias_report_at', 'bias', 'bias_confidence', 'bias_score', 'bias_liquidity_regime', 'bias_risk_regime',
   ]
 
   const toTR = (v: any) => {
@@ -53,6 +60,7 @@ export async function GET() {
         r.r_target, r.r_risk, r.realized_pnl, r.exit_reason, r.is_manual,
         r.h1_ls_angle, r.m5_ls_angle, r.h1_tt_pos_angle, r.m5_tt_pos_angle,
         r.red_folder_same_day, r.red_folder_event_name, r.red_folder_hours_diff,
+        toTR(r.bias_report_at), r.bias, r.bias_confidence, r.bias_score, r.bias_liquidity_regime, r.bias_risk_regime,
       ]
         .map(escape)
         .join(',')
