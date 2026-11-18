@@ -9,6 +9,7 @@ import {
 import { Line } from 'react-chartjs-2'
 import EditableSlTp from '@/components/EditableSlTp'
 import EditableStrategyLabel from '@/components/EditableStrategyLabel'
+import StrategyRules from '@/components/StrategyRules'
 import LsrAnglePanel from '@/components/LsrAnglePanel'
 import MacroBiasCard from '@/components/MacroBiasCard'
 import NewsBox from '@/components/NewsBox'
@@ -2317,6 +2318,9 @@ export default function LivePositionsPage() {
             </div>
           </>
         )}
+
+        {/* Strategy rules: kural setleri, acilista kapali */}
+        <StrategyRules />
 
         {/* Status filter toggles */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
