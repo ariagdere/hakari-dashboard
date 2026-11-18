@@ -546,7 +546,7 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
       wickUpColor: '#4ade80', wickDownColor: '#f87171',
       priceFormat: { type: 'custom', minMove: 1, formatter: (p: number) => Math.round(p).toString() },
     })
-    const zoneLayer = new ElleZoneLayer(TZ_OFFSET_SEC)
+    const zoneLayer = new ElleZoneLayer()
     series.attachPrimitive(zoneLayer)
     zoneLayerRef.current = zoneLayer
     const positionLayer = new PositionLayer()
@@ -648,7 +648,6 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
     if (candles.length === 0) {
       // Dilim degisti ve yeni mumlar yukleniyor: eski dilimin mumlari ekranda kalmasin.
       seriesRef.current.setData([])
-      zoneLayerRef.current?.setBars([])
       positionLayerRef.current?.setBars([], INTERVAL_SEC[interval])
       lastBarRef.current = null
       return
@@ -656,7 +655,6 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
     {
       const localCandles = candles.map((c) => ({ ...c, time: toLocalTime(c.time) }))
       seriesRef.current.setData(localCandles as any)
-      zoneLayerRef.current?.setBars(localCandles.map((c) => c.time))
       positionLayerRef.current?.setBars(localCandles.map((c) => c.time), INTERVAL_SEC[interval])
       lastBarRef.current = { ...localCandles[localCandles.length - 1] }
       const q = latestQuoteRef.current
