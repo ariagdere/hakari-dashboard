@@ -13,10 +13,16 @@ export const STRATEGY_MAP: Record<number, string> = {
   68040: 'V6 80+ 40-',
   65050: 'V6 50- 50+',
   7575: 'NAIF + ZLEMA',
+  15033: 'SDL_v3 - Manuel Zone No Cap',
 };
 export function resolveStrategyLabel(magic: number): string | null {
   return STRATEGY_MAP[Number(magic)] || null;
 }
+
+// Yeni sistemin (paraleltrading, SDL elle zonlar) emirleri: magic 15033, clientId "PT_<10 karakter>_1". Etiket
+// STRATEGY_MAP'ten; panel emri gibi comment okunmaz -- mt5_order_monitor.js'teki PARALEL_MAGICS ile AYNI.
+export const PARALEL_MAGICS = new Set<number>([15033]);
+export const isParalelMagic = (magic: unknown) => PARALEL_MAGICS.has(Number(magic));
 
 // Panelden acilan emirler (magic 9100) strateji etiketini order_intents'ten alir --
 // mt5_order_monitor.js'teki getPanelIntent ile ayni eslestirme (clientId'nin ilk iki parcasi).
@@ -43,16 +49,18 @@ export function parseCommentField(comment: string | null | undefined): { analysi
 // Acilis deal'inin kaynagi -- mt5_order_monitor.js'teki resolveOrigin ile AYNI kurallar.
 // Panel emri: etiket order_intents'ten; analiz/apify bagi yok (MetaApi clientId'yi MT5'in
 // comment alaninda sakladigi icin comment okunmaz, yoksa apify_run_id'ye cop yazilirdi).
+// Yeni sistemin emirleri (magic 15033): etiket STRATEGY_MAP'ten, comment okunmaz.
 // Diger emirler: eski kurallar (comment + magic).
 export async function resolveDealOrigin(deal: { clientId?: string; magic?: number; comment?: string; brokerComment?: string }) {
   const intentLabel = await resolveIntentLabel(deal.clientId);
   const isPanel = intentLabel != null || clientKeyOf(deal.clientId) != null || Number(deal.magic) === PANEL_MAGIC;
-  const { analysisId, apifyRunId } = isPanel
+  const isParalel = !isPanel && isParalelMagic(deal.magic);
+  const { analysisId, apifyRunId } = isPanel || isParalel
     ? { analysisId: null, apifyRunId: null }
     : parseCommentField(deal.comment ?? deal.brokerComment);
   const strategyLabel = intentLabel ?? resolveStrategyLabel(Number(deal.magic ?? 0));
   const isSystem = analysisId != null || apifyRunId != null || strategyLabel != null;
-  return { isPanel, analysisId, apifyRunId, strategyLabel, isSystem };
+  return { isPanel, isParalel, analysisId, apifyRunId, strategyLabel, isSystem };
 }
 function priceTolerance(price: number): number {
   return price * 0.0005; // mt5_order_monitor.js'teki priceTolerance ile BIREBIR ayni
