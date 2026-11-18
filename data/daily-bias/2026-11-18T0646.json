@@ -1,0 +1,129 @@
+{
+  "run_date": "2026-11-18",
+  "generated_at": "2026-11-18T03:46:46Z",
+  "net_direction": "Negatif",
+  "sentiment_score": -55,
+  "change_24h": "iyileşti",
+  "drivers": [
+    "Fed sıkılaşması: Ekim çekirdek TÜFE üçüncü kez %0.3 ile Waller'ın 50bp eşiğine dokundu; 9 Aralık'ta artırım ~%85-95 fiyatlanıyor, 50bp seçeneği masada.",
+    "Yüksek faiz/güçlü dolar: 10Y ~%5.11, 2Y ~%4.81 (günlük -1/-2bp, seviye yüksek); reel faizler sıkı; DXY ~103.7 ile 52 haftalık zirveye dokundu.",
+    "Risk-off sürüyor ama Nvidia rahatlattı: SPX -%1.0 ile 7,341 (5 ayın dibi), VIX %13.7 sıçrayıp 26.06; kapanış sonrası Nvidia beklenti üstü gelir ($115.8B) ve ~$130B rehberlikle +%4-5, Kospi ~+%3.",
+    "Kripto akımları zayıf: Spot BTC ETF'lerinde 7 günlük ~-$1.9B çıkış serisi 16 Kasım'da (+$7.9M) kırıldı, 17 Kasım ~-$30M ile çıkışlar küçüldü; Fear & Greed 12."
+  ],
+  "developments": [
+    {
+      "item": "Ekim çekirdek TÜFE %0.3 (3. ay üst üste), Waller'ın 50bp eşiği; Aralık artırımı ~%85-95 fiyatlı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "10Y ~%5.11, 2Y ~%4.81; günlük hafif düşüş ama seviye yüksek",
+      "impact": "Nötr"
+    },
+    {
+      "item": "DXY ~103.7 ile 52 haftalık zirve; yen güvenli liman talebiyle USDJPY 159 altına sarktı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "SPX -%1.0 (7,341, 5 ayın dibi), tüm sektörler ekside; Nasdaq Composite -%0.74",
+      "impact": "Negatif"
+    },
+    {
+      "item": "VIX %13.7 yükselişle 26.06",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Nvidia gelir $115.8B (beklenti $109.1B), Q4 rehberlik ~$130B; kapanış sonrası +%4-5",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Çarşamba Asya: Kospi ~+%3, çip hisseleri güçlü; Nikkei karışık",
+      "impact": "Pozitif"
+    },
+    {
+      "item": "Anthropic halka arzı bu gece fiyatlanıyor (~$1.4-1.6T), Perşembe işlem görecek; likidite çekme riski",
+      "impact": "Nötr"
+    },
+    {
+      "item": "İran'ın Bahreyn'e saldırısı, Körfez jeopolitik riski",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Brent ~$93 ile yatay, enerji kaynaklı enflasyon riski sınırlı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Altın ~$3,865, bir yıllık dipten hafif tepki",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Spot BTC ETF'lerinde 7 günlük ~-$1.9B çıkış serisi kırıldı (16 Kas +$7.9M), 17 Kas ~-$30M",
+      "impact": "Nötr"
+    },
+    {
+      "item": "BTC $64-65K'da tutunuyor, haftalık ~-%12.5; Fear & Greed 12",
+      "impact": "Nötr"
+    }
+  ],
+  "key_development": "Son saatlerin belirleyici gelişmesi Nvidia'nın Jensen Huang sonrası ilk bilançosunda gelir ($115.8B, beklenti $109.1B) ve ~$130B'lık dördüncü çeyrek rehberliğiyle beklentileri net aşması oldu; hisse kapanış sonrası %4-5 yükseldi ve Çarşamba Asya'da Kospi ~%3, çip hisseleri %6-7 toparlandı (Nikkei ise karışık). Bu, teknoloji kaynaklı risk-off'u kısa vadede frenleyebilir; ancak Perşembe başlayacak Anthropic halka arzının (~$1.4-1.6T değerleme, fiyatlama bu gece) hisse piyasasından likidite çekme ihtimali ve İran'ın Bahreyn'e saldırısıyla artan jeopolitik risk rahatlamanın kalıcılığını sınırlıyor.",
+  "divergence": "relative strength",
+  "divergence_note": "relative strength (zayıf): SPX 5 ayın dibine inip VIX 26'ya sıçrarken BTC 24 saatte yalnızca ~-%0.5 ile $64-65K bandında kaldı; ancak 7 günlük ~-%12.5'lik düşüşün ardından gelen bu yatay seyir ETF çıkışları yeni yeni yavaşladığı için henüz talep dönüşü değil, satış baskısının yorulması olarak okunmalı.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Risk-off",
+  "conclusion": "Aralık artırım fiyatlaması, %5 üstü 10Y ve 52 haftalık zirvedeki dolar BTC talebini baskılamaya devam ediyor; Nvidia sürprizi ve yavaşlayan ETF çıkışları ise aşağı yönlü momentumu bir miktar zayıflattı. Önümüzdeki 24-72 saatte makro yön hafif aşağı/yatay; hisselerde Nvidia rahatlaması tutunursa $66-68K'ya tepki mümkün, Anthropic arzı likidite çeker ya da faizler yeniden yükselirse $62K testi gündeme gelir.",
+  "bias": "SHORT",
+  "confidence": "Orta",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Negatif\n\nSentiment skoru: -55\n\nSon 24 saatte değişim: iyileşti\n\nAna sürücüler:\n- Fed sıkılaşması: Ekim çekirdek TÜFE üçüncü kez %0.3 ile Waller'ın 50bp eşiğine dokundu; 9 Aralık'ta artırım ~%85-95 fiyatlanıyor, 50bp seçeneği masada.\n- Yüksek faiz/güçlü dolar: 10Y ~%5.11, 2Y ~%4.81 (günlük -1/-2bp, seviye yüksek); reel faizler sıkı; DXY ~103.7 ile 52 haftalık zirveye dokundu.\n- Risk-off sürüyor ama Nvidia rahatlattı: SPX -%1.0 ile 7,341 (5 ayın dibi), VIX %13.7 sıçrayıp 26.06; kapanış sonrası Nvidia beklenti üstü gelir ($115.8B) ve ~$130B rehberlikle +%4-5, Kospi ~+%3.\n- Kripto akımları zayıf: Spot BTC ETF'lerinde 7 günlük ~-$1.9B çıkış serisi 16 Kasım'da (+$7.9M) kırıldı, 17 Kasım ~-$30M ile çıkışlar küçüldü; Fear & Greed 12.\n\nEn önemli yeni gelişme:\nSon saatlerin belirleyici gelişmesi Nvidia'nın Jensen Huang sonrası ilk bilançosunda gelir ($115.8B, beklenti $109.1B) ve ~$130B'lık dördüncü çeyrek rehberliğiyle beklentileri net aşması oldu; hisse kapanış sonrası %4-5 yükseldi ve Çarşamba Asya'da Kospi ~%3, çip hisseleri %6-7 toparlandı (Nikkei ise karışık). Bu, teknoloji kaynaklı risk-off'u kısa vadede frenleyebilir; ancak Perşembe başlayacak Anthropic halka arzının (~$1.4-1.6T değerleme, fiyatlama bu gece) hisse piyasasından likidite çekme ihtimali ve İran'ın Bahreyn'e saldırısıyla artan jeopolitik risk rahatlamanın kalıcılığını sınırlıyor.\n\nMakro uyumsuzluk kontrolü:\nrelative strength (zayıf): SPX 5 ayın dibine inip VIX 26'ya sıçrarken BTC 24 saatte yalnızca ~-%0.5 ile $64-65K bandında kaldı; ancak 7 günlük ~-%12.5'lik düşüşün ardından gelen bu yatay seyir ETF çıkışları yeni yeni yavaşladığı için henüz talep dönüşü değil, satış baskısının yorulması olarak okunmalı.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Risk-off\n\nBTC için sonuç:\nAralık artırım fiyatlaması, %5 üstü 10Y ve 52 haftalık zirvedeki dolar BTC talebini baskılamaya devam ediyor; Nvidia sürprizi ve yavaşlayan ETF çıkışları ise aşağı yönlü momentumu bir miktar zayıflattı. Önümüzdeki 24-72 saatte makro yön hafif aşağı/yatay; hisselerde Nvidia rahatlaması tutunursa $66-68K'ya tepki mümkün, Anthropic arzı likidite çeker ya da faizler yeniden yükselirse $62K testi gündeme gelir.\n\nVarlık güç sıralaması:\n1. VIX — 8.5/10 — SPX'in 5 aylık dibe inmesiyle %13.7 sıçrayıp 26.06'ya çıktı, gün içinde 27.7'yi gördü (24s: +%13.7, 7g: +%30)\n2. DXY — 7/10 — 103.7 ile 52 haftalık zirveyi test etti, yen talebiyle hafif geri çekilse de haftalık eğilim yukarı (24s: +%0.15, 7g: +%1.2)\n3. BRENT — 5/10 — $92-93 bandında tepki verdi, arz fazlası ile Körfez gerginliği arasında yatay (24s: +%0.8, 7g: -%1.0)\n4. XAUUSD — 4/10 — ~$3,865 ile bir yıllık dipten hafif toparlandı ama güçlü dolar ve reel faizle haftalık eğilim aşağı (24s: +%0.35, 7g: -%4.0)\n5. NASDAQ — 3.5/10 — Nvidia öncesi teknoloji satışı sürdü, kapanış sonrası Nvidia beat'i vadelileri destekliyor (24s: -%0.9, 7g: -%4.0)\n6. SPX — 3/10 — Tüm sektörler ekside -%1.0 ile 7,341'e inip 5 ayın dibini gördü (24s: -%1.0, 7g: -%2.5)\n7. BTC — 2.5/10 — $64-65K'da yatay tutunsa da haftalık bazda en sert düşen varlık olmaya devam ediyor (24s: -%0.5, 7g: -%12.5)\n\nBTC Makro Bias: SHORT — Güven: Orta",
+  "asset_strength": [
+    {
+      "asset": "VIX",
+      "score": 8.5,
+      "reason": "SPX'in 5 aylık dibe inmesiyle %13.7 sıçrayıp 26.06'ya çıktı, gün içinde 27.7'yi gördü.",
+      "chg_24h_pct": 13.7,
+      "chg_7d_pct": 30
+    },
+    {
+      "asset": "DXY",
+      "score": 7,
+      "reason": "103.7 ile 52 haftalık zirveyi test etti, yen talebiyle hafif geri çekilse de haftalık eğilim yukarı.",
+      "chg_24h_pct": 0.15,
+      "chg_7d_pct": 1.2
+    },
+    {
+      "asset": "BRENT",
+      "score": 5,
+      "reason": "$92-93 bandında tepki verdi, arz fazlası ile Körfez gerginliği arasında yatay.",
+      "chg_24h_pct": 0.8,
+      "chg_7d_pct": -1
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 4,
+      "reason": "~$3,865 ile bir yıllık dipten hafif toparlandı ama güçlü dolar ve reel faizle haftalık eğilim aşağı.",
+      "chg_24h_pct": 0.35,
+      "chg_7d_pct": -4
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 3.5,
+      "reason": "Nvidia öncesi teknoloji satışı sürdü, kapanış sonrası Nvidia beat'i vadelileri destekliyor.",
+      "chg_24h_pct": -0.9,
+      "chg_7d_pct": -4
+    },
+    {
+      "asset": "SPX",
+      "score": 3,
+      "reason": "Tüm sektörler ekside -%1.0 ile 7,341'e inip 5 ayın dibini gördü.",
+      "chg_24h_pct": -1,
+      "chg_7d_pct": -2.5
+    },
+    {
+      "asset": "BTC",
+      "score": 2.5,
+      "reason": "$64-65K'da yatay tutunsa da haftalık bazda en sert düşen varlık olmaya devam ediyor.",
+      "chg_24h_pct": -0.5,
+      "chg_7d_pct": -12.5
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
