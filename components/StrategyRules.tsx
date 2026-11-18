@@ -12,7 +12,7 @@ const STRATEGIES: StrategyRuleSet[] = [
   {
     label: 'NAIF + ZLEMA',
     magic: 7575,
-    summary: "CoinGlass likidasyon cluster'ları ve ZLEMA 4h bölgesi aynı yönü gösterince Make üzerinden market emri. Risk ~20 $.",
+    summary: "CoinGlass likidasyon cluster'ları ve ZLEMA 4h bölgesi aynı yönü gösterince Make üzerinden market emri. Risk 10 $.",
     groups: [
       {
         title: 'DÖNGÜ',
@@ -63,8 +63,8 @@ const STRATEGIES: StrategyRuleSet[] = [
         rules: [
           "Make'in naif webhook'u → MetaApi'den market emri, magic 7575; SL ve TP emirle birlikte.",
           ['Giriş', "emir anındaki Axi fiyatı, heatmap'in son sütunundan ~45 sn sonra (medyan)."],
-          ['Lot', "20 $ / SL mesafesi, 2 ondalığa en yakına yuvarlanır (0,029 → 0,03); risk 20 $'ın biraz altında ya da üstünde olabilir."],
-          "SL 2.000 $'dan uzaksa 0,01 lotta risk 20 $'ı aşar.",
+          ['Lot', "hedef risk 10 $. Orchestrator lotu 20 $ riske göre gönderir (20 $ / SL mesafesi); Make 10 $ riske göre düzenleyip emre koyar."],
+          "SL 1.000 $'dan uzaksa 0,01 lotta risk 10 $'ı aşar.",
         ],
       },
       {
