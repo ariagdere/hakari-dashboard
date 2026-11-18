@@ -17,6 +17,7 @@ import { attachLevelInteractions, LevelTarget, PickKind } from '@/lib/chartLevel
 import { applyQuoteToBar } from '@/lib/formingCandle'
 import { snapToBar } from '@/lib/chartMarkers'
 import { ElleZoneLayer, type ElleZone } from '@/lib/elleZoneLayer'
+import { PositionLayer, type ChartPosition } from '@/lib/positionLayer'
 
 ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, Filler, Legend)
 
@@ -396,6 +397,56 @@ const INTERVAL_SEC: Record<ChartInterval, number> = {
 // degisir; 5 dakikada bir okunur.
 const ELLE_ZONES_REFRESH_MS = 5 * 60_000
 const ELLE_ZONES_PREF = 'live.elleZones'
+// Secili islemler TradingView pozisyon araci gibi mi (kutu) yoksa eski gorunum mu (tam genislik cizgiler ve isaretler)
+const TV_VIEW_PREF = 'live.tvView'
+const fmtWhen = (iso: string) => {
+  const d = new Date(iso)
+  const hm = d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+  return d.toDateString() === new Date().toDateString() ? hm : `${d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })} ${hm}`
+}
+const fmtR = (r: number) => `${r >= 0 ? '+' : '-'}${Math.abs(r).toFixed(2)}R`
+
+// Secili order'in grafikteki pozisyon kutusu (lib/positionLayer.ts). Dolmamis emir (bekleyen / iptal / suresi dolan)
+// emrin verildigi andan; acik islemin sonucu son fiyatla.
+function toChartPosition(o: Order, quote: Price | null): ChartPosition | null {
+  const entry = o.fill_price ?? o.entry_price
+  if (entry == null || o.sl == null || o.tp == null || !(Math.abs(entry - o.sl) > 0)) return null
+  const long = isLong(o.direction)
+  const filled = !!o.opened_at
+  const sec = (iso: string) => toLocalTime(Math.floor(new Date(iso).getTime() / 1000))
+  const ended = (o.status === 'CLOSED' || o.status === 'CANCELED') && o.closed_at ? o.closed_at : null
+  const risk = Math.abs(entry - o.sl)
+  const riskUsd = calcRiskUsd(o) ?? risk * o.volume
+  let exit: ChartPosition['exit'] = null
+  let result: ChartPosition['result'] = null
+  if (filled && o.status === 'CLOSED') {
+    const tone = o.exit_reason === 'TP' ? 'tp' : o.exit_reason === 'SL' ? 'sl' : 'neutral'
+    const px = o.close_price ?? (o.exit_reason === 'TP' ? o.tp : o.exit_reason === 'SL' ? o.sl : null)
+    if (px != null) exit = { price: px, tone }
+    const r = calcOrderR(o)
+    result = { text: `${o.exit_reason ?? 'kapandı'}${o.closed_at ? ` ${fmtWhen(o.closed_at)}` : ''}${r != null ? ` · ${fmtR(r)}` : ''}`, tone }
+  } else if (filled && o.status === 'OPEN' && quote) {
+    const px = long ? quote.bid : quote.ask
+    exit = { price: px, tone: 'neutral' }
+    result = { text: `açık · ${fmtR((long ? px - entry : entry - px) / risk)}`, tone: 'neutral' }
+  }
+  const state = !filled ? (o.status === 'PENDING' ? ' bekleyen' : o.exit_reason === 'EXPIRED' ? ' süresi doldu' : ' iptal') : ''
+  return {
+    id: o.id,
+    long,
+    entry,
+    sl: o.sl,
+    tp: o.tp,
+    start: sec(o.opened_at ?? o.created_at),
+    end: ended ? sec(ended) : null,
+    filled,
+    exit,
+    idLabel: `#${o.id} ${long ? 'B' : 'S'}${state}`,
+    tpLabel: `TP ${fmtSignedUsd(Math.abs(o.tp - entry) * o.volume)} · 1:${(Math.abs(o.tp - entry) / risk).toFixed(2)}`,
+    slLabel: `SL ${fmtSignedUsd(-riskUsd)}`,
+    result,
+  }
+}
 type ElleZoneInfo = { configured: boolean; zones: ElleZone[]; error: string | null }
 const fmtZone = (z: ElleZone) => `#${z.id} ${Math.round(z.lo)}–${Math.round(z.hi)}`
 
@@ -413,9 +464,10 @@ async function prefetchCandles(cache: Map<string, Candle[]>, current: string) {
   }
 }
 
-function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, height, showZones }: {
+function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, height, showZones, tvView }: {
   candles: Candle[]; selectedOrders: Order[]; interval: ChartInterval; quote: Price | null
   showZones: boolean
+  tvView: boolean
   draft: OrderDraft | null
   onPick?: (target: LevelTarget, price: number, kind: PickKind, final: boolean) => void
   height?: number
@@ -425,6 +477,7 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
   const priceLinesRef = useRef<any[]>([])
   const zoneLayerRef = useRef<ElleZoneLayer | null>(null)
+  const positionLayerRef = useRef<PositionLayer | null>(null)
   const [zoneInfo, setZoneInfo] = useState<ElleZoneInfo | null>(null)
   const [unplacedMarkers, setUnplacedMarkers] = useState<string[]>([]) // mumu olmayan zamana dusen isaretler
   // Emir panelinin SL/TP cizgileri (surukleme sirasinda fiyatlari dogrudan guncellenir)
@@ -467,6 +520,9 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
     const zoneLayer = new ElleZoneLayer(TZ_OFFSET_SEC)
     series.attachPrimitive(zoneLayer)
     zoneLayerRef.current = zoneLayer
+    const positionLayer = new PositionLayer()
+    series.attachPrimitive(positionLayer)
+    positionLayerRef.current = positionLayer
     chartRef.current = chart
     seriesRef.current = series
     setCoarsePointer(typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches)
@@ -505,6 +561,7 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
       chartRef.current = null
       seriesRef.current = null
       zoneLayerRef.current = null
+      positionLayerRef.current = null
       draftLinesRef.current = { sl: null, tp: null }
     }
   }, [])
@@ -557,6 +614,7 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
       // Dilim degisti ve yeni mumlar yukleniyor: eski dilimin mumlari ekranda kalmasin.
       seriesRef.current.setData([])
       zoneLayerRef.current?.setBars([])
+      positionLayerRef.current?.setBars([], INTERVAL_SEC[interval])
       lastBarRef.current = null
       return
     }
@@ -564,6 +622,7 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
       const localCandles = candles.map((c) => ({ ...c, time: toLocalTime(c.time) }))
       seriesRef.current.setData(localCandles as any)
       zoneLayerRef.current?.setBars(localCandles.map((c) => c.time))
+      positionLayerRef.current?.setBars(localCandles.map((c) => c.time), INTERVAL_SEC[interval])
       lastBarRef.current = { ...localCandles[localCandles.length - 1] }
       const q = latestQuoteRef.current
       if (q) {
@@ -654,6 +713,24 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
     priceLinesRef.current.forEach((pl) => series.removePriceLine(pl))
     priceLinesRef.current = []
 
+    // TradingView gorunumu: kutular katmanda (asagida); fiyat ekseninde yalniz etiketler, isaret yok.
+    if (tvView) {
+      const notShown: string[] = []
+      const first = candles.length ? toLocalTime(candles[0].time) : null
+      selectedOrders.forEach((o) => {
+        const entry = o.fill_price ?? o.entry_price
+        for (const [price, color] of [[entry, '#60a5fa'], [o.tp, '#4ade80'], [o.sl, '#f87171']] as const) {
+          if (price == null) continue
+          priceLinesRef.current.push(series.createPriceLine({ price, color, lineWidth: 1, lineVisible: false, axisLabelVisible: true, title: '' }))
+        }
+        const end = o.closed_at && (o.status === 'CLOSED' || o.status === 'CANCELED') ? toLocalTime(Math.floor(new Date(o.closed_at).getTime() / 1000)) : null
+        if (first !== null && end !== null && end < first) notShown.push(`#${o.id}`)
+      })
+      setUnplacedMarkers((prev) => (prev.join('|') === notShown.join('|') ? prev : notShown))
+      series.setMarkers([])
+      return
+    }
+
     selectedOrders.forEach((o) => {
       const tag = isLong(o.direction) ? 'B' : 'S'
       const lines = [
@@ -701,7 +778,15 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
     const nextUnplaced = candles.length > 0 ? notPlaced : []
     setUnplacedMarkers((prev) => (prev.join('|') === nextUnplaced.join('|') ? prev : nextUnplaced))
     series.setMarkers(markers)
-  }, [selectedOrders, candles, interval])
+  }, [selectedOrders, candles, interval, tvView])
+
+  // TradingView gorunumunde secili islemlerin kutulari; acik islemin sonucu canli fiyatla
+  useEffect(() => {
+    const layer = positionLayerRef.current
+    if (!layer) return
+    layer.setVisible(tvView)
+    layer.setPositions(tvView ? selectedOrders.map((o) => toChartPosition(o, quote)).filter((x): x is ChartPosition => x !== null) : [])
+  }, [selectedOrders, quote, tvView])
 
   const pickHint = draftPick && onPick
     ? `${draftPick === 'sl' ? 'SL' : 'TP'}: fiyata ${coarsePointer ? 'dokun' : 'tıkla'} · çizgiyi sürükle`
@@ -736,7 +821,9 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
       )}
       {unplacedMarkers.length > 0 && (
         <div data-testid="unplaced-markers" className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 6 }}>
-          Grafikte bu zamanlara ait mum yok, işaret konmadı: {unplacedMarkers.join(', ')}
+          {tvView
+            ? `Bu dilimin mumlarından önce kapanmış, grafikte görünmüyor: ${unplacedMarkers.join(', ')} (daha geniş bir dilim seç)`
+            : `Grafikte bu zamanlara ait mum yok, işaret konmadı: ${unplacedMarkers.join(', ')}`}
         </div>
       )}
       {pickHint && (
@@ -959,6 +1046,24 @@ export default function LivePositionsPage() {
     setShowZones(next)
     try {
       localStorage.setItem(ELLE_ZONES_PREF, next ? 'on' : 'off')
+    } catch {
+      // depolama kapali: yalniz bu sekmede
+    }
+  }
+  // Secili islemlerin TradingView pozisyon araci gorunumu (tarayicida hatirlanir; varsayilan acik)
+  const [tvView, setTvView] = useState(true)
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(TV_VIEW_PREF) === 'off') setTvView(false)
+    } catch {
+      // depolama kapali: varsayilan
+    }
+  }, [])
+  const toggleTvView = () => {
+    const next = !tvView
+    setTvView(next)
+    try {
+      localStorage.setItem(TV_VIEW_PREF, next ? 'on' : 'off')
     } catch {
       // depolama kapali: yalniz bu sekmede
     }
@@ -1705,6 +1810,15 @@ export default function LivePositionsPage() {
               >
                 Elle zonlar
               </button>
+              <button
+                className={`filter-btn${tvView ? ' active' : ''}`}
+                style={{ fontSize: 10, padding: '2px 10px' }}
+                aria-pressed={tvView}
+                onClick={toggleTvView}
+                title="Seçili işlemler TradingView'daki pozisyon aracı gibi: girişten çıkışa hedef (yeşil) ve stop (kırmızı) kutusu"
+              >
+                TV görünümü
+              </button>
               <div style={{ display: 'flex', gap: 4 }}>
                 {CHART_INTERVALS.map((tf) => (
                   <button
@@ -1726,6 +1840,7 @@ export default function LivePositionsPage() {
             interval={chartInterval}
             quote={price}
             showZones={showZones}
+            tvView={tvView}
             draft={orderPanelOpen ? orderDraft : null}
             onPick={orderPanelOpen ? handleChartPick : undefined}
             height={isMobile ? (orderPanelOpen ? orderChartHeight : 240) : undefined}
