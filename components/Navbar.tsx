@@ -18,7 +18,11 @@ export default function Navbar({ authEnabled = false }: { authEnabled?: boolean 
   }
   return (
     <div style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-2)', position: 'sticky', top: 0, zIndex: 20 }}>
-      <div className="container" style={{ height: 48, display: 'flex', alignItems: 'center', overflowX: 'auto', scrollbarWidth: 'none' }}>
+      {/* /live genis sayfa (2000 px): menu de ayni genislikte, kenarlari hizali */}
+      <div
+        className={pathname === '/live' ? 'container container-wide' : 'container'}
+        style={{ height: 48, display: 'flex', alignItems: 'center', overflowX: 'auto', scrollbarWidth: 'none' }}
+      >
         <Link href="/analysis" style={{ fontSize: 14, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--text)', marginRight: 14, textDecoration: 'none' }}>
           HAKARI
         </Link>

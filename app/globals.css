@@ -41,6 +41,7 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
 .container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; }
+.container.container-wide { max-width: 2000px; } /* /live (Ari, 18 Kasim) */
 .badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 4px; font-size: 13px; font-weight: 500; letter-spacing: 0.06em; font-family: 'DM Mono', monospace; }
 .badge-short { background: var(--red-dim); color: var(--red); border: 1px solid var(--red-border); }
 .badge-long { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); }
