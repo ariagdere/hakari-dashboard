@@ -1,5 +1,6 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
+import { ORDER_TIME_JOIN, RED_FOLDER_JOINS, RED_FOLDER_COLUMNS } from '@/lib/orderContext';
 import { getOpenPositionVolumes } from '@/lib/metaapiStream';
 
 export const dynamic = 'force-dynamic';
@@ -16,11 +17,13 @@ export async function GET() {
         o.r_target, o.r_risk,
         o.status, o.created_at, o.opened_at,
         o.h1_ls_angle, o.m5_ls_angle, o.h1_tt_pos_angle, o.m5_tt_pos_angle,
-        o.red_folder_same_day, o.red_folder_event_name, o.red_folder_hours_diff,
+        ${RED_FOLDER_COLUMNS},
         a.position_size_btc, a.win_probability_v6, a.win_probability_v6_reverse,
         a.analyzed_at, a.rr AS analysis_rr,
         pc.closed_volume, pc.partial_pnl, COALESCE(pc.partial_count, 0)::int AS partial_count
       FROM orders o
+      ${ORDER_TIME_JOIN}
+      ${RED_FOLDER_JOINS}
       LEFT JOIN btc_analysis a ON a.id = o.analysis_id
       LEFT JOIN LATERAL (
         SELECT sum(x.volume) AS closed_volume, sum(x.profit) AS partial_pnl, count(*) AS partial_count
