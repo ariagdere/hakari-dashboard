@@ -25,6 +25,7 @@ export async function GET() {
       bid: data.bid,
       ask: data.ask,
       time: data.time,
+      brokerTime: data.brokerTime, // /live 3m grafigi quote anini bundan hesaplar (lib/axiTime.ts)
     });
   } catch (err) {
     console.error('live-price error:', err);

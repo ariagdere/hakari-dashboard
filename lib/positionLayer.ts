@@ -3,6 +3,7 @@ import type {
   ISeriesPrimitive,
   ISeriesPrimitivePaneRenderer,
   ISeriesPrimitivePaneView,
+  Logical,
   SeriesAttachedParameter,
   SeriesPrimitivePaneViewZOrder,
   Time,
@@ -14,7 +15,8 @@ import type {
 //   cizgisi. Dolmamis emir (bekleyen, iptal, suresi dolan) soluk ve kesik kenarli, emrin verildigi andan.
 // - Giristen cikisa kesik cizgi; giris noktasi ve sonucun renginde cikis noktasi (acik islemde son fiyat).
 // - Kutunun basinda hedef ve stop etiketi ($ ve R:R), giris cizgisinin ustunde emir numarasi; sonunda sonuc (R).
-// - Fiyat ekseni secili islemlerin SL ve TP'sini kapsar (kutu yarim kalmasin).
+// - Fiyat ekseni gorunen araliga giren secili islemlerin SL ve TP'sini kapsar (kutu yarim kalmasin; ekranin disindaki bir
+//   islem ekseni genisletip mumlari ezmesin).
 // Zamanlar grafik saniyesi (sayfanin yerel saat kaydirmasiyla); mumlar arasindaki an mumun icinde orantili.
 
 type Target = Parameters<ISeriesPrimitivePaneRenderer['draw']>[0]
@@ -69,10 +71,35 @@ export class PositionLayer implements ISeriesPrimitive<Time> {
   paneViews() {
     return this.views
   }
-  autoscaleInfo(): AutoscaleInfo | null {
+  autoscaleInfo(from: Logical, to: Logical): AutoscaleInfo | null {
     if (!this.on || this.positions.length === 0) return null
-    const ps = this.positions.flatMap((x) => [x.sl, x.tp, x.entry])
+    const ps: number[] = []
+    for (const q of this.positions) {
+      const a = this.logical(q.start)
+      const b = q.end === null ? Infinity : this.logical(q.end)
+      if (a === null || b === null || b < from || a > to) continue
+      ps.push(q.sl, q.tp, q.entry)
+    }
+    if (ps.length === 0) return null
     return { priceRange: { minValue: Math.min(...ps), maxValue: Math.max(...ps) } }
+  }
+
+  // Grafik saniyesindeki anin mantiksal konumu (mum indeksi; kutunun x'iyle ayni: mumun sol kenarindan orantili, ilk
+  // mumdan once ve son mumdan sonra dilimle uzatilir). Mum yoksa null.
+  private logical(t: number): number | null {
+    const bars = this.bars
+    const n = bars.length
+    if (n === 0) return null
+    if (t < bars[0]) return (t - bars[0]) / this.step - 0.5
+    if (t >= bars[n - 1]) return n - 1.5 + (t - bars[n - 1]) / this.step
+    let lo = 0
+    let hi = n - 1
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1
+      if (bars[mid] <= t) lo = mid
+      else hi = mid - 1
+    }
+    return lo - 0.5 + Math.min(1, (t - bars[lo]) / (bars[lo + 1] - bars[lo]))
   }
 
   setPositions(positions: ChartPosition[]) {
@@ -125,9 +152,10 @@ export class PositionLayer implements ISeriesPrimitive<Time> {
     if (ye === null || yt === null || ys === null || xs === null) return null
     const xe = q.end === null ? null : this.x(q.end)
     const x0 = Math.max(0, xs * hr)
+    // kutu tumuyle gorunen araligin solunda ya da saginda: cizilmez (sol kenarda ince bir kutu ve etiketler kalmasin)
+    if ((xe !== null && xe * hr <= 0) || x0 >= W) return null
     let x1 = xe === null ? W : Math.min(W, xe * hr)
     if (x1 - x0 < 6 * hr) x1 = Math.min(W, x0 + 6 * hr)
-    if (x1 <= 0 || x0 >= W) return null
     return { x0, x1, xs: xs * hr, xe: xe === null ? null : xe * hr, ye: ye * vr, yt: yt * vr, ys: ys * vr }
   }
 
