@@ -79,9 +79,9 @@ interface Stats {
   max_drawdown: number; max_consecutive_wins: number
 }
 interface Candle { time: number; open: number; high: number; low: number; close: number }
-// 3m paralel sistemin 1m mumlarindan (/api/axi-candles, lib/paralelCandles.ts); digerleri Axi mum bakicisindan
-type ChartInterval = '3m' | '5m' | '15m' | '1h' | '4h' | '1d'
-const CHART_INTERVALS: readonly ChartInterval[] = ['3m', '5m', '15m', '1h', '4h', '1d']
+// 1m ve 3m paralel sistemin 1m mumlarindan (/api/axi-candles, lib/paralelCandles.ts); digerleri Axi mum bakicisindan
+type ChartInterval = '1m' | '3m' | '5m' | '15m' | '1h' | '4h' | '1d'
+const CHART_INTERVALS: readonly ChartInterval[] = ['1m', '3m', '5m', '15m', '1h', '4h', '1d']
 
 interface StrategyRow {
   magic: number
@@ -394,7 +394,7 @@ function OpenScoreCard({ count, unrealized, valueAtRisk }: { count: number; unre
 }
 
 const INTERVAL_SEC: Record<ChartInterval, number> = {
-  '3m': 3 * 60, '5m': 5 * 60, '15m': 15 * 60, '1h': 60 * 60, '4h': 4 * 60 * 60, '1d': 24 * 60 * 60,
+  '1m': 60, '3m': 3 * 60, '5m': 5 * 60, '15m': 15 * 60, '1h': 60 * 60, '4h': 4 * 60 * 60, '1d': 24 * 60 * 60,
 }
 
 // Elle zonlar (paralel sistemin elle_zones'u, /api/elle-zones): gecerli olanlarin hepsi grafikte bant. Dakikada bir
@@ -490,11 +490,11 @@ async function prefetchCandles(cache: Map<string, Candle[]>, current: string) {
   }
 }
 
-// Quote'un grafik zamani. Her dilim kendi mumlariyla ayni saatte: 3m paralel sistemin mumlari, gercek UTC (quote'un
-// sunucu saatinden); eski bakicinin mumlari (5m-1d) MetaApi'nin time'iyla (Axi kis saatindeyken bir saat erken,
-// lib/axiTime.ts). 3m'de de time kullanilsaydi kisin quote son mumdan eski sayilir, olusan mum canli islenmezdi.
+// Quote'un grafik zamani. Her dilim kendi mumlariyla ayni saatte: 1m ve 3m paralel sistemin mumlari, gercek UTC
+// (quote'un sunucu saatinden); eski bakicinin mumlari (5m-1d) MetaApi'nin time'iyla (Axi kis saatindeyken bir saat erken,
+// lib/axiTime.ts). 1m/3m'de de time kullanilsaydi kisin quote son mumdan eski sayilir, olusan mum canli islenmezdi.
 const quoteChartTime = (q: Price, interval: ChartInterval) =>
-  toLocalTime(Math.floor((interval === '3m' ? quoteUtcMs(q.time, q.brokerTime) : Date.parse(q.time)) / 1000))
+  toLocalTime(Math.floor((interval === '1m' || interval === '3m' ? quoteUtcMs(q.time, q.brokerTime) : Date.parse(q.time)) / 1000))
 
 // Grafik sol uca bu kadar mum kala daha eski mumlari ister (geriye kaydirma)
 const OLDER_EDGE_BARS = 30
@@ -566,7 +566,7 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
       // olcegi kapatmasin); yatay kaydirma ve iki parmakla yakinlastirma grafikte.
       handleScroll: { vertTouchDrag: false },
       width: container.clientWidth || 600,
-      height: isMobile ? 240 : 420,
+      height: isMobile ? 240 : 630, // masaustunde 1,5 kat (Ari, 18 Kasim; once 420)
     })
     const series = chart.addCandlestickSeries({
       upColor: '#4ade80', downColor: '#f87171',
@@ -1919,7 +1919,7 @@ export default function LivePositionsPage() {
         }
       `}} />
 
-      <div className="container" style={{ paddingTop: 24 }}>
+      <div className="container container-wide" style={{ paddingTop: 24 }}>
         <div className="live-section-title">LIVE POSITIONS</div>
 
         {/* Genel tarih filtresi */}
