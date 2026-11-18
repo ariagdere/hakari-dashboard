@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import pool from '@/lib/db'
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const { id } = params
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const result = await pool.query(
     `SELECT * FROM btc_analysis WHERE id = $1`,
     [id]
@@ -22,8 +22,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   return NextResponse.json(row)
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const { id } = params
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const body = await req.json()
   const { notes } = body
   await pool.query(

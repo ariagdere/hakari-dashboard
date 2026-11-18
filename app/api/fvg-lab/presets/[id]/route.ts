@@ -3,9 +3,9 @@ import pool from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = Number(params.id)
+    const id = Number((await params).id)
     if (!Number.isFinite(id)) {
       return NextResponse.json({ error: 'Geçersiz id' }, { status: 400 })
     }

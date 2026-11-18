@@ -12,8 +12,8 @@ function calculateRR(entry: number | null, sl: number | null, tp: number | null)
   return Number((reward / risk).toFixed(2));
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const orderId = params.id;
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const orderId = (await params).id;
   if (!/^\d+$/.test(orderId)) {
     return NextResponse.json({ error: 'Geçersiz order id' }, { status: 400 });
   }

@@ -19,7 +19,8 @@ const ERRORS: Record<string, string> = {
 // Kendi giris formumuz (tarayicinin Basic Auth kutusu yerine). Duz HTML form POST'u + autocomplete
 // alanlari: Chrome / Safari sifre yoneticileri formu tanir, kaydeder ve doldurur. JS gerektirmez.
 // Gonderim /api/auth/login'e gider; basarida istenen sayfaya, hatada buraya ?error= ile doner.
-export default function LoginPage({ searchParams }: { searchParams: { next?: string; error?: string; out?: string } }) {
+export default async function LoginPage(props: { searchParams: Promise<{ next?: string; error?: string; out?: string }> }) {
+  const searchParams = await props.searchParams
   const next = safeNextPath(searchParams.next)
   const configured = isBasicAuthConfigured()
   const errorKey = !configured ? 'config' : searchParams.error
