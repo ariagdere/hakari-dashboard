@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { createChart, ColorType, IChartApi, IPriceLine, ISeriesApi, LineStyle } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, IPriceLine, ISeriesApi, LineStyle, type LogicalRange } from 'lightweight-charts'
 import {
   Chart as ChartJS, Tooltip, LineElement, PointElement,
   LinearScale, CategoryScale, Filler, Legend,
@@ -15,6 +15,7 @@ import NewsBox from '@/components/NewsBox'
 import OrderPanel, { ChartPick, OrderDraft } from '@/components/OrderPanel'
 import { attachLevelInteractions, LevelTarget, PickKind } from '@/lib/chartLevelInteractions'
 import { applyQuoteToBar } from '@/lib/formingCandle'
+import { quoteUtcMs } from '@/lib/axiTime'
 import { snapToBar } from '@/lib/chartMarkers'
 import { ElleZoneLayer, type ElleZone } from '@/lib/elleZoneLayer'
 import { PositionLayer, type ChartPosition } from '@/lib/positionLayer'
@@ -65,7 +66,7 @@ interface Order {
   remaining_volume?: number | null // MT5'teki pozisyonun guncel hacmi (akis hazirsa)
 }
 
-interface Price { bid: number; ask: number; time: string }
+interface Price { bid: number; ask: number; time: string; brokerTime?: string }
 interface AccountInfo { balance: number; currency: string }
 
 interface Stats {
@@ -450,6 +451,22 @@ function toChartPosition(o: Order, quote: Price | null): ChartPosition | null {
 type ElleZoneInfo = { configured: boolean; zones: ElleZone[]; error: string | null }
 const fmtZone = (z: ElleZone) => `#${z.id} ${Math.round(z.lo)}–${Math.round(z.hi)}`
 
+// Geriye kaydirmada bir istekte gelen mum; hata olursa bu sure yeniden istenmez
+const OLDER_PAGE = 1000
+const OLDER_RETRY_MS = 10_000
+
+// Tazelenen son mumlar + onbellekte bunlardan once kalanlar (geriye kaydirarak yuklenmis ya da pencereden kaymis
+// eskiler). Onceki veri tazelenen pencereye ulasmiyorsa (orn. sekme uzun sure uykudaydi) arada bosluk kalmasin diye
+// eskiler atilir.
+function withOlder(prev: Candle[] | undefined, fresh: Candle[]): Candle[] {
+  if (!prev || prev.length === 0 || fresh.length === 0) return fresh
+  const first = fresh[0].time
+  if (prev[prev.length - 1].time < first) return fresh
+  let n = 0
+  while (n < prev.length && prev[n].time < first) n++
+  return n === 0 ? fresh : prev.slice(0, n).concat(fresh)
+}
+
 // Diger zaman dilimlerinin mumlarini arka planda sirayla bir kez ceker: ilk dilim gecisi de
 // aninda olsun. Hata onemsiz (gecis aninda zaten cekilir).
 async function prefetchCandles(cache: Map<string, Candle[]>, current: string) {
@@ -464,13 +481,23 @@ async function prefetchCandles(cache: Map<string, Candle[]>, current: string) {
   }
 }
 
-function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, height, showZones, tvView }: {
+// Quote'un grafik zamani. Her dilim kendi mumlariyla ayni saatte: 3m paralel sistemin mumlari, gercek UTC (quote'un
+// sunucu saatinden); eski bakicinin mumlari (5m-1d) MetaApi'nin time'iyla (Axi kis saatindeyken bir saat erken,
+// lib/axiTime.ts). 3m'de de time kullanilsaydi kisin quote son mumdan eski sayilir, olusan mum canli islenmezdi.
+const quoteChartTime = (q: Price, interval: ChartInterval) =>
+  toLocalTime(Math.floor((interval === '3m' ? quoteUtcMs(q.time, q.brokerTime) : Date.parse(q.time)) / 1000))
+
+// Grafik sol uca bu kadar mum kala daha eski mumlari ister (geriye kaydirma)
+const OLDER_EDGE_BARS = 30
+
+function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, height, showZones, tvView, onNeedOlder }: {
   candles: Candle[]; selectedOrders: Order[]; interval: ChartInterval; quote: Price | null
   showZones: boolean
   tvView: boolean
   draft: OrderDraft | null
   onPick?: (target: LevelTarget, price: number, kind: PickKind, final: boolean) => void
   height?: number
+  onNeedOlder?: () => void
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
@@ -486,6 +513,8 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
   draftRef.current = draft
   const onPickRef = useRef(onPick)
   onPickRef.current = onPick
+  const onNeedOlderRef = useRef(onNeedOlder)
+  onNeedOlderRef.current = onNeedOlder
   const levelsRef = useRef<ReturnType<typeof attachLevelInteractions> | null>(null)
   const [coarsePointer, setCoarsePointer] = useState(false)
   const didInitialZoom = useRef(false)
@@ -525,6 +554,12 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
     positionLayerRef.current = positionLayer
     chartRef.current = chart
     seriesRef.current = series
+    // Geriye kaydirma: gorunen aralik ilk mumlara yaklasinca daha eski mumlar istenir (ust bilesen basa ekler; gorunum
+    // ayni mumlarda kalir -- sola eklenen mumlar sag kenara gore konumu degistirmez). Dilim degisirken (yeni dilimin
+    // ilk gorunumu kurulana kadar) eski dilimin kaydirilmis gorunumu yeni dilim icin istek actirmasin.
+    chart.timeScale().subscribeVisibleLogicalRangeChange((r: LogicalRange | null) => {
+      if (r && r.from < OLDER_EDGE_BARS && didInitialZoom.current) onNeedOlderRef.current?.()
+    })
     setCoarsePointer(typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches)
 
     // Emir paneli acikken: secili SL/TP'ye grafikten fiyat yazma ve cizgileri surukleme
@@ -626,7 +661,7 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
       lastBarRef.current = { ...localCandles[localCandles.length - 1] }
       const q = latestQuoteRef.current
       if (q) {
-        const bar = applyQuoteToBar(lastBarRef.current, q.bid, toLocalTime(Math.floor(Date.parse(q.time) / 1000)), INTERVAL_SEC[interval])
+        const bar = applyQuoteToBar(lastBarRef.current, q.bid, quoteChartTime(q, interval), INTERVAL_SEC[interval])
         if (bar) {
           seriesRef.current.update(bar as any)
           lastBarRef.current = bar
@@ -637,6 +672,7 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
         const total = localCandles.length
         chartRef.current?.timeScale().setVisibleLogicalRange({ from: Math.max(0, total - visibleCount), to: total })
         didInitialZoom.current = true
+        if (total - visibleCount < OLDER_EDGE_BARS) onNeedOlderRef.current?.() // az mumla acildi: gecmis hemen istenir
       }
     }
   }, [candles])
@@ -648,8 +684,7 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
     const series = seriesRef.current
     const last = lastBarRef.current
     if (!series || !last || !quote) return
-    const quoteTime = toLocalTime(Math.floor(Date.parse(quote.time) / 1000))
-    const bar = applyQuoteToBar(last, quote.bid, quoteTime, INTERVAL_SEC[interval])
+    const bar = applyQuoteToBar(last, quote.bid, quoteChartTime(quote, interval), INTERVAL_SEC[interval])
     if (!bar) return
     series.update(bar as any)
     lastBarRef.current = bar
@@ -822,7 +857,7 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
       {unplacedMarkers.length > 0 && (
         <div data-testid="unplaced-markers" className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 6 }}>
           {tvView
-            ? `Bu dilimin mumlarından önce kapanmış, grafikte görünmüyor: ${unplacedMarkers.join(', ')} (daha geniş bir dilim seç)`
+            ? `Yüklü mumlardan önce kapanmış, grafikte görünmüyor: ${unplacedMarkers.join(', ')} (grafiği geriye kaydır ya da daha geniş bir dilim seç)`
             : `Grafikte bu zamanlara ait mum yok, işaret konmadı: ${unplacedMarkers.join(', ')}`}
         </div>
       )}
@@ -1254,7 +1289,7 @@ export default function LivePositionsPage() {
     const onHello = ((e: MessageEvent) => {
       try {
         const d = JSON.parse(e.data)
-        if (d.lastQuote && typeof d.lastQuote.bid === 'number') setPrice({ bid: d.lastQuote.bid, ask: d.lastQuote.ask, time: d.lastQuote.time })
+        if (d.lastQuote && typeof d.lastQuote.bid === 'number') setPrice({ bid: d.lastQuote.bid, ask: d.lastQuote.ask, time: d.lastQuote.time, brokerTime: d.lastQuote.brokerTime })
         if (d.account && typeof d.account.balance === 'number') setAccountInfo({ balance: d.account.balance, currency: d.account.currency })
       } catch {}
     }) as EventListener
@@ -1263,7 +1298,7 @@ export default function LivePositionsPage() {
         const q = JSON.parse(e.data)
         if (typeof q.bid === 'number' && typeof q.ask === 'number') {
           streamQuoteAtRef.current = Date.now()
-          setPrice({ bid: q.bid, ask: q.ask, time: q.time })
+          setPrice({ bid: q.bid, ask: q.ask, time: q.time, brokerTime: q.brokerTime })
         }
       } catch {}
     }) as EventListener
@@ -1343,8 +1378,47 @@ export default function LivePositionsPage() {
   // dilim degisince grafik aninda cizilir, arkadan tazelenir; ilk yuklemeden sonra diger dilimler
   // arka planda bir kez cekilir. Sunucu verisi geride kaldiysa (X-Candles-Stale) 3 sn sonra,
   // hata olursa 5 sn sonra tekrar denenir. Istekler zincirleme (setTimeout) -- ust uste binmez.
+  // Grafik geriye kaydirilinca daha eski mumlar sayfa sayfa eklenir (loadOlderCandles).
   const candleCacheRef = useRef<Map<string, Candle[]>>(new Map())
   const candlePrefetchedRef = useRef(false)
+  const chartIntervalRef = useRef(chartInterval)
+  chartIntervalRef.current = chartInterval
+  // Geriye kaydirma (grafik sol uca yaklasinca): dilimin ilk mumundan onceki 1000 mum basa eklenir ve dilimin
+  // onbelleginde kalir; dakikalik tazeleme son mumlari bunlarin ustune ekler (withOlder). start: sunucu daha eski mum
+  // olmadigini soylediginde grafigin ilk mumu (gecmisin basi).
+  const olderRef = useRef<Map<string, { busy: boolean; failedAt: number; start: number | null }>>(new Map())
+  const loadOlderCandles = useCallback(async () => {
+    const tf = chartIntervalRef.current
+    const cur = candleCacheRef.current.get(tf)
+    if (!cur || cur.length === 0) return
+    let st = olderRef.current.get(tf)
+    if (!st) {
+      st = { busy: false, failedAt: 0, start: null }
+      olderRef.current.set(tf, st)
+    }
+    if (st.busy || (st.start !== null && cur[0].time <= st.start) || Date.now() - st.failedAt < OLDER_RETRY_MS) return
+    st.busy = true
+    try {
+      const res = await fetch(`/api/axi-candles?interval=${tf}&before=${cur[0].time}&limit=${OLDER_PAGE}`, { cache: 'no-store' })
+      const body = await res.json().catch(() => null)
+      if (!res.ok || !body || !Array.isArray(body.candles)) {
+        st.failedAt = Date.now()
+        return
+      }
+      const latest = candleCacheRef.current.get(tf) ?? []
+      const first = latest.length > 0 ? latest[0].time : Infinity
+      const older = (body.candles as Candle[]).filter((c) => c.time < first)
+      const merged = older.length > 0 ? older.concat(latest) : latest
+      if (!body.more && merged.length > 0) st.start = merged[0].time
+      if (older.length === 0) return
+      candleCacheRef.current.set(tf, merged)
+      if (chartIntervalRef.current === tf) setCandles(merged)
+    } catch {
+      st.failedAt = Date.now()
+    } finally {
+      st.busy = false
+    }
+  }, [])
   useEffect(() => {
     let active = true
     let timer: ReturnType<typeof setTimeout> | null = null
@@ -1361,7 +1435,8 @@ export default function LivePositionsPage() {
       try {
         const res = await fetch(`/api/axi-candles?interval=${chartInterval}`, { cache: 'no-store' })
         if (res.ok) {
-          const data: Candle[] = await res.json()
+          const fresh: Candle[] = await res.json()
+          const data = withOlder(candleCacheRef.current.get(chartInterval), fresh)
           candleCacheRef.current.set(chartInterval, data)
           next = res.headers.get('x-candles-stale') ? 3000 : 60000
           if (active) {
@@ -1844,6 +1919,7 @@ export default function LivePositionsPage() {
             draft={orderPanelOpen ? orderDraft : null}
             onPick={orderPanelOpen ? handleChartPick : undefined}
             height={isMobile ? (orderPanelOpen ? orderChartHeight : 240) : undefined}
+            onNeedOlder={loadOlderCandles}
           />
           <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8 }}>
             Select a position from the table below to view its zones and entry/exit markers

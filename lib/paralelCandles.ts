@@ -2,7 +2,8 @@
 // mumlar. Resmi son dakikadan sonraki dakikalar paralel core'un fiyat akisindan (sdl_bars, dakika sinirinda kapanir).
 // SDL v3 elle zon stratejisi de kararini bu mumlarla veriyor; grafik onun gordugu mumu gosterir. Eski sistemin mum
 // bakicisina (MetaApi'den 5m-1d) yeni dilim eklenmez, MetaApi'ye ek istek gitmez.
-// Donus formati /api/axi-candles ile ayni (time = acilis, UTC saniye), son 1000 mum (olusan mum dahil).
+// Donus formati /api/axi-candles ile ayni (time = acilis, UTC saniye), son 1000 mum (olusan mum dahil); grafik geriye
+// kaydirilinca daha eskileri sayfa sayfa (getOlder3mCandles).
 import { AXI_SYMBOL } from './axiMarket'
 import { paralelDb } from './paralelDb'
 
@@ -42,6 +43,42 @@ async function load(): Promise<Result> {
   )
   // Olusan mumu istemci canli fiyatla gunceller; dakikalik tazeleme yeter, 'stale' isareti kullanilmaz.
   return { candles: rows.slice(-LIMIT).map((r) => ({ time: Number(r.t), open: r.o, high: r.h, low: r.l, close: r.c })), stale: false }
+}
+
+// Geriye kaydirma: `before`dan (bir 3m mumun acilisi, UTC saniye; haric) onceki ~limit adet 3m mum, eskiden yeniye;
+// yalniz resmi 1m mumlardan. Alt sinir 3*limit'inci onceki 1m mumun dilim basi: bosluklu araliklarda da her istek
+// geriye ilerler ve ilk mum eksik kalmaz. more: daha eski 1m mum var mi. null: PARALEL_DATABASE_URL tanimli degil.
+export async function getOlder3mCandles(before: number, limit: number): Promise<{ candles: Candle3m[]; more: boolean } | null> {
+  const db = paralelDb()
+  if (!db) return null
+  const { rows } = await db.query<{ t: string; o: number; h: number; l: number; c: number; more: boolean }>(
+    `WITH lim AS (
+       SELECT open_time FROM axi_candles
+        WHERE symbol = $1 AND timeframe = '1m' AND open_time < to_timestamp($2)
+        ORDER BY open_time DESC OFFSET $3 LIMIT 1
+     ),
+     lo AS (
+       SELECT COALESCE((SELECT to_timestamp(floor(extract(epoch FROM open_time) / ${STEP_SEC}) * ${STEP_SEC}) FROM lim),
+                       '-infinity') AS t
+     ),
+     b AS (
+       SELECT (floor(extract(epoch FROM a.open_time) / ${STEP_SEC}) * ${STEP_SEC})::bigint AS t,
+              (array_agg(a.open ORDER BY a.open_time))[1] AS o, max(a.high) AS h, min(a.low) AS l,
+              (array_agg(a.close ORDER BY a.open_time DESC))[1] AS c
+         FROM axi_candles a, lo
+        WHERE a.symbol = $1 AND a.timeframe = '1m' AND a.open_time < to_timestamp($2) AND a.open_time >= lo.t
+        GROUP BY 1
+     )
+     SELECT b.t::text AS t, b.o, b.h, b.l, b.c,
+            EXISTS (SELECT 1 FROM axi_candles x, lo
+                     WHERE x.symbol = $1 AND x.timeframe = '1m' AND x.open_time < lo.t) AS more
+       FROM b ORDER BY b.t`,
+    [AXI_SYMBOL, before, limit * 3 - 1],
+  )
+  return {
+    candles: rows.map((r) => ({ time: Number(r.t), open: Number(r.o), high: Number(r.h), low: Number(r.l), close: Number(r.c) })),
+    more: rows.length > 0 && rows[0].more,
+  }
 }
 
 // null: PARALEL_DATABASE_URL tanimli degil.

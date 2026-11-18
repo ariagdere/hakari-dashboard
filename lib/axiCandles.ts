@@ -234,6 +234,42 @@ async function dbLoad(tf: Timeframe): Promise<StoredCandle[] | null> {
   }
 }
 
+// /live grafiginde geriye kaydirma: `before`dan (UTC saniye, haric) onceki en fazla `limit` mum, eskiden yeniye.
+// Yalniz DB'deki gecmisten; MetaApi'ye istek gitmez. more: daha eski mum var mi. null: DB kullanilamiyor.
+export async function getOlderAxiCandles(
+  tf: Timeframe,
+  before: number,
+  limit: number,
+): Promise<{ candles: ChartCandle[]; more: boolean } | null> {
+  if (!dbAvailable()) return null
+  try {
+    const { rows } = await pool.query(
+      `SELECT open_time, open, high, low, close FROM candles
+        WHERE symbol = $1 AND interval = $2 AND open_time < $3
+        ORDER BY open_time DESC
+        LIMIT $4`,
+      [AXI_DB_SYMBOL, tf, before * 1000, limit + 1],
+    )
+    globals().dbError = null
+    return {
+      candles: rows
+        .slice(0, limit)
+        .reverse()
+        .map((r) => ({
+          time: Math.floor(Number(r.open_time) / 1000),
+          open: Number(r.open),
+          high: Number(r.high),
+          low: Number(r.low),
+          close: Number(r.close),
+        })),
+      more: rows.length > limit,
+    }
+  } catch (err) {
+    dbFailed(err)
+    return null
+  }
+}
+
 // Tek sorguda toplu upsert; yalnizca degisen satirlar yazilir.
 async function dbSave(tf: Timeframe, candles: StoredCandle[]): Promise<void> {
   if (candles.length === 0 || !dbAvailable()) return
