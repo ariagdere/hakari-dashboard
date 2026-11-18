@@ -18,6 +18,9 @@ import { applyQuoteToBar } from '@/lib/formingCandle'
 import { quoteUtcMs } from '@/lib/axiTime'
 import { snapToBar } from '@/lib/chartMarkers'
 import { ElleZoneLayer, type ElleZone } from '@/lib/elleZoneLayer'
+import { attachZoneEditor, type EditMode } from '@/lib/zoneEditor'
+import { ZONE_DEFAULT_BREAKS_FROM, zoneConflicts, zoneWarnings, type ZoneRule } from '@/lib/zoneRules'
+import { ZonePanel } from '@/components/ZonePanel'
 import { PositionLayer, type ChartPosition } from '@/lib/positionLayer'
 
 ChartJS.register(Tooltip, LineElement, PointElement, LinearScale, CategoryScale, Filler, Legend)
@@ -394,9 +397,15 @@ const INTERVAL_SEC: Record<ChartInterval, number> = {
   '3m': 3 * 60, '5m': 5 * 60, '15m': 15 * 60, '1h': 60 * 60, '4h': 4 * 60 * 60, '1d': 24 * 60 * 60,
 }
 
-// Elle zonlar (paralel sistemin elle_zones'u, /api/elle-zones): gecerli olanlarin hepsi grafikte bant. Zonlar nadiren
-// degisir; 5 dakikada bir okunur.
-const ELLE_ZONES_REFRESH_MS = 5 * 60_000
+// Elle zonlar (paralel sistemin elle_zones'u, /api/elle-zones): gecerli olanlarin hepsi grafikte bant. Dakikada bir
+// okunur (Piyasa grafiginden eklenen ya da duzenlenen zon en gec 1 dakikada gorunur); buradan kaydedince hemen.
+// Zon ekleme / duzenleme (Ari, 18 Kasim): "Zon ekle" ile grafikte cizilir, numarasina tiklanan zon duzenlenir ya da
+// pasife alinir (lib/zoneEditor.ts, components/ZonePanel.tsx); kayit paralel web'in API'sine gider (lib/paralelZones.ts).
+const ELLE_ZONES_REFRESH_MS = 60_000
+const ZONE_MAGNET_PREF = 'live.zoneMagnet'
+const DEFAULT_BREAKS_DAY = new Date(Date.parse(ZONE_DEFAULT_BREAKS_FROM) + 3 * 3_600_000).toISOString().slice(0, 10) // Istanbul gunu
+type ZoneEdit = { mode: EditMode; first: number | null; draft: { lo: number; hi: number } | null; editId: number | null }
+const ZONE_OFF: ZoneEdit = { mode: 'off', first: null, draft: null, editId: null }
 const ELLE_ZONES_PREF = 'live.elleZones'
 // Secili islemler TradingView pozisyon araci gibi mi (kutu) yoksa eski gorunum mu (tam genislik cizgiler ve isaretler)
 const TV_VIEW_PREF = 'live.tvView'
@@ -448,7 +457,7 @@ function toChartPosition(o: Order, quote: Price | null): ChartPosition | null {
     result,
   }
 }
-type ElleZoneInfo = { configured: boolean; zones: ElleZone[]; error: string | null }
+type ElleZoneInfo = { configured: boolean; editable: boolean; zones: ElleZone[]; error: string | null }
 const fmtZone = (z: ElleZone) => `#${z.id} ${Math.round(z.lo)}–${Math.round(z.hi)}`
 
 // Geriye kaydirmada bir istekte gelen mum; hata olursa bu sure yeniden istenmez
@@ -490,7 +499,7 @@ const quoteChartTime = (q: Price, interval: ChartInterval) =>
 // Grafik sol uca bu kadar mum kala daha eski mumlari ister (geriye kaydirma)
 const OLDER_EDGE_BARS = 30
 
-function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, height, showZones, tvView, onNeedOlder }: {
+function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, height, showZones, tvView, onNeedOlder, zoneEdit, onZoneEdit }: {
   candles: Candle[]; selectedOrders: Order[]; interval: ChartInterval; quote: Price | null
   showZones: boolean
   tvView: boolean
@@ -498,6 +507,8 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
   onPick?: (target: LevelTarget, price: number, kind: PickKind, final: boolean) => void
   height?: number
   onNeedOlder?: () => void
+  zoneEdit: ZoneEdit
+  onZoneEdit: (z: ZoneEdit | ((prev: ZoneEdit) => ZoneEdit)) => void
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
@@ -515,6 +526,23 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
   onPickRef.current = onPick
   const onNeedOlderRef = useRef(onNeedOlder)
   onNeedOlderRef.current = onNeedOlder
+  const candlesRef = useRef(candles)
+  candlesRef.current = candles
+  // Zon ekleme / duzenleme: durum ust bilesende (arac cubugundaki dugme), panelin ayrintilari burada
+  const [zoneRule, setZoneRule] = useState<ZoneRule | null>(null)
+  const [editorZones, setEditorZones] = useState<ElleZone[] | null>(null) // paralelin API'sinden (kaydi o denetler)
+  const [zoneKeep, setZoneKeep] = useState<Set<number>>(new Set())
+  const [breaksFrom, setBreaksFrom] = useState(DEFAULT_BREAKS_DAY)
+  const [magnet, setMagnet] = useState(true)
+  const [zoneConfirm, setZoneConfirm] = useState<'save' | 'end' | null>(null)
+  const [zoneBusy, setZoneBusy] = useState(false)
+  const [zoneErr, setZoneErr] = useState<string | null>(null)
+  const [zoneMsg, setZoneMsg] = useState<string | null>(null)
+  const zoneView = useRef({ mode: zoneEdit.mode, first: zoneEdit.first, draft: zoneEdit.draft, magnet })
+  zoneView.current = { mode: draft ? 'off' : zoneEdit.mode, first: zoneEdit.first, draft: zoneEdit.draft, magnet }
+  const onZoneEditRef = useRef(onZoneEdit)
+  onZoneEditRef.current = onZoneEdit
+  const reloadZonesRef = useRef<() => Promise<void>>(async () => {})
   const levelsRef = useRef<ReturnType<typeof attachLevelInteractions> | null>(null)
   const [coarsePointer, setCoarsePointer] = useState(false)
   const didInitialZoom = useRef(false)
@@ -574,6 +602,26 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
       getLine: (target) => draftLinesRef.current[target],
       onPick: (target, price, kind, final) => onPickRef.current?.(target, price, kind, final),
     })
+    // Elle zon cizme ve duzenleme (emir paneli acikken kapali: getView 'off')
+    const zoneEditor = attachZoneEditor({
+      container,
+      getChart: () => chartRef.current,
+      getSeries: () => seriesRef.current,
+      getView: () => zoneView.current,
+      barAt: (x) => {
+        const lg = chartRef.current?.timeScale().coordinateToLogical(x)
+        const c = lg == null ? undefined : candlesRef.current[Math.round(lg)]
+        return c ? { o: c.open, h: c.high, l: c.low, c: c.close } : null
+      },
+      labelAt: (x, y) => (draftRef.current ? null : (zoneLayerRef.current?.labelAt(x, y) ?? null)),
+      onFirst: (price) => onZoneEditRef.current((z) => (z.mode === 'draw' ? { ...z, first: price } : z)),
+      onDraft: (lo, hi, final) =>
+        onZoneEditRef.current((z) => (z.mode === 'off' ? z : { ...z, mode: final ? 'adjust' : z.mode, first: null, draft: { lo, hi } })),
+      onSelect: (id) => {
+        const z = zoneLayerZones.current.find((x) => x.id === id)
+        if (z && !draftRef.current) onZoneEditRef.current({ mode: 'adjust', first: null, draft: { lo: z.lo, hi: z.hi }, editId: id })
+      },
+    })
 
     // Emir paneli acilip kapaninca pencere degil kutu daralir -- ResizeObserver ikisini de yakalar.
     const handleResize = () => {
@@ -588,6 +636,7 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
     requestAnimationFrame(handleResize)
 
     return () => {
+      zoneEditor.detach()
       levelsRef.current?.detach()
       levelsRef.current = null
       resizeObserver?.disconnect()
@@ -601,7 +650,7 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
     }
   }, [])
 
-  // Elle zonlar: acilista ve 5 dakikada bir
+  // Elle zonlar: acilista, dakikada bir ve buradan kaydedince
   useEffect(() => {
     let active = true
     const load = async () => {
@@ -609,12 +658,14 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
         const res = await fetch('/api/elle-zones', { cache: 'no-store' })
         const body = await res.json().catch(() => null)
         if (!active) return
-        if (res.ok && body) setZoneInfo({ configured: !!body.configured, zones: Array.isArray(body.zones) ? body.zones : [], error: null })
-        else setZoneInfo((prev) => ({ configured: true, zones: prev?.zones ?? [], error: body?.error ?? `HTTP ${res.status}` }))
+        if (res.ok && body)
+          setZoneInfo({ configured: !!body.configured, editable: !!body.editable, zones: Array.isArray(body.zones) ? body.zones : [], error: null })
+        else setZoneInfo((prev) => ({ configured: true, editable: prev?.editable ?? false, zones: prev?.zones ?? [], error: body?.error ?? `HTTP ${res.status}` }))
       } catch {
-        if (active) setZoneInfo((prev) => ({ configured: true, zones: prev?.zones ?? [], error: 'Bağlantı hatası' }))
+        if (active) setZoneInfo((prev) => ({ configured: true, editable: prev?.editable ?? false, zones: prev?.zones ?? [], error: 'Bağlantı hatası' }))
       }
     }
+    reloadZonesRef.current = load
     void load()
     const timer = setInterval(load, ELLE_ZONES_REFRESH_MS)
     return () => {
@@ -622,9 +673,180 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
       clearInterval(timer)
     }
   }, [])
+  const zoneLayerZones = useRef<ElleZone[]>([])
   useEffect(() => {
+    zoneLayerZones.current = zoneInfo?.zones ?? []
     zoneLayerRef.current?.setZones(zoneInfo?.zones ?? [])
   }, [zoneInfo])
+
+  // ─── Zon ekleme / duzenleme ───
+  const zoneActive = zoneEdit.mode !== 'off'
+  const ruleZones = editorZones ?? zoneInfo?.zones ?? []
+  const editZone = zoneEdit.editId === null ? null : (ruleZones.find((z) => z.id === zoneEdit.editId) ?? null)
+  const conflicts = useMemo(
+    () => (zoneEdit.draft && zoneRule ? zoneConflicts(ruleZones, zoneEdit.draft.lo, zoneEdit.draft.hi, zoneRule.threshold, zoneEdit.editId) : []),
+    [zoneEdit.draft, zoneEdit.editId, ruleZones, zoneRule],
+  )
+  const warnings = useMemo(
+    () => (zoneEdit.draft && zoneRule ? zoneWarnings(zoneEdit.draft.lo, zoneEdit.draft.hi, { ...zoneRule, price: quote?.bid ?? zoneRule.price }) : []),
+    [zoneEdit.draft, zoneRule, quote?.bid],
+  )
+  // Editor acilinca: paralelin API'sinden zonlar ve kurallar (cakisma esigi); kapaninca ayrintilar sifirlanir
+  const loadRule = useCallback(async () => {
+    try {
+      const res = await fetch('/api/elle-zones?kural=1', { cache: 'no-store' })
+      const body = await res.json().catch(() => null)
+      if (res.ok && body?.rule && Array.isArray(body.zones)) {
+        setZoneRule(body.rule)
+        setEditorZones(body.zones)
+        setZoneErr(null)
+      } else setZoneErr(body?.error ?? `Zon kuralları okunamadı (HTTP ${res.status})`)
+    } catch {
+      setZoneErr('Zon kuralları okunamadı (bağlantı)')
+    }
+  }, [])
+  useEffect(() => {
+    if (zoneActive) {
+      void loadRule()
+      setZoneMsg(null)
+    } else {
+      setZoneKeep(new Set())
+      setZoneConfirm(null)
+      setZoneErr(null)
+      setBreaksFrom(DEFAULT_BREAKS_DAY)
+    }
+  }, [zoneActive, loadRule])
+  useEffect(() => {
+    // baska bir zona gecince onay ve isaretler sifirlanir
+    setZoneKeep(new Set())
+    setZoneConfirm(null)
+  }, [zoneEdit.editId])
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(ZONE_MAGNET_PREF) === 'off') setMagnet(false)
+    } catch {
+      // varsayilan: acik
+    }
+  }, [])
+  const toggleMagnet = (on: boolean) => {
+    setMagnet(on)
+    try {
+      localStorage.setItem(ZONE_MAGNET_PREF, on ? 'on' : 'off')
+    } catch {
+      // yalniz bu sekmede
+    }
+  }
+  useEffect(() => {
+    zoneLayerRef.current?.setEdit(
+      zoneActive
+        ? {
+            hideId: zoneEdit.editId,
+            marks: new Map(conflicts.map((c) => [c.id, c.kind])),
+            draft: zoneEdit.draft,
+            first: zoneEdit.first,
+            label: zoneEdit.editId === null ? 'yeni' : `#${zoneEdit.editId}`,
+          }
+        : null,
+    )
+  }, [zoneActive, zoneEdit, conflicts])
+  useEffect(() => {
+    if (!zoneMsg) return
+    const t = setTimeout(() => setZoneMsg(null), 10_000)
+    return () => clearTimeout(t)
+  }, [zoneMsg])
+
+  const postZone = async (url: string, body?: unknown) => {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    })
+    return { res, body: (await res.json().catch(() => null)) as any }
+  }
+  const afterZoneWrite = async (msg: string) => {
+    setZoneMsg(msg)
+    onZoneEdit(ZONE_OFF)
+    setEditorZones(null)
+    await reloadZonesRef.current()
+  }
+  const saveZone = async () => {
+    const d = zoneEdit.draft
+    if (!d || !zoneRule || zoneBusy) return
+    if (zoneConfirm !== 'save' && (zoneEdit.editId !== null || conflicts.length > 0 || warnings.length > 0)) {
+      setZoneConfirm('save')
+      return
+    }
+    setZoneBusy(true)
+    setZoneErr(null)
+    try {
+      const { res, body } = await postZone('/api/elle-zones', {
+        lo: d.lo,
+        hi: d.hi,
+        editId: zoneEdit.editId,
+        seen: conflicts.map((c) => c.id),
+        end: conflicts.filter((c) => !zoneKeep.has(c.id)).map((c) => c.id),
+        breaksFrom: zoneEdit.editId === null ? new Date(`${breaksFrom}T00:00:00+03:00`).toISOString() : null,
+      })
+      if (!res.ok) {
+        setZoneConfirm(null)
+        setZoneErr(String(body?.error ?? `HTTP ${res.status}`))
+        if (res.status === 404 || res.status === 409) await loadRule()
+        return
+      }
+      const ended: number[] = body.ended ?? []
+      await afterZoneWrite(`#${body.zone.id} eklendi${ended.length ? `; ${ended.map((x) => `#${x}`).join(', ')} pasife alındı` : ''}. SDL en geç 1 dakikada görür.`)
+    } catch (err: any) {
+      setZoneConfirm(null)
+      setZoneErr(`Kaydedilemedi: ${err?.message ?? err}`)
+    } finally {
+      setZoneBusy(false)
+    }
+  }
+  const endZoneNow = async () => {
+    const id = zoneEdit.editId
+    if (id === null || zoneBusy) return
+    if (zoneConfirm !== 'end') {
+      setZoneConfirm('end')
+      return
+    }
+    setZoneBusy(true)
+    setZoneErr(null)
+    try {
+      const { res, body } = await postZone(`/api/elle-zones/${id}/kapat`)
+      if (!res.ok) {
+        setZoneConfirm(null)
+        setZoneErr(String(body?.error ?? `HTTP ${res.status}`))
+        if (res.status === 404) await loadRule()
+        return
+      }
+      await afterZoneWrite(`#${id} pasife alındı. SDL en geç 1 dakikada görür.`)
+    } catch (err: any) {
+      setZoneConfirm(null)
+      setZoneErr(`Pasife alınamadı: ${err?.message ?? err}`)
+    } finally {
+      setZoneBusy(false)
+    }
+  }
+  const zoneKeyRef = useRef({ zoneEdit, zoneConfirm, saveZone, endZoneNow })
+  zoneKeyRef.current = { zoneEdit, zoneConfirm, saveZone, endZoneNow }
+  useEffect(() => {
+    if (!zoneActive) return
+    const onKey = (e: KeyboardEvent) => {
+      const k = zoneKeyRef.current
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        if (k.zoneConfirm) setZoneConfirm(null)
+        else onZoneEditRef.current(ZONE_OFF)
+      } else if (e.key === 'Enter' && !(e.target instanceof HTMLButtonElement)) {
+        if (k.zoneConfirm === 'end') void k.endZoneNow()
+        else if (k.zoneEdit.mode === 'adjust') void k.saveZone()
+        else return
+        e.preventDefault()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [zoneActive])
   useEffect(() => {
     zoneLayerRef.current?.setVisible(showZones)
   }, [showZones])
@@ -846,7 +1068,49 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
   }
   return (
     <div style={{ position: 'relative' }}>
-      <div ref={containerRef} style={{ width: '100%', touchAction: 'manipulation' }} />
+      <div
+        ref={containerRef}
+        className={zoneEdit.mode === 'draw' && !draft ? 'zone-draw' : undefined}
+        style={{ width: '100%', touchAction: zoneEdit.mode === 'draw' && !draft ? 'none' : 'manipulation' }}
+      />
+      {zoneActive && !draft && (
+        <ZonePanel
+          mode={zoneEdit.mode === 'draw' ? 'draw' : 'adjust'}
+          editId={zoneEdit.editId}
+          editZone={editZone}
+          first={zoneEdit.first}
+          draft={zoneEdit.draft}
+          rule={zoneRule}
+          conflicts={conflicts}
+          keep={zoneKeep}
+          warnings={warnings}
+          breaksFrom={breaksFrom}
+          magnet={magnet}
+          confirm={zoneConfirm}
+          busy={zoneBusy}
+          error={zoneErr ?? (zoneEdit.editId !== null && editorZones && !editZone ? `#${zoneEdit.editId} artık geçerli değil` : null)}
+          onDraft={(lo, hi) => onZoneEdit((z) => ({ ...z, draft: { lo, hi } }))}
+          onKeep={(id, keep) =>
+            setZoneKeep((prev) => {
+              const next = new Set(prev)
+              if (keep) next.add(id)
+              else next.delete(id)
+              return next
+            })
+          }
+          onBreaksFrom={setBreaksFrom}
+          onMagnet={toggleMagnet}
+          onSave={() => void saveZone()}
+          onEnd={() => void endZoneNow()}
+          onBack={() => setZoneConfirm(null)}
+          onCancel={() => onZoneEdit(ZONE_OFF)}
+        />
+      )}
+      {zoneMsg && !zoneActive && (
+        <div data-testid="zone-msg" className="mono" role="status" style={{ fontSize: 11, color: 'var(--green)', marginTop: 6 }}>
+          {zoneMsg}
+        </div>
+      )}
       {zoneNote && (
         <div data-testid="elle-zones-note" className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 6 }}>
           {zoneNote}
@@ -1104,6 +1368,19 @@ export default function LivePositionsPage() {
   // Emir paneli (grafigin sagi) ve paneldeki SL/TP taslagi (grafikte kesikli cizgi). Panel bir kez
   // acildiktan sonra kapatilinca DOM'dan kalkmaz, gizlenir: yoldaki emir istegi ve sonucu kaybolmaz.
   const [orderPanelOpen, setOrderPanelOpen] = useState(false)
+  // Elle zon ekleme / duzenleme (grafikte; emir paneliyle ayni anda acik olmaz)
+  const [zoneEdit, setZoneEdit] = useState<ZoneEdit>(ZONE_OFF)
+  useEffect(() => {
+    if (orderPanelOpen) setZoneEdit(ZONE_OFF)
+  }, [orderPanelOpen])
+  const toggleZoneTool = () => {
+    if (zoneEdit.mode !== 'off') {
+      setZoneEdit(ZONE_OFF)
+      return
+    }
+    if (!showZones) toggleZones()
+    setZoneEdit({ mode: 'draw', first: null, draft: null, editId: null })
+  }
   const [orderPanelMounted, setOrderPanelMounted] = useState(false)
   const [orderDraft, setOrderDraft] = useState<OrderDraft | null>(null)
   // Grafikten gelen SL/TP fiyati (tiklama / surukleme) -> panel; seq her olayda artar
@@ -1585,6 +1862,9 @@ export default function LivePositionsPage() {
         .live-chart-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; margin-bottom: 16px; }
         .lc-pick * { cursor: crosshair !important; }
         .lc-line-hover *, .lc-dragging * { cursor: ns-resize !important; }
+        .zone-draw * { cursor: crosshair !important; }
+        .zone-edge-hover *, .zone-dragging * { cursor: ns-resize !important; }
+        .zone-label-hover * { cursor: pointer !important; }
         .live-chart-row.with-panel { grid-template-columns: minmax(0, 1fr) 340px; }
         /* Makro bias + haber satiri */
         .live-macro-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 8px; margin-bottom: 16px; }
@@ -1884,6 +2164,16 @@ export default function LivePositionsPage() {
                 Elle zonlar
               </button>
               <button
+                className={`filter-btn${zoneEdit.mode !== 'off' ? ' active' : ''}`}
+                style={{ fontSize: 10, padding: '2px 10px' }}
+                aria-pressed={zoneEdit.mode !== 'off'}
+                onClick={toggleZoneTool}
+                disabled={orderPanelOpen}
+                title={orderPanelOpen ? 'Emir paneli açıkken zon çizilemez' : 'Grafikte yeni elle zon çiz; düzenlemek için zonun numarasına tıkla'}
+              >
+                {zoneEdit.mode === 'off' ? '+ Zon ekle' : 'Zon çizimini kapat'}
+              </button>
+              <button
                 className={`filter-btn${tvView ? ' active' : ''}`}
                 style={{ fontSize: 10, padding: '2px 10px' }}
                 aria-pressed={tvView}
@@ -1918,6 +2208,8 @@ export default function LivePositionsPage() {
             onPick={orderPanelOpen ? handleChartPick : undefined}
             height={isMobile ? (orderPanelOpen ? orderChartHeight : 240) : undefined}
             onNeedOlder={loadOlderCandles}
+            zoneEdit={zoneEdit}
+            onZoneEdit={setZoneEdit}
           />
           <div className="mono" style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 8 }}>
             Select a position from the table below to view its zones and entry/exit markers
