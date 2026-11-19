@@ -460,6 +460,30 @@ function toChartPosition(o: Order, quote: Price | null): ChartPosition | null {
     result,
   }
 }
+// Secili SDL bekleyen kurulumu TV gorunumunde: henuz girilmemis planlanan pozisyon (dolmamis emir gibi soluk, kesik
+// kenarli), FVG'nin 1. mumundan sag kenara. Giris tetikte (short bid, long ask); SL ≈ simdiye kadarki igneden; lot ve
+// risk o girisle (paralelin SDL sayfasindaki gibi). Tetik ayrica kesik fiyat cizgisi.
+function setupToChartPosition(s: SdlPendingRow, i: number): ChartPosition | null {
+  const risk = Math.abs(s.entry - s.sl)
+  if (!(risk > 0)) return null
+  const long = s.side === 'LONG'
+  const vol = s.volume
+  return {
+    id: -(i + 1),
+    long,
+    entry: s.entry,
+    sl: s.sl,
+    tp: s.tp,
+    start: toLocalTime(Math.floor(s.fvgA / 1000)),
+    end: null,
+    filled: false,
+    exit: null,
+    idLabel: `FVG ${hhmm(s.fvgA)} ${long ? 'L' : 'S'} bekleyen`,
+    tpLabel: `TP ${vol != null ? `${fmtSignedUsd(Math.abs(s.tp - s.entry) * vol)} · ` : ''}1:${s.rr.toFixed(2)}`,
+    slLabel: vol != null ? `SL ≈ ${fmtSignedUsd(-(s.riskUsd ?? risk * vol))}` : 'SL ≈ · işlem yok (lot)',
+    result: null,
+  }
+}
 type ElleZoneInfo = { configured: boolean; editable: boolean; zones: ElleZone[]; error: string | null }
 const fmtZone = (z: ElleZone) => `#${z.id} ${Math.round(z.lo)}–${Math.round(z.hi)}`
 
@@ -972,16 +996,19 @@ function LiveChart({ candles, selectedOrders, setups, interval, quote, draft, on
     priceLinesRef.current.forEach((pl) => series.removePriceLine(pl))
     priceLinesRef.current = []
 
-    // Secili SDL bekleyen kurulumlari (iki gorunumde de): tetik kesik, SL ≈ ve TP noktali cizgi
+    // Secili SDL bekleyen kurulumlari: tetik kesik cizgi; SL ≈ ve TP noktali cizgi (TV gorunumunde bunlar kutuda,
+    // eksende yalniz etiket)
     setups.forEach((s) => {
       const tag = `${s.side === 'SHORT' ? 'S' : 'L'} ${hhmm(s.fvgA)}`
       const lines = [
-        { price: s.trigger, color: '#fbbf24', title: `Tetik ${tag}`, style: LineStyle.Dashed },
-        { price: s.sl, color: '#f87171', title: `SL≈ ${tag}`, style: LineStyle.Dotted },
-        { price: s.tp, color: '#4ade80', title: `TP ${tag}`, style: LineStyle.Dotted },
+        { price: s.trigger, color: '#fbbf24', title: `Tetik ${tag}`, style: LineStyle.Dashed, visible: true },
+        { price: s.sl, color: '#f87171', title: tvView ? '' : `SL≈ ${tag}`, style: LineStyle.Dotted, visible: !tvView },
+        { price: s.tp, color: '#4ade80', title: tvView ? '' : `TP ${tag}`, style: LineStyle.Dotted, visible: !tvView },
       ]
       lines.forEach((l) => {
-        priceLinesRef.current.push(series.createPriceLine({ price: l.price, color: l.color, lineWidth: 1, lineStyle: l.style, axisLabelVisible: true, title: l.title }))
+        priceLinesRef.current.push(series.createPriceLine({
+          price: l.price, color: l.color, lineWidth: 1, lineStyle: l.style, lineVisible: l.visible, axisLabelVisible: true, title: l.title,
+        }))
       })
     })
 
@@ -1060,13 +1087,18 @@ function LiveChart({ candles, selectedOrders, setups, interval, quote, draft, on
     series.setMarkers(markers)
   }, [selectedOrders, setups, candles, interval, tvView])
 
-  // TradingView gorunumunde secili islemlerin kutulari; acik islemin sonucu canli fiyatla
+  // TradingView gorunumunde secili islemlerin kutulari; acik islemin sonucu canli fiyatla. Secili SDL bekleyen
+  // kurulumlari planlanan pozisyon olarak (soluk, kesik kenarli).
   useEffect(() => {
     const layer = positionLayerRef.current
     if (!layer) return
     layer.setVisible(tvView)
-    layer.setPositions(tvView ? selectedOrders.map((o) => toChartPosition(o, quote)).filter((x): x is ChartPosition => x !== null) : [])
-  }, [selectedOrders, quote, tvView])
+    layer.setPositions(
+      tvView
+        ? [...selectedOrders.map((o) => toChartPosition(o, quote)), ...setups.map(setupToChartPosition)].filter((x): x is ChartPosition => x !== null)
+        : [],
+    )
+  }, [selectedOrders, setups, quote, tvView])
 
   const pickHint = draftPick && onPick
     ? `${draftPick === 'sl' ? 'SL' : 'TP'}: fiyata ${coarsePointer ? 'dokun' : 'tıkla'} · çizgiyi sürükle`
