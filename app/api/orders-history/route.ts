@@ -1,6 +1,6 @@
 import pool from '@/lib/db';
 import { NextResponse } from 'next/server';
-import { ORDER_TIME_JOIN, RED_FOLDER_JOINS, RED_FOLDER_COLUMNS } from '@/lib/orderContext';
+import { ORDER_TIME_JOIN, RED_FOLDER_JOINS, RED_FOLDER_COLUMNS, BIAS_JOIN, BIAS_COLUMNS } from '@/lib/orderContext';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -16,10 +16,12 @@ export async function GET() {
         o.created_at, o.opened_at, o.closed_at,
         o.h1_ls_angle, o.m5_ls_angle, o.h1_tt_pos_angle, o.m5_tt_pos_angle,
         ${RED_FOLDER_COLUMNS},
+        ${BIAS_COLUMNS},
         a.win_probability_v6, a.win_probability_v6_reverse, a.analyzed_at, a.rr AS analysis_rr
       FROM orders o
       ${ORDER_TIME_JOIN}
       ${RED_FOLDER_JOINS}
+      ${BIAS_JOIN}
       LEFT JOIN btc_analysis a ON a.id = o.analysis_id
       WHERE o.status IN ('CLOSED', 'CANCELED')
       ORDER BY o.closed_at DESC NULLS LAST
