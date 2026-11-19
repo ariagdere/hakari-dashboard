@@ -10,6 +10,8 @@ import { Line } from 'react-chartjs-2'
 import EditableSlTp from '@/components/EditableSlTp'
 import EditableStrategyLabel from '@/components/EditableStrategyLabel'
 import StrategyRules from '@/components/StrategyRules'
+import SdlPendingCard, { hhmm, useSdlPending } from '@/components/SdlPendingCard'
+import type { SdlPendingRow } from '@/lib/sdlPending'
 import LsrAnglePanel from '@/components/LsrAnglePanel'
 import MacroBiasCard from '@/components/MacroBiasCard'
 import NewsBox from '@/components/NewsBox'
@@ -500,8 +502,9 @@ const quoteChartTime = (q: Price, interval: ChartInterval) =>
 // Grafik sol uca bu kadar mum kala daha eski mumlari ister (geriye kaydirma)
 const OLDER_EDGE_BARS = 30
 
-function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, height, showZones, tvView, onNeedOlder, zoneEdit, onZoneEdit }: {
+function LiveChart({ candles, selectedOrders, setups, interval, quote, draft, onPick, height, showZones, tvView, onNeedOlder, zoneEdit, onZoneEdit }: {
   candles: Candle[]; selectedOrders: Order[]; interval: ChartInterval; quote: Price | null
+  setups: SdlPendingRow[] // secili SDL bekleyen kurulumlari: tetik, SL ≈, TP cizgileri ve FVG isareti
   showZones: boolean
   tvView: boolean
   draft: OrderDraft | null
@@ -969,7 +972,40 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
     priceLinesRef.current.forEach((pl) => series.removePriceLine(pl))
     priceLinesRef.current = []
 
-    // TradingView gorunumu: kutular katmanda (asagida); fiyat ekseninde yalniz etiketler, isaret yok.
+    // Secili SDL bekleyen kurulumlari (iki gorunumde de): tetik kesik, SL ≈ ve TP noktali cizgi
+    setups.forEach((s) => {
+      const tag = `${s.side === 'SHORT' ? 'S' : 'L'} ${hhmm(s.fvgA)}`
+      const lines = [
+        { price: s.trigger, color: '#fbbf24', title: `Tetik ${tag}`, style: LineStyle.Dashed },
+        { price: s.sl, color: '#f87171', title: `SL≈ ${tag}`, style: LineStyle.Dotted },
+        { price: s.tp, color: '#4ade80', title: `TP ${tag}`, style: LineStyle.Dotted },
+      ]
+      lines.forEach((l) => {
+        priceLinesRef.current.push(series.createPriceLine({ price: l.price, color: l.color, lineWidth: 1, lineStyle: l.style, axisLabelVisible: true, title: l.title }))
+      })
+    })
+
+    const barTimes = candles.map((c) => toLocalTime(c.time))
+    // Canli fiyattan olusan mum (henuz sunucu verisinde yok) da sayilir: yeni acilan islem hemen gorunsun
+    const formingTime = lastBarRef.current?.time
+    if (typeof formingTime === 'number' && (barTimes.length === 0 || formingTime > barTimes[barTimes.length - 1])) barTimes.push(formingTime)
+    const stepSec = INTERVAL_SEC[interval]
+    const markers: any[] = []
+    const notPlaced: string[] = []
+    const pushMarker = (iso: string, label: string, marker: Record<string, unknown>) => {
+      const time = snapToBar(barTimes, toLocalTime(Math.floor(new Date(iso).getTime() / 1000)), stepSec)
+      if (time != null) markers.push({ ...marker, time })
+      else notPlaced.push(label)
+    }
+    // Kurulumun FVG'si: 1. mumuna isaret (short'ta boga FVG mumun ustunde, long'da ayi FVG altinda)
+    setups.forEach((s) => {
+      pushMarker(new Date(s.fvgA).toISOString(), `FVG ${hhmm(s.fvgA)}`, {
+        position: s.side === 'SHORT' ? 'aboveBar' : 'belowBar', color: '#fbbf24', shape: 'square', text: `FVG ${hhmm(s.fvgA)}`,
+      })
+    })
+
+    // TradingView gorunumu: kutular katmanda (asagida); fiyat ekseninde yalniz etiketler, isaret yok
+    // (secili kurulumlarin FVG isareti haric).
     if (tvView) {
       const notShown: string[] = []
       const first = candles.length ? toLocalTime(candles[0].time) : null
@@ -983,7 +1019,7 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
         if (first !== null && end !== null && end < first) notShown.push(`#${o.id}`)
       })
       setUnplacedMarkers((prev) => (prev.join('|') === notShown.join('|') ? prev : notShown))
-      series.setMarkers([])
+      series.setMarkers([...markers].sort((a, b) => (a.time as number) - (b.time as number)))
       return
     }
 
@@ -1004,19 +1040,7 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
     // zamanlarina bakiyoruz (UTC yuvarlamasi degil) -- Axi'nin 4h/1d mumlari broker saatine
     // hizali acildigi icin (orn. 21:00Z) UTC'ye yuvarlanan zaman hicbir mumla eslesmezdi.
     // Olay hicbir mumun suresine dusmuyorsa (veri boslugu / grafik disi) isaret konmaz ve
-    // grafigin altinda belirtilir -- eskiden bosluktan onceki son muma oturuyordu.
-    const barTimes = candles.map((c) => toLocalTime(c.time))
-    // Canli fiyattan olusan mum (henuz sunucu verisinde yok) da sayilir: yeni acilan islem hemen gorunsun
-    const formingTime = lastBarRef.current?.time
-    if (typeof formingTime === 'number' && (barTimes.length === 0 || formingTime > barTimes[barTimes.length - 1])) barTimes.push(formingTime)
-    const stepSec = INTERVAL_SEC[interval]
-    const markers: any[] = []
-    const notPlaced: string[] = []
-    const pushMarker = (iso: string, label: string, marker: Record<string, unknown>) => {
-      const time = snapToBar(barTimes, toLocalTime(Math.floor(new Date(iso).getTime() / 1000)), stepSec)
-      if (time != null) markers.push({ ...marker, time })
-      else notPlaced.push(label)
-    }
+    // grafigin altinda belirtilir -- eskiden bosluktan onceki son muma oturuyordu. (pushMarker yukarida)
     selectedOrders.forEach((o) => {
       const isBuy = isLong(o.direction)
       if (o.created_at) {
@@ -1034,7 +1058,7 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
     const nextUnplaced = candles.length > 0 ? notPlaced : []
     setUnplacedMarkers((prev) => (prev.join('|') === nextUnplaced.join('|') ? prev : nextUnplaced))
     series.setMarkers(markers)
-  }, [selectedOrders, candles, interval, tvView])
+  }, [selectedOrders, setups, candles, interval, tvView])
 
   // TradingView gorunumunde secili islemlerin kutulari; acik islemin sonucu canli fiyatla
   useEffect(() => {
@@ -1143,6 +1167,139 @@ function LiveChart({ candles, selectedOrders, interval, quote, draft, onPick, he
 function SelectDot({ selected }: { selected: boolean }) {
   return (
     <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, border: '1px solid var(--border-3)', background: selected ? 'var(--blue)' : 'transparent' }} />
+  )
+}
+
+// Grafigin altindaki "OPEN & PENDING TRADES" bolumunun sol karti: su an acik pozisyonlar ve dolmamis emirler (orders-live),
+// tarih ve strateji filtrelerinden bagimsiz. Satira tiklayinca grafikte gosterilir (en alttaki tabloyla ayni secim).
+// Kar/zarar ve R canli fiyatla; kismen kapanmis pozisyonda kalan hacimle.
+function OpenPositionsCard({ orders, price, selectedIds, onToggle, loading }: {
+  orders: Order[]; price: Price | null; selectedIds: Set<number>; onToggle: (id: number) => void; loading: boolean
+}) {
+  const rows = orders
+    .filter((o) => o.status === 'OPEN' || o.status === 'PENDING')
+    .sort((a, b) => {
+      if (a.status !== b.status) return a.status === 'OPEN' ? -1 : 1
+      return new Date(b.opened_at ?? b.created_at).getTime() - new Date(a.opened_at ?? a.created_at).getTime()
+    })
+  const now = Date.now()
+  const live = (o: Order) => {
+    const vol = getDisplayVolume(o)
+    const entry = o.fill_price ?? o.entry_price
+    const dist = o.sl != null ? Math.abs(entry - o.sl) : 0
+    const riskUsd = dist > 0 ? dist * vol : null
+    const pnl = o.status === 'OPEN' && price ? calcPnL(o, price.bid, price.ask, vol) : null
+    return { vol, entry, riskUsd, pnl, r: pnl != null && riskUsd ? pnl / riskUsd : null }
+  }
+  const open = rows.filter((o) => o.status === 'OPEN').map(live)
+  const totalPnl = price && open.length ? open.reduce((s, x) => s + (x.pnl ?? 0), 0) : null
+  const totalRisk = open.reduce((s, x) => s + (x.riskUsd ?? 0), 0)
+  const since = (o: Order) => {
+    const t = o.status === 'OPEN' ? o.opened_at ?? o.created_at : o.created_at
+    return { at: fmtDate(t), mins: Math.max(0, (now - new Date(t).getTime()) / 60_000) }
+  }
+  const fmtR = (r: number | null) => (r == null ? '—' : `${r >= 0 ? '+' : ''}${r.toFixed(2)}R`)
+  const fmtPnl = (v: number | null) => (v == null ? '—' : `${v > 0 ? '+' : ''}${v.toFixed(2)}`)
+
+  return (
+    <div className="card" style={{ padding: 16, minWidth: 0 }} data-testid="open-positions">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+        <div className="col-label">AÇIK İŞLEMLER{rows.length > 0 ? ` · ${rows.length}` : ''}</div>
+        {open.length > 0 && (
+          <span className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>
+            PnL <span style={{ color: totalPnl != null ? moneyColor(totalPnl) : 'var(--text-3)' }}>{totalPnl != null ? fmtSignedUsd(totalPnl) : '—'}</span>
+            {' · '}VaR ${totalRisk.toFixed(2)}
+          </span>
+        )}
+      </div>
+      {rows.length === 0 ? (
+        <p className="mono" style={{ fontSize: 10, color: 'var(--text-3)' }}>{loading ? 'yükleniyor…' : 'Açık işlem ya da bekleyen emir yok.'}</p>
+      ) : (
+        <>
+          <div className="live-table-wrap">
+            <table className="op-table">
+              <thead>
+                <tr>
+                  <th style={{ width: 18 }} />
+                  <th>Strategy</th>
+                  <th>Status</th>
+                  <th>Dir</th>
+                  <th className="r">Vol</th>
+                  <th className="r">Giriş</th>
+                  <th className="r">SL</th>
+                  <th className="r">TP</th>
+                  <th className="r">Risk$</th>
+                  <th className="r">PnL ($)</th>
+                  <th className="r">R</th>
+                  <th>Açılış</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((o) => {
+                  const sel = selectedIds.has(o.id)
+                  const x = live(o)
+                  const s = since(o)
+                  return (
+                    <tr key={o.id} className={`op-row${sel ? ' selected' : ''}`} onClick={() => onToggle(o.id)} data-testid="open-position-row">
+                      <td><SelectDot selected={sel} /></td>
+                      <td style={{ color: 'var(--text-2)' }}>{o.strategy_label}</td>
+                      <td>{statusBadge(o.status)}</td>
+                      <td>{dirBadge(o.direction)}</td>
+                      <td className="r" style={{ color: 'var(--text-2)' }}>
+                        {x.vol}{o.status === 'OPEN' && x.vol < o.volume && <span style={{ color: 'var(--text-3)' }}>/{o.volume}</span>}
+                      </td>
+                      <td className="r" style={{ color: 'var(--text-2)' }}>{fmtPrice(x.entry)}</td>
+                      <td className="r" style={{ color: 'var(--red)' }}>{fmtPrice(o.sl)}</td>
+                      <td className="r" style={{ color: 'var(--green)' }}>{fmtPrice(o.tp)}</td>
+                      <td className="r" style={{ color: 'var(--text-2)' }}>{x.riskUsd != null ? `$${x.riskUsd.toFixed(2)}` : '—'}</td>
+                      <td className={`r ${x.pnl != null ? pnlClass(x.pnl) : ''}`}>{fmtPnl(x.pnl)}</td>
+                      <td className="r" style={{ color: x.r == null ? 'var(--text-3)' : moneyColor(x.r) }}>{fmtR(x.r)}</td>
+                      <td style={{ color: 'var(--text-3)' }}>
+                        {s.at}<span className="op-sub">{o.status === 'OPEN' ? fmtDuration(s.mins) : `emir · ${fmtDuration(s.mins)}`}</span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className="live-mobile-cards">
+            {rows.map((o) => {
+              const sel = selectedIds.has(o.id)
+              const x = live(o)
+              const s = since(o)
+              return (
+                <div key={o.id} className={`live-mcard${sel ? ' selected' : ''}`} onClick={() => onToggle(o.id)}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 8 }}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <SelectDot selected={sel} />
+                      {dirBadge(o.direction)}
+                      {statusBadge(o.status)}
+                    </div>
+                    <span className={`mono ${x.pnl != null ? pnlClass(x.pnl) : ''}`} style={{ fontSize: 13, fontWeight: 600 }}>
+                      {x.pnl != null ? fmtSignedUsd(x.pnl) : '—'}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-2)', fontFamily: 'DM Mono, monospace', marginBottom: 6 }}>{o.strategy_label}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, fontFamily: 'DM Mono, monospace', fontSize: 11 }}>
+                    <div><span className="col-label">Giriş </span><span style={{ color: 'var(--text-2)' }}>{fmtPrice(x.entry)}</span></div>
+                    <div><span className="col-label">SL </span><span style={{ color: 'var(--red)' }}>{fmtPrice(o.sl)}</span></div>
+                    <div><span className="col-label">TP </span><span style={{ color: 'var(--green)' }}>{fmtPrice(o.tp)}</span></div>
+                    <div><span className="col-label">Vol </span><span style={{ color: 'var(--text-2)' }}>{x.vol}</span></div>
+                    <div><span className="col-label">Risk$ </span><span style={{ color: 'var(--text-2)' }}>{x.riskUsd != null ? `$${x.riskUsd.toFixed(2)}` : '—'}</span></div>
+                    <div><span className="col-label">R </span><span style={{ color: x.r == null ? 'var(--text-3)' : moneyColor(x.r) }}>{fmtR(x.r)}</span></div>
+                    <div style={{ gridColumn: 'span 3' }}>
+                      <span className="col-label">{o.status === 'OPEN' ? 'Açılış ' : 'Emir '}</span>
+                      <span style={{ color: 'var(--text-3)' }}>{s.at} · {fmtDuration(s.mins)}</span>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </>
+      )}
+    </div>
   )
 }
 
@@ -1425,6 +1582,27 @@ export default function LivePositionsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  // SDL bekleyen kurulumlari (paralel): liste ve grafikte gosterilecek secili satirlar (anahtar `${side}-${fvgA}`)
+  const sdlPending = useSdlPending()
+  const [selectedSetupKeys, setSelectedSetupKeys] = useState<Set<string>>(new Set())
+  const toggleSetup = (key: string) => {
+    setSelectedSetupKeys((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key); else next.add(key)
+      return next
+    })
+  }
+  // Listeden cikan (donen, suresi dolan) kurulum secimden de duser
+  useEffect(() => {
+    const rows = sdlPending.data?.rows
+    if (!rows) return
+    setSelectedSetupKeys((prev) => {
+      if (prev.size === 0) return prev
+      const keys = new Set(rows.map((r) => r.key))
+      const next = new Set(Array.from(prev).filter((k) => keys.has(k)))
+      return next.size === prev.size ? prev : next
+    })
+  }, [sdlPending.data])
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'OPEN' | 'CLOSED' | 'CANCELED'>('ALL')
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 20
@@ -1803,6 +1981,11 @@ export default function LivePositionsPage() {
   // ayni tarih filtresine tabi.
   const stratRows = [...dateFilteredOrders, ...dateFilteredHistory].filter(matchStrategy)
   const selectedOrders = stratRows.filter((o) => selectedIds.has(o.id))
+  // Acik / bekleyen emirler filtrelerden bagimsiz (grafigin altindaki OPEN & PENDING listesi): secildiyse grafikte de
+  orders.forEach((o) => {
+    if (selectedIds.has(o.id) && !selectedOrders.some((x) => x.id === o.id)) selectedOrders.push(o)
+  })
+  const selectedSetups = (sdlPending.data?.rows ?? []).filter((r) => selectedSetupKeys.has(r.key))
 
   const filtered = stratRows.filter((o) => {
     if (statusFilter === 'ALL') return true
@@ -1858,6 +2041,18 @@ export default function LivePositionsPage() {
         .live-section-title { font-size: 11px; color: var(--text-3); letter-spacing: 0.08em; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-family: 'DM Mono', monospace; }
         .live-table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: 'DM Mono', monospace; }
         .live-table-wrap { overflow-x: auto; }
+        .live-op-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; margin-bottom: 16px; }
+        .op-table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: 'DM Mono', monospace; }
+        .op-table th { text-align: left; color: var(--text-3); font-weight: 400; padding: 0 10px 8px 0; white-space: nowrap; }
+        .op-table td { padding: 6px 10px 6px 0; border-top: 1px solid var(--border); white-space: nowrap; vertical-align: middle; }
+        .op-table .badge { font-size: 10px; padding: 2px 6px; }
+        .op-table th:last-child, .op-table td:last-child { padding-right: 0; }
+        .op-table .r { text-align: right; }
+        .op-row { cursor: pointer; }
+        .op-row:hover { background: #ffffff05; }
+        .op-row.selected { background: var(--bg-3); }
+        .op-sub { display: block; font-size: 10px; color: var(--text-3); white-space: normal; max-width: 260px; margin-top: 2px; }
+        @media (max-width: 1600px) { .live-op-grid { grid-template-columns: minmax(0, 1fr); } }
         .live-mobile-cards { display: none; }
         .live-date-input { background: var(--bg-3); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 10px; padding: 3px 8px; font-family: 'DM Mono', monospace; }
         .live-chart-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; margin-bottom: 16px; }
@@ -2146,6 +2341,7 @@ export default function LivePositionsPage() {
                 </span>
               )}
               {selectedOrders.length > 0 && <span style={{ color: 'var(--blue)', marginLeft: 8 }}>· {selectedOrders.length} selected</span>}
+              {selectedSetups.length > 0 && <span style={{ color: 'var(--amber)', marginLeft: 8 }}>· {selectedSetups.length} kurulum</span>}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               <button
@@ -2201,6 +2397,7 @@ export default function LivePositionsPage() {
           <LiveChart
             candles={candles}
             selectedOrders={selectedOrders}
+            setups={selectedSetups}
             interval={chartInterval}
             quote={price}
             showZones={showZones}
@@ -2226,6 +2423,13 @@ export default function LivePositionsPage() {
             onDraftChange={setOrderDraft}
           />
         )}
+        </div>
+
+        {/* Acik islemler (filtrelerden bagimsiz) + SDL'in sirada bekleyen kurulumlari; satira tiklayinca grafikte */}
+        <div className="live-section-title">OPEN &amp; PENDING TRADES</div>
+        <div className="live-op-grid">
+          <OpenPositionsCard orders={orders} price={price} selectedIds={selectedIds} onToggle={toggleSelect} loading={loading} />
+          <SdlPendingCard state={sdlPending} bid={price?.bid ?? null} selected={selectedSetupKeys} onToggle={toggleSetup} />
         </div>
 
         {/* LSR açı panelleri */}
