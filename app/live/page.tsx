@@ -60,6 +60,10 @@ interface Order {
   red_folder_same_day?: boolean | null
   red_folder_event_name?: string | null
   red_folder_hours_diff?: number | null
+  // Gunluk bias: order anindan once uretilmis son rapor (lib/orderContext.ts BIAS_JOIN)
+  bias?: 'LONG' | 'NEUTRAL' | 'SHORT' | null
+  bias_confidence?: 'LOW' | 'MEDIUM' | 'HIGH' | null
+  bias_report_at?: string | null
   position_size_btc: number | null
   win_probability_v6: number | null
   win_probability_v6_reverse: number | null
@@ -235,6 +239,24 @@ const redFolderTitle = (order: Order) => {
   if (!name) return 'Red Folder haberi'
   if (hd == null) return name
   return `${name} — ${Math.abs(hd).toFixed(1)}sa ${hd >= 0 ? 'sonra' : 'önce'}`
+}
+
+// Bias kolonu: order anindan once uretilmis son gunluk bias raporu (lib/orderContext.ts BIAS_JOIN; o gun rapor
+// yoksa ya da rapordan once acildiysa onceki gunun raporu -- o zaman soluk). Guven ve rapor ani tooltip'te.
+const istDayKey = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul', year: 'numeric', month: '2-digit', day: '2-digit' })
+const BIAS_CONFIDENCE_TR: Record<string, string> = { LOW: 'düşük', MEDIUM: 'orta', HIGH: 'yüksek' }
+function biasCell(order: Order) {
+  if (!order.bias || !order.bias_report_at) return <span style={{ color: 'var(--text-3)' }}>—</span>
+  const orderAt = Math.min(...[order.created_at, order.opened_at].filter((t): t is string => !!t).map((t) => new Date(t).getTime()))
+  const sameDay = istDayKey.format(new Date(order.bias_report_at)) === istDayKey.format(new Date(orderAt))
+  const conf = order.bias_confidence ? BIAS_CONFIDENCE_TR[order.bias_confidence] ?? order.bias_confidence : null
+  const color = order.bias === 'LONG' ? 'var(--green)' : order.bias === 'SHORT' ? 'var(--red)' : 'var(--text-3)'
+  const title = `Bias raporu ${fmtDate(order.bias_report_at)}${conf ? ` · güven ${conf}` : ''}${sameDay ? '' : ' · önceki günün raporu'}`
+  return (
+    <span className="mono" data-testid="order-bias" title={title} style={{ color, opacity: sameDay ? 1 : 0.5, cursor: 'help' }}>
+      {order.bias}
+    </span>
+  )
 }
 
 // Mutabakat notlari icin: LSR aci kolonlarinin kisa adlari ve order durumlari
@@ -2586,11 +2608,11 @@ export default function LivePositionsPage() {
             <>
               {/* Desktop table */}
               <div className="live-table-wrap">
-                <table className="live-table" style={{ minWidth: 1190 }}>
+                <table className="live-table" style={{ minWidth: 1250 }}>
                   <thead>
                     <tr>
                       <th style={{ width: 28, paddingBottom: 8 }} />
-                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Volume', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'Risk$', 'RR', 'PnL ($)', 'Gerç. R', '1h LS°', '5m LS°', '1h TT°', '5m TT°', 'RF'].map((h, i) => (
+                      {['Order Date', 'Entry Date', 'Close Date', 'Strategy', 'Status', 'Dir', 'Bias', 'Volume', 'Entry', 'Fill', 'Exit', 'SL', 'TP', 'Risk$', 'RR', 'PnL ($)', 'Gerç. R', '1h LS°', '5m LS°', '1h TT°', '5m TT°', 'RF'].map((h, i) => (
                         <th key={h} style={{ textAlign: i <= 3 ? 'left' : 'right', color: 'var(--text-3)', paddingBottom: 8, fontWeight: 400, whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
@@ -2616,6 +2638,7 @@ export default function LivePositionsPage() {
                           </td>
                           <td style={{ padding: '6px 0', textAlign: 'right' }}>{rowBadge(order)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right' }}>{dirBadge(order.direction)}</td>
+                          <td style={{ padding: '6px 0', textAlign: 'right' }}>{biasCell(order)}</td>
                           <td style={{ padding: '6px 0', textAlign: 'right', color: 'var(--text-2)' }}>
                             {partial ? (
                               <span data-testid="partial-volume" title={`${partial.closed} lot kısmen kapandı${partial.pnl != null ? ` (gerçekleşen ${fmtSignedUsd(partial.pnl)})` : ''}; kalan ${displayVolume} lot`} style={{ cursor: 'help' }}>
@@ -2678,6 +2701,7 @@ export default function LivePositionsPage() {
                           <SelectDot selected={selected} />
                           {dirBadge(order.direction)}
                           {rowBadge(order)}
+                          {order.bias && <span style={{ fontSize: 10 }}><span className="col-label">Bias </span>{biasCell(order)}</span>}
                         </div>
                         <span className={`mono ${pnl.cls}`} style={{ fontSize: 13, fontWeight: 600 }}>
                           {pnl.text === '—' ? '—' : `${pnl.text.startsWith('-') ? '-' : '+'}$${pnl.text.replace(/^[+-]/, '')}`}
