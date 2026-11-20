@@ -1,0 +1,137 @@
+{
+  "run_date": "2026-11-20",
+  "generated_at": "2026-11-20T03:47:22Z",
+  "net_direction": "Güçlü Negatif",
+  "sentiment_score": -72,
+  "change_24h": "kötüleşti",
+  "drivers": [
+    "Şahin Fed: Waller Aralık'ta 50bp artırımı ve geçen yılki indirimin geri alınmasını savundu, Musalem bahara kadar birkaç artırım bekliyor; FedWatch 8-9 Aralık için ~%95+ artırım fiyatlıyor.",
+    "Yüksek faiz/güçlü dolar: 10Y ~%5.05-5.08, 2Y ~%4.80-4.83 ile reel faizler sıkı; DXY ~103.8 ile 19 ayın zirvesinde, USD/JPY ~160.",
+    "Küresel risk-off: Anthropic halka arzının ardından AI hisselerinde ters dönüş ile SPX -%2.0, NDX -%2.2, VIX +%16 (~28.4); Cuma Asya'da Nikkei ~-%4.5, Kospi ~-%4.8.",
+    "Kripto akımları negatif: Spot BTC ETF'lerinde 18 Kasım'da -$306.5M çıkış (IBIT -$148.7M), Kasım toplamı ~-$2.89B; stablecoin arzı 30 günde ~-$14B daraldı, Fear & Greed 12."
+  ],
+  "developments": [
+    {
+      "item": "Waller: Aralık'ta 50bp artırım muhtemelen gerekli; Musalem: bahara kadar birkaç artırım; Williams 50bp'ye karşı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "FedWatch: Aralık artırımı ~%95+",
+      "impact": "Negatif"
+    },
+    {
+      "item": "İşsizlik başvuruları 203K (beklenti ~197K), devam eden başvurular 1.763M ile Ağustos sonundan beri en yüksek",
+      "impact": "Nötr"
+    },
+    {
+      "item": "10Y ~%5.05 (-2bp), 2Y ~%4.80-4.83; seviye yüksek, reel faizler sıkı",
+      "impact": "Negatif"
+    },
+    {
+      "item": "DXY ~103.8 ile 19 ayın zirvesinde, USD/JPY ~160",
+      "impact": "Negatif"
+    },
+    {
+      "item": "SPX -%2.02 ile 7,176 (6. düşüş günü, 2024'ten beri en uzun seri), 500 hissenin 464'ü düştü; Dow 50,000 altına indi",
+      "impact": "Negatif"
+    },
+    {
+      "item": "NDX -%2.21 ile 26,517; Nvidia -%3.3 ile erken %4.7'lik kazancını sildi, Anthropic ilk gün +%17 açılış sonrası AI satışına dönüştü",
+      "impact": "Negatif"
+    },
+    {
+      "item": "VIX +%15.8 ile ~28.4",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Altın ~-%2.5-3 ile ~$3,630-3,660, 14 ayın dibi; güvenli liman talebi yerine teminat satışı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Brent ~$92 yatay; enerji kaynaklı enflasyon riski sınırlı",
+      "impact": "Nötr"
+    },
+    {
+      "item": "Japonya çekirdek TÜFE %2.2 ile yılın zirvesi, BOJ Aralık artırım beklentisi güçlendi; yen carry tasfiyesi riski",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Cuma Asya: Nikkei ~-%4.5, Kospi ~-%4.8, çip hisselerinde sert satış",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Spot BTC ETF 18 Kas -$306.5M çıkış, Kasım toplamı ~-$2.89B",
+      "impact": "Negatif"
+    },
+    {
+      "item": "Stablecoin arzı 30 günde ~-$14.2B ile Haziran 2022'den beri en sert daralma",
+      "impact": "Negatif"
+    },
+    {
+      "item": "BTC 24s ~-%1.5 ile ~$62K, 7g ~-%13; ~$391M likidasyon, Fear & Greed 12",
+      "impact": "Negatif"
+    }
+  ],
+  "key_development": "Son saatlerin en etkili gelişmesi, Anthropic'in Nasdaq'taki ilk işlem gününde %17 yükselişle başlayan AI coşkusunun gün içinde sert bir satışa dönüşmesi oldu: Nvidia güçlü bilançoya rağmen erken kazancını silip %3.3 düştü, SPX altıncı gün üst üste gerileyerek %2 kaybetti ve VIX %16 sıçrayıp 28'in üzerine çıktı. Satış Cuma sabahı Asya'ya Nikkei ve Kospi'de ~%4.5-5'lik çöküşle taşındı; Japonya çekirdek enflasyonunun yılın zirvesine çıkması BOJ'un Aralık artırımı beklentisini güçlendirerek yen carry tasfiyesi riskini artırdı. Waller'ın 50bp çağrısıyla birleşince, sıkılaşan küresel para politikası ile çöken risk iştahı aynı anda BTC talebini baskılıyor.",
+  "divergence": "relative strength",
+  "divergence_note": "relative strength (zayıf): Hisseler %2+ ve Asya %4-5 düşerken VIX %16 sıçradığı halde BTC 24 saatte yalnızca ~%1.5 gerileyip $62K civarında tutundu; ancak bu, haftalık ~%13 düşüş ve süren ETF çıkışlarıyla zaten aşırı satılmış bir zeminden gelen göreli dayanıklılık, gerçek bir talep dönüşü sinyali değil.",
+  "liquidity_regime": "Sıkılaşıyor",
+  "risk_regime": "Risk-off",
+  "conclusion": "Şahin Fed ve 50bp riski, %5 üstü 10Y, 19 ayın zirvesindeki dolar, BOJ sıkılaşma beklentisi ve küresel hisse çöküşü aynı anda BTC talebini azaltıyor; ETF çıkışları ve daralan stablecoin arzı kripto likiditesini zayıflatıyor. Önümüzdeki 24-72 saatte makro yön aşağı; $60K altı test riski yüksek. Aşırı korku (F&G 12) ve hisselere göre dayanıklılık kısa tepki üretebilir, ancak makro tablo değişmeden kalıcı dönüş beklenmiyor.",
+  "bias": "SHORT",
+  "confidence": "Yüksek",
+  "raw_text": "BTC Makro Sentiment\n\nNet yön: Güçlü Negatif\n\nSentiment skoru: -72\n\nSon 24 saatte değişim: kötüleşti\n\nAna sürücüler:\n- Şahin Fed: Waller Aralık'ta 50bp artırımı ve geçen yılki indirimin geri alınmasını savundu, Musalem bahara kadar birkaç artırım bekliyor; FedWatch 8-9 Aralık için ~%95+ artırım fiyatlıyor.\n- Yüksek faiz/güçlü dolar: 10Y ~%5.05-5.08, 2Y ~%4.80-4.83 ile reel faizler sıkı; DXY ~103.8 ile 19 ayın zirvesinde, USD/JPY ~160.\n- Küresel risk-off: Anthropic halka arzının ardından AI hisselerinde ters dönüş ile SPX -%2.0, NDX -%2.2, VIX +%16 (~28.4); Cuma Asya'da Nikkei ~-%4.5, Kospi ~-%4.8.\n- Kripto akımları negatif: Spot BTC ETF'lerinde 18 Kasım'da -$306.5M çıkış (IBIT -$148.7M), Kasım toplamı ~-$2.89B; stablecoin arzı 30 günde ~-$14B daraldı, Fear & Greed 12.\n\nGelişme sınıflandırması:\n- Waller: Aralık'ta 50bp artırım muhtemelen gerekli; Musalem: bahara kadar birkaç artırım; Williams 50bp'ye karşı — Negatif\n- FedWatch: Aralık artırımı ~%95+ — Negatif\n- İşsizlik başvuruları 203K (beklenti ~197K), devam eden başvurular 1.763M ile Ağustos sonundan beri en yüksek — Nötr\n- 10Y ~%5.05 (-2bp), 2Y ~%4.80-4.83; seviye yüksek, reel faizler sıkı — Negatif\n- DXY ~103.8 ile 19 ayın zirvesinde, USD/JPY ~160 — Negatif\n- SPX -%2.02 ile 7,176 (6. düşüş günü, 2024'ten beri en uzun seri), 500 hissenin 464'ü düştü; Dow 50,000 altına indi — Negatif\n- NDX -%2.21 ile 26,517; Nvidia -%3.3 ile erken %4.7'lik kazancını sildi, Anthropic ilk gün +%17 açılış sonrası AI satışına dönüştü — Negatif\n- VIX +%15.8 ile ~28.4 — Negatif\n- Altın ~-%2.5-3 ile ~$3,630-3,660, 14 ayın dibi; güvenli liman talebi yerine teminat satışı — Nötr\n- Brent ~$92 yatay; enerji kaynaklı enflasyon riski sınırlı — Nötr\n- Japonya çekirdek TÜFE %2.2 ile yılın zirvesi, BOJ Aralık artırım beklentisi güçlendi; yen carry tasfiyesi riski — Negatif\n- Cuma Asya: Nikkei ~-%4.5, Kospi ~-%4.8, çip hisselerinde sert satış — Negatif\n- Spot BTC ETF 18 Kas -$306.5M çıkış, Kasım toplamı ~-$2.89B — Negatif\n- Stablecoin arzı 30 günde ~-$14.2B ile Haziran 2022'den beri en sert daralma — Negatif\n- BTC 24s ~-%1.5 ile ~$62K, 7g ~-%13; ~$391M likidasyon, Fear & Greed 12 — Negatif\n\nEn önemli yeni gelişme:\nSon saatlerin en etkili gelişmesi, Anthropic'in Nasdaq'taki ilk işlem gününde %17 yükselişle başlayan AI coşkusunun gün içinde sert bir satışa dönüşmesi oldu: Nvidia güçlü bilançoya rağmen erken kazancını silip %3.3 düştü, SPX altıncı gün üst üste gerileyerek %2 kaybetti ve VIX %16 sıçrayıp 28'in üzerine çıktı. Satış Cuma sabahı Asya'ya Nikkei ve Kospi'de ~%4.5-5'lik çöküşle taşındı; Japonya çekirdek enflasyonunun yılın zirvesine çıkması BOJ'un Aralık artırımı beklentisini güçlendirerek yen carry tasfiyesi riskini artırdı. Waller'ın 50bp çağrısıyla birleşince, sıkılaşan küresel para politikası ile çöken risk iştahı aynı anda BTC talebini baskılıyor.\n\nMakro uyumsuzluk kontrolü:\nrelative strength (zayıf): Hisseler %2+ ve Asya %4-5 düşerken VIX %16 sıçradığı halde BTC 24 saatte yalnızca ~%1.5 gerileyip $62K civarında tutundu; ancak bu, haftalık ~%13 düşüş ve süren ETF çıkışlarıyla zaten aşırı satılmış bir zeminden gelen göreli dayanıklılık, gerçek bir talep dönüşü sinyali değil.\n\nLikidite rejimi: Sıkılaşıyor\n\nRisk rejimi: Risk-off\n\nBTC için sonuç:\nŞahin Fed ve 50bp riski, %5 üstü 10Y, 19 ayın zirvesindeki dolar, BOJ sıkılaşma beklentisi ve küresel hisse çöküşü aynı anda BTC talebini azaltıyor; ETF çıkışları ve daralan stablecoin arzı kripto likiditesini zayıflatıyor. Önümüzdeki 24-72 saatte makro yön aşağı; $60K altı test riski yüksek. Aşırı korku (F&G 12) ve hisselere göre dayanıklılık kısa tepki üretebilir, ancak makro tablo değişmeden kalıcı dönüş beklenmiyor.\n\nVarlık güç sıralaması:\n1. VIX — 9/10 — ~28.4 ile günlük %16 sıçrayarak korkunun hızla arttığını gösterdi, haftalık bazda belirgin yükselişte (24s: +%15.8, 7g: +%40)\n2. DXY — 6.5/10 — ~103.8 ile 19 ayın zirvesinde yatay-yukarı seyrederek şahin Fed beklentisiyle gücünü korudu (24s: +%0.1, 7g: +%0.6)\n3. BRENT — 5/10 — ~$92 civarında yatay kaldı, haftalık hafif aşağı eğilimli (24s: +%0.1, 7g: -%1.5)\n4. SPX — 3/10 — 7,176 ile altıncı günlük düşüşünde %2 kaybedip 2024'ten beri en uzun düşüş serisini yaşadı (24s: -%2.02, 7g: -%4.5)\n5. BTC — 2.5/10 — ~$62K ile günlük kayıp hisselerden sınırlı kaldı ama haftalık bazda en sert düşenlerden (24s: -%1.5, 7g: -%13)\n6. NASDAQ — 2/10 — Nasdaq 100 AI ters dönüşüyle %2.2 düşüp günün dibinden kapandı, Kasım'ın en kötü ayı olma yolunda (24s: -%2.21, 7g: -%5.5)\n7. XAUUSD — 1.5/10 — Güçlü dolar ve faiz artırımı beklentileriyle 14 ayın dibine inip ~$3,650 altını gördü (24s: -%2.5, 7g: -%9)\n\nBTC Makro Bias: SHORT — Güven: Yüksek",
+  "asset_strength": [
+    {
+      "asset": "VIX",
+      "score": 9,
+      "reason": "~28.4 ile günlük %16 sıçrayarak korkunun hızla arttığını gösterdi, haftalık bazda belirgin yükselişte.",
+      "chg_24h_pct": 15.8,
+      "chg_7d_pct": 40
+    },
+    {
+      "asset": "DXY",
+      "score": 6.5,
+      "reason": "~103.8 ile 19 ayın zirvesinde yatay-yukarı seyrederek şahin Fed beklentisiyle gücünü korudu.",
+      "chg_24h_pct": 0.1,
+      "chg_7d_pct": 0.6
+    },
+    {
+      "asset": "BRENT",
+      "score": 5,
+      "reason": "~$92 civarında yatay kaldı, haftalık hafif aşağı eğilimli.",
+      "chg_24h_pct": 0.1,
+      "chg_7d_pct": -1.5
+    },
+    {
+      "asset": "SPX",
+      "score": 3,
+      "reason": "7,176 ile altıncı günlük düşüşünde %2 kaybedip 2024'ten beri en uzun düşüş serisini yaşadı.",
+      "chg_24h_pct": -2.02,
+      "chg_7d_pct": -4.5
+    },
+    {
+      "asset": "BTC",
+      "score": 2.5,
+      "reason": "~$62K ile günlük kayıp hisselerden sınırlı kaldı ama haftalık bazda en sert düşenlerden.",
+      "chg_24h_pct": -1.5,
+      "chg_7d_pct": -13
+    },
+    {
+      "asset": "NASDAQ",
+      "score": 2,
+      "reason": "Nasdaq 100 AI ters dönüşüyle %2.2 düşüp günün dibinden kapandı, Kasım'ın en kötü ayı olma yolunda.",
+      "chg_24h_pct": -2.21,
+      "chg_7d_pct": -5.5
+    },
+    {
+      "asset": "XAUUSD",
+      "score": 1.5,
+      "reason": "Güçlü dolar ve faiz artırımı beklentileriyle 14 ayın dibine inip ~$3,650 altını gördü.",
+      "chg_24h_pct": -2.5,
+      "chg_7d_pct": -9
+    }
+  ],
+  "model": "claude-opus-5-5",
+  "prompt_version": "v5"
+}
